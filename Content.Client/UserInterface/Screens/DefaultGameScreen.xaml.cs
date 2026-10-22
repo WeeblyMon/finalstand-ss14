@@ -3,6 +3,7 @@ using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.WaveHud;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Chat.Widgets;
+using Content.Client.UserInterface.Systems.Actions.Controls;
 using Content.Client.UserInterface.Systems.Actions.Widgets;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
 using Content.Client.UserInterface.Systems.Inventory;
@@ -26,6 +27,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
     private const float ActionBarTopMargin = 10f;
 
     private const int ActionColumns = ActionsBar.Columns;
+
+    private const float ClassicActionsGap = 10f;
 
     private const float BottomBandLift = 23f;
 
@@ -139,18 +142,29 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetAnchorAndMarginPreset(Alerts, LayoutPreset.TopRight, margin: 10);
         SetAnchorPreset(Chat, LayoutPreset.TopRight);
 
-        Actions.Orphan();
-        TopLeft.AddChild(Actions);
+        SetAnchorPreset(Actions, LayoutPreset.TopLeft);
+        SetGrowHorizontal(Actions, GrowDirection.End);
+        SetGrowVertical(Actions, GrowDirection.End);
         Actions.HorizontalAlignment = HAlignment.Left;
 
-        MainViewport.OnResized += ResizeClassicActions;
-        Inventory.OnResized += ResizeClassicActions;
+        MainViewport.OnResized += PlaceClassicActions;
+        Inventory.OnResized += PlaceClassicActions;
+        Hotbar.OnResized += PlaceClassicActions;
+        TopBar.OnResized += PlaceClassicActions;
+
+        PlaceClassicActions();
     }
 
-    private void ResizeClassicActions()
+    private void PlaceClassicActions()
     {
-        var indent = Inventory.Size.Y + TopBar.Size.Y + 40;
-        Actions.ActionsContainer.MaxGridHeight = MainViewport.Size.Y - indent;
+        var top = TopBar.Size.Y + ClassicActionsGap;
+        var reserved = MathF.Max(Hotbar.Size.Y, Inventory.Size.Y) + ClassicActionsGap;
+        var available = MainViewport.Size.Y - top - reserved;
+
+        SetMarginLeft(Actions, ClassicActionsGap);
+        SetMarginTop(Actions, top);
+
+        Actions.ActionsContainer.MaxGridHeight = MathF.Max(available, ActionButton.ClassicSlotSize);
     }
 
     public void SetRightStackLift(float lift)

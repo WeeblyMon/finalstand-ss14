@@ -1,0 +1,95 @@
+- type: constructionGraph
+  id: FSFloodlightRepair
+  start: start
+  graph:
+  - node: start
+    entity: FSFloodlightTallBroken
+    edges:
+    - to: panel
+      steps:
+      - tool: Screwing
+        doAfter: 2
+
+  - node: panel
+    entity: FSFloodlightTallBroken
+    edges:
+    - to: welding
+      steps:
+      - tool: Prying
+        doAfter: 2
+
+  - node: welding
+    entity: FSFloodlightTallBroken
+    edges:
+    - to: cabling
+      steps:
+      - tool: Welding
+        doAfter: 4
+
+  - node: cabling
+    entity: FSFloodlightTallBroken
+    edges:
+    - to: finish
+      steps:
+      - material: Cable
+        amount: 2
+        doAfter: 2
+
+  - node: finish
+    entity: FSFloodlightTallBroken
+    edges:
+    - to: completed
+      steps:
+      - tool: Screwing
+        doAfter: 2
+
+  - node: completed
+    entity: FSFloodlightTall
+
+- type: constructionGraph
+  id: FSStreetlightRepair
+  start: start
+  graph:
+  - node: start
+    entity: FSStreetlightBroken
+    edges:
+    - to: panel
+      steps:
+      - tool: Screwing
+        doAfter: 2
+
+  - node: panel
+    entity: FSStreetlightBroken
+    edges:
+    - to: welding
+      steps:
+      - tool: Prying
+        doAfter: 2
+
+  - node: welding
+    entity: FSStreetlightBroken
+    edges:
+    - to: cabling
+      steps:
+      - tool: Welding
+        doAfter: 4
+
+  - node: cabling
+    entity: FSStreetlightBroken
+    edges:
+    - to: finish
+      steps:
+      - material: Cable
+        amount: 2
+        doAfter: 2
+
+  - node: finish
+    entity: FSStreetlightBroken
+    edges:
+    - to: completed
+      steps:
+      - tool: Screwing
+        doAfter: 2
+
+  - node: completed
+    entity: FSStreetlight

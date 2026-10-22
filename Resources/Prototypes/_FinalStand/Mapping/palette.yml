@@ -1,0 +1,312 @@
+- type: fsMapPalette
+  id: FSPaletteGround
+  name: fs-palette-ground
+  root: true
+  order: 10
+  children:
+  - FSPaletteGroundRoad
+  - FSPaletteGroundWalk
+  - FSPaletteGroundPaving
+  - FSPaletteGroundRaw
+
+- type: fsMapPalette
+  id: FSPaletteGroundRoad
+  name: fs-palette-ground-road
+  order: 10
+  tiles:
+  - FSFloorRoad
+  - FSFloorRoadLines3
+  - FSFloorRoadLines4
+  - FSFloorRoadHazardRed
+  - FSFloorRoadHazardYellow
+
+- type: fsMapPalette
+  id: FSPaletteGroundWalk
+  name: fs-palette-ground-walk
+  order: 20
+  tiles:
+  - FSFloorWalkKerbN
+  - FSFloorWalkKerbS
+  - FSFloorWalkKerbW
+  - FSFloorWalkKerbE
+  - FSFloorWalkSidewalk
+  - FSFloorWalkSidewalkS
+  - FSFloorWalkSidewalkN
+  - FSFloorWalkSidewalkE
+  - FSFloorWalkSidewalkW
+  - FSFloorWalkSidewalkSE
+  - FSFloorWalkSidewalkSW
+  - FSFloorWalkSidewalkNE
+  - FSFloorWalkSidewalkNW
+  - FSFloorWalkSidewalkCornerNE
+  - FSFloorWalkSidewalkCornerNW
+  - FSFloorWalkSidewalkCornerSE
+  - FSFloorWalkSidewalkCornerSW
+
+- type: fsMapPalette
+  id: FSPaletteGroundPaving
+  name: fs-palette-ground-paving
+  order: 30
+  tiles:
+  - FSFloorPavingCementFlat
+  - FSFloorPavingRampN
+  - FSFloorPavingRampE
+  - FSFloorPavingRampS
+  - FSFloorPavingRampW
+  - FSFloorPavingStripeRedN
+  - FSFloorPavingStripeRedS
+  - FSFloorPavingStripeRedE
+  - FSFloorPavingStripeRedW
+  - FSFloorPavingNSPAEmblem
+  - FSFloorPavingNSPAEmblemNW
+  - FSFloorPavingNSPAEmblemNE
+  - FSFloorPavingNSPAEmblemSW
+  - FSFloorPavingNSPAEmblemSE
+  - FSFloorPavingMarshallEmblem
+  - FSFloorPavingMarshallEmblemNW
+  - FSFloorPavingMarshallEmblemNE
+  - FSFloorPavingMarshallEmblemSW
+  - FSFloorPavingMarshallEmblemSE
+  - FSFloorPavingCement
+  - FSFloorPavingCement2
+  - FSFloorPavingCement3
+
+- type: fsMapPalette
+  id: FSPaletteGroundRaw
+  name: fs-palette-ground-raw
+  order: 40
+  tiles:
+  - FSFloorGroundDirt
+  - FSFloorGroundShale
+  - FSFloorGroundShale2
+  - FSFloorGroundShale3
+  - FSFloorGroundUnderfloor
+
+- type: fsMapPalette
+  id: FSPaletteFloors
+  name: fs-palette-floors
+  root: true
+  order: 20
+  children:
+  - FSPaletteFloorsMetal
+  - FSPaletteFloorsSoft
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetal
+  name: fs-palette-floors-metal
+  order: 10
+  children:
+  - FSPaletteFloorsMetalBeige
+  - FSPaletteFloorsMetalBlack
+  - FSPaletteFloorsMetalBlue
+  - FSPaletteFloorsMetalBrown
+  - FSPaletteFloorsMetalGreen
+  - FSPaletteFloorsMetalRed
+  - FSPaletteFloorsMetalWhite
+  - FSPaletteFloorsMetalYellow
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetalBeige
+  name: fs-palette-floors-metal-beige
+  order: 10
+  tiles:
+  - FSFloorTileBeige
+  - FSFloorTileBeigeCheck
+  - FSFloorTileBeigeCheckAlt
+  - FSFloorTileBeigeLight
+  - FSFloorTileBeigeBig
+  - FSFloorTileBeigeBigLight
+  - FSFloorTileBeigeSupermart
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetalBlack
+  name: fs-palette-floors-metal-black
+  order: 20
+  tiles:
+  - FSFloorTileBlack
+  - FSFloorTileGrey
+  - FSFloorTileBlackAlt
+  - FSFloorTileDarkGrey
+  - FSFloorTileBlackShiny
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetalBlue
+  name: fs-palette-floors-metal-blue
+  order: 30
+  tiles:
+  - FSFloorTileBlueFull
+  - FSFloorTileBlue
+  - FSFloorTileBlueCheck
+  - FSFloorTileBlueSupermart
+  - FSFloorTileBlueS
+  - FSFloorTileBlueN
+  - FSFloorTileBlueE
+  - FSFloorTileBlueW
+  - FSFloorTileBlueSE
+  - FSFloorTileBlueSW
+  - FSFloorTileBlueNE
+  - FSFloorTileBlueNW
+  - FSFloorTileBlueCornerSE
+  - FSFloorTileBlueCornerNE
+  - FSFloorTileBlueCornerNW
+  - FSFloorTileBlueCornerSW
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetalBrown
+  name: fs-palette-floors-metal-brown
+  order: 40
+  tiles:
+  - FSFloorTileBrown
+  - FSFloorTileBrown1
+  - FSFloorTileBrown2
+  - FSFloorTileBrown3
+  - FSFloorTileBrown4
+  - FSFloorTileBrown5
+  - FSFloorTileBrown6
+  - FSFloorTileBrown7
+  - FSFloorTileBrown8
+  - FSFloorTileBrownCorner1
+  - FSFloorTileBrownCorner2
+  - FSFloorTileBrownCorner3
+  - FSFloorTileBrownCorner4
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetalGreen
+  name: fs-palette-floors-metal-green
+  order: 50
+  tiles:
+  - FSFloorTileGreenMetal
+  - FSFloorTileGreen
+  - FSFloorTileGreenMetal1
+  - FSFloorTileGreenMetal2
+  - FSFloorTileGreenMetal3
+  - FSFloorTileGreenMetal4
+  - FSFloorTileGreenMetal5
+  - FSFloorTileGreenMetal6
+  - FSFloorTileGreenMetal7
+  - FSFloorTileGreenMetal8
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetalRed
+  name: fs-palette-floors-metal-red
+  order: 60
+  tiles:
+  - FSFloorTileRedMetal
+  - FSFloorTileRedMetalCafe
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetalWhite
+  name: fs-palette-floors-metal-white
+  order: 70
+  tiles:
+  - FSFloorTileWhite
+  - FSFloorTileWhiteCheck
+  - FSFloorTileWhiteFull
+
+- type: fsMapPalette
+  id: FSPaletteFloorsMetalYellow
+  name: fs-palette-floors-metal-yellow
+  order: 80
+  tiles:
+  - FSFloorTileYellow
+  - FSFloorTileOrangeLine1
+  - FSFloorTileOrangeLine2
+  - FSFloorTileOrangeLine3
+  - FSFloorTileOrangeLine4
+  - FSFloorTileOrangeLine5
+  - FSFloorTileOrangeLine6
+  - FSFloorTileOrangeLine7
+  - FSFloorTileOrangeLine8
+  - FSFloorTileOrangeLineCorner1
+  - FSFloorTileOrangeLineCorner2
+  - FSFloorTileOrangeLineCorner3
+  - FSFloorTileOrangeLineCorner4
+
+- type: fsMapPalette
+  id: FSPaletteFloorsSoft
+  name: fs-palette-floors-soft
+  order: 20
+  tiles:
+  - FSFloorSoftBeigeCarpet
+  - FSFloorSoftBeigeCarpetDeco
+  - FSFloorSoftBrownPatternCarpet
+  - FSFloorSoftBlackCarpet
+  - FSFloorSoftBlackCarpetDeco
+  - FSFloorSoftBlueCarpet
+  - FSFloorSoftBlueDarkerCarpet
+  - FSFloorSoftBlueCarpetDeco
+  - FSFloorSoftBluePatternCarpet
+  - FSFloorSoftGreenCarpet
+  - FSFloorSoftGreenCarpetDeco
+  - FSFloorSoftGreenCarpetGrimy
+  - FSFloorSoftRedCarpet
+  - FSFloorSoftRedCarpetDeco
+  - FSFloorSoftRedCarpetFaded
+  - FSFloorSoftRedCarpetOrange
+  - FSFloorSoftRedCarpetPink
+  - FSFloorSoftWood
+  - FSFloorSoftWoodGrey
+  - FSFloorSoftWoodRed
+  - FSFloorSoftWoodBlack
+
+- type: fsMapPalette
+  id: FSPaletteHull
+  name: fs-palette-hull
+  root: true
+  order: 30
+  children:
+  - FSPaletteHullEngineer
+  - FSPaletteHullDeck
+
+- type: fsMapPalette
+  id: FSPaletteHullEngineer
+  name: fs-palette-hull-engineer
+  order: 10
+  tiles:
+  - FSPlatingEngineer
+  - FSPlatingEngineerPlating
+  - FSPlatingEngineerFloor1
+  - FSPlatingEngineerFloor2
+  - FSPlatingEngineerFloor3
+  - FSPlatingEngineerFloor4
+  - FSPlatingEngineerFloor5
+  - FSPlatingEngineerOuterHull1
+  - FSPlatingEngineerOuterHull2
+  - FSPlatingEngineerOuterHull3
+  - FSPlatingEngineerOuterHull4
+  - FSPlatingEngineerOuterHull5
+  - FSPlatingEngineerOuterHull6
+  - FSPlatingEngineerOuterHull7
+  - FSPlatingEngineerOuterHull8
+  - FSPlatingEngineerPillarN1
+  - FSPlatingEngineerPillarN2
+  - FSPlatingEngineerPillarN3
+  - FSPlatingEngineerPillarN4
+  - FSPlatingEngineerPillarS1
+  - FSPlatingEngineerPillarS2
+  - FSPlatingEngineerPillarS3
+  - FSPlatingEngineerPillarS4
+  - FSPlatingEngineerPillarE1
+  - FSPlatingEngineerPillarE2
+  - FSPlatingEngineerPillarE3
+  - FSPlatingEngineerPillarE4
+  - FSPlatingEngineerPillarW1
+  - FSPlatingEngineerPillarW2
+  - FSPlatingEngineerPillarW3
+  - FSPlatingEngineerPillarW4
+  - FSPlatingEngineerLight
+
+- type: fsMapPalette
+  id: FSPaletteHullDeck
+  name: fs-palette-hull-deck
+  order: 20
+  tiles:
+  - FSPlatingDeckSpaceport1
+  - FSPlatingDeckSpaceport2
+  - FSPlatingDeckDropship1
+  - FSPlatingDeckDropship2
+  - FSPlatingDeckDropship3
+  - FSPlatingDeckDropship4
+  - FSPlatingDeckDropshipCorner1
+  - FSPlatingDeckDropshipCorner2
+  - FSPlatingDeckDropshipFull

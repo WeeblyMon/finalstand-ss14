@@ -1,0 +1,348 @@
+- type: entity
+  id: FSStairs
+  name: stairs
+  description: The greatest invention since rocket-propelled grenades.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: Sprite
+    sprite: _FinalStand/Structures/stairs.rsi
+    state: p_stair_full
+    drawdepth: FloorTiles
+  - type: Tag
+    tags:
+    - FSStairs
+- type: Tag
+  id: FSStairs
+
+- type: entity
+  parent: FSStairs
+  id: FSStairsOffset
+  suffix: Offset
+  components:
+  - type: Sprite
+    offset: 0, 0.325
+
+- type: entity
+  id: FSStairsCorner
+  parent: FSStairs
+  suffix: Corner
+  components:
+  - type: Sprite
+    state: p_stair_full_corner
+
+- type: entity
+  id: FSStairsLeft
+  parent: FSStairs
+  suffix: Left
+  components:
+  - type: Sprite
+    state: p_stair_left_cap
+
+- type: entity
+  id: FSStairsRight
+  parent: FSStairs
+  suffix: Right
+  components:
+  - type: Sprite
+    state: p_stair_right_cap
+
+- type: entity
+  id: FSStairsLeftHalf
+  parent: FSStairs
+  suffix: Left, Half
+  components:
+  - type: Sprite
+    state: p_stair_left_cap_half
+
+- type: entity
+  id: FSStairsRightHalf
+  parent: FSStairs
+  suffix: Right, Half
+  components:
+  - type: Sprite
+    state: p_stair_right_cap_half
+
+- type: entity
+  id: FSStairsSolo
+  parent: FSStairs
+  suffix: Solo
+  components:
+  - type: Sprite
+    state: p_stair_solo_cap
+
+- type: entity
+  id: FSStairsKutjevo
+  parent: FSStairs
+  components:
+  - type: Sprite
+    state: p_stair_kutjevo_full
+
+- type: entity
+  id: FSStairsKutjevoCorner
+  parent: FSStairs
+  suffix: Corner
+  components:
+  - type: Sprite
+    state: p_stair_kutjevo_full_corner
+
+- type: entity
+  id: FSStairsKutjevoLeft
+  parent: FSStairs
+  suffix: Left
+  components:
+  - type: Sprite
+    state: p_stair_kutjevo_left_cap
+
+- type: entity
+  id: FSStairsKutjevoRight
+  parent: FSStairs
+  suffix: Right
+  components:
+  - type: Sprite
+    state: p_stair_kutjevo_right_cap
+
+- type: entity
+  id: FSStairsKutjevoLeftHalf
+  parent: FSStairs
+  suffix: Left, Half
+  components:
+  - type: Sprite
+    state: p_stair_kutjevo_left_cap_half
+
+- type: entity
+  id: FSStairsKutjevoRightHalf
+  parent: FSStairs
+  suffix: Right, Half
+  components:
+  - type: Sprite
+    state: p_stair_kutjevo_right_cap_half
+
+- type: entity
+  id: FSStairsKutjevoSolo
+  parent: FSStairs
+  suffix: Solo
+  components:
+  - type: Sprite
+    state: p_stair_kutjevo_solo_cap
+
+- type: entity
+  id: FSStairsIce
+  parent: FSStairs
+  components:
+  - type: Sprite
+    state: p_stair_ice_full
+
+- type: entity
+  id: FSStairsIceCorner
+  parent: FSStairs
+  suffix: Corner
+  components:
+  - type: Sprite
+    state: p_stair_ice_full_corner
+
+- type: entity
+  id: FSStairsIceLeft
+  parent: FSStairs
+  suffix: Left
+  components:
+  - type: Sprite
+    state: p_stair_ice_left_cap
+
+- type: entity
+  id: FSStairsIceRight
+  parent: FSStairs
+  suffix: Right
+  components:
+  - type: Sprite
+    state: p_stair_ice_right_cap
+
+- type: entity
+  id: FSStairsIceLeftHalf
+  parent: FSStairs
+  suffix: Left, Half
+  components:
+  - type: Sprite
+    state: p_stair_ice_left_cap_half
+
+- type: entity
+  id: FSStairsIceRightHalf
+  parent: FSStairs
+  suffix: Right, Half
+  components:
+  - type: Sprite
+    state: p_stair_ice_right_cap_half
+
+- type: entity
+  id: FSStairsIceSolo
+  parent: FSStairs
+  suffix: Solo
+  components:
+  - type: Sprite
+    state: p_stair_ice_solo_cap
+
+- type: entity
+  parent: FSStairs
+  suffix: Corner
+  id: FSHunterStairs
+  components:
+  - type: Sprite
+    color: "#6b675e"
+
+- type: entity
+  id: FSHunterStairsCorner
+  parent: FSStairs
+  suffix: Corner
+  components:
+  - type: Sprite
+    state: p_stair_full_corner
+    color: "#6b675e"
+
+- type: entity
+  id: FSHunterStairsLeft
+  parent: FSStairs
+  suffix: Left
+  components:
+  - type: Sprite
+    state: p_stair_left_cap
+    color: "#6b675e"
+
+- type: entity
+  id: FSHunterStairsRight
+  parent: FSStairs
+  suffix: Right
+  components:
+  - type: Sprite
+    state: p_stair_right_cap
+    color: "#6b675e"
+
+- type: entity
+  id: FSHunterStairsSolo
+  parent: FSStairs
+  suffix: Solo
+  components:
+  - type: Sprite
+    state: p_stair_solo_cap
+    color: "#6b675e"
+
+- type: entity
+  parent: FSStairs
+  id: FSHybrisaStairs
+  components:
+  - type: Sprite
+    state: rampbottom
+    color: "#a6aeab"
+
+- type: entity
+  parent: FSStairs
+  id: FSAlmayerStairs
+  suffix: Almayer
+  components:
+  - type: Sprite
+    state: rampbottom
+
+- type: entity
+  parent: FSStairs
+  id: FSAlmayerStairsTop
+  suffix: Almayer
+  components:
+  - type: Sprite
+    state: ramptop
+
+- type: entity
+  parent: FSStairs
+  id: FSHybrisaStairsPerspective
+  components:
+  - type: Sprite
+    state: p_stair_full
+    color: "#6e6e6e"
+
+- type: entity
+  parent: FSStairs
+  suffix: Corner
+  id: FSTempleStairs
+  components:
+  - type: Sprite
+    color: "#b29082"
+
+- type: entity
+  id: FSTempleStairsCorner
+  parent: FSStairs
+  suffix: Corner
+  components:
+  - type: Sprite
+    state: p_stair_full_corner
+    color: "#b29082"
+
+- type: entity
+  id: FSTempleStairsLeft
+  parent: FSStairs
+  suffix: Left
+  components:
+  - type: Sprite
+    state: p_stair_left_cap
+    color: "#b29082"
+
+- type: entity
+  id: FSTempleStairsRight
+  parent: FSStairs
+  suffix: Right
+  components:
+  - type: Sprite
+    state: p_stair_right_cap
+    color: "#b29082"
+
+- type: entity
+  id: FSTempleStairsSolo
+  parent: FSStairs
+  suffix: Solo
+  components:
+  - type: Sprite
+    state: p_stair_solo_cap
+    color: "#b29082"
+
+- type: entity
+  parent: FSStairs
+  id: FSSoroStairs
+  components:
+  - type: Sprite
+    color: "#6e6e6e"
+
+- type: entity
+  id: FSSoroStairsCorner
+  parent: FSStairs
+  suffix: Corner
+  components:
+  - type: Sprite
+    state: p_stair_full_corner
+    color: "#6e6e6e"
+
+- type: entity
+  id: FSSoroStairsLeft
+  parent: FSStairs
+  suffix: Left
+  components:
+  - type: Sprite
+    state: p_stair_left_cap
+    color: "#6e6e6e"
+
+- type: entity
+  id: FSSoroStairsRight
+  parent: FSStairs
+  suffix: Right
+  components:
+  - type: Sprite
+    state: p_stair_right_cap
+    color: "#6e6e6e"
+
+- type: entity
+  id: FSSoroStairsSolo
+  parent: FSStairs
+  suffix: Solo
+  components:
+  - type: Sprite
+    state: p_stair_solo_cap
+    color: "#6e6e6e"

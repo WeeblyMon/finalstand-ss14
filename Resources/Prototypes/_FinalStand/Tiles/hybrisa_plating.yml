@@ -1,0 +1,257 @@
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineer
+  name: fs-tile-engineer
+  sprite: /Textures/_FinalStand/Tiles/Engineer/engineer.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPlating
+  name: fs-tile-engineer-plating
+  sprite: /Textures/_FinalStand/Tiles/Engineer/plating.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerFloor1
+  name: fs-tile-engineer-floor-1
+  sprite: /Textures/_FinalStand/Tiles/Engineer/floor-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerFloor2
+  name: fs-tile-engineer-floor-2
+  sprite: /Textures/_FinalStand/Tiles/Engineer/floor-2.png
+  variants: 4
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerFloor3
+  name: fs-tile-engineer-floor-3
+  sprite: /Textures/_FinalStand/Tiles/Engineer/floor-3.png
+  variants: 4
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerFloor4
+  name: fs-tile-engineer-floor-4
+  sprite: /Textures/_FinalStand/Tiles/Engineer/floor-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerFloor5
+  name: fs-tile-engineer-floor-5
+  sprite: /Textures/_FinalStand/Tiles/Engineer/floor-5.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerOuterHull1
+  name: fs-tile-engineer-outer-hull-1
+  sprite: /Textures/_FinalStand/Tiles/Engineer/outer-hull-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerOuterHull2
+  name: fs-tile-engineer-outer-hull-2
+  sprite: /Textures/_FinalStand/Tiles/Engineer/outer-hull-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerOuterHull3
+  name: fs-tile-engineer-outer-hull-3
+  sprite: /Textures/_FinalStand/Tiles/Engineer/outer-hull-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerOuterHull4
+  name: fs-tile-engineer-outer-hull-4
+  sprite: /Textures/_FinalStand/Tiles/Engineer/outer-hull-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerOuterHull5
+  name: fs-tile-engineer-outer-hull-5
+  sprite: /Textures/_FinalStand/Tiles/Engineer/outer-hull-5.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerOuterHull6
+  name: fs-tile-engineer-outer-hull-6
+  sprite: /Textures/_FinalStand/Tiles/Engineer/outer-hull-6.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerOuterHull7
+  name: fs-tile-engineer-outer-hull-7
+  sprite: /Textures/_FinalStand/Tiles/Engineer/outer-hull-7.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerOuterHull8
+  name: fs-tile-engineer-outer-hull-8
+  sprite: /Textures/_FinalStand/Tiles/Engineer/outer-hull-8.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarN1
+  name: fs-tile-engineer-pillar-n-1
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-n-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarN2
+  name: fs-tile-engineer-pillar-n-2
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-n-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarN3
+  name: fs-tile-engineer-pillar-n-3
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-n-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarN4
+  name: fs-tile-engineer-pillar-n-4
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-n-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarS1
+  name: fs-tile-engineer-pillar-s-1
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-s-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarS2
+  name: fs-tile-engineer-pillar-s-2
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-s-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarS3
+  name: fs-tile-engineer-pillar-s-3
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-s-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarS4
+  name: fs-tile-engineer-pillar-s-4
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-s-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarE1
+  name: fs-tile-engineer-pillar-e-1
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-e-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarE2
+  name: fs-tile-engineer-pillar-e-2
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-e-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarE3
+  name: fs-tile-engineer-pillar-e-3
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-e-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarE4
+  name: fs-tile-engineer-pillar-e-4
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-e-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarW1
+  name: fs-tile-engineer-pillar-w-1
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-w-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarW2
+  name: fs-tile-engineer-pillar-w-2
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-w-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarW3
+  name: fs-tile-engineer-pillar-w-3
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-w-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerPillarW4
+  name: fs-tile-engineer-pillar-w-4
+  sprite: /Textures/_FinalStand/Tiles/Engineer/pillar-w-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingEngineerLight
+  name: fs-tile-engineer-light
+  sprite: /Textures/_FinalStand/Tiles/Engineer/light.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckSpaceport1
+  name: fs-tile-deck-spaceport-1
+  sprite: /Textures/_FinalStand/Tiles/Deck/spaceport-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckSpaceport2
+  name: fs-tile-deck-spaceport-2
+  sprite: /Textures/_FinalStand/Tiles/Deck/spaceport-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckDropship1
+  name: fs-tile-deck-dropship-1
+  sprite: /Textures/_FinalStand/Tiles/Deck/dropship-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckDropship2
+  name: fs-tile-deck-dropship-2
+  sprite: /Textures/_FinalStand/Tiles/Deck/dropship-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckDropship3
+  name: fs-tile-deck-dropship-3
+  sprite: /Textures/_FinalStand/Tiles/Deck/dropship-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckDropship4
+  name: fs-tile-deck-dropship-4
+  sprite: /Textures/_FinalStand/Tiles/Deck/dropship-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckDropshipCorner1
+  name: fs-tile-deck-dropship-corner-1
+  sprite: /Textures/_FinalStand/Tiles/Deck/dropship-corner-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckDropshipCorner2
+  name: fs-tile-deck-dropship-corner-2
+  sprite: /Textures/_FinalStand/Tiles/Deck/dropship-corner-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSPlatingDeckDropshipFull
+  name: fs-tile-deck-dropship-full
+  sprite: /Textures/_FinalStand/Tiles/Deck/dropship-full.png

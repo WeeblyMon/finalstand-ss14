@@ -1,0 +1,539 @@
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBeige
+  name: fs-tile-floor-beige
+  sprite: /Textures/_FinalStand/Tiles/Floor/beige.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBeigeCheck
+  name: fs-tile-floor-beige-check
+  sprite: /Textures/_FinalStand/Tiles/Floor/beige-check.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBeigeCheckAlt
+  name: fs-tile-floor-beige-check-alt
+  sprite: /Textures/_FinalStand/Tiles/Floor/beige-check-alt.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBeigeLight
+  name: fs-tile-floor-beige-light
+  sprite: /Textures/_FinalStand/Tiles/Floor/beige-light.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBeigeBig
+  name: fs-tile-floor-beige-big
+  sprite: /Textures/_FinalStand/Tiles/Floor/beige-big.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBeigeBigLight
+  name: fs-tile-floor-beige-big-light
+  sprite: /Textures/_FinalStand/Tiles/Floor/beige-big-light.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBeigeSupermart
+  name: fs-tile-floor-beige-supermart
+  sprite: /Textures/_FinalStand/Tiles/Floor/beige-supermart.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlack
+  name: fs-tile-floor-black
+  sprite: /Textures/_FinalStand/Tiles/Floor/black.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGrey
+  name: fs-tile-floor-grey
+  sprite: /Textures/_FinalStand/Tiles/Floor/grey.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlackAlt
+  name: fs-tile-floor-black-alt
+  sprite: /Textures/_FinalStand/Tiles/Floor/black-alt.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileDarkGrey
+  name: fs-tile-floor-dark-grey
+  sprite: /Textures/_FinalStand/Tiles/Floor/dark-grey.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlackShiny
+  name: fs-tile-floor-black-shiny
+  sprite: /Textures/_FinalStand/Tiles/Floor/black-shiny.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueFull
+  name: fs-tile-floor-blue-full
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-full.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlue
+  name: fs-tile-floor-blue
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueCheck
+  name: fs-tile-floor-blue-check
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-check.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueSupermart
+  name: fs-tile-floor-blue-supermart
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-supermart.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueS
+  name: fs-tile-floor-blue-s
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-s.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueN
+  name: fs-tile-floor-blue-n
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-n.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueE
+  name: fs-tile-floor-blue-e
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-e.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueW
+  name: fs-tile-floor-blue-w
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-w.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueSE
+  name: fs-tile-floor-blue-se
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-se.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueSW
+  name: fs-tile-floor-blue-sw
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-sw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueNE
+  name: fs-tile-floor-blue-ne
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-ne.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueNW
+  name: fs-tile-floor-blue-nw
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-nw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueCornerSE
+  name: fs-tile-floor-blue-corner-se
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-corner-se.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueCornerNE
+  name: fs-tile-floor-blue-corner-ne
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-corner-ne.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueCornerNW
+  name: fs-tile-floor-blue-corner-nw
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-corner-nw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBlueCornerSW
+  name: fs-tile-floor-blue-corner-sw
+  sprite: /Textures/_FinalStand/Tiles/Floor/blue-corner-sw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown
+  name: fs-tile-floor-brown
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown1
+  name: fs-tile-floor-brown-1
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown2
+  name: fs-tile-floor-brown-2
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown3
+  name: fs-tile-floor-brown-3
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown4
+  name: fs-tile-floor-brown-4
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown5
+  name: fs-tile-floor-brown-5
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-5.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown6
+  name: fs-tile-floor-brown-6
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-6.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown7
+  name: fs-tile-floor-brown-7
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-7.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrown8
+  name: fs-tile-floor-brown-8
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-8.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrownCorner1
+  name: fs-tile-floor-brown-corner-1
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-corner-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrownCorner2
+  name: fs-tile-floor-brown-corner-2
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-corner-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrownCorner3
+  name: fs-tile-floor-brown-corner-3
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-corner-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileBrownCorner4
+  name: fs-tile-floor-brown-corner-4
+  sprite: /Textures/_FinalStand/Tiles/Floor/brown-corner-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal
+  name: fs-tile-floor-green-metal
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreen
+  name: fs-tile-floor-green
+  sprite: /Textures/_FinalStand/Tiles/Floor/green.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal1
+  name: fs-tile-floor-green-metal-1
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal2
+  name: fs-tile-floor-green-metal-2
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal3
+  name: fs-tile-floor-green-metal-3
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal4
+  name: fs-tile-floor-green-metal-4
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal5
+  name: fs-tile-floor-green-metal-5
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal-5.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal6
+  name: fs-tile-floor-green-metal-6
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal-6.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal7
+  name: fs-tile-floor-green-metal-7
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal-7.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileGreenMetal8
+  name: fs-tile-floor-green-metal-8
+  sprite: /Textures/_FinalStand/Tiles/Floor/green-metal-8.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileRedMetal
+  name: fs-tile-floor-red-metal
+  sprite: /Textures/_FinalStand/Tiles/Floor/red-metal.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileRedMetalCafe
+  name: fs-tile-floor-red-metal-cafe
+  sprite: /Textures/_FinalStand/Tiles/Floor/red-metal-cafe.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileWhite
+  name: fs-tile-floor-white
+  sprite: /Textures/_FinalStand/Tiles/Floor/white.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileWhiteCheck
+  name: fs-tile-floor-white-check
+  sprite: /Textures/_FinalStand/Tiles/Floor/white-check.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileWhiteFull
+  name: fs-tile-floor-white-full
+  sprite: /Textures/_FinalStand/Tiles/Floor/white-full.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileYellow
+  name: fs-tile-floor-yellow
+  sprite: /Textures/_FinalStand/Tiles/Floor/yellow.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLine1
+  name: fs-tile-floor-orange-line-1
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLine2
+  name: fs-tile-floor-orange-line-2
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLine3
+  name: fs-tile-floor-orange-line-3
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLine4
+  name: fs-tile-floor-orange-line-4
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLine5
+  name: fs-tile-floor-orange-line-5
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-5.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLine6
+  name: fs-tile-floor-orange-line-6
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-6.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLine7
+  name: fs-tile-floor-orange-line-7
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-7.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLine8
+  name: fs-tile-floor-orange-line-8
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-8.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLineCorner1
+  name: fs-tile-floor-orange-line-corner-1
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-corner-1.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLineCorner2
+  name: fs-tile-floor-orange-line-corner-2
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-corner-2.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLineCorner3
+  name: fs-tile-floor-orange-line-corner-3
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-corner-3.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorTileOrangeLineCorner4
+  name: fs-tile-floor-orange-line-corner-4
+  sprite: /Textures/_FinalStand/Tiles/Floor/orange-line-corner-4.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBeigeCarpet
+  name: fs-tile-soft-beige-carpet
+  sprite: /Textures/_FinalStand/Tiles/Soft/beige-carpet.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBeigeCarpetDeco
+  name: fs-tile-soft-beige-carpet-deco
+  sprite: /Textures/_FinalStand/Tiles/Soft/beige-carpet-deco.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBrownPatternCarpet
+  name: fs-tile-soft-brown-pattern-carpet
+  sprite: /Textures/_FinalStand/Tiles/Soft/brown-pattern-carpet.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBlackCarpet
+  name: fs-tile-soft-black-carpet
+  sprite: /Textures/_FinalStand/Tiles/Soft/black-carpet.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBlackCarpetDeco
+  name: fs-tile-soft-black-carpet-deco
+  sprite: /Textures/_FinalStand/Tiles/Soft/black-carpet-deco.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBlueCarpet
+  name: fs-tile-soft-blue-carpet
+  sprite: /Textures/_FinalStand/Tiles/Soft/blue-carpet.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBlueDarkerCarpet
+  name: fs-tile-soft-blue-darker-carpet
+  sprite: /Textures/_FinalStand/Tiles/Soft/blue-darker-carpet.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBlueCarpetDeco
+  name: fs-tile-soft-blue-carpet-deco
+  sprite: /Textures/_FinalStand/Tiles/Soft/blue-carpet-deco.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftBluePatternCarpet
+  name: fs-tile-soft-blue-pattern-carpet
+  sprite: /Textures/_FinalStand/Tiles/Soft/blue-pattern-carpet.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftGreenCarpet
+  name: fs-tile-soft-green-carpet
+  sprite: /Textures/_FinalStand/Tiles/Soft/green-carpet.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftGreenCarpetDeco
+  name: fs-tile-soft-green-carpet-deco
+  sprite: /Textures/_FinalStand/Tiles/Soft/green-carpet-deco.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftGreenCarpetGrimy
+  name: fs-tile-soft-green-carpet-grimy
+  sprite: /Textures/_FinalStand/Tiles/Soft/green-carpet-grimy.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftRedCarpet
+  name: fs-tile-soft-red-carpet
+  sprite: /Textures/_FinalStand/Tiles/Soft/red-carpet.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftRedCarpetDeco
+  name: fs-tile-soft-red-carpet-deco
+  sprite: /Textures/_FinalStand/Tiles/Soft/red-carpet-deco.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftRedCarpetFaded
+  name: fs-tile-soft-red-carpet-faded
+  sprite: /Textures/_FinalStand/Tiles/Soft/red-carpet-faded.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftRedCarpetOrange
+  name: fs-tile-soft-red-carpet-orange
+  sprite: /Textures/_FinalStand/Tiles/Soft/red-carpet-orange.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorSoftRedCarpetPink
+  name: fs-tile-soft-red-carpet-pink
+  sprite: /Textures/_FinalStand/Tiles/Soft/red-carpet-pink.png
+
+- type: tile
+  parent: FSTileBaseWood
+  id: FSFloorSoftWood
+  name: fs-tile-soft-wood
+  sprite: /Textures/_FinalStand/Tiles/Soft/wood.png
+
+- type: tile
+  parent: FSTileBaseWood
+  id: FSFloorSoftWoodGrey
+  name: fs-tile-soft-wood-grey
+  sprite: /Textures/_FinalStand/Tiles/Soft/wood-grey.png
+
+- type: tile
+  parent: FSTileBaseWood
+  id: FSFloorSoftWoodRed
+  name: fs-tile-soft-wood-red
+  sprite: /Textures/_FinalStand/Tiles/Soft/wood-red.png
+
+- type: tile
+  parent: FSTileBaseWood
+  id: FSFloorSoftWoodBlack
+  name: fs-tile-soft-wood-black
+  sprite: /Textures/_FinalStand/Tiles/Soft/wood-black.png

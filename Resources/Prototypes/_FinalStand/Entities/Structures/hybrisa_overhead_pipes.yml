@@ -1,0 +1,209 @@
+- type: entity
+  id: FSOverheadPipe
+  name: overhead pipe segment
+  placement:
+    mode: SnapgridCenter
+    snap:
+    - Wall
+  components:
+  - type: Transform
+    anchored: true
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_pipes.rsi
+    state: intact-scrubbers
+    drawdepth: Overdoors
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_pipes.rsi
+    state: intact-scrubbers
+  - type: Anchorable
+  - type: Clickable
+  - type: SpriteFade
+
+- type: entity
+  parent: FSOverheadPipe
+  id: FSOverheadPipeCorner
+  suffix: Corner
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_pipes.rsi
+    state: intact-scrubbers_corners
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_pipes.rsi
+    state: intact-scrubbers_corners
+
+- type: entity
+  parent: FSOverheadPipe
+  id: FSOverheadPipeCap
+  suffix: Cap
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_pipes.rsi
+    state: cap
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_pipes.rsi
+    state: cap
+
+- type: entity
+  parent: FSOverheadPipe
+  id: FSOverheadFuelLine1
+  name: dense fuel line
+  description: Likely to be incredibly flammable.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_fuel.rsi
+    state: flammable_pipe_1
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_fuel.rsi
+    state: flammable_pipe_1
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine1Offset
+  suffix: Offset
+  components:
+  - type: Sprite
+    offset: 0.319, 0
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine2
+  components:
+  - type: Sprite
+    state: flammable_pipe_2
+  - type: Icon
+    state: flammable_pipe_2
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine3
+  components:
+  - type: Sprite
+    state: flammable_pipe_3
+  - type: Icon
+    state: flammable_pipe_3
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine4
+  components:
+  - type: Sprite
+    state: flammable_pipe_4
+  - type: Icon
+    state: flammable_pipe_4
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine5
+  components:
+  - type: Sprite
+    state: flammable_pipe_5
+  - type: Icon
+    state: flammable_pipe_5
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine6
+  components:
+  - type: Sprite
+    state: flammable_pipe_6
+  - type: Icon
+    state: flammable_pipe_6
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine7
+  components:
+  - type: Sprite
+    state: flammable_pipe_7
+  - type: Icon
+    state: flammable_pipe_7
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine8
+  components:
+  - type: Sprite
+    state: flammable_pipe_8
+  - type: Icon
+    state: flammable_pipe_8
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine9
+  components:
+  - type: Sprite
+    state: flammable_pipe_9
+  - type: Icon
+    state: flammable_pipe_9
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine10
+  components:
+  - type: Sprite
+    state: flammable_pipe_10
+  - type: Icon
+    state: flammable_pipe_10
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine11
+  components:
+  - type: Sprite
+    state: flammable_pipe_11
+  - type: Icon
+    state: flammable_pipe_11
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine12
+  components:
+  - type: Sprite
+    state: flammable_pipe_12
+  - type: Icon
+    state: flammable_pipe_12
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine13
+  components:
+  - type: Sprite
+    state: flammable_pipe_13
+  - type: Icon
+    state: flammable_pipe_13
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine14
+  components:
+  - type: Sprite
+    state: flammable_pipe_14
+  - type: Icon
+    state: flammable_pipe_14
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine15
+  components:
+  - type: Sprite
+    state: flammable_pipe_15
+  - type: Icon
+    state: flammable_pipe_15
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine16
+  components:
+  - type: Sprite
+    state: flammable_pipe_16
+  - type: Icon
+    state: flammable_pipe_16
+
+- type: entity
+  parent: FSOverheadFuelLine1
+  id: FSOverheadFuelLine17
+  components:
+  - type: Sprite
+    state: flammable_pipe_17
+  - type: Icon
+    state: flammable_pipe_17

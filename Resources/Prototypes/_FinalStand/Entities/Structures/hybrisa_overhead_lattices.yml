@@ -1,0 +1,388 @@
+- type: entity
+  id: FSOverheadLattice
+  abstract: true
+  name: lattice
+  description: A support lattice.
+  placement:
+    mode: SnapgridCenter
+    snap:
+    - Wall
+  components:
+  - type: SpriteFade
+  - type: Transform
+    anchored: true
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice1
+    drawdepth: Overdoors
+    offset: 0,0.5
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice1
+  - type: Anchorable
+  - type: Clickable
+
+# Vertical
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeVertical1
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice1
+    offset: 0.25,0.5
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice1
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical2
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice2
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice2
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical3
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice3
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice3
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical1A
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice1_a
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice1_a
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical1B
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice1_b
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice1_b
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical1C
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice1_c
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice1_c
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical1D
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice1_d
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice1_d
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical2A
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice2_a
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice2_a
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical2B
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice2_b
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice2_b
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical2C
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice2_c
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice2_c
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical2D
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice2_d
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice2_d
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical3A
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice3_a
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice3_a
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical3B
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice3_b
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice3_b
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical3C
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice3_c
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice3_c
+
+- type: entity
+  parent: FSOverheadLatticeVertical1
+  id: FSOverheadLatticeVertical3D
+  suffix: Vertical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice3_d
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice3_d
+
+# Horizontal
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal4
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice4
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice4
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal8
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice8
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice8
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal12
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice12
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice.rsi
+    state: lattice12
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal4A
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice4_a
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice4_a
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal4B
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice4_b
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice4_b
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal4C
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice4_c
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice4_c
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal4D
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice4_d
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice4_d
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal5A
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice5_a
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice5_a
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal5B
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice5_b
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice5_b
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal5C
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice5_c
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice5_c
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal5D
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice5_d
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice5_d
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal6A
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice6_a
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice6_a
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal6B
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice6_b
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice6_b
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal6C
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice6_c
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice6_c
+
+- type: entity
+  parent: FSOverheadLattice
+  id: FSOverheadLatticeHorizontal6D
+  suffix: Horizontal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice6_d
+  - type: Icon
+    sprite: _FinalStand/Structures/overhead_lattice_hybrisa.rsi
+    state: lattice6_d
