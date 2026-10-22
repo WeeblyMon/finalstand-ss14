@@ -1,6 +1,10 @@
 #nullable enable
+using System;
+using System.Collections;
 using System.Numerics;
+using System.Reflection;
 using Content.IntegrationTests.Fixtures;
+using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
@@ -25,6 +29,8 @@ public sealed class StuckRecoveryTest : GameTest
 
     // Stuck detection waits 20s per nudge and deletes after the third, so this comfortably covers it.
     private const int Seconds = 110;
+
+    private const int NavmeshTicks = 30;
 
     [Test]
     public async Task FightingZombieIsNotRemoved()
@@ -109,17 +115,79 @@ public sealed class StuckRecoveryTest : GameTest
             zombie = entMan.SpawnEntity(Zombie, new EntityCoordinates(map.Grid, new Vector2(0.5f, 0.5f)));
             entMan.EnsureComponent<WaveSpawnedTagComponent>(zombie);
             htn.SetHTNEnabled((zombie, entMan.GetComponent<HTNComponent>(zombie)), false);
-            steering.Register(zombie, new EntityCoordinates(map.Grid, new Vector2(6.5f, 0.5f)));
         });
 
-        await Pair.RunSeconds(Seconds);
+        // A path asked for before the navmesh is built comes back empty, leaving the zombie on NoPath.
+        await server.WaitRunTicks(NavmeshTicks);
+        await server.WaitPost(() => steering.Register(zombie, new EntityCoordinates(map.Grid, new Vector2(6.5f, 0.5f))));
+
+        // Watched until it breaks out: past that it stands idle at the steering target, which is rightly stuck.
+        var brokeOut = false;
+        for (var second = 0; second < Seconds && !brokeOut; second++)
+        {
+            await Pair.RunSeconds(1);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(entMan.EntityExists(zombie), $"a zombie breaking out through a barricade was removed as stuck after {second + 1}s");
+                brokeOut = !entMan.EntityExists(barricade);
+            });
+        }
+
+        await server.WaitAssertion(() =>
+            Assert.That(brokeOut || entMan.GetComponent<DamageableComponent>(barricade).TotalDamage > 0,
+                "the zombie never hit the barricade"));
+    }
+
+    // Steering holds a wave zombie still while another one ahead of it is nearer the same target: it's waiting its
+    // turn, not stuck. Out of melee range with no crowd round it (the back of a single-file queue), only that hold
+    // keeps stuck recovery from nudging it out of the line, or deleting it once nudges can't move it.
+    [Test]
+    public async Task QueuedZombieIsNotNudged()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var mapSystem = entMan.System<SharedMapSystem>();
+        var htn = entMan.System<HTNSystem>();
+        var steering = entMan.System<NPCSteeringSystem>();
+        var timing = server.Timing;
+        var map = await Pair.CreateTestMap();
+
+        EntityUid zombie = default;
+        await server.WaitPost(() =>
+        {
+            for (var x = -3; x <= 6; x++)
+            {
+                for (var y = -3; y <= 3; y++)
+                    mapSystem.SetTile(map.Grid, new Vector2i(x, y), map.Tile.Tile);
+            }
+
+            zombie = entMan.SpawnEntity(Zombie, new EntityCoordinates(map.Grid, new Vector2(0.5f, 0.5f)));
+            entMan.EnsureComponent<WaveSpawnedTagComponent>(zombie);
+            htn.SetHTNEnabled((zombie, entMan.GetComponent<HTNComponent>(zombie)), false);
+        });
+
+        await server.WaitRunTicks(NavmeshTicks);
+        await server.WaitPost(() => steering.Register(zombie, new EntityCoordinates(map.Grid, new Vector2(5.5f, 0.5f))));
+
+        // Past the first nudge: stuck recovery waits 20s without movement.
+        for (var second = 0; second < 30; second++)
+        {
+            // Steering renews the hold for as long as the one ahead stays put.
+            await server.WaitPost(() =>
+                entMan.GetComponent<NPCSteeringComponent>(zombie).QueuedUntil = timing.CurTime + TimeSpan.FromSeconds(2));
+            await Pair.RunSeconds(1);
+        }
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(entMan.EntityExists(zombie), "a zombie breaking out through a barricade was removed as stuck");
-            Assert.That(!entMan.EntityExists(barricade)
-                        || entMan.GetComponent<DamageableComponent>(barricade).TotalDamage > 0,
-                "the zombie never hit the barricade");
+            var states = (IDictionary) typeof(FSStuckRecoverySystem)
+                .GetField("_state", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(entMan.System<FSStuckRecoverySystem>())!;
+
+            Assert.That(entMan.EntityExists(zombie), "a zombie waiting its turn in a queue was removed as stuck");
+            var state = states[zombie]!;
+            var lastNudge = (TimeSpan) state.GetType().GetProperty("LastNudge")!.GetValue(state)!;
+            Assert.That(lastNudge, Is.EqualTo(TimeSpan.Zero), "a zombie waiting its turn in a queue was nudged as stuck");
         });
     }
 }

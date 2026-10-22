@@ -24,6 +24,10 @@ public sealed partial class NPCSteeringSystem
     private EntityQuery<StandingStateComponent> _standingQuery;
     private readonly HashSet<EntityUid> _obstacleBuffer = new();
 
+    // FINALSTAND: the navmesh blocks a sub-tile by what covers its centre, so look only inside the poly. The full box
+    // also caught walls touching its edges, and a zombie smashing a barricade between walls spent most swings on them.
+    private const float ObstacleInset = 1f / SharedPathfindingSystem.SubStep / 4f;
+
     /*
      * For any custom path handlers, e.g. destroying walls, opening airlocks, etc.
      * Putting it onto steering seemed easier than trying to make a custom compound task for it.
@@ -231,7 +235,7 @@ public sealed partial class NPCSteeringSystem
         }
 
         _obstacleBuffer.Clear();
-        _lookup.GetLocalEntitiesIntersecting(poly.GraphUid, poly.Box, _obstacleBuffer, LookupFlags.Static | LookupFlags.Dynamic);
+        _lookup.GetLocalEntitiesIntersecting(poly.GraphUid, poly.Box.Enlarged(-ObstacleInset), _obstacleBuffer, LookupFlags.Static | LookupFlags.Dynamic); // FINALSTAND
 
         foreach (var ent in _obstacleBuffer)
         {
