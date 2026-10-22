@@ -253,6 +253,17 @@ public sealed partial class ContentAudioSystem
         }
     }
 
+    public bool SkipLobbySong()
+    {
+        if (_lobbySoundtrackInfo == null || _lobbyPlaylist is not { Length: > 0 } playlist)
+            return false;
+
+        var next = GetNextSoundtrackFromPlaylist(_lobbySoundtrackInfo.Filename, playlist);
+        _audio.Stop(_lobbySoundtrackInfo.MusicStreamEntityUid);
+        PlaySoundtrack(next);
+        return true;
+    }
+
     private static string GetNextSoundtrackFromPlaylist(string currentSoundtrackFilename, string[] playlist)
     {
         var indexOfCurrent = Array.IndexOf(playlist, currentSoundtrackFilename);
