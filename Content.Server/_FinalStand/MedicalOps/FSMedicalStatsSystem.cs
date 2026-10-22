@@ -146,7 +146,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
                && mind.UserId != null;
     }
 
-    // A body whose player has left the server is just a sponge for heals, surgeries and topicals.
+    // A body whose player has left the server is just a sponge for heals, surgeries, topicals and revives.
     private bool IsAbandoned(EntityUid body)
     {
         return _mind.TryGetMind(body, out _, out var mind)
@@ -291,7 +291,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (IsDownward(args.OldMobState, args.NewMobState))
             comp.PendingSaveCredit = null;
 
-        if (args.Origin == uid || !TryGetPlayerMind(args.Origin, out var healerMind))
+        if (args.Origin == uid || !TryGetPlayerMind(args.Origin, out var healerMind) || IsAbandoned(uid))
             return;
 
         var recovered = args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive
