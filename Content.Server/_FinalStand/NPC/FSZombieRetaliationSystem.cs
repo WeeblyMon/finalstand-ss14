@@ -23,6 +23,8 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
     private const float AlertRadius = 10f;
     private const float AlertDuration = 1.5f;
     private const float AlertCooldown = 0.5f;
+    // How much closer a new attacker must be before a retaliating zombie turns on them.
+    private const float SwitchMargin = 2f;
 
     // Same rate FSBreachTargetSystem ticks at, kept in sync though the two accumulators are separate.
     private const float TickInterval = 0.1f;
@@ -80,17 +82,22 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
     // chasing the shooter after the timer ran out. Any other plan never read the keys and carries on.
     private void StopRetaliating(HTNComponent htn)
     {
+        if (RunsRetaliationPlan(htn))
+            _htn.AbortPlan(htn);
+    }
+
+    private static bool RunsRetaliationPlan(HTNComponent htn)
+    {
         if (htn.Plan == null)
-            return;
+            return false;
 
         foreach (var task in htn.Plan.Tasks)
         {
-            if (task.Operator is not FSSetRetaliationTargetOperator)
-                continue;
-
-            _htn.AbortPlan(htn);
-            return;
+            if (task.Operator is FSSetRetaliationTargetOperator)
+                return true;
         }
+
+        return false;
     }
 
     public void TryRetaliate(EntityUid uid, EntityUid attacker)
@@ -113,15 +120,48 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
         bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, RetaliationDuration);
         bb.SetValue(FSAIBlackboardKeys.AggroGraceUntil, curTime + TimeSpan.FromSeconds(RetaliationDuration));
 
-        // Every bullet from the same gun only refreshes the timers; replanning is for a change of target.
-        if (newAttacker)
+        // Every bullet from the same gun only refreshes the timers; replanning is for a change of target. A running
+        // retaliation plan took its target when it started and a replan never replaces a plan of the same rank, so
+        // it is dropped instead, but only for an attacker clearly closer than the one being chased: two players
+        // taking turns would otherwise restart the chase on every shot.
+        if (RunsRetaliationPlan(htn))
+        {
+            if (bb.TryGetValue<EntityUid>("Target", out var chased, EntityManager)
+                && chased != attacker
+                && IsClearlyCloser(uid, attacker, chased))
+            {
+                _htn.AbortPlan(htn);
+            }
+        }
+        else if (newAttacker)
+        {
             _htn.Replan(htn);
+        }
 
         bb.SetValue(FSAIBlackboardKeys.PackAlertCooldown, curTime + TimeSpan.FromSeconds(AlertCooldown));
 
         var pos = _transform.GetMapCoordinates(uid);
         if (_alerts.TryReserve((attacker, pos.MapId, (pos.Position / AlertRadius).Floored()), curTime))
             AlertNearby(uid, attacker);
+    }
+
+    private bool IsClearlyCloser(EntityUid uid, EntityUid attacker, EntityUid chased)
+    {
+        if (!Exists(chased))
+            return true;
+
+        var own = _transform.GetMapCoordinates(uid);
+        var chasedPos = _transform.GetMapCoordinates(chased);
+        if (chasedPos.MapId != own.MapId)
+            return true;
+
+        var attackerPos = _transform.GetMapCoordinates(attacker);
+        if (attackerPos.MapId != own.MapId)
+            return false;
+
+        var attackerDist = (attackerPos.Position - own.Position).Length();
+        var chasedDist = (chasedPos.Position - own.Position).Length();
+        return attackerDist + SwitchMargin < chasedDist;
     }
 
     private void AlertNearby(EntityUid uid, EntityUid attacker)

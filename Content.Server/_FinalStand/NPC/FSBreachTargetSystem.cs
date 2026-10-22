@@ -180,14 +180,14 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             || (TryComp<MobStateComponent>(breachTarget, out _) && _mobState.IsDead(breachTarget)))
         {
             ClearBreachTarget(bb);
-            _htn.Replan(htn);
+            ReplanBreach(htn);
             return;
         }
 
         if (!_evaluator.IsBlockingMovement(breachTarget))
         {
             ClearBreachTarget(bb);
-            _htn.Replan(htn);
+            ReplanBreach(htn);
             return;
         }
 
@@ -228,8 +228,28 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             bb.SetValue(FSAIBlackboardKeys.BreachTarget, better);
             bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, 15f);
             bb.SetValue(FSAIBlackboardKeys.CachedBreachScore, betterScore);
-            _htn.Replan(htn);
+            ReplanBreach(htn);
         }
+    }
+
+    // A replan never replaces a running plan of the same or higher rank, and the breach plan took its target when it
+    // started. Changing or dropping the target while it runs has to end that plan, or the zombie keeps hitting the
+    // old structure until it breaks.
+    private void ReplanBreach(HTNComponent htn)
+    {
+        if (htn.Plan != null)
+        {
+            foreach (var task in htn.Plan.Tasks)
+            {
+                if (task.Operator is not FSSetBreachTargetOperator)
+                    continue;
+
+                _htn.AbortPlan(htn);
+                return;
+            }
+        }
+
+        _htn.Replan(htn);
     }
 
     private void ClearBreachTarget(NPCBlackboard bb)
@@ -382,7 +402,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         bb.SetValue(FSAIBlackboardKeys.BreachTarget, result.Value.Best);
         bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, isMazeMode ? MazeAttackLockTime : 15f);
         bb.SetValue(FSAIBlackboardKeys.CachedBreachScore, result.Value.Score);
-        _htn.Replan(htn);
+        ReplanBreach(htn);
     }
 
     private float GetBaseZombieDamage()
