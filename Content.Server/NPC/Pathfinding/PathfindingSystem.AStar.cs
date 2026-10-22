@@ -63,9 +63,14 @@ public sealed partial class PathfindingSystem
         }
 
         currentNode = startNode;
-        request.Frontier.Add((0.0f, startNode));
-        request.CostSoFar[startNode] = 0.0f;
-        var count = 0;
+
+        // FINALSTAND: a resumed search already holds the start.
+        if (request.Expanded == 0)
+        {
+            request.Frontier.Add((0.0f, startNode));
+            request.CostSoFar[startNode] = 0.0f;
+        }
+
         var arrived = false;
 
         // FINALSTAND: the end in the start graph's frame, worked out once. The range check used to do two
@@ -82,17 +87,19 @@ public sealed partial class PathfindingSystem
             }
         }
 
-        while (request.Frontier.Count > 0 && count < NodeLimit)
+        // FINALSTAND: counted on the request. Counted per slice, a search that kept being sliced never reached the
+        // limit and could flood every reachable node over many ticks.
+        while (request.Frontier.Count > 0 && request.Expanded < NodeLimit)
         {
             // Handle whether we need to pause if we've taken too long
-            if (count % 20 == 0 && count > 0 && request.Stopwatch.Elapsed > PathTime)
+            if (request.Expanded % 20 == 0 && request.Expanded > 0 && request.Stopwatch.Elapsed > PathTime)
             {
                 // I had this happen once in testing but I don't think it should be possible?
                 DebugTools.Assert(request.Frontier.Count > 0);
                 return PathResult.Continuing;
             }
 
-            count++;
+            request.Expanded++;
 
             // Actual pathfinding here
             (_, currentNode) = request.Frontier.Take();

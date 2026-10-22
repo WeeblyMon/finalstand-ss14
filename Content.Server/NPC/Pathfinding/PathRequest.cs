@@ -25,6 +25,9 @@ public abstract class PathRequest
 
     public bool Started = false;
 
+    // FINALSTAND: nodes expanded over every time slice so far; the limits are for the whole search.
+    public int Expanded;
+
     #region Pathfinding state
 
     public readonly Stopwatch Stopwatch = new();
