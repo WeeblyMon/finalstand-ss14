@@ -44,6 +44,22 @@ public sealed class LeashTest : GameTest
                 "the leash never gave up on the chase");
             Assert.That(IsChasing(entMan, zombie, human), Is.False, "the zombie kept chasing after the leash gave up");
         });
+
+        // The ignore only lasts a few seconds; after that the human is fair game again.
+        var hunting = false;
+        for (var i = 0; i < 30 && !hunting; i++)
+        {
+            await Pair.Server.WaitRunTicks(10);
+            await Pair.Server.WaitPost(() =>
+            {
+                var bb = entMan.GetComponent<HTNComponent>(zombie).Blackboard;
+                hunting = !bb.ContainsKey(FSAIBlackboardKeys.LeashedTarget)
+                          && bb.TryGetValue<EntityUid>("Target", out var target, entMan)
+                          && target == human;
+            });
+        }
+
+        Assert.That(hunting, "the zombie never went after the human again once the leash's ignore ran out");
     }
 
     [Test]

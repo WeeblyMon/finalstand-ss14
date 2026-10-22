@@ -52,10 +52,12 @@ public sealed class DoorRepathTest : GameTest
 
         await server.WaitRunTicks(30);
 
+        object oldPath = null;
         await server.WaitAssertion(() =>
         {
             var steering = entMan.GetComponent<NPCSteeringComponent>(zombie);
             Assert.That(steering.CurrentPath, Is.Not.Empty, "the zombie never got a path to start with");
+            oldPath = steering.CurrentPath;
 
             entMan.EventBus.RaiseLocalEvent(door, new DoorStateChangedEvent(DoorState.Open));
 
@@ -72,6 +74,8 @@ public sealed class DoorRepathTest : GameTest
         {
             var steering = entMan.GetComponent<NPCSteeringComponent>(zombie);
             Assert.That(steering.RepathRequested, Is.False, "the requested repath never ran");
+            // A delivered path replaces the queue, so the same one means the pathfinder was never asked.
+            Assert.That(steering.CurrentPath, Is.Not.SameAs(oldPath), "the requested repath never planned a new path");
             Assert.That(steering.CurrentPath, Is.Not.Empty, "the repath left the zombie without a path");
         });
     }
