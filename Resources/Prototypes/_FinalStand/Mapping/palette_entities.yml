@@ -673,6 +673,7 @@
   - FSPaletteIndustrialOverhead5
   - FSPaletteIndustrialDrills6
   - FSPaletteIndustrialRails7
+  - FSPaletteIndustrialPower8
 
 - type: fsMapPalette
   id: FSPaletteIndustrialCatwalks0
@@ -1005,6 +1006,16 @@
   - FSRailroadBend
   - FSRailroadBumper
   - FSRailroadStraight
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialPower8
+  name: fspaletteindustrial-90
+  order: 90
+  entities:
+  - FSGeneratorColony
+  - FSGeneratorColonyBroken
+  - FSReactorColony
+  - FSReactorColonyBroken
 
 - type: fsMapPalette
   id: FSPaletteInterior

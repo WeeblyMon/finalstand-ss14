@@ -72,6 +72,7 @@ fspaletteindustrial-50 = Lattices
 fspaletteindustrial-60 = Overhead Pipes
 fspaletteindustrial-70 = Drills
 fspaletteindustrial-80 = Rails
+fspaletteindustrial-90 = Power
 fs-palette-interior = Interior
 fspaletteinterior-10 = Carpets & Rugs
 fspaletteinterior-10-beige = Beige

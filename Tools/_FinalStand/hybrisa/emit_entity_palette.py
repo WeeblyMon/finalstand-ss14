@@ -49,6 +49,7 @@ RULES = [
         (r'^FSOverheadPipe|^FSOverheadFuel', 'Overhead Pipes', 60),
         (r'^FSDrill', 'Drills', 70),
         (r'^FS(Monorail|Railroad)', 'Rails', 80),
+        (r'^FS(GeneratorColony|ReactorColony)', 'Power', 90),
     ]),
     ('FSPaletteInterior', 'fs-palette-interior', 'Interior', 70, [
         (r'^FS\w*Carpet|^FS\w*Rug', 'Carpets & Rugs', 10),
