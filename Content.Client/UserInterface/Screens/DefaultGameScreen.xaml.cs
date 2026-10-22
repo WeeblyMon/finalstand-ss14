@@ -28,6 +28,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     private const int ActionColumns = ActionsBar.Columns;
 
+    private const float ClassicActionsGap = 10f;
+
     private const float BottomBandLift = 23f;
 
     // Only the vitals share the bottom band with the alerts now that the action bar has moved up.
@@ -140,23 +142,29 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetAnchorAndMarginPreset(Alerts, LayoutPreset.TopRight, margin: 10);
         SetAnchorPreset(Chat, LayoutPreset.TopRight);
 
-        Actions.Orphan();
-        TopLeft.AddChild(Actions);
+        SetAnchorPreset(Actions, LayoutPreset.TopLeft);
+        SetGrowHorizontal(Actions, GrowDirection.End);
+        SetGrowVertical(Actions, GrowDirection.End);
         Actions.HorizontalAlignment = HAlignment.Left;
 
-        MainViewport.OnResized += ResizeClassicActions;
-        Inventory.OnResized += ResizeClassicActions;
-        TopBar.OnResized += ResizeClassicActions;
+        MainViewport.OnResized += PlaceClassicActions;
+        Inventory.OnResized += PlaceClassicActions;
+        Hotbar.OnResized += PlaceClassicActions;
+        TopBar.OnResized += PlaceClassicActions;
 
-        ResizeClassicActions();
+        PlaceClassicActions();
     }
 
-    private void ResizeClassicActions()
+    private void PlaceClassicActions()
     {
-        var indent = Inventory.Size.Y + TopBar.Size.Y + 40;
-        var height = MainViewport.Size.Y - indent;
+        var top = TopBar.Size.Y + ClassicActionsGap;
+        var reserved = MathF.Max(Hotbar.Size.Y, Inventory.Size.Y) + ClassicActionsGap;
+        var available = MainViewport.Size.Y - top - reserved;
 
-        Actions.ActionsContainer.MaxGridHeight = MathF.Max(height, ActionButton.ClassicSlotSize);
+        SetMarginLeft(Actions, ClassicActionsGap);
+        SetMarginTop(Actions, top);
+
+        Actions.ActionsContainer.MaxGridHeight = MathF.Max(available, ActionButton.ClassicSlotSize);
     }
 
     public void SetRightStackLift(float lift)
