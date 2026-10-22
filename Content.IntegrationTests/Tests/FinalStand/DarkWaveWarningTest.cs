@@ -3,6 +3,7 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.GameTicking;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
@@ -47,6 +48,41 @@ public sealed class DarkWaveWarningTest : GameTest
 
         await server.WaitAssertion(() =>
         {
+            var comp = entMan.GetComponent<FSDarkWaveRuleComponent>(rule);
+            Assert.That(comp.Upcoming, "the dark wave stopped being upcoming before combat");
+            Assert.That(comp.WarningAt, Is.Null, "the countdown started without the dark wave warning going out");
+        });
+    }
+
+    // Ready-ups pull the prep timer in under the warning's delay; the countdown it starts has to warn too.
+    [Test]
+    public async Task PrepTimerRunningOutStillWarns()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var ticker = entMan.System<GameTicker>();
+        var darkWaves = entMan.System<FSDarkWaveSystem>();
+        var timing = server.ResolveDependency<IGameTiming>();
+
+        EntityUid rule = default;
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(ticker.StartGameRule(WaveRule, out rule));
+
+            Assert.That(darkWaves.TryForce(out _));
+            darkWaves.Roll(rule, 1, false);
+            Assert.That(entMan.GetComponent<FSDarkWaveRuleComponent>(rule).WarningAt, Is.Not.Null);
+
+#pragma warning disable RA0002
+            entMan.GetComponent<WaveGameRuleComponent>(rule).PhaseEndTime = timing.CurTime;
+#pragma warning restore RA0002
+        });
+
+        await server.WaitRunTicks(3);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.GetComponent<WaveGameRuleComponent>(rule).VoteCountdownActive, "the prep timer ran out without starting the countdown");
             var comp = entMan.GetComponent<FSDarkWaveRuleComponent>(rule);
             Assert.That(comp.Upcoming, "the dark wave stopped being upcoming before combat");
             Assert.That(comp.WarningAt, Is.Null, "the countdown started without the dark wave warning going out");
