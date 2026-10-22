@@ -205,15 +205,16 @@ public sealed partial class FSLevelingSystem : EntitySystem
             return;
 
         var lvl = EnsureComp<FSPlayerLevelComponent>(mindId);
-        if (lvl.Loaded)
-        {
+        if (lvl.Loaded || TryLoad(mindId, lvl, ev.Player.UserId.UserId))
             SendLevelingUpdate(mindId, lvl);
-            return;
-        }
+    }
 
-        // Left unloaded if the read fails: nothing is earned or saved until a later spawn reads it.
-        if (!_store.TryGetFullRecord(ev.Player.UserId.UserId, out var row))
-            return;
+    // Left unloaded if the read fails: nothing is earned or saved until a later read works, which the next XP
+    // payout tries again.
+    private bool TryLoad(EntityUid mindId, FSPlayerLevelComponent lvl, Guid userId)
+    {
+        if (!_store.TryGetFullRecord(userId, out var row))
+            return false;
 
         lvl.Level         = row.Level;
         lvl.Experience    = row.Experience;
@@ -237,7 +238,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             catch { }
         }
 
-        SendLevelingUpdate(mindId, lvl);
+        return true;
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -373,8 +374,18 @@ public sealed partial class FSLevelingSystem : EntitySystem
         }
 
         // An unloaded level is level 1 here, so levelling it would pay out perk points the player already had.
-        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl) || !lvl.Loaded)
+        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
             return;
+
+        if (!lvl.Loaded)
+        {
+            if (!TryComp<MindComponent>(mindId, out var mind)
+                || mind.UserId is not { } user
+                || !TryLoad(mindId, lvl, user.UserId))
+                return;
+
+            SendLevelingUpdate(mindId, lvl);
+        }
 
         var amount = (int)(rawAmount * lvl.XpMultiplier);
         lvl.Experience += amount;

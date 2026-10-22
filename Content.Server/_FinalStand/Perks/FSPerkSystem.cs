@@ -386,6 +386,14 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         var perks = LoadPerks(mindId, mind.UserId.Value.UserId);
         Log.Debug($"EnsurePerkComponent: lazily created FSPerkLevelsComponent on mind={mindId}");
+
+        // The body was given the empty build when the read at spawn failed; give it the real one now.
+        if (perks.Loaded && mind.CurrentEntity is { } body)
+        {
+            _movement.RefreshMovementSpeedModifiers(body);
+            RaisePerksChanged(body, mindId, perks);
+        }
+
         return perks;
     }
 

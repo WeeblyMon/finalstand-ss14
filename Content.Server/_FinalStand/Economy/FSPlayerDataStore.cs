@@ -2,15 +2,22 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Robust.Shared.ContentPack;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Economy;
 
 public sealed partial class FSPlayerDataStore : EntitySystem
 {
     [Dependency] private IResourceManager _res = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private SqliteConnection? _db;
     private SqliteTransaction? _activeTx;
+
+    // After a failed read the database is left alone for a while. Unloaded wallets and levels retry their load on
+    // each payout, and a broken file would otherwise cost a query and an error line for every hit and kill.
+    private static readonly TimeSpan ReadRetryDelay = TimeSpan.FromSeconds(5);
+    private TimeSpan _readRetryAt;
 
     public override void Initialize()
     {
@@ -110,6 +117,9 @@ public sealed partial class FSPlayerDataStore : EntitySystem
             return true;
         }
 
+        if (_timing.RealTime < _readRetryAt)
+            return false;
+
         try
         {
             value = read();
@@ -118,6 +128,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         catch (Exception e)
         {
             Log.Error($"{what} failed: {e.Message}");
+            _readRetryAt = _timing.RealTime + ReadRetryDelay;
             return false;
         }
     }
