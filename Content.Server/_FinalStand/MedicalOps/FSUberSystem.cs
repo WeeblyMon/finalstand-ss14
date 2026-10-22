@@ -94,7 +94,7 @@ public sealed partial class FSUberSystem : EntitySystem
         var guns = EntityQueryEnumerator<FSMediGunComponent>();
         while (guns.MoveNext(out var uid, out var other))
         {
-            if (other.ParentEntity == patient && other.UberActive)
+            if (other.UberMedic == patient && other.UberActive)
                 Cover((uid, other), patient);
         }
     }
@@ -128,6 +128,7 @@ public sealed partial class FSUberSystem : EntitySystem
         }
 
         comp.UberEndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.UberDuration);
+        comp.UberMedic = medic;
         comp.ParentEntity ??= medic;
         Dirty(ent);
 
@@ -156,6 +157,7 @@ public sealed partial class FSUberSystem : EntitySystem
             if (now >= end)
             {
                 gun.UberEndTime = null;
+                gun.UberMedic = null;
                 gun.UberCharge = 0f;
                 gun.UberLoop = _audio.Stop(gun.UberLoop);
                 Dirty(uid, gun);

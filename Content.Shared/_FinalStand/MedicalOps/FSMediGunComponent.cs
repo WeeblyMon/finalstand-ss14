@@ -145,6 +145,9 @@ public sealed partial class FSMediGunComponent : Component
 
     [ViewVariables] public EntityUid? UberLoop;
 
+    // Who popped the running uber. The gun can lose its links or change hands while it runs; this medic's cover can't.
+    [ViewVariables] public EntityUid? UberMedic;
+
     public bool UberActive => UberEndTime != null;
 }
 

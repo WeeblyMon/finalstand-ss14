@@ -3,7 +3,10 @@ using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.Mind;
+using Content.Shared.Roles;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
@@ -61,34 +64,35 @@ public sealed class UberCoverTest : GameTest
 
     // A medic in their own uber, beamed by another uber medic, keeps their own cover: when that beam moves on,
     // whichever of the two ubers runs longer, and when the other uber runs out first with the beam still on them.
-    [TestCase(5, true)]
-    [TestCase(20, true)]
-    [TestCase(1, false)]
-    public async Task OwnUberOutlastsAnotherMedicsBeam(int otherSeconds, bool beamMovesOn)
+    // Their own gun may have dropped its links in the meantime, which clears who holds it but not whose uber it is.
+    [TestCase(5, true, false)]
+    [TestCase(20, true, false)]
+    [TestCase(1, false, false)]
+    [TestCase(20, true, true)]
+    public async Task OwnUberOutlastsAnotherMedicsBeam(int otherSeconds, bool beamMovesOn, bool ownLinksDropped)
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
         var timing = server.ResolveDependency<IGameTiming>();
         var medigun = entMan.System<FSMediGunSystem>();
-        var uber = entMan.System<FSUberSystem>();
         var map = await Pair.CreateTestMap();
 
         EntityUid ownMedic = default;
         TimeSpan ownEnd = default;
         await server.WaitPost(() =>
         {
-            ownMedic = entMan.SpawnEntity(Human, map.GridCoords);
+            ownMedic = SpawnMedic(entMan, map.GridCoords);
             var otherMedic = entMan.SpawnEntity(Human, map.GridCoords);
             var patient = entMan.SpawnEntity(Human, map.GridCoords);
             entMan.EnsureComponent<FSFriendlyFireComponent>(ownMedic);
             entMan.EnsureComponent<FSFriendlyFireComponent>(patient);
 
-            ownEnd = timing.CurTime + TimeSpan.FromSeconds(10);
             var ownGun = entMan.SpawnEntity(Gun, map.GridCoords);
             var ownComp = entMan.GetComponent<FSMediGunComponent>(ownGun);
-            ownComp.UberEndTime = ownEnd;
-            ownComp.ParentEntity = ownMedic;
-            uber.Cover((ownGun, ownComp), ownMedic);
+            Deploy(entMan, (ownGun, ownComp), ownMedic);
+            ownEnd = ownComp.UberEndTime!.Value;
+            if (ownLinksDropped)
+                medigun.DisableAllConnections((ownGun, ownComp));
 
             var otherGun = entMan.SpawnEntity(Gun, map.GridCoords);
             var otherComp = entMan.GetComponent<FSMediGunComponent>(otherGun);
@@ -109,5 +113,69 @@ public sealed class UberCoverTest : GameTest
                 "the medic lost their own uber's cover when another medic's beam moved on");
             Assert.That(ubered.EndTime, Is.GreaterThanOrEqualTo(ownEnd), "the medic's cover ends before their own uber does");
         });
+    }
+
+    // A charged uber handed to another medic mid-uber covers the patients they beam, never the new holder: the cover
+    // belongs to whoever popped it.
+    [Test]
+    public async Task PassedOnUberDoesNotCoverItsNewHolder()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var medigun = entMan.System<FSMediGunSystem>();
+        var map = await Pair.CreateTestMap();
+
+        EntityUid holder = default;
+        await server.WaitPost(() =>
+        {
+            var deployer = SpawnMedic(entMan, map.GridCoords);
+            holder = SpawnMedic(entMan, map.GridCoords);
+            var otherMedic = entMan.SpawnEntity(Human, map.GridCoords);
+            var patient = entMan.SpawnEntity(Human, map.GridCoords);
+            var otherPatient = entMan.SpawnEntity(Human, map.GridCoords);
+            entMan.EnsureComponent<FSFriendlyFireComponent>(holder);
+            entMan.EnsureComponent<FSFriendlyFireComponent>(patient);
+            entMan.EnsureComponent<FSFriendlyFireComponent>(otherPatient);
+
+            var gun = entMan.SpawnEntity(Gun, map.GridCoords);
+            var comp = entMan.GetComponent<FSMediGunComponent>(gun);
+            Deploy(entMan, (gun, comp), deployer);
+            medigun.DisableAllConnections((gun, comp));
+            medigun.Link((gun, comp), patient, holder);
+
+            // Another uber medic's beam passes over the new holder and moves on.
+            var otherGun = entMan.SpawnEntity(Gun, map.GridCoords);
+            var otherComp = entMan.GetComponent<FSMediGunComponent>(otherGun);
+            otherComp.UberEndTime = timing.CurTime + TimeSpan.FromSeconds(10);
+            otherComp.ParentEntity = otherMedic;
+            medigun.Link((otherGun, otherComp), holder, otherMedic);
+            medigun.Link((otherGun, otherComp), otherPatient, otherMedic);
+        });
+
+        // Past the grace a dropped patient keeps.
+        await server.WaitRunTicks(30);
+
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.HasComponent<FSUberedComponent>(holder), Is.False,
+                "the medic holding someone else's uber was covered by it"));
+    }
+
+    private static EntityUid SpawnMedic(IEntityManager entMan, EntityCoordinates coords)
+    {
+        var minds = entMan.System<SharedMindSystem>();
+        var medic = entMan.SpawnEntity(Human, coords);
+        var mind = minds.CreateMind(null, "medic");
+        minds.TransferTo(mind, medic);
+        entMan.System<SharedRoleSystem>().MindAddJobRole(mind, silent: true, jobPrototype: "MedicalDoctor");
+        return medic;
+    }
+
+    // Pops the uber the way the action does, so the gun records whose uber it is.
+    private static void Deploy(IEntityManager entMan, Entity<FSMediGunComponent> gun, EntityUid medic)
+    {
+        gun.Comp.UberCharge = FSUberSystem.FullCharge;
+        entMan.EventBus.RaiseLocalEvent(gun, new FSMediGunUberActionEvent { Performer = medic });
+        Assert.That(gun.Comp.UberActive, "the medic couldn't pop the uber");
     }
 }
