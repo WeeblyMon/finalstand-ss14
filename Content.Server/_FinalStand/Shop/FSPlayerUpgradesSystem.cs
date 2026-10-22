@@ -77,11 +77,12 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         newState.DualWieldEnergySwordApplied = true;
         Dirty(newSword, newState);
 
-        // The state is already on the new sword, so the old one always goes.
+        // The state is already on the new sword, so the old one always goes, and at once: queued, it kept its bag
+        // space from the new sword and a second upgrade this tick could still find it.
         var wasInHand = TryComp<HandsComponent>(player, out var hands)
             && _hands.IsHolding((player, hands), oldSword, out _)
             && _hands.TryDrop((player, hands), oldSword);
-        QueueDel(oldSword);
+        Del(oldSword);
 
         if (!wasInHand || !_hands.TryPickup(player, newSword, handsComp: hands))
             _stash.Stash(player, newSword);
