@@ -73,7 +73,7 @@ public sealed class QueuedZombieTest : GameTest
             steering.Range = 1f;
         });
 
-        await Stall(server, entMan, timing, back);
+        await Stall(server, entMan, timing, back, front);
 
         // Well past the three stuck periods after which a move used to give up.
         await server.WaitRunTicks(150);
@@ -154,7 +154,7 @@ public sealed class QueuedZombieTest : GameTest
             steering.Range = 1f;
         });
 
-        await Stall(server, entMan, timing, back);
+        await Stall(server, entMan, timing, back, front);
 
         EntityUid blocker = default;
         await server.WaitPost(() =>
@@ -192,15 +192,29 @@ public sealed class QueuedZombieTest : GameTest
         });
     }
 
-    // Lets the one behind get its path and start moving, then marks it as not having got anywhere for a while, which
-    // is how a crowd leaves it. The next steer sees it stuck with a zombie ahead and queues it.
-    private static async Task Stall(IIntegrationInstance server, IEntityManager entMan, IGameTiming timing, EntityUid back)
+    // Lets the one behind get its path, puts it right behind the other one and marks it as not having got anywhere for
+    // a while, which is how a crowd leaves it. The next steer sees it stuck with a zombie ahead and queues it. Placing
+    // it rather than letting it walk up keeps this independent of zombie speed: at full speed it reaches and passes
+    // the other one before a fixed wait is up.
+    private static async Task Stall(IIntegrationInstance server, IEntityManager entMan, IGameTiming timing, EntityUid back,
+        EntityUid front)
     {
-        await server.WaitRunTicks(15);
+        var hasPath = false;
+        for (var i = 0; i < 60 && !hasPath; i++)
+        {
+            await server.WaitRunTicks(1);
+            await server.WaitPost(() => hasPath = entMan.GetComponent<NPCSteeringComponent>(back).CurrentPath.Count > 0);
+        }
+
+        Assert.That(hasPath, "the zombie behind has no path to keep");
+
         await server.WaitPost(() =>
         {
+            var xforms = entMan.System<SharedTransformSystem>();
+            var frontPos = entMan.GetComponent<TransformComponent>(front).LocalPosition;
+            xforms.SetLocalPosition(back, frontPos + new Vector2(0.9f, 0f));
+
             var steering = entMan.GetComponent<NPCSteeringComponent>(back);
-            Assert.That(steering.CurrentPath, Is.Not.Empty, "the zombie behind has no path to keep");
             steering.LastStuckCoordinates = entMan.GetComponent<TransformComponent>(back).Coordinates;
             steering.LastStuckTime = timing.CurTime - TimeSpan.FromSeconds(5);
         });
