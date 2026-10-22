@@ -82,6 +82,7 @@
       knockbackDuration: 0.25
       flinchDuration: 0.3
       flinchSpeed: 0.25
+      trip: 1.2
       hitEffect: FSMeleeHitShatter
       killEffect: FSMeleeKillBlood
       swingEffect: FSMeleeSpinRing

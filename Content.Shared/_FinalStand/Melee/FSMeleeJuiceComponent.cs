@@ -38,6 +38,21 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public SoundSpecifier? ComboReadySound;
 
+    // Each hit in a row on the same target adds this much damage, up to RevStacks, and raises the hit sound's pitch.
+    [DataField]
+    public float RevStep;
+
+    [DataField]
+    public int RevStacks = 6;
+
+    // Seconds between hits before the rev drops.
+    [DataField]
+    public float RevWindow = 0.4f;
+
+    // Light swings while sprinting become a running lunge.
+    [DataField]
+    public bool SprintAttack = true;
+
     public FSMeleeJuiceProfile Get(bool heavy, bool finisher = false)
     {
         if (finisher && Finisher != null)
@@ -208,10 +223,25 @@ public sealed partial class FSMeleeJuiceProfile
     [DataField]
     public float KillZoom = 0.05f;
 
+    // Seconds ordinary zombies are knocked off their feet for.
+    [DataField]
+    public float Trip;
+
+    // What the swing that used this copy did, for its effects.
+    public int Rev { get; set; }
+    public bool Sprint { get; set; }
+    public bool Execution { get; set; }
+    public bool FullCharge { get; set; }
+
+    public FSMeleeJuiceProfile Copy()
+    {
+        return (FSMeleeJuiceProfile) MemberwiseClone();
+    }
+
     // A copy for a charged swing: damage scales by one factor, and reach, force and feel by the other.
     public FSMeleeJuiceProfile Charged(float damage, float force)
     {
-        var profile = (FSMeleeJuiceProfile) MemberwiseClone();
+        var profile = Copy();
         profile.DamageMultiplier *= damage;
         profile.Knockback *= force;
         profile.FlinchDuration *= force;

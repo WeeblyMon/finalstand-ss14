@@ -8,6 +8,7 @@ using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Particles;
 using Content.Shared.Body.Components;
 using Content.Shared.Camera;
+using Content.Shared.Rotation;
 using Content.Shared.CCVar;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
@@ -37,6 +38,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private SharedEyeSystem _eye = default!;
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private AppearanceSystem _appearance = default!;
 
     private const string FlinchKey = "fs-melee-flinch";
     private const float MaxShake = 0.35f;
@@ -51,7 +53,14 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float HoldWindow = 0.25f;
     private const float SlamSmash = 0.2f;
     private const float ChargeRumble = 0.25f;
+    private const string RotateKey = "rotate";
+    private const string SquashKey = "fs-melee-squash";
+    private const float TiltTime = 0.35f;
+    private const float RevBlood = 0.4f;
+    private const float SquashTime = 0.22f;
     private static readonly ProtoId<FSParticleEmitterPrototype> FullChargeGlint = "FSMeleeGlint";
+    private static readonly ProtoId<FSParticleEmitterPrototype> Dust = "FSMeleeBluntDust";
+    private static readonly ProtoId<FSParticleEmitterPrototype> Blood = "FSMeleeBlood";
 
     public sealed class Trail
     {
@@ -87,6 +96,11 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private float _zoomPunch;
     private float _zoomStart = float.MinValue;
     private FSMeleeTrailOverlay? _overlay;
+    private FSImpactFrameOverlay? _impactFrame;
+    private FSMeleeChargeOverlay? _chargeOverlay;
+    private FSExecutionMarkerOverlay? _executionOverlay;
+    private readonly Dictionary<EntityUid, float> _tilting = new();
+    private readonly List<EntityUid> _untilt = new();
     private EntityUid? _fullCharge;
 
     public override void Initialize()
@@ -95,12 +109,19 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         SubscribeNetworkEvent<FSMeleeHitJuiceEvent>(OnHitEvent);
         SubscribeNetworkEvent<FSMeleeKillJuiceEvent>(OnKillEvent);
+        SubscribeNetworkEvent<FSMeleeWallBounceEvent>(OnWallBounce);
         SubscribeLocalEvent<FSMeleeShakeComponent, GetEyeOffsetEvent>(OnEyeOffset);
 
         UpdatesAfter.Add(typeof(EyeLerpingSystem));
 
         _overlay = new FSMeleeTrailOverlay(this);
         _overlays.AddOverlay(_overlay);
+        _impactFrame = new FSImpactFrameOverlay();
+        _overlays.AddOverlay(_impactFrame);
+        _chargeOverlay = new FSMeleeChargeOverlay();
+        _overlays.AddOverlay(_chargeOverlay);
+        _executionOverlay = new FSExecutionMarkerOverlay(this);
+        _overlays.AddOverlay(_executionOverlay);
     }
 
     public override void Shutdown()
@@ -109,9 +130,15 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         if (_overlay != null)
             _overlays.RemoveOverlay(_overlay);
+        if (_impactFrame != null)
+            _overlays.RemoveOverlay(_impactFrame);
+        if (_chargeOverlay != null)
+            _overlays.RemoveOverlay(_chargeOverlay);
+        if (_executionOverlay != null)
+            _overlays.RemoveOverlay(_executionOverlay);
     }
 
-    protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args)
+    protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, FSMeleeJuiceProfile profile, MeleeHitEvent args)
     {
         if (!Timing.IsFirstTimePredicted)
             return;
@@ -120,7 +147,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             && TryComp<FSMeleeComboComponent>(user, out var combo) && combo.Weapon == weapon.Owner && combo.Hits >= weapon.Comp.ComboHits
             ? weapon.Comp.ComboReadySound
             : null;
-        Play(user, weapon, targets, direction, heavy, finisher, 0, lethal, cue);
+        Play(user, weapon, targets, direction, heavy, finisher, 0, lethal, cue, profile);
     }
 
     private void OnHitEvent(FSMeleeHitJuiceEvent ev)
@@ -162,9 +189,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             StartZoom(profile.KillZoom);
     }
 
-    private void Play(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, int strike, bool lethal, SoundSpecifier? cue = null)
+    private void Play(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, int strike, bool lethal, SoundSpecifier? cue = null, FSMeleeJuiceProfile? used = null)
     {
-        var profile = Profile(weapon, heavy, finisher);
+        var profile = used ?? Profile(weapon, heavy, finisher);
         var hold = profile.Hitstop + (lethal ? profile.KillHitstopBonus : 0f);
         if (strike > 0)
             hold *= 0.6f;
@@ -189,8 +216,21 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         for (var i = 0; i < targets.Count && i < MaxJitterTargets; i++)
         {
             if (!TerminatingOrDeleted(targets[i]))
-                Jitter(targets[i], dir, hold + 0.06f, 0.05f + profile.Trauma * 0.1f);
+                Jitter(targets[i], dir, hold + 0.06f, 0.05f + profile.Trauma * 0.1f, !lethal);
         }
+
+        var effects = _cfg.GetCVar(CCVars.FSMeleeEffects);
+        if (effects && profile.Rev > 0)
+        {
+            foreach (var target in targets)
+            {
+                if (!TerminatingOrDeleted(target) && HasComp<BloodstreamComponent>(target))
+                    _particles.Burst(Blood, target, null, RevBlood * profile.Rev);
+            }
+        }
+
+        if (effects && profile.Sprint && !TerminatingOrDeleted(user))
+            _particles.Burst(Dust, user, null, 2f);
 
         foreach (var target in targets)
         {
@@ -225,6 +265,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         if (cue != null)
             _audio.PlayLocal(cue, user, user, cue.Params);
+
+        if ((profile.Execution || profile.FullCharge) && effects && !_cfg.GetCVar(CCVars.ReducedMotion))
+            _impactFrame?.Flash(RealTime);
 
         AddTrauma(user, profile.Trauma * Math.Min(1f + 0.25f * (targets.Count - 1), 2f), dir, profile.ShakeMode);
 
@@ -357,7 +400,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         _melee.DoLunge(user, weapon, melee.Angle, localPos, heavy ? melee.WideAnimation : melee.Animation, false);
     }
 
-    private void Jitter(EntityUid target, Vector2 dir, float duration, float amplitude)
+    private void Jitter(EntityUid target, Vector2 dir, float duration, float amplitude, bool tilt)
     {
         // Jittering mid-lunge would leave the sprite resting wherever the lunge was.
         if (!TryComp<SpriteComponent>(target, out var sprite)
@@ -368,8 +411,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         var origin = sprite.Offset;
         var push = dir * amplitude;
         var side = new Vector2(-dir.Y, dir.X) * amplitude * 0.5f;
-
-        _animation.Play(target, new Animation
+        var animation = new Animation
         {
             Length = TimeSpan.FromSeconds(duration),
             AnimationTracks =
@@ -389,7 +431,97 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                     },
                 },
             },
-        }, FlinchKey);
+        };
+
+        // Standing mobs reel away from the hit; anything lying down or about to has its own rotation to keep.
+        if (tilt && Upright(target))
+        {
+            var rotation = sprite.Rotation;
+            var lean = Angle.FromDegrees(-(MathF.Abs(dir.X) > 0.2f ? MathF.Sign(dir.X) : 1f) * amplitude * 100f);
+            animation.Length = TimeSpan.FromSeconds(Math.Max(duration, TiltTime));
+            animation.AnimationTracks.Add(new AnimationTrackComponentProperty
+            {
+                ComponentType = typeof(SpriteComponent),
+                Property = nameof(SpriteComponent.Rotation),
+                InterpolationMode = AnimationInterpolationMode.Linear,
+                KeyFrames =
+                {
+                    new AnimationTrackProperty.KeyFrame(rotation + lean, 0f),
+                    new AnimationTrackProperty.KeyFrame(rotation + lean * 0.6, TiltTime * 0.35f, Easings.OutQuad),
+                    new AnimationTrackProperty.KeyFrame(rotation - lean * 0.15, TiltTime * 0.35f, Easings.InOutQuad),
+                    new AnimationTrackProperty.KeyFrame(rotation, TiltTime * 0.3f, Easings.InOutQuad),
+                },
+            });
+            _tilting[target] = RealTime + TiltTime;
+        }
+
+        _animation.Play(target, animation, FlinchKey);
+    }
+
+    private bool Upright(EntityUid target)
+    {
+        if (_animation.HasRunningAnimation(target, RotateKey))
+            return false;
+
+        return !TryComp<AppearanceComponent>(target, out var appearance)
+            || !_appearance.TryGetData<RotationState>(target, RotationVisuals.RotationState, out var state, appearance)
+            || state == RotationState.Vertical;
+    }
+
+    // A mob that falls mid-tilt hands its rotation back to the fall.
+    private void UpdateTilts()
+    {
+        var now = RealTime;
+        _untilt.Clear();
+        foreach (var (uid, until) in _tilting)
+        {
+            if (now >= until || TerminatingOrDeleted(uid))
+                _untilt.Add(uid);
+            else if (_animation.HasRunningAnimation(uid, RotateKey))
+            {
+                _animation.Stop(uid, FlinchKey);
+                _untilt.Add(uid);
+            }
+        }
+
+        foreach (var uid in _untilt)
+        {
+            _tilting.Remove(uid);
+        }
+    }
+
+    private void OnWallBounce(FSMeleeWallBounceEvent ev)
+    {
+        if (!TryGetEntity(ev.Target, out var target) || !TryComp<SpriteComponent>(target, out var sprite))
+            return;
+
+        if (_cfg.GetCVar(CCVars.FSMeleeEffects))
+            _particles.Burst(Dust, Xform.GetMapCoordinates(target.Value).Offset(ev.Direction * 0.4f), null, 2f);
+
+        if (_animation.HasRunningAnimation(target.Value, SquashKey))
+            return;
+
+        var scale = sprite.Scale;
+        var squash = new Vector2(1.3f, 0.7f);
+        _animation.Play(target.Value, new Animation
+        {
+            Length = TimeSpan.FromSeconds(SquashTime),
+            AnimationTracks =
+            {
+                new AnimationTrackComponentProperty
+                {
+                    ComponentType = typeof(SpriteComponent),
+                    Property = nameof(SpriteComponent.Scale),
+                    InterpolationMode = AnimationInterpolationMode.Linear,
+                    KeyFrames =
+                    {
+                        new AnimationTrackProperty.KeyFrame(scale * squash, 0f),
+                        new AnimationTrackProperty.KeyFrame(scale * new Vector2(0.9f, 1.12f), SquashTime * 0.45f, Easings.OutQuad),
+                        new AnimationTrackProperty.KeyFrame(scale, SquashTime * 0.55f, Easings.InOutQuad),
+                    },
+                },
+            },
+        }, SquashKey);
     }
 
     private void AddTrauma(EntityUid user, float amount, Vector2 dir, FSMeleeShakeMode mode)
@@ -613,6 +745,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         UpdateSlashes();
+        UpdateTilts();
         UpdateTrails();
         UpdateZoom();
         UpdateCharge();

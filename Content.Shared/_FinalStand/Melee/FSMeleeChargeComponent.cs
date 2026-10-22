@@ -60,6 +60,8 @@ public sealed partial class FSMeleeChargeComponent : Component
 
     public FSMeleeJuiceProfile Apply(FSMeleeJuiceProfile profile)
     {
-        return profile.Charged(MathHelper.Lerp(MinDamage, MaxDamage, LastCharge), MathHelper.Lerp(MinForce, MaxForce, LastCharge));
+        var charged = profile.Charged(MathHelper.Lerp(MinDamage, MaxDamage, LastCharge), MathHelper.Lerp(MinForce, MaxForce, LastCharge));
+        charged.FullCharge = WasFull;
+        return charged;
     }
 }

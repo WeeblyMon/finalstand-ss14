@@ -814,6 +814,9 @@
   suffix: FinalStand
   components:
   - type: FSMeleeJuice
+    revStep: 0.08
+    revStacks: 6
+    sprintAttack: false
     light:
       anticipation: 0
       hitstop: 0

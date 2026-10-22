@@ -36,3 +36,11 @@ public sealed class FSMeleeKillJuiceEvent(NetEntity user, NetEntity weapon, NetE
     public bool Heavy = heavy;
     public bool Finisher = finisher;
 }
+
+// A knocked-back mob hitting a wall, for the squash and dust where it lands.
+[Serializable, NetSerializable]
+public sealed class FSMeleeWallBounceEvent(NetEntity target, Vector2 direction) : EntityEventArgs
+{
+    public NetEntity Target = target;
+    public Vector2 Direction = direction;
+}

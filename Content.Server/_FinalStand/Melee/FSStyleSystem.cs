@@ -32,6 +32,7 @@ public sealed partial class FSStyleSystem : EntitySystem
     public const float StaggerPoints = 4f;
     public const float WallSlamPoints = 25f;
     public const float CrashPoints = 18f;
+    public const float ExecutionPoints = 60f;
 
     // Smaller hits than this don't cost a rank, so chip damage from fire or bleeding leaves the meter alone.
     private const float DropDamage = 5f;

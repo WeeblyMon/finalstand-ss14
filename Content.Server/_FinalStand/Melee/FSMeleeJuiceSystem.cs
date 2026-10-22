@@ -1,11 +1,14 @@
 using System.Numerics;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Upgrades.Effects;
+using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Melee;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
+using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
@@ -19,6 +22,7 @@ using Robust.Server.Audio;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -38,6 +42,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private MovementModStatusSystem _movementStatus = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private FSStyleSystem _style = default!;
+    [Dependency] private FSStunOverrideSystem _stun = default!;
+    [Dependency] private SharedStaminaSystem _stamina = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
     private const float WallSlamKnockback = 4f;
@@ -49,8 +55,17 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float LaunchRadius = 0.7f;
     private const float LaunchKnockback = 0.5f;
     private const float LaunchFlinch = 0.75f;
+    private const float WallBounce = 0.3f;
+    private const float MaxBounceDelay = 0.25f;
+    private const float SprintStamina = 12f;
+    private const float ExecutionHeal = 6f;
     private static readonly ProtoId<DamageTypePrototype> WallSlamType = "Blunt";
     private static readonly SoundSpecifier WallSlamSound = new SoundCollectionSpecifier("FSMeleeBluntHit");
+    private static readonly SoundSpecifier ExecutionSound = new SoundCollectionSpecifier("FSMeleeBoneBreak", AudioParams.Default.WithVolume(4f));
+
+    private readonly record struct PendingBounce(EntityUid User, EntityUid Target, Vector2 Direction, float Speed, TimeSpan Due);
+
+    private readonly List<PendingBounce> _bounces = new();
 
     private readonly record struct PendingStrike(EntityUid User, EntityUid Weapon, List<EntityUid> Targets, DamageSpecifier Damage, Vector2 Direction, bool Heavy, bool Finisher, int Strike, TimeSpan Due);
 
@@ -65,13 +80,15 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
     }
 
-    protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args)
+    protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, FSMeleeJuiceProfile profile, MeleeHitEvent args)
     {
-        var profile = Profile(weapon, heavy, finisher);
         var damage = args.BaseDamage + args.BonusDamage;
 
         foreach (var target in targets)
             _hitsThisTick[(user, target)] = (weapon, heavy, finisher);
+
+        if (profile.Execution)
+            Execute(user, targets);
 
         if (profile.FlinchedBonus > 0f)
         {
@@ -103,6 +120,33 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
     }
 
+    private void Execute(EntityUid user, List<EntityUid> targets)
+    {
+        var executed = 0;
+        foreach (var target in targets)
+        {
+            if (!CanExecute(target) || !TryComp<DamageableComponent>(target, out var damageable) || HealthLost(target) is not { } lost)
+                continue;
+
+            var remaining = (float) damageable.TotalDamage / lost - (float) damageable.TotalDamage;
+            _killPipeline.MarkMeleeHit(user, target);
+            _damageable.ChangeDamage(target, new DamageSpecifier(_proto.Index(WallSlamType), FixedPoint2.New(remaining * 2f + 10f)), ignoreResistances: true, origin: user);
+            _audio.PlayPvs(ExecutionSound, target, ExecutionSound.Params.WithVariation(0.06f));
+            executed++;
+        }
+
+        if (executed == 0)
+            return;
+
+        _damageable.HealEvenly(user, FixedPoint2.New(-ExecutionHeal * executed));
+        _style.Bonus(user, FSStyleSystem.ExecutionPoints * executed);
+    }
+
+    protected override void OnSprintAttack(EntityUid user)
+    {
+        _stamina.TakeStaminaDamage(user, SprintStamina, visual: false, silent: true);
+    }
+
     private void SendHit(EntityUid user, EntityUid weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, int strike, bool lethal, bool includeUser)
     {
         var filter = Filter.Pvs(user, entityManager: EntityManager);
@@ -125,6 +169,12 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             var pushed = profile.Knockback > 0f ? _knockback.Push(target, push, profile.Knockback, TimeSpan.FromSeconds(profile.KnockbackDuration)) : 0f;
 
             Flinch(target, profile.FlinchDuration, profile.FlinchSpeed);
+
+            if (profile.Trip > 0f && !HasComp<FSSpecialZombieComponent>(target) && !HasComp<ActorComponent>(target))
+            {
+                _stun.TryForceStun(target, TimeSpan.FromSeconds(profile.Trip), true);
+                Flinch(target, profile.Trip, 0.1f);
+            }
 
             if (active && profile.HitStatus is { } status)
                 _movementStatus.TryUpdateMovementSpeedModDuration(target, status, TimeSpan.FromSeconds(profile.HitStatusDuration), profile.HitStatusSpeed);
@@ -214,22 +264,40 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         SendHit(user, launched.Weapon, struck, launched.Direction, true, false, 0, false, true);
     }
 
+    // The slam lands when the body reaches the wall, not when it was hit.
     private void TryWallSlam(EntityUid user, EntityUid target, Vector2 push, float knockback)
     {
         if (push == Vector2.Zero)
             return;
 
         var xform = Transform(target);
-        var ray = new CollisionRay(Xform.GetWorldPosition(xform), Vector2.Normalize(push), (int) CollisionGroup.Impassable);
+        var dir = Vector2.Normalize(push);
+        var ray = new CollisionRay(Xform.GetWorldPosition(xform), dir, (int) CollisionGroup.Impassable);
         var length = knockback / MobFriction + 0.45f;
-        foreach (var _ in _physics.IntersectRay(xform.MapID, ray, length, target, returnOnFirstHit: true))
+        foreach (var hit in _physics.IntersectRay(xform.MapID, ray, length, target, returnOnFirstHit: true))
         {
-            Flinch(target, WallSlamFlinch, 0.1f);
-            _style.Bonus(user, FSStyleSystem.WallSlamPoints);
-            _damageable.ChangeDamage(target, new DamageSpecifier(_proto.Index(WallSlamType), WallSlamDamage), origin: user);
-            _audio.PlayPvs(WallSlamSound, target, AudioParams.Default.WithVariation(0.1f));
+            // A push of v covers v / friction * (1 - e^(-friction * t)) tiles by time t.
+            var travel = Math.Max(0f, hit.Distance - 0.45f) * MobFriction / knockback;
+            var delay = travel >= 0.95f ? MaxBounceDelay : MathF.Min(MaxBounceDelay, -MathF.Log(1f - travel) / MobFriction);
+            _bounces.Add(new PendingBounce(user, target, dir, knockback, Timing.CurTime + TimeSpan.FromSeconds(delay)));
             return;
         }
+    }
+
+    private void Bounce(PendingBounce bounce)
+    {
+        var target = bounce.Target;
+        if (TerminatingOrDeleted(target) || _mobState.IsDead(target))
+            return;
+
+        if (TryComp<PhysicsComponent>(target, out var body))
+            _physics.SetLinearVelocity(target, -bounce.Direction * bounce.Speed * WallBounce, body: body);
+
+        Flinch(target, WallSlamFlinch, 0.1f);
+        _style.Bonus(bounce.User, FSStyleSystem.WallSlamPoints);
+        _damageable.ChangeDamage(target, new DamageSpecifier(_proto.Index(WallSlamType), WallSlamDamage), origin: bounce.User);
+        _audio.PlayPvs(WallSlamSound, target, AudioParams.Default.WithVariation(0.1f));
+        RaiseNetworkEvent(new FSMeleeWallBounceEvent(GetNetEntity(target), bounce.Direction), Filter.Pvs(target, entityManager: EntityManager));
     }
 
     private bool IsActive(EntityUid weapon)
@@ -349,6 +417,16 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
             _strikes.RemoveAt(i);
             RunStrike(strike);
+        }
+
+        for (var i = _bounces.Count - 1; i >= 0; i--)
+        {
+            var bounce = _bounces[i];
+            if (now < bounce.Due)
+                continue;
+
+            _bounces.RemoveAt(i);
+            Bounce(bounce);
         }
 
         UpdateLaunched();

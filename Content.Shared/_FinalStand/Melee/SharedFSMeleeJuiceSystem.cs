@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared._FinalStand.Sprint;
 using Content.Shared.ActionBlocker;
 using Content.Shared.CombatMode;
 using Content.Shared.Damage;
@@ -15,6 +16,7 @@ using Content.Shared.Movement.Systems;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Wieldable.Components;
+using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Physics.Components;
@@ -41,6 +43,21 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
     // Specials and bosses shrug off most of a stagger, so long finisher flinches can't lock them down.
     private const float SpecialFlinchScale = 0.4f;
+
+    // Flinches this long leave a zombie open to an execution once it is badly hurt.
+    private const float StaggerFlinch = 0.35f;
+    private static readonly TimeSpan StaggerGrace = TimeSpan.FromSeconds(1.2);
+    public const float ExecutionHealth = 0.25f;
+    private const float ExecutionHitstop = 0.14f;
+    private const float ExecutionZoom = 0.12f;
+
+    private const float SprintMinSpeed = 2f;
+    private static readonly TimeSpan SprintAttackCooldown = TimeSpan.FromSeconds(1.2);
+    private const float SprintDamage = 1.25f;
+    private const float SprintKnockback = 1.75f;
+    private const float SprintFlinch = 1.75f;
+    private const float SprintLunge = 1.1f;
+    private const float RevPitchStep = 0.05f;
 
     private readonly List<EntityUid> _expired = new();
 
@@ -131,7 +148,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         Dirty(ent);
     }
 
-    protected abstract void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args);
+    protected abstract void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, FSMeleeJuiceProfile profile, MeleeHitEvent args);
 
     protected virtual void OnHeavyMiss(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim, FSMeleeJuiceProfile profile, DamageSpecifier damage)
     {
@@ -181,6 +198,8 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (targets.Count == 0)
             return;
 
+        profile = Embellish(ent, args.User, targets, profile, heavy, args);
+
         if (!MathHelper.CloseTo(profile.DamageMultiplier, 1f))
             args.BonusDamage += args.BaseDamage * (profile.DamageMultiplier - 1f);
 
@@ -211,7 +230,119 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             }
         }
 
-        OnHit(ent, args.User, targets, direction, heavy, finisher, lethal, args);
+        OnHit(ent, args.User, targets, direction, heavy, finisher, lethal || profile.Execution, profile, args);
+    }
+
+    // Rev, sprint and execution only change the copy this one swing uses.
+    private FSMeleeJuiceProfile Embellish(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, FSMeleeJuiceProfile profile, bool heavy, MeleeHitEvent args)
+    {
+        var rev = Rev(weapon, targets);
+        var sprint = !heavy && SprintAttack(user, weapon);
+        var execution = targets.Exists(CanExecute);
+        if (rev == 0 && !sprint && !execution)
+            return profile;
+
+        profile = profile.Copy();
+        if (rev > 0)
+        {
+            profile.Rev = rev;
+            profile.DamageMultiplier *= 1f + weapon.Comp.RevStep * rev;
+            if (TryComp<MeleeWeaponComponent>(weapon, out var melee) && melee.HitSound is { } sound)
+                args.HitSoundOverride = Pitched(sound, 1f + RevPitchStep * rev);
+        }
+
+        if (sprint)
+        {
+            profile.Sprint = true;
+            profile.DamageMultiplier *= SprintDamage;
+            profile.Knockback *= SprintKnockback;
+            profile.FlinchDuration *= SprintFlinch;
+            profile.Lunge = Math.Max(profile.Lunge, SprintLunge);
+            profile.Trauma = Math.Min(1f, profile.Trauma + 0.15f);
+        }
+
+        if (execution)
+        {
+            profile.Execution = true;
+            profile.Hitstop += ExecutionHitstop;
+            profile.KillZoom = Math.Max(profile.KillZoom, ExecutionZoom);
+            profile.Trauma = Math.Min(1f, profile.Trauma + 0.3f);
+        }
+
+        return profile;
+    }
+
+    private static SoundSpecifier? Pitched(SoundSpecifier sound, float pitch)
+    {
+        return sound switch
+        {
+            SoundPathSpecifier path => new SoundPathSpecifier(path.Path, path.Params.WithPitchScale(path.Params.Pitch * pitch)),
+            SoundCollectionSpecifier { Collection: { } collection } set => new SoundCollectionSpecifier(collection, set.Params.WithPitchScale(set.Params.Pitch * pitch)),
+            _ => null,
+        };
+    }
+
+    // Grinding the same target keeps the rev climbing; switching targets or pausing drops it.
+    private int Rev(Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets)
+    {
+        if (weapon.Comp.RevStep <= 0f)
+            return 0;
+
+        var now = Timing.CurTime;
+        var rev = EnsureComp<FSMeleeRevComponent>(weapon);
+        var same = rev.Target is { } last && targets.Contains(last) && now - rev.Last <= TimeSpan.FromSeconds(weapon.Comp.RevWindow);
+        rev.Stacks = same ? Math.Min(rev.Stacks + 1, weapon.Comp.RevStacks) : 0;
+        if (!same)
+            rev.Target = targets[0];
+
+        rev.Last = now;
+        Dirty(weapon, rev);
+        return rev.Stacks;
+    }
+
+    private bool SprintAttack(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
+    {
+        if (!weapon.Comp.SprintAttack
+            || !TryComp<FSSprintComponent>(user, out var sprint)
+            || !sprint.IsSprinting
+            || sprint.IsExhausted
+            || !TryComp<PhysicsComponent>(user, out var body)
+            || body.LinearVelocity.Length() < SprintMinSpeed)
+            return false;
+
+        var now = Timing.CurTime;
+        var combo = EnsureComp<FSMeleeComboComponent>(user);
+        if (now < combo.NextSprintAttack)
+            return false;
+
+        combo.NextSprintAttack = now + SprintAttackCooldown;
+        Dirty(user, combo);
+        OnSprintAttack(user);
+        return true;
+    }
+
+    protected virtual void OnSprintAttack(EntityUid user)
+    {
+    }
+
+    // A staggered ordinary zombie that is nearly dead dies to the next hit.
+    public bool CanExecute(EntityUid target)
+    {
+        return TryComp<FSMeleeStaggeredComponent>(target, out var staggered)
+            && Timing.CurTime < staggered.Until
+            && HealthLost(target) is >= 1f - ExecutionHealth and < 1f;
+    }
+
+    // Fraction of the way to dead, or null for anything that can't die.
+    public float? HealthLost(EntityUid target)
+    {
+        if (!TryComp<DamageableComponent>(target, out var damageable)
+            || !TryComp<MobThresholdsComponent>(target, out var thresholds)
+            || !_thresholds.TryGetThresholdForState(target, MobState.Dead, out var threshold, thresholds)
+            || threshold <= 0)
+            return null;
+
+        return (float) (damageable.TotalDamage / threshold.Value);
     }
 
     // Players can't damage teammates or the console, but knockback and flinch would still land on them.
@@ -341,6 +472,13 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         flinch.Speed = Math.Clamp(speed, 0.1f, 1f);
         Dirty(target, flinch);
         _movement.RefreshMovementSpeedModifiers(target);
+
+        if (duration < StaggerFlinch || HasComp<FSSpecialZombieComponent>(target))
+            return;
+
+        var staggered = EnsureComp<FSMeleeStaggeredComponent>(target);
+        staggered.Until = end + StaggerGrace;
+        Dirty(target, staggered);
     }
 
     public override void Update(float frameTime)
@@ -363,6 +501,19 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         {
             RemComp<FSMeleeFlinchComponent>(uid);
             _movement.RefreshMovementSpeedModifiers(uid);
+        }
+
+        _expired.Clear();
+        var staggers = EntityQueryEnumerator<FSMeleeStaggeredComponent>();
+        while (staggers.MoveNext(out var uid, out var staggered))
+        {
+            if (now >= staggered.Until)
+                _expired.Add(uid);
+        }
+
+        foreach (var uid in _expired)
+        {
+            RemComp<FSMeleeStaggeredComponent>(uid);
         }
     }
 }
