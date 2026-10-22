@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Content.Server._FinalStand.NPC;
 using Content.Server.Examine;
 using Content.Server.NPC.Components;
@@ -933,13 +934,22 @@ public sealed partial class NPCSteeringSystem
         return false;
     }
 
-    private static void AddDanger(Span<float> danger, Vector2 towardLocal, float weight)
+    // The twelve directions as three lanes of four. A dense crowd puts a hundred zombies in reach, each a danger
+    // update. Danger never goes below zero, so the max with a dot clamped to zero is the same as skipping it.
+    private static readonly Vector4[] DirectionLanesX = new Vector4[InterestDirections / 4];
+    private static readonly Vector4[] DirectionLanesY = new Vector4[InterestDirections / 4];
+
+    internal static void AddDanger(Span<float> danger, Vector2 towardLocal, float weight)
     {
-        for (var i = 0; i < InterestDirections; i++)
+        var lanes = MemoryMarshal.Cast<float, Vector4>(danger);
+        var x = new Vector4(towardLocal.X);
+        var y = new Vector4(towardLocal.Y);
+        var w = new Vector4(weight);
+
+        for (var i = 0; i < DirectionLanesX.Length; i++)
         {
-            var dot = Vector2.Dot(towardLocal, Directions[i]);
-            if (dot > 0f)
-                danger[i] = MathF.Max(danger[i], dot * weight);
+            var dot = x * DirectionLanesX[i] + y * DirectionLanesY[i];
+            lanes[i] = Vector4.Max(lanes[i], Vector4.Max(dot, Vector4.Zero) * w);
         }
     }
 

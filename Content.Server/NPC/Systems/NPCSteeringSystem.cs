@@ -111,6 +111,13 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
             Directions[i] = new Angle(InterestRadians * i).ToVec();
         }
 
+        // FINALSTAND
+        for (var i = 0; i < DirectionLanesX.Length; i++)
+        {
+            DirectionLanesX[i] = new Vector4(Directions[i * 4].X, Directions[i * 4 + 1].X, Directions[i * 4 + 2].X, Directions[i * 4 + 3].X);
+            DirectionLanesY[i] = new Vector4(Directions[i * 4].Y, Directions[i * 4 + 1].Y, Directions[i * 4 + 2].Y, Directions[i * 4 + 3].Y);
+        }
+
         UpdatesBefore.Add(typeof(SharedPhysicsSystem));
         Subs.CVar(_configManager, CCVars.NPCEnabled, SetNPCEnabled, true);
         Subs.CVar(_configManager, CCVars.NPCPathfinding, SetNPCPathfinding, true);
