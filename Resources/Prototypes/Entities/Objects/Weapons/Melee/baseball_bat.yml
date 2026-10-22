@@ -121,6 +121,7 @@
       params:
         volume: -5
         variation: 0.05
+    animation: WeaponArcSlash # FINALSTAND: light attacks swing
     wideAnimationRotation: -135
     damage:
       types:

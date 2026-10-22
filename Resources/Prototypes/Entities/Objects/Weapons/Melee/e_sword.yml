@@ -17,7 +17,7 @@
       hitStatus: FSMeleeSearSlowdown
       hitStatusDuration: 1.2
       hitStatusSpeed: 0.5
-      hitEffect: FSMeleeHitEnergy
+      hitEffect: FSMeleeHitEnergyCross
       hitEmitter: FSMeleeEnergyHit
       killEmitter: FSMeleeShockRing
       killSound:
@@ -25,9 +25,11 @@
       trailColor: "#5ce1ffdd"
       trailWidth: 0.07
       trailDuration: 0.16
-      slashEffect: FSMeleeSlashWarriorArcTinted
-      slashColor: "#7ff0ff"
-      slashScale: 0.85
+      slashEffect: FSMeleeStabEnergy
+      slashScale: 0.5
+      slashOffset: 0.9
+      slashTravel: 0.3
+      slashGrow: 1.1
     heavy:
       anticipation: 0.03
       hitstop: 0.05
@@ -43,7 +45,7 @@
       hitStatus: FSMeleeSearSlowdown
       hitStatusDuration: 1.5
       hitStatusSpeed: 0.5
-      hitEffect: FSMeleeHitEnergyCross
+      hitEffect: FSMeleeHitEnergy
       hitEmitter: FSMeleeEnergyHit
       killEmitter: FSMeleeShockRing
       killSound:
@@ -55,11 +57,12 @@
       trailColor: "#5ce1ffff"
       trailWidth: 0.1
       trailDuration: 0.3
-      slashEffect: FSMeleeStabEnergy
-      slashScale: 0.6
-      slashOffset: 0.3
-      slashTravel: 1.6
-      slashGrow: 1.2
+      slashEffect: FSMeleeSlashWarriorArcTinted
+      slashColor: "#7ff0ff"
+      slashScale: 1.1
+      slashOffset: 0.6
+      slashTravel: 1.2
+      slashGrow: 1.25
     comboHits: 2
     comboReadySound:
       path: /Audio/Weapons/ebladeon.ogg

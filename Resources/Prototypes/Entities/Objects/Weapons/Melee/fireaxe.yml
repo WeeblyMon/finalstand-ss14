@@ -145,6 +145,7 @@
         volume: -2
         pitch: 0.8
         variation: 0.04
+    animation: WeaponArcSlash # FINALSTAND: light attacks swing
     wideAnimationRotation: 135
     swingLeft: true
     attackRate: 0.75

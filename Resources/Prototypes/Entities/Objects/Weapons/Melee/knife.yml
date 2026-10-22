@@ -120,7 +120,8 @@
       knockback: 2
       flinchDuration: 0.12
       flinchSpeed: 0.6
-      hitEffect: FSMeleeHitSlashThin
+      hitEffect: FSMeleeHitThrust
+      hitEffectAngle: 45
       killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeSlashSparks
       killEmitter: FSMeleeBlood
@@ -131,11 +132,11 @@
       trailDuration: 0.08
       fleshSound:
         collection: FSMeleeBladeFlesh
-      slashEffect: FSMeleeSlashRogueCrescent
-      slashColor: "#ffffff"
-      slashScale: 0.7
-      slashOffset: 0.45
-      slashTravel: 0.35
+      slashEffect: FSMeleeStabKnife
+      slashScale: 0.4
+      slashOffset: 0.8
+      slashTravel: 0.25
+      slashGrow: 1.05
     heavy:
       anticipation: 0.02
       hitstop: 0.03
@@ -152,8 +153,7 @@
         params:
           volume: -4
       strikePitchStep: 0.1
-      hitEffect: FSMeleeHitThrust
-      hitEffectAngle: 45
+      hitEffect: FSMeleeHitSlashThin
       killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeSlashSparks
       killEmitter: FSMeleeBlood
@@ -164,11 +164,11 @@
       trailDuration: 0.06
       fleshSound:
         collection: FSMeleeBladeFlesh
-      slashEffect: FSMeleeStabKnife
-      slashScale: 0.4
-      slashOffset: 0.8
-      slashTravel: 0.25
-      slashGrow: 1.05
+      slashEffect: FSMeleeSlashRogueCrescent
+      slashColor: "#ffffff"
+      slashScale: 0.9
+      slashOffset: 0.45
+      slashTravel: 0.35
     comboHits: 3
     comboReadySound:
       path: /Audio/Items/unsheath.ogg
