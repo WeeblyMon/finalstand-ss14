@@ -89,6 +89,14 @@ public sealed partial class FSUberSystem : EntitySystem
             return;
 
         _uberShared.EndCover(patient, gun, _timing.CurTime + LinkLossGrace);
+
+        // A medic's own uber covers them once, when it goes up, so a longer one from this beam may have replaced it.
+        var guns = EntityQueryEnumerator<FSMediGunComponent>();
+        while (guns.MoveNext(out var uid, out var other))
+        {
+            if (other.ParentEntity == patient && other.UberActive)
+                Cover((uid, other), patient);
+        }
     }
 
     private void OnUberAction(Entity<FSMediGunComponent> ent, ref FSMediGunUberActionEvent args)
