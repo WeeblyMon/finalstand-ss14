@@ -1,0 +1,71 @@
+- type: entity
+  parent: GeneratorBasic
+  id: FSGeneratorColony
+  name: colony generator
+  description: A geothermal tap that fed one of the colony blocks. It still turns over.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Power/geothermal_generator.rsi
+    state: on-100
+    snapCardinals: true
+  - type: PowerMonitoringDevice
+    group: Generator
+    loadNode: output
+    sprite: _FinalStand/Structures/Power/geothermal_generator.rsi
+    state: on-100
+
+- type: entity
+  parent: FSGeneratorColony
+  id: FSGeneratorColonyBroken
+  suffix: Broken
+  description: A geothermal tap that fed one of the colony blocks. This one is dead.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Power/geothermal_generator.rsi
+    state: off
+    snapCardinals: true
+  - type: PowerMonitoringDevice
+    group: Generator
+    loadNode: output
+    sprite: _FinalStand/Structures/Power/geothermal_generator.rsi
+    state: off
+  - type: PowerSupplier
+    supplyRate: 0
+  - type: AmbientSound
+    enabled: false
+
+- type: entity
+  parent: GeneratorBasic15kW
+  id: FSReactorColony
+  name: colony reactor
+  description: A fusion reactor, the kind that lit a whole district. The containment hum is reassuring.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Power/fusion_reactor.rsi
+    state: on-100
+    snapCardinals: true
+  - type: PowerMonitoringDevice
+    group: Generator
+    loadNode: output
+    sprite: _FinalStand/Structures/Power/fusion_reactor.rsi
+    state: on-100
+
+- type: entity
+  parent: FSReactorColony
+  id: FSReactorColonyBroken
+  suffix: Broken
+  description: A fusion reactor, the kind that lit a whole district. This one went cold a long time ago.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Power/fusion_reactor.rsi
+    state: off
+    snapCardinals: true
+  - type: PowerMonitoringDevice
+    group: Generator
+    loadNode: output
+    sprite: _FinalStand/Structures/Power/fusion_reactor.rsi
+    state: off
+  - type: PowerSupplier
+    supplyRate: 0
+  - type: AmbientSound
+    enabled: false
