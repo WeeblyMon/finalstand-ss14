@@ -26,7 +26,4 @@ public sealed partial class FSHarvestSatchelComponent : Component
 
     [AutoNetworkedField]
     public float AccruedThisWave;
-
-    [AutoNetworkedField]
-    public int TrackedWave = -1;
 }
