@@ -828,7 +828,7 @@ public sealed partial class NPCSteeringSystem
             myDirNorm = myMover.CurTickSprintMovement.Normalized();
         }
 
-        var preferLeft = ((int) uid & 1) == 0;
+        var preferLeft = PrefersLeft(uid);
         var centre = (worldPos / PeerYieldRadius).Floored();
 
         for (var x = -1; x <= 1; x++)

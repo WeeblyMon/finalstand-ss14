@@ -249,6 +249,15 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
     private int _steerTick;
     private readonly List<(EntityUid, NPCSteeringComponent, InputMoverComponent, TransformComponent, float)> _steerBuffer = new();
 
+    // Each zombie's uid is the last one's plus its child entities, a fixed stride, so anything read straight off the
+    // uid's low bits (parity) could land a whole horde on the same tick or the same side. Multiplying by an odd
+    // constant spreads any stride evenly over the high bits.
+    private static uint MixUid(EntityUid uid) => (uint) uid.Id * 2654435761u;
+
+    internal static int SteerSlot(EntityUid uid) => (int) ((ulong) MixUid(uid) * WaveZombieSteerEvery >> 32);
+
+    internal static bool PrefersLeft(EntityUid uid) => (MixUid(uid) & (1u << 30)) != 0;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -270,7 +279,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         {
             if (_waveTagQuery.HasComponent(uid))
             {
-                if ((uid.Id + _steerTick) % WaveZombieSteerEvery != 0)
+                if ((SteerSlot(uid) + _steerTick) % WaveZombieSteerEvery != 0)
                 {
                     // The mover drops input older than the current tick, which made every skipped tick a coast.
                     mover.LastInputTick = _timing.CurTick;
