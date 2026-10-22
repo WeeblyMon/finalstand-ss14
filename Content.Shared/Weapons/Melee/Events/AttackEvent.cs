@@ -13,7 +13,7 @@ namespace Content.Shared.Weapons.Melee.Events
         /// </summary>
         public readonly NetCoordinates Coordinates;
 
-        public GameTick ViewTick; // fs
+        public GameTick ViewTick; // FINALSTAND
 
         protected AttackEvent(NetCoordinates coordinates)
         {

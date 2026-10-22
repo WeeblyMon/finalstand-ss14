@@ -30,7 +30,7 @@ public sealed partial class ActionsBar : UIWidget
     {
         RobustXamlLoader.Load(this);
 
-        if (FSClassicHud.Enabled)
+        if (FSClassicHud.Enabled) // FINALSTAND
         {
             ActionsPanel.PanelOverride = new StyleBoxEmpty();
             PrevPage.Visible = false;
@@ -45,7 +45,7 @@ public sealed partial class ActionsBar : UIWidget
         foreach (var arrow in new[] { PrevPage, NextPage })
         {
             arrow.MinSize = new Vector2(ArrowWidth, ActionButton.SlotSize);
-            FSHudStyle.StyleButton(arrow, padX: 2, padY: 0);
+            FSHudStyle.StyleButton(arrow, padX: 2, padY: 0); // FINALSTAND
         }
     }
 
@@ -54,7 +54,7 @@ public sealed partial class ActionsBar : UIWidget
         PrevPage.Disabled = !prev;
         NextPage.Disabled = !next;
 
-        PrevPage.Label.FontColorOverride = prev ? FSPalette.TextBright : FSPalette.TextDim;
+        PrevPage.Label.FontColorOverride = prev ? FSPalette.TextBright : FSPalette.TextDim; // FINALSTAND
         NextPage.Label.FontColorOverride = next ? FSPalette.TextBright : FSPalette.TextDim;
     }
 }

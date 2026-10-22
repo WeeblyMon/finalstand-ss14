@@ -229,7 +229,7 @@ namespace Content.Server.Medical.BiomassReclaimer
                 component.SpawnedEntities = new();
             }
 
-            // FS: dead wave enemies have unreliable FixturesMass (collision zeroed on death + climb fixture swap);
+            // FINALSTAND: dead wave enemies have unreliable FixturesMass (collision zeroed on death + climb fixture swap);
             // use a fixed mass so yield is non-zero. 46f ≈ density 235 × π × 0.25² for a normal zombie.
             var mass = HasComp<WaveSpawnedTagComponent>(toProcess) ? 20f : physics.FixturesMass;
             var expectedYield = mass * component.YieldPerUnitMass;
@@ -260,7 +260,7 @@ namespace Content.Server.Medical.BiomassReclaimer
             if (!Transform(reclaimer).Anchored)
                 return false;
 
-            // FS: dead wave enemies (zombie corpses etc.) bypass power and safety checks.
+            // FINALSTAND: dead wave enemies (zombie corpses etc.) bypass power and safety checks.
             if (!isPlant && HasComp<WaveSpawnedTagComponent>(dragged) && _mobState.IsDead(dragged))
                 return true;
 

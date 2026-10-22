@@ -602,7 +602,7 @@ namespace Content.Client.Lobby.UI
             #endregion Jobs
 
             TabContainer.SetTabTitle(2, Loc.GetString("humanoid-profile-editor-antags-tab"));
-            TabContainer.SetTabVisible(2, false); // FS: WaveSurvival has no antags — hide the tab entirely.
+            TabContainer.SetTabVisible(2, false); // FINALSTAND: WaveSurvival has no antags — hide the tab entirely.
 
             RefreshTraits();
 
@@ -1313,7 +1313,7 @@ namespace Content.Client.Lobby.UI
                 return;
 
             Profile = Profile.WithCharacterAppearance(Profile.Appearance.WithMarkings(markings.GetForwardEnumerator().ToList()));
-            SetDirty(); // FS: without this the Save button stays disabled after picking a marking.
+            SetDirty(); // FINALSTAND: without this the Save button stays disabled after picking a marking.
             ReloadProfilePreview();
         }
 

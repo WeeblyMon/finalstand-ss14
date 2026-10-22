@@ -1,3 +1,4 @@
+// FINALSTAND: fork file, kept next to the vanilla partial it extends.
 using System.Linq;
 using Content.Shared.Chemistry.Reaction;
 using Content.Shared.FixedPoint;

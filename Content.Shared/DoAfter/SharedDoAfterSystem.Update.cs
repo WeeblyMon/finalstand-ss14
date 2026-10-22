@@ -204,7 +204,7 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         if (args.EventTarget is { Valid: true } eventTarget && !Exists(eventTarget))
             return true;
 
-        if (args.Target is { } missingTarget && !Exists(missingTarget)) // FS
+        if (args.Target is { } missingTarget && !Exists(missingTarget)) // FINALSTAND
             return true;
 
         // TODO: Re-use existing xform query for these calculations.

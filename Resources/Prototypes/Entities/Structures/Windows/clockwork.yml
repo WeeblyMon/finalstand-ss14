@@ -14,7 +14,7 @@
     doAfterDelay: 2
   - type: Damageable
     damageModifierSet: RGlass
-  - type: FSWaveDamageOnly
+  - type: FSWaveDamageOnly # FINALSTAND
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: Destructible
@@ -62,7 +62,7 @@
     damageContainer: StructuralInorganic
   - type: Damageable
     damageModifierSet: RGlass
-  - type: FSWaveDamageOnly
+  - type: FSWaveDamageOnly # FINALSTAND
   - type: Destructible
     thresholds:
     - trigger:

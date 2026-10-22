@@ -84,9 +84,9 @@ namespace Content.Client.Input
             human.AddFunction(ContentKeyFunctions.MouseMiddle);
             human.AddFunction(ContentKeyFunctions.ReloadWeapon);
             human.AddFunction(ContentKeyFunctions.QuickGrenade);
-            human.AddFunction(ContentKeyFunctions.FSUberCharge);
-            human.AddFunction(ContentKeyFunctions.FSPing); // FS
-            human.AddFunction(ContentKeyFunctions.FSPingWheel); // FS
+            human.AddFunction(ContentKeyFunctions.FSUberCharge); // FINALSTAND
+            human.AddFunction(ContentKeyFunctions.FSPing); // FINALSTAND
+            human.AddFunction(ContentKeyFunctions.FSPingWheel); // FINALSTAND
             human.AddFunction(ContentKeyFunctions.RotateObjectClockwise);
             human.AddFunction(ContentKeyFunctions.RotateObjectCounterclockwise);
             human.AddFunction(ContentKeyFunctions.FlipObject);

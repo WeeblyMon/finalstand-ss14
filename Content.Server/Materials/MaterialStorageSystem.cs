@@ -28,7 +28,7 @@ public sealed partial class MaterialStorageSystem : SharedMaterialStorageSystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private StackSystem _stackSystem = default!;
-    [Dependency] private FSSiloNetworkSystem _siloNetwork = default!;
+    [Dependency] private FSSiloNetworkSystem _siloNetwork = default!; // FINALSTAND
 
     public override void Initialize()
     {
@@ -87,7 +87,7 @@ public sealed partial class MaterialStorageSystem : SharedMaterialStorageSystem
         var mats = SpawnMultipleFromMaterial(volume, material, _siloNetwork.EjectCoordinates(uid, player), out _);
         foreach (var mat in mats.Where(mat => !TerminatingOrDeleted(mat)))
         {
-            EnsureComp<FSSiloEjectedComponent>(mat);
+            EnsureComp<FSSiloEjectedComponent>(mat); // FINALSTAND
             _stackSystem.TryMergeToContacts(mat);
         }
     }

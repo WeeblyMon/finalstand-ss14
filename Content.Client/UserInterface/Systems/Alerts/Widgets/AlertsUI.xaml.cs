@@ -17,7 +17,7 @@ public sealed partial class AlertsUI : UIWidget
 
     private static readonly HashSet<string> Suppressed = new() { "HumanHealth" };
 
-    private readonly bool _classic = FSClassicHud.Enabled;
+    private readonly bool _classic = FSClassicHud.Enabled; // FINALSTAND
 
     public AlertsUI()
     {

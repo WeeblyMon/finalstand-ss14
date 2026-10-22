@@ -111,7 +111,7 @@ public sealed partial class EscapeUIController : UIController, IOnStateEntered<G
             _guidebook.ToggleGuidebook();
         };
 
-        // FS: role tutorial
+        // FINALSTAND: role tutorial
         _escapeWindow.TutorialButton.OnPressed += _ =>
         {
             CloseEscapeWindow();

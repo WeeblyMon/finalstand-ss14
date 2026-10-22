@@ -23,7 +23,7 @@ namespace Content.Server.Movement.Systems;
 public sealed partial class LagCompensationSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private IConfigurationManager _cfg = default!; // fs
+    [Dependency] private IConfigurationManager _cfg = default!; // FINALSTAND
     [Dependency] private INetConfigurationManager _netCfg = default!; // FINALSTAND
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -32,7 +32,7 @@ public sealed partial class LagCompensationSystem : EntitySystem
     // Max ping I've had is 350ms from aus to spain.
     public static readonly TimeSpan BufferTime = TimeSpan.FromMilliseconds(750);
 
-    private readonly Dictionary<NetUserId, GameTick> _viewTicks = new(); // fs
+    private readonly Dictionary<NetUserId, GameTick> _viewTicks = new(); // FINALSTAND
     private bool _enabled;
     private int _maxRewindMs;
     private int _rewindSlackMs; // FINALSTAND
@@ -52,7 +52,7 @@ public sealed partial class LagCompensationSystem : EntitySystem
         Log.Level = LogLevel.Info;
         SubscribeLocalEvent<LagCompensationComponent, MoveEvent>(OnLagMove);
 
-        SubscribeNetworkEvent<RequestShootEvent>(OnShootRequest, before: [typeof(SharedGunSystem)]); // fs
+        SubscribeNetworkEvent<RequestShootEvent>(OnShootRequest, before: [typeof(SharedGunSystem)]); // FINALSTAND
         SubscribeNetworkEvent<LightAttackEvent>(OnAttack, before: [typeof(SharedMeleeWeaponSystem)]);
         SubscribeNetworkEvent<HeavyAttackEvent>(OnAttack, before: [typeof(SharedMeleeWeaponSystem)]);
         SubscribeNetworkEvent<DisarmAttackEvent>(OnAttack, before: [typeof(SharedMeleeWeaponSystem)]);
@@ -129,23 +129,23 @@ public sealed partial class LagCompensationSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        var historyTicks = (uint) Math.Ceiling(BufferTime.TotalSeconds * _timing.TickRate) + 2; // fs
+        var historyTicks = (uint) Math.Ceiling(BufferTime.TotalSeconds * _timing.TickRate) + 2; // FINALSTAND
         if (_timing.CurTick.Value <= historyTicks)
             return;
 
-        var cutoff = _timing.CurTick.Value - historyTicks; // fs
+        var cutoff = _timing.CurTick.Value - historyTicks; // FINALSTAND
         var query = AllEntityQuery<LagCompensationComponent>();
 
         while (query.MoveNext(out var comp))
         {
-            var positions = comp.Positions; // fs
+            var positions = comp.Positions; // FINALSTAND
             var remove = 0;
             while (remove + 1 < positions.Count && positions[remove + 1].Tick.Value <= cutoff)
             {
-                remove++; // fs
+                remove++; // FINALSTAND
             }
 
-            if (remove > 0) // fs
+            if (remove > 0) // FINALSTAND
                 positions.RemoveRange(0, remove);
         }
     }
@@ -155,7 +155,7 @@ public sealed partial class LagCompensationSystem : EntitySystem
         if (!args.NewPosition.EntityId.IsValid())
             return; // probably being sent to nullspace for deletion.
 
-        var tick = _timing.CurTick; // fs
+        var tick = _timing.CurTick; // FINALSTAND
         var positions = component.Positions;
 
         if (positions.Count == 0 && args.OldPosition.EntityId.IsValid() && tick.Value > 0)
@@ -173,22 +173,22 @@ public sealed partial class LagCompensationSystem : EntitySystem
         if (!Resolve(uid, ref xform))
             return (EntityCoordinates.Invalid, Angle.Zero);
 
-        var rewind = GetRewindTicks(pSession); // fs
+        var rewind = GetRewindTicks(pSession); // FINALSTAND
         if (rewind <= 0 || !TryComp<LagCompensationComponent>(uid, out var lag))
             return (xform.Coordinates, xform.LocalRotation);
 
-        return Sample(lag, _timing.CurTick.Value - rewind, xform); // fs
+        return Sample(lag, _timing.CurTick.Value - rewind, xform); // FINALSTAND
     }
 
-    public MapCoordinates GetPastMapCoordinates(EntityUid uid, double tick, LagCompensationComponent? lag = null, TransformComponent? xform = null) // fs
+    public MapCoordinates GetPastMapCoordinates(EntityUid uid, double tick, LagCompensationComponent? lag = null, TransformComponent? xform = null) // FINALSTAND
     {
         if (!Resolve(uid, ref xform))
             return MapCoordinates.Nullspace;
 
-        if (!Resolve(uid, ref lag, false) || tick >= _timing.CurTick.Value) // fs
+        if (!Resolve(uid, ref lag, false) || tick >= _timing.CurTick.Value) // FINALSTAND
             return _transform.GetMapCoordinates(uid, xform);
 
-        return _transform.ToMapCoordinates(Sample(lag, tick, xform).Coordinates); // fs
+        return _transform.ToMapCoordinates(Sample(lag, tick, xform).Coordinates); // FINALSTAND
     }
 
     private (EntityCoordinates Coordinates, Angle Angle) Sample(LagCompensationComponent lag, double tick, TransformComponent xform)
@@ -215,11 +215,11 @@ public sealed partial class LagCompensationSystem : EntitySystem
     {
         for (var i = positions.Count - 1; i >= 0; i--)
         {
-            if (positions[i].Tick.Value <= tick) // fs
+            if (positions[i].Tick.Value <= tick) // FINALSTAND
                 return positions[i];
         }
 
-        return positions[0]; // fs
+        return positions[0]; // FINALSTAND
     }
 
     public Angle GetAngle(EntityUid uid, ICommonSession? session, TransformComponent? xform = null)

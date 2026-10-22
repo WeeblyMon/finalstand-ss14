@@ -184,7 +184,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
         if (_net.IsServer && GetNextStep(ent, part, surgery, args.User) == null)
         {
-            var doneEv = new FSSurgeryCompletedEvent(args.User, ent, part, surgery);
+            var doneEv = new FSSurgeryCompletedEvent(args.User, ent, part, surgery); // FINALSTAND
             RaiseLocalEvent(ent, ref doneEv);
         }
 

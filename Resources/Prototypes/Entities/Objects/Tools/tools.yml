@@ -309,7 +309,7 @@
   name: RCD
   description: The rapid construction device can be used to quickly place and remove various station structures and fixtures. Requires compressed matter to function.
   components:
-  - type: FSEngineerOnlyRCD
+  - type: FSEngineerOnlyRCD # FINALSTAND
     caps:
       barricade: 300
       sentry: 100
@@ -318,27 +318,27 @@
       crate: 100
       mechbay: 1
     stationCap: 2000
-    palette: # FS
+    palette: # FINALSTAND
     - FSBarricadeMetal
     - FSBarricadeMetalDoor
     - FSBarricadePlasteel
     - FSBarricadePlasteelDoor
     - FSSentryTurretDeployed
-    - FSHeavySentryDeployed
+    - FSHeavySentryDeployed # FINALSTAND
     - FSHMGDeployed
     - FSAmmoCrate
     - FSMechBay
   - type: RCD
     availablePrototypes:
-    - FSBarricadeMetal # FS
-    - FSBarricadePlasteel # FS
-    - FSBarricadeMetalDoor # FS
-    - FSBarricadePlasteelDoor # FS
-    - FSSentryTurretDeployed # FS
-    - FSHeavySentryDeployed # FS
-    - FSHMGDeployed # FS
-    - FSAmmoCrate # FS
-    - FSMechBay # FS
+    - FSBarricadeMetal # FINALSTAND
+    - FSBarricadePlasteel # FINALSTAND
+    - FSBarricadeMetalDoor # FINALSTAND
+    - FSBarricadePlasteelDoor # FINALSTAND
+    - FSSentryTurretDeployed # FINALSTAND
+    - FSHeavySentryDeployed # FINALSTAND
+    - FSHMGDeployed # FINALSTAND
+    - FSAmmoCrate # FINALSTAND
+    - FSMechBay # FINALSTAND
     - WallSolid
     - FloorSteel
     - Plating
@@ -372,7 +372,7 @@
   - type: UserInterface
     interfaces:
       enum.RcdUiKey.Key:
-        type: FSRCDMenuBoundUserInterface # FS
+        type: FSRCDMenuBoundUserInterface # FINALSTAND
   - type: ActivatableUI
     inHandsOnly: true
     key: enum.RcdUiKey.Key

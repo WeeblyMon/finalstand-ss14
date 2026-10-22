@@ -1,3 +1,4 @@
+// FINALSTAND: fork file, kept next to the vanilla partial it extends.
 using Content.Shared._FinalStand.Chat;
 
 namespace Content.Server.Radio.EntitySystems;

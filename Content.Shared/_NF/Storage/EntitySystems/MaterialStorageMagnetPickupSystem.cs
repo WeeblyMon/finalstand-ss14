@@ -110,7 +110,7 @@ public sealed partial class MaterialStorageMagnetPickupSystem : EntitySystem
                 if (!_physicsQuery.TryGetComponent(near, out var physics) || physics.BodyStatus != BodyStatus.OnGround)
                     continue;
 
-                if (near == parentUid || HasComp<FSSiloEjectedComponent>(near))
+                if (near == parentUid || HasComp<FSSiloEjectedComponent>(near)) // FINALSTAND
                     continue;
 
                 if (!_storage.TryInsertMaterialEntity(uid, near, uid, storage))

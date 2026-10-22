@@ -128,7 +128,7 @@ namespace Content.Client.UserInterface.Controls
         public bool EntityHover => HoverSpriteView.Sprite != null;
         public bool MouseIsHovering;
 
-        private Label? FSLabelControl;
+        private Label? FSLabelControl; // FINALSTAND
 
         public string FSLabel
         {
@@ -137,7 +137,7 @@ namespace Content.Client.UserInterface.Controls
                 if (FSLabelControl == null)
                     return;
 
-                FSLabelControl.Text = value;
+                FSLabelControl.Text = value; // FINALSTAND
                 FSLabelControl.Visible = !string.IsNullOrEmpty(value);
 
                 if (!FSLabelControl.Visible)
@@ -152,7 +152,7 @@ namespace Content.Client.UserInterface.Controls
                 SpriteView.Visible = false;
                 HoverSpriteView.Visible = false;
 
-                var width = FSLabelControl.MinSize.X + FSLabelTextPad * 2f;
+                var width = FSLabelControl.MinSize.X + FSLabelTextPad * 2f; // FINALSTAND
                 MinSize = new Vector2(MathF.Max(MinSize.X, width), MinSize.Y);
             }
         }
@@ -235,7 +235,7 @@ namespace Content.Client.UserInterface.Controls
 
             AddChild(AdminOverlays = new Control());
 
-            AddChild(FSLabelControl = new Label
+            AddChild(FSLabelControl = new Label // FINALSTAND
             {
                 Visible = false,
                 HorizontalAlignment = HAlignment.Center,

@@ -232,7 +232,7 @@ public sealed partial class GunSystem : SharedGunSystem
 
     public override void PlayImpactSound(EntityUid otherEntity, DamageSpecifier? modifiedDamage, SoundSpecifier? weaponSound, bool forceWeaponSound)
     {
-        PlayImpactSound(otherEntity, modifiedDamage, weaponSound, forceWeaponSound, null); // fs
+        PlayImpactSound(otherEntity, modifiedDamage, weaponSound, forceWeaponSound, null); // FINALSTAND
     }
 
     public void PlayImpactSound(EntityUid otherEntity, DamageSpecifier? modifiedDamage, SoundSpecifier? weaponSound, bool forceWeaponSound, ICommonSession? exclude)
@@ -253,21 +253,21 @@ public sealed partial class GunSystem : SharedGunSystem
             {
                 var damageSoundTypeParams = damageSoundType?.Params ?? AudioParams.Default;
                 damageSoundTypeParams = damageSoundTypeParams.WithVariation(DamagePitchVariation);
-                PlayImpact(damageSoundType, otherEntity, damageSoundTypeParams, exclude); // fs
+                PlayImpact(damageSoundType, otherEntity, damageSoundTypeParams, exclude); // FINALSTAND
                 playedSound = true;
             }
             else if (type != null && rangedSound.SoundGroups?.TryGetValue(type, out var damageSoundGroup) == true)
             {
                 var damageSoundGroupParams = damageSoundGroup?.Params ?? AudioParams.Default;
                 damageSoundGroupParams = damageSoundGroupParams.WithVariation(DamagePitchVariation);
-                PlayImpact(damageSoundGroup, otherEntity, damageSoundGroupParams, exclude); // fs
+                PlayImpact(damageSoundGroup, otherEntity, damageSoundGroupParams, exclude); // FINALSTAND
                 playedSound = true;
             }
         }
 
         if (!playedSound && weaponSound != null)
         {
-            PlayImpact(weaponSound, otherEntity, null, exclude); // fs
+            PlayImpact(weaponSound, otherEntity, null, exclude); // FINALSTAND
         }
     }
 
@@ -279,7 +279,7 @@ public sealed partial class GunSystem : SharedGunSystem
             return;
         }
 
-        var filter = Filter.Pvs(uid, entityManager: EntityManager).RemovePlayer(exclude); // fs
+        var filter = Filter.Pvs(uid, entityManager: EntityManager).RemovePlayer(exclude); // FINALSTAND
         Audio.PlayEntity(sound, filter, uid, true, audioParams);
     }
 }

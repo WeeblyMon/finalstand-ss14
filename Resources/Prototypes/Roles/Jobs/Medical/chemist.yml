@@ -26,7 +26,7 @@
     back:
     - FSHarvestSatchel
     - LauncherSyringe
-    - FSSyringePackBicaridine
+    - FSSyringePackBicaridine # FINALSTAND
     - FSSyringePackKelotane
     - FSSyringePackCombatStim
     - FSSyringePackAdrenalSurge

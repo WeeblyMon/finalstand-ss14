@@ -88,7 +88,7 @@
   - type: GunRequiresWield
   - type: BallisticAmmoProvider
     capacity: 10
-    proto: FSCartridgeMosin
+    proto: FSCartridgeMosin # FINALSTAND
     whitelist:
       tags:
       - CartridgeLightRifle
@@ -127,7 +127,7 @@
       tags:
       - CartridgeAntiMateriel
     capacity: 5
-    proto: FSCartridgeAntiMateriel
+    proto: FSCartridgeAntiMateriel # FINALSTAND
   - type: SpeedModifiedOnWield
     walkModifier: 0.8
     sprintModifier: 0.8
@@ -211,7 +211,7 @@
       tags:
         - CartridgeMagnum # changed from Anti-material rifle rounds because it's a flintlock pistol not a Hristov
     capacity: 1
-    proto: FSCartridgeFlintlock
+    proto: FSCartridgeFlintlock # FINALSTAND
   - type: StaticPrice
     price: 0
 

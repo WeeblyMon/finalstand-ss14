@@ -52,7 +52,7 @@
     RArm: MobReptilianRArm
     LHand: MobReptilianLHand
     RHand: MobReptilianRHand
-    LLeg: MobReptilianLLeg # FS: reverted WWDP digi-leg refs — Digi prototypes live in Goob _White/ which we don't have
+    LLeg: MobReptilianLLeg # FINALSTAND: reverted WWDP digi-leg refs — Digi prototypes live in Goob _White/ which we don't have
     RLeg: MobReptilianRLeg
     LFoot: MobReptilianLFoot
     RFoot: MobReptilianRFoot

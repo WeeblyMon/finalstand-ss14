@@ -28,11 +28,11 @@
     belt: ClothingBeltUtilityEngineering
     ears: ClothingHeadsetEngineering
     pocket1: FlashlightSeclite
-  storage: # FS
+  storage: # FINALSTAND
     back:
     - RCD
-    - FSRivetGun # FS
-    - FSEngineerHammer # FS
+    - FSRivetGun # FINALSTAND
+    - FSEngineerHammer # FINALSTAND
 
 - type: chameleonOutfit
   id: AtmosphericTechnicianChameleonOutfit

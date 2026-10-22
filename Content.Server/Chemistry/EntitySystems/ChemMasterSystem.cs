@@ -34,7 +34,7 @@ namespace Content.Server.Chemistry.EntitySystems
         [Dependency] private StorageSystem _storageSystem = default!;
         [Dependency] private LabelSystem _labelSystem = default!;
         [Dependency] private ISharedAdminLogManager _adminLogger = default!;
-        [Dependency] private Shared._FinalStand.MedicalOps.FSTreatmentAttributionSystem _fsAttribution = default!;
+        [Dependency] private Shared._FinalStand.MedicalOps.FSTreatmentAttributionSystem _fsAttribution = default!; // FINALSTAND
 
         private static readonly EntProtoId PillPrototypeId = "Pill";
 

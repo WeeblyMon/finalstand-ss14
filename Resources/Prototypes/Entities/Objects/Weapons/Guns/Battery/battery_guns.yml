@@ -963,13 +963,13 @@
   - type: BatterySelfRecharger
     autoRechargeRate: 48
     autoRechargePauseTime: 0
-  - type: FSWeaponRechargeAudio
+  - type: FSWeaponRechargeAudio # FINALSTAND
     emptyPenaltyDuration: 0
     rechargeStartSound:
       path: /Audio/Weapons/Guns/Gunshots/charge.ogg
   - type: Crit
     baseCritChance: 0.10
-  - type: FSMuzzleFlashColor
+  - type: FSMuzzleFlashColor # FINALSTAND
     color: "#FF3300"
 
 - type: entity

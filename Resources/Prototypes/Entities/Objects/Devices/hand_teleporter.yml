@@ -9,18 +9,18 @@
     layers:
     - state: icon
       map: [ "base" ]
-  - type: Appearance # FS
-  - type: GenericVisualizer # FS: dims when out of charges
+  - type: Appearance # FINALSTAND
+  - type: GenericVisualizer # FINALSTAND: dims when out of charges
     visuals:
       enum.LimitedChargesState.HasCharges:
         base:
           True: { color: White }
           False: { color: DimGray }
   - type: HandTeleporter
-    portalLifetime: 60 # FS
-  - type: LimitedCharges # FS
+    portalLifetime: 60 # FINALSTAND
+  - type: LimitedCharges # FINALSTAND
     maxCharges: 2
-  - type: AutoRecharge # FS
+  - type: AutoRecharge # FINALSTAND
     rechargeDuration: 120
   - type: Tag
     tags:

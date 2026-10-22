@@ -23,7 +23,7 @@ namespace Content.Shared.Medical;
 public abstract partial class SharedDefibrillatorSystem : EntitySystem
 {
     [Dependency] private SharedChatSystem _chat = default!;
-    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!; // FINALSTAND
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedElectrocutionSystem _electrocution = default!;

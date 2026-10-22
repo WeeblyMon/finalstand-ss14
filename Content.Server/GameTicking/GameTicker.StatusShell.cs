@@ -20,10 +20,10 @@ namespace Content.Server.GameTicking
         [ViewVariables]
         private DateTime _roundStartDateTime;
 
-        // FS: appended to the hub "preset" line, e.g. "Final Stand (Wave 7)"
+        // FINALSTAND: appended to the hub "preset" line, e.g. "Final Stand (Wave 7)"
         private string? _statusPresetSuffix;
 
-        // FS
+        // FINALSTAND
         public void SetStatusPresetSuffix(string? suffix)
         {
             lock (_statusShellLock)
@@ -65,7 +65,7 @@ namespace Content.Server.GameTicking
                 if (preset != null)
                 {
                     var presetTitle = (Decoy == null) ? Loc.GetString(preset.ModeTitle) : Loc.GetString(Decoy.ModeTitle);
-                    jObject["preset"] = _statusPresetSuffix == null ? presetTitle : $"{presetTitle} {_statusPresetSuffix}"; // FS
+                    jObject["preset"] = _statusPresetSuffix == null ? presetTitle : $"{presetTitle} {_statusPresetSuffix}"; // FINALSTAND
                 }
                 if (_runLevel >= GameRunLevel.InRound)
                 {

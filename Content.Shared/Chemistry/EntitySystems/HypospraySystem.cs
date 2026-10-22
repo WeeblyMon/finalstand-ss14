@@ -34,7 +34,7 @@ public sealed partial class HypospraySystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private ReactiveSystem _reactive = default!;
     [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
-    [Dependency] private FSTreatmentAttributionSystem _fsAttribution = default!;
+    [Dependency] private FSTreatmentAttributionSystem _fsAttribution = default!; // FINALSTAND
 
     public override void Initialize()
     {

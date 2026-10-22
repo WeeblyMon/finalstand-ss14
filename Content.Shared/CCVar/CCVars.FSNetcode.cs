@@ -1,3 +1,4 @@
+// FINALSTAND: fork file, kept next to the vanilla partial it extends.
 using Robust.Shared.Configuration;
 
 namespace Content.Shared.CCVar;

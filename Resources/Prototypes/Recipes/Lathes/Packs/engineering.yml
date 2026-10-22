@@ -63,9 +63,9 @@
   - JawsOfLife
   - Fulton
   - FultonBeacon
-  - FSWelderArc # FS
-  - FSJawsHydraulic # FS
-  - FSDrillImpact # FS
+  - FSWelderArc # FINALSTAND
+  - FSJawsHydraulic # FINALSTAND
+  - FSDrillImpact # FINALSTAND
 
 - type: latheRecipePack
   id: AtmosTools

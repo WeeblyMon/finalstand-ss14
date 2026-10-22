@@ -27,7 +27,7 @@ public sealed partial class LobbyCharacterPreviewPanel : Control
         IoCManager.InjectDependencies(this);
     }
 
-    /// FS: ported from Goob — LobbyUIController.RefreshLobbyPreview calls this with the preview dummy entity.
+    /// FINALSTAND: ported from Goob — LobbyUIController.RefreshLobbyPreview calls this with the preview dummy entity.
     public void SetSprite(EntityUid uid)
     {
         if (_previewDummy != null)

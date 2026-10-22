@@ -57,10 +57,10 @@ namespace Content.Server.Hands.Systems
 
             SubscribeLocalEvent<HandsComponent, BeforeExplodeEvent>(OnExploded);
 
-            // FS: players keep held items on knockdown/stun/crit
+            // FINALSTAND: players keep held items on knockdown/stun/crit
             // SubscribeLocalEvent<HandsComponent, DropHandItemsEvent>(OnDropHandItems);
 
-            // FS: body-part events must wire HandsComponent or players spawn with no usable hands
+            // FINALSTAND: body-part events must wire HandsComponent or players spawn with no usable hands
             // Adding and removing hands with limbs is vanilla HandOrganSystem's job now; we only
             // react to a limb being disabled, which vanilla has no concept of.
             SubscribeLocalEvent<HandsComponent, OrganEnabledEvent>(HandleOrganEnabled);

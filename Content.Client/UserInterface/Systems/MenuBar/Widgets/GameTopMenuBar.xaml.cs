@@ -14,7 +14,7 @@ namespace Content.Client.UserInterface.Systems.MenuBar.Widgets
         {
             RobustXamlLoader.Load(this);
 
-            if (!FSClassicHud.Enabled)
+            if (!FSClassicHud.Enabled) // FINALSTAND
                 return;
 
             foreach (var child in Children)

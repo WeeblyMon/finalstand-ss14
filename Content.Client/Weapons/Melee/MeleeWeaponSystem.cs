@@ -35,7 +35,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     [Dependency] private MapSystem _map = default!;
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
-    [Dependency] private IClientGameTiming _clientTiming = default!; // fs
+    [Dependency] private IClientGameTiming _clientTiming = default!; // FINALSTAND
 
     private const string MeleeLungeKey = "melee-lunge";
 
@@ -195,7 +195,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         // This should really be improved. GetEntitiesInArc uses pos instead of bounding boxes.
         // Server will validate it with InRangeUnobstructed.
         var entities = GetNetEntityList(ArcRayCast(userPos, direction.ToWorldAngle(), component.Angle, distance, userXform.MapID, user).ToList());
-        RaisePredictiveEvent(new HeavyAttackEvent(GetNetEntity(meleeUid), entities.GetRange(0, Math.Min(MaxTargets, entities.Count)), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // fs
+        RaisePredictiveEvent(new HeavyAttackEvent(GetNetEntity(meleeUid), entities.GetRange(0, Math.Min(MaxTargets, entities.Count)), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // FINALSTAND
     }
 
     private void ClientDisarm(EntityUid attacker, MapCoordinates mousePos, EntityCoordinates coordinates)
@@ -205,7 +205,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         if (_stateManager.CurrentState is GameplayStateBase screen)
             target = screen.GetClickedEntity(mousePos);
 
-        RaisePredictiveEvent(new DisarmAttackEvent(GetNetEntity(target), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // fs
+        RaisePredictiveEvent(new DisarmAttackEvent(GetNetEntity(target), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // FINALSTAND
     }
 
     private void ClientLightAttack(EntityUid attacker, MapCoordinates mousePos, EntityCoordinates coordinates, EntityUid weaponUid, MeleeWeaponComponent meleeComponent)
@@ -224,7 +224,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         if (Interaction.CombatModeCanHandInteract(attacker, target))
             return;
 
-        RaisePredictiveEvent(new LightAttackEvent(GetNetEntity(target), GetNetEntity(weaponUid), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // fs
+        RaisePredictiveEvent(new LightAttackEvent(GetNetEntity(target), GetNetEntity(weaponUid), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // FINALSTAND
     }
 
     private void OnMeleeLunge(MeleeLungeEvent ev)

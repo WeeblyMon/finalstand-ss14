@@ -10,7 +10,7 @@
     state: full
   - type: Damageable
     damageModifierSet: RGlass
-  - type: FSWaveDamageOnly
+  - type: FSWaveDamageOnly # FINALSTAND
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: RadiationBlocker
@@ -72,7 +72,7 @@
       sprite: Structures/Windows/cracks_directional.rsi
   - type: Damageable
     damageModifierSet: RGlass
-  - type: FSWaveDamageOnly
+  - type: FSWaveDamageOnly # FINALSTAND
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: RadiationBlocker

@@ -168,7 +168,7 @@
         priority: 2
         whitelist:
           tags:
-          - FSSyringeMagazine
+          - FSSyringeMagazine # FINALSTAND
   - type: MagazineAmmoProvider
   - type: AmmoCounter
   - type: FSSyringeGun

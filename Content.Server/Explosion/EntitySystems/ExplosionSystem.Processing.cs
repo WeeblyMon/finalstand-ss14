@@ -451,7 +451,7 @@ public sealed partial class ExplosionSystem
                 if (!_damageableQuery.TryComp(entity, out var damageable))
                     continue;
 
-                // FinalStand: block player-on-player explosion damage (friendly fire)
+                // FINALSTAND: block player-on-player explosion damage (friendly fire)
                 if (cause.HasValue && _actorQuery.HasComp(cause.Value) && _actorQuery.HasComp(entity))
                     continue;
 
@@ -479,7 +479,7 @@ public sealed partial class ExplosionSystem
             }
         }
 
-        // FinalStand: FS explosion types only push mobs - don't fling every table/light/dropped item in range
+        // FINALSTAND: FS explosion types only push mobs - don't fling every table/light/dropped item in range
         if (FsExplosionTypes.Contains(id) && !_mobStateQuery.HasComponent(uid))
             throwForce = 0;
 

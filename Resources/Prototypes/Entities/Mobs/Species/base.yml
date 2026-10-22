@@ -507,7 +507,7 @@
   components:
   - type: Flammable
     fireSpread: false
-  - type: FSSprint
+  - type: FSSprint # FINALSTAND
   - type: Absorbable # Goobstation - changelings
   - type: Barotrauma
     damage:

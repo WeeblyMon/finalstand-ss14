@@ -45,7 +45,7 @@ public sealed class SurgeryOperationClassifier
 
     private void LoadGuide()
     {
-        foreach (var guide in _prototypes.EnumeratePrototypes<FSSurgeryGuidePrototype>())
+        foreach (var guide in _prototypes.EnumeratePrototypes<FSSurgeryGuidePrototype>()) // FINALSTAND
         {
             for (var i = 0; i < guide.Goals.Count; i++)
                 _goalOrder.TryAdd(guide.Goals[i].Id, i);

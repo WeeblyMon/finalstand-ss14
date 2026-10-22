@@ -74,7 +74,7 @@ public abstract partial class SharedGunSystem : EntitySystem
     /// </summary>
     public const float ProjectileSpeed = 40f;
 
-    public const float MuzzleOffset = 0.15f; // fs
+    public const float MuzzleOffset = 0.15f; // FINALSTAND
 
     /// <summary>
     ///     Name of the container slot used as the gun's chamber
@@ -247,7 +247,7 @@ public abstract partial class SharedGunSystem : EntitySystem
     {
         gun = default;
 
-        // FS: a mech pilot fires the mech's selected gun.
+        // FINALSTAND: a mech pilot fires the mech's selected gun.
         if (TryComp<Content.Shared.Vehicle.Components.VehicleOperatorComponent>(entity, out var mechOperator)
             && TryComp<Content.Shared.Mech.Components.MechComponent>(mechOperator.Vehicle, out var mech)
             && mech.CurrentSelectedEquipment is { } equipment
@@ -257,7 +257,7 @@ public abstract partial class SharedGunSystem : EntitySystem
             return true;
         }
 
-        // FS: a gunner seated on an HMG fires the HMG, whatever they hold.
+        // FINALSTAND: a gunner seated on an HMG fires the HMG, whatever they hold.
         if (TryComp<Content.Shared._FinalStand.HMG.FSHMGGunnerComponent>(entity, out var gunner)
             && TryComp(gunner.Hmg, out GunComponent? hmgGun))
         {
@@ -273,7 +273,7 @@ public abstract partial class SharedGunSystem : EntitySystem
                 return true;
             }
 
-            // FS: unwrap virtual items so firing works from either hand.
+            // FINALSTAND: unwrap virtual items so firing works from either hand.
             // Mirrors the safety guard in SharedVirtualItemSystem.OnGetUsedEntity — only unwrap
             // when the real gun is also held by the same user.
             if (TryComp<VirtualItemComponent>(held, out var virtualItem)
@@ -546,7 +546,7 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         TransformSystem.SetWorldRotation(uid, direction.ToWorldAngle() + projectile.Angle);
 
-        var launched = new FSProjectileLaunchedEvent(gunUid, shooter); // fs
+        var launched = new FSProjectileLaunchedEvent(gunUid, shooter); // FINALSTAND
         RaiseLocalEvent(uid, ref launched);
     }
 

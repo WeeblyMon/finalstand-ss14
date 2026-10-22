@@ -23,7 +23,7 @@ public sealed partial class HotbarGui : UIWidget
     public HotbarGui()
     {
         RobustXamlLoader.Load(this);
-        _classic = FSClassicHud.Enabled;
+        _classic = FSClassicHud.Enabled; // FINALSTAND
         StatusPanelRight.SetSide(HandLocation.Right);
         StatusPanelLeft.SetSide(HandLocation.Left);
         StatusPanelRight.Visible = false;
@@ -37,7 +37,7 @@ public sealed partial class HotbarGui : UIWidget
             return;
         }
 
-        HandsPanel.PanelOverride = FSHudStyle.ModulePanel();
+        HandsPanel.PanelOverride = FSHudStyle.ModulePanel(); // FINALSTAND
         StoragePanel.PanelOverride = FSHudStyle.ModulePanel();
 
         foreach (var grid in new[] { SecondHotbar, MainHotbar })

@@ -165,7 +165,7 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (breakdown)
                 DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
 
-            if (_entManager.TryGetComponent(uid, out FSOverhealComponent? shield) && shield.Max > 0f)
+            if (_entManager.TryGetComponent(uid, out FSOverhealComponent? shield) && shield.Max > 0f) // FINALSTAND
             {
                 var shieldX = startX + (endX - startX) * Math.Clamp(shield.Amount / shield.Max, 0f, 1f);
                 var strip = new Box2(new Vector2(startX, 4f) / EyeManager.PixelsPerMeter,

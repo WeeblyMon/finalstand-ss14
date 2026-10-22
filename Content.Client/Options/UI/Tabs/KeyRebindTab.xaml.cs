@@ -167,7 +167,7 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(EngineKeyFunctions.MoveLeft);
             AddButton(EngineKeyFunctions.MoveDown);
             AddButton(EngineKeyFunctions.MoveRight);
-            AddButton(ContentKeyFunctions.FSSprint);
+            AddButton(ContentKeyFunctions.FSSprint); // FINALSTAND
             AddButton(EngineKeyFunctions.Walk);
             AddCheckBox("ui-options-hotkey-toggle-walk", _cfg.GetCVar(CCVars.ToggleWalk), HandleToggleWalk);
             InitToggleWalk();
@@ -188,7 +188,7 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.AltUseItemInHand);
             AddButton(ContentKeyFunctions.ActivateItemInWorld);
             AddButton(ContentKeyFunctions.AltActivateItemInWorld);
-            AddButton(ContentKeyFunctions.FSUberCharge);
+            AddButton(ContentKeyFunctions.FSUberCharge); // FINALSTAND
             AddButton(ContentKeyFunctions.FSPing);
             AddButton(ContentKeyFunctions.FSPingWheel);
             AddButton(ContentKeyFunctions.Drop);

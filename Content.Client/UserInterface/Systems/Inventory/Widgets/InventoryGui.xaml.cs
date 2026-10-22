@@ -17,7 +17,7 @@ public sealed partial class InventoryGui : UIWidget
         var inventoryUIController = UserInterfaceManager.GetUIController<InventoryUIController>();
         inventoryUIController.RegisterInventoryBarContainer(InventoryHotbar);
 
-        FSInventoryPanel.PanelOverride = FSClassicHud.Enabled ? new StyleBoxEmpty() : new StyleBoxFlat
+        FSInventoryPanel.PanelOverride = FSClassicHud.Enabled ? new StyleBoxEmpty() : new StyleBoxFlat // FINALSTAND
         {
             BackgroundColor = FSPalette.PanelBack,
             BorderColor = FSPalette.PanelEdge,
@@ -28,7 +28,7 @@ public sealed partial class InventoryGui : UIWidget
             ContentMarginBottomOverride = 4,
         };
 
-        InventoryHotbar.OnVisibilityChanged += _ => FSInventoryPanel.Visible = InventoryHotbar.Visible;
+        InventoryHotbar.OnVisibilityChanged += _ => FSInventoryPanel.Visible = InventoryHotbar.Visible; // FINALSTAND
         FSInventoryPanel.Visible = InventoryHotbar.Visible;
 
         LayoutContainer.SetGrowVertical(this, LayoutContainer.GrowDirection.Begin);

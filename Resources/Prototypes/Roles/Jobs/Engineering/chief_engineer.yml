@@ -43,10 +43,10 @@
   storage:
     back:
     - Flash
-    - RCD # FS
-    - FSRivetGun # FS
-    - FSEngineerHammer # FS
-    - FSEmplacementKit # FS
+    - RCD # FINALSTAND
+    - FSRivetGun # FINALSTAND
+    - FSEngineerHammer # FINALSTAND
+    - FSEmplacementKit # FINALSTAND
 
 - type: chameleonOutfit
   id: ChiefEngineerChameleonOutfit

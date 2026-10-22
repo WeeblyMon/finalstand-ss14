@@ -70,7 +70,7 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
         if (_actionsSystem == null || _container == null)
             return;
 
-        if (FSClassicHud.Enabled)
+        if (FSClassicHud.Enabled) // FINALSTAND
         {
             _page = 0;
             _container.SetActionData(_actionsSystem, _actions.ToArray());

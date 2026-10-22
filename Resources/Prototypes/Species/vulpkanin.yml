@@ -59,7 +59,7 @@
     HeadTop:
       points: 1
       required: true
-      defaultMarkings: [ VulpEar ] # FS: was `default:` (wrong field name, silently ignored — no ears applied)
+      defaultMarkings: [ VulpEar ] # FINALSTAND: was `default:` (wrong field name, silently ignored — no ears applied)
     Snout:
       points: 1
       required: true
@@ -105,7 +105,7 @@
     sprite: Mobs/Species/Vulpkanin/parts.rsi
     state: head
 
-# FS: sex-morph variants required by HumanoidVisualLayersExtension.GetSexMorph (Head/Chest/Groin).
+# FINALSTAND: sex-morph variants required by HumanoidVisualLayersExtension.GetSexMorph (Head/Chest/Groin).
 # Vulpkanin only has one sprite per part, so Male/Female both alias the base.
 - type: humanoidBaseSprite
   id: MobVulpkaninHeadMale

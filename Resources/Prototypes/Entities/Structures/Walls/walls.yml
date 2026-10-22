@@ -579,7 +579,7 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 2000 # FS
+        damage: 2000 # FINALSTAND
       behaviors:
       - !type:DoActsBehavior
         acts: ["Destruction"]
@@ -588,7 +588,7 @@
           collection: MetalSlam
     - trigger:
         !type:DamageTrigger
-        damage: 1500 # FS
+        damage: 1500 # FINALSTAND
       behaviors:
       - !type:PlaySoundBehavior
         sound:

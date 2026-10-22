@@ -88,7 +88,7 @@ public sealed class ActionButton : Control, IEntityControl
 
         MouseFilter = MouseFilterMode.Pass;
 
-        var classic = FSClassicHud.Enabled;
+        var classic = FSClassicHud.Enabled; // FINALSTAND
         var slotSize = classic ? ClassicSlotSize : SlotSize;
         var artScale = slotSize / (float) SourceArtSize;
 
@@ -402,7 +402,7 @@ public sealed class ActionButton : Control, IEntityControl
             ? tint
             : Color.White;
 
-        if (_entities.TryGetComponent(Action!.Value.Owner, out FSActionCounterComponent? counter))
+        if (_entities.TryGetComponent(Action!.Value.Owner, out FSActionCounterComponent? counter)) // FINALSTAND
         {
             // FINALSTAND: the Text setter always remeasures, so only write it when the count changes.
             if (counter.Current != _shownCount)

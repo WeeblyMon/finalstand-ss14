@@ -36,7 +36,7 @@ public partial class ChatBox : UIWidget
         RobustXamlLoader.Load(this);
         _sawmill = _log.GetSawmill("chat");
 
-        if (FSClassicHud.Enabled)
+        if (FSClassicHud.Enabled) // FINALSTAND
         {
             MinSize = new Vector2(465, 225);
             FSGrip.Visible = false;

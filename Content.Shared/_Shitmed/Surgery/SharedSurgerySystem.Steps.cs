@@ -868,7 +868,7 @@ public abstract partial class SharedSurgerySystem
         var duration = GetSurgeryDuration(step, user, body, speed);
 
         var stepKey = stepId.Id;
-        if (TryComp<FSSurgeryProgressComponent>(body, out var progress) && progress.Started.Contains(stepKey))
+        if (TryComp<FSSurgeryProgressComponent>(body, out var progress) && progress.Started.Contains(stepKey)) // FINALSTAND
         {
             duration *= ResumeDiscount;
         }
@@ -1109,7 +1109,7 @@ public abstract partial class SharedSurgerySystem
 
     public void ClearStepProgress(EntityUid body, string stepKey)
     {
-        if (!TryComp<FSSurgeryProgressComponent>(body, out var progress) || !progress.Started.Remove(stepKey))
+        if (!TryComp<FSSurgeryProgressComponent>(body, out var progress) || !progress.Started.Remove(stepKey)) // FINALSTAND
             return;
 
         Dirty(body, progress);
