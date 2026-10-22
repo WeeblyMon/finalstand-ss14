@@ -1,4 +1,7 @@
+using System.Linq;
 using Content.IntegrationTests.Fixtures;
+using Content.IntegrationTests.Tests.Helpers;
+using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Crit;
@@ -59,9 +62,14 @@ public sealed class HitscanScaleTest : GameTest
             var rifle = entMan.SpawnEntity(Rifle, map.GridCoords);
             var plain = entMan.SpawnEntity(Human, map.GridCoords);
             var doubled = entMan.SpawnEntity(Human, map.GridCoords);
-            // The rifle can crit; keep the comparison to the upgrade alone.
-            entMan.EnsureComponent<CritImmuneComponent>(plain);
-            entMan.EnsureComponent<CritImmuneComponent>(doubled);
+            // The rifle can crit; keep the comparison to the upgrade alone. Wave-tagged, so each damage change
+            // shows up as a damage number (CritLandedEvent).
+            foreach (var target in new[] { plain, doubled })
+            {
+                entMan.EnsureComponent<CritImmuneComponent>(target);
+                entMan.EnsureComponent<WaveSpawnedTagComponent>(target);
+                entMan.EnsureComponent<TestListenerComponent>(target);
+            }
 
             Fire(entMan, map.GridCoords, rifle, shooter, plain);
             entMan.EnsureComponent<FSWeaponUpgradeStateComponent>(rifle).DamageMultiplier = 2f;
@@ -71,8 +79,16 @@ public sealed class HitscanScaleTest : GameTest
             Assert.That(basis, Is.GreaterThan(FixedPoint2.Zero), "the pulse did no damage");
             Assert.That(entMan.GetComponent<DamageableComponent>(doubled).TotalDamage, Is.EqualTo(basis * 2),
                 "a 2x damage upgrade didn't deal twice the damage");
+
+            // Paying the upgrade's surplus as a second hit showed two numbers for one shot.
+            var landed = entMan.System<CritLandedListenerSystem>().GetEvents(doubled).ToList();
+            Assert.That(landed, Has.Count.EqualTo(1), "one upgraded shot landed as more than one hit");
+            Assert.That(landed[0].FinalDamage, Is.EqualTo((basis * 2).Float()).Within(0.01f),
+                "the hit's number wasn't the upgraded damage");
         });
     }
+
+    public sealed class CritLandedListenerSystem : TestListenerSystem<CritLandedEvent>;
 
     private static void Fire(IEntityManager entMan, Robust.Shared.Map.EntityCoordinates coords, EntityUid gun,
         EntityUid shooter, EntityUid target)
