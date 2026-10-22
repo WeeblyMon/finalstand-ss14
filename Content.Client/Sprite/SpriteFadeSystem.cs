@@ -1,12 +1,15 @@
 using System.Linq;
+using System.Numerics;
 using Content.Client.Gameplay;
 using Content.Shared.Sprite;
+using Robust.Client.ComponentTrees;
 using Robust.Client.GameObjects;
 using Robust.Client.Input;
 using Robust.Client.Player;
 using Robust.Client.State;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Client.UserInterface;
+using Robust.Shared.ComponentTrees;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Physics;
@@ -32,6 +35,7 @@ public sealed partial class SpriteFadeSystem : EntitySystem
     [Dependency] private EntityQuery<SpriteFadeComponent> _fadeQuery = default!;
     [Dependency] private EntityQuery<FadingSpriteComponent> _fadingQuery = default!;
     [Dependency] private EntityQuery<FixturesComponent> _fixturesQuery = default!;
+    [Dependency] private SpriteTreeSystem _spriteTree = default!; // FINALSTAND
 
     private List<(MapCoordinates Point, bool ExcludeBoundingBox)> _points = new();
 
@@ -79,6 +83,10 @@ public sealed partial class SpriteFadeSystem : EntitySystem
         {
             foreach (var (mapPos, excludeBB) in _points)
             {
+                // FINALSTAND: only sprites with a SpriteFade ever fade, so a horde round the player isn't click-tested
+                // sprite by sprite unless one is there. Same box and tree the click query starts from.
+                if (!AnyFadeable(mapPos))
+                    continue;
 
                 var clickable = state.GetClickableEntities(mapPos, excludeFaded: false).ToList();
 
@@ -141,6 +149,22 @@ public sealed partial class SpriteFadeSystem : EntitySystem
                 }
             }
         }
+    }
+
+    // FINALSTAND
+    private bool AnyFadeable(MapCoordinates mapPos)
+    {
+        var state = (Fade: _fadeQuery, Found: false);
+        _spriteTree.QueryAabb(ref state,
+            static (ref (EntityQuery<SpriteFadeComponent> Fade, bool Found) state, in ComponentTreeEntry<SpriteComponent> value) =>
+            {
+                state.Found = state.Fade.HasComponent(value.Uid);
+                return !state.Found;
+            },
+            mapPos.MapId,
+            Box2.CenteredAround(mapPos.Position, new Vector2(1, 1)));
+
+        return state.Found;
     }
 
     /// <summary>
