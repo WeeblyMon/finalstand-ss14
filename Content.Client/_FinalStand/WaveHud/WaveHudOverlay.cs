@@ -1,7 +1,9 @@
 ﻿using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.WaveHud;
 using System.Numerics;
+using Content.Client._FinalStand.Pings;
 using Content.Client._FinalStand.Shop;
+using Content.Client._FinalStand.UI;
 using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
 using Content.Shared._FinalStand.Leveling;
@@ -806,12 +808,13 @@ public sealed partial class WaveHudOverlay : Overlay
     }
 
     // The HUD is drawn under the UI, so a click on a window over it (the escape menu, a console, a shop) is that
-    // window's. Otherwise opening the escape menu over the respawn button and clicking it buys the respawn.
+    // window's. Otherwise opening the escape menu over the respawn button and clicking it buys the respawn. The build
+    // and upgrade rings and the click-to-pick ping wheel cover the screen the same way.
     private bool PointerOverWindow()
     {
         for (var control = _uiManager.CurrentlyHovered; control != null; control = control.Parent)
         {
-            if (control is BaseWindow or Popup)
+            if (control is BaseWindow or Popup or FSRingControl or FSPingWheel)
                 return true;
         }
 

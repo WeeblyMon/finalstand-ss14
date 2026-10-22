@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Client.Actions;
 using Content.Client.UserInterface.Systems.Actions;
 using Content.Shared.Actions.Components;
@@ -28,6 +29,7 @@ public sealed partial class FSMechHudSystem : EntitySystem
 
     private FSMechHudOverlay _overlay = default!;
     private FSMechCombatButton? _button;
+    private Vector2? _buttonPosition;
 
     public override void Initialize()
     {
@@ -65,13 +67,24 @@ public sealed partial class FSMechHudSystem : EntitySystem
             _button = new FSMechCombatButton();
             _button.OnToggle += ToggleCombat;
             screen.AddChild(_button);
+            _buttonPosition = null;
         }
 
         var scale = _button.UIScale;
         _button.Visible = true;
         _button.InCombat = _player.LocalEntity is { } local && _combat.IsInCombatMode(local);
-        _button.SetSize = box.Size / scale;
-        LayoutContainer.SetPosition(_button, box.TopLeft / scale);
+
+        // Runs every frame, and both of these lay the screen out again even when nothing moved.
+        var size = box.Size / scale;
+        var position = box.TopLeft / scale;
+        if (_button.SetSize != size)
+            _button.SetSize = size;
+
+        if (_buttonPosition != position)
+        {
+            _buttonPosition = position;
+            LayoutContainer.SetPosition(_button, position);
+        }
     }
 
     private void ToggleCombat()
