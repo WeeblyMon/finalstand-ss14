@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
+using Content.Shared.Teleportation.Components;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
@@ -14,6 +16,8 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestOf(typeof(FSDeployableLifetimeComponent))]
 [TestOf(typeof(FSUntouchableComponent))]
 [TestOf(typeof(FSMedicalBonusSystem))]
+[TestOf(typeof(HandTeleporterComponent))]
+[TestOf(typeof(FSTreatmentAttributionComponent))]
 public sealed class PausedDeadlineTest : GameTest
 {
     private const string NullField = "FSNullFieldDeployed";
@@ -108,5 +112,68 @@ public sealed class PausedDeadlineTest : GameTest
         await server.WaitAssertion(() =>
             Assert.That(bonus.GetBonus(player, FSMedicalBonusCategory.Movement), Is.GreaterThan(0f),
                 "the pause used up the medical buff"));
+    }
+
+    // A hand teleporter's portals collapse together at one deadline, kept on the teleporter.
+    [Test]
+    public async Task PauseDoesNotUseUpPortals()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var mapSystem = entMan.System<SharedMapSystem>();
+        var map = await Pair.CreateTestMap();
+
+        HandTeleporterComponent teleporter = null;
+        await server.WaitPost(() =>
+        {
+            teleporter = entMan.GetComponent<HandTeleporterComponent>(entMan.SpawnEntity("HandTeleporter", map.GridCoords));
+            teleporter.PortalsExpireAt = timing.CurTime + TimeSpan.FromSeconds(1);
+            mapSystem.SetPaused(map.MapId, true);
+        });
+
+        // Paused for longer than the portals last.
+        await server.WaitRunTicks((int) (timing.TickRate * 2));
+        await server.WaitPost(() => mapSystem.SetPaused(map.MapId, false));
+
+        await server.WaitAssertion(() =>
+            Assert.That(teleporter.PortalsExpireAt, Is.GreaterThan(timing.CurTime), "the pause used up the portals' time"));
+    }
+
+    // A medic keeps the credit for a patient they treated for a while after; a pause doesn't eat into that.
+    [Test]
+    public async Task PauseDoesNotUseUpTreatmentCredit()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var mapSystem = entMan.System<SharedMapSystem>();
+        var map = await Pair.CreateTestMap();
+
+        FSTreatmentAttributionComponent attribution = null;
+        EntityUid medicMind = default;
+        var creditEnds = TimeSpan.Zero;
+        await server.WaitPost(() =>
+        {
+            // Recording a treatment needs a connected medic; the window it leaves behind is all that matters here.
+            medicMind = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
+            var patient = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            attribution = entMan.EnsureComponent<FSTreatmentAttributionComponent>(patient);
+            creditEnds = timing.CurTime + TimeSpan.FromSeconds(1);
+            var treaters = attribution.RecentTreaters;
+            treaters[medicMind] = creditEnds;
+            mapSystem.SetPaused(map.MapId, true);
+        });
+
+        var paused = TimeSpan.FromSeconds(2);
+        await server.WaitRunTicks((int) (timing.TickRate * paused.TotalSeconds));
+        await server.WaitPost(() => mapSystem.SetPaused(map.MapId, false));
+
+        await server.WaitAssertion(() =>
+        {
+            var treaters = attribution.RecentTreaters;
+            Assert.That(treaters[medicMind], Is.GreaterThanOrEqualTo(creditEnds + paused - TimeSpan.FromSeconds(0.1)),
+                "the pause used up the medic's credit window");
+        });
     }
 }
