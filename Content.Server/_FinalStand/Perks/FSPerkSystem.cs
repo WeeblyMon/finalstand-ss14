@@ -32,6 +32,13 @@ public sealed partial class FSPerkSystem : EntitySystem
     private static readonly TimeSpan MutationInterval = TimeSpan.FromSeconds(0.25);
     private readonly Dictionary<NetUserId, TimeSpan> _mutationHorizon = new();
 
+    // Minds whose saved build failed to load. Nothing else reloads a build once the player is in, so it's retried here
+    // until it lands.
+    private static readonly TimeSpan LoadRetryInterval = TimeSpan.FromSeconds(5);
+    private readonly HashSet<EntityUid> _unloaded = new();
+    private readonly List<EntityUid> _retryBuffer = new();
+    private TimeSpan _nextLoadRetry;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -54,6 +61,29 @@ public sealed partial class FSPerkSystem : EntitySystem
     {
         base.Shutdown();
         _playerManager.PlayerStatusChanged -= OnPlayerStatusChanged;
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        if (_unloaded.Count == 0 || _timing.CurTime < _nextLoadRetry)
+            return;
+
+        _nextLoadRetry = _timing.CurTime + LoadRetryInterval;
+        _retryBuffer.Clear();
+        _retryBuffer.AddRange(_unloaded);
+        foreach (var mindId in _retryBuffer)
+        {
+            if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
+            {
+                _unloaded.Remove(mindId);
+                continue;
+            }
+
+            if (EnsurePerkComponent(mindId, mind) is { Loaded: true } perks)
+                SendStateToClient(mindId, perks);
+        }
     }
 
     // Lobby sessions never detach, and a new connection is a new session; drop the throttles with the connection.
@@ -402,8 +432,12 @@ public sealed partial class FSPerkSystem : EntitySystem
     {
         var perks = EnsureComp<FSPerkLevelsComponent>(mindId);
         if (!_store.TryLoadPerkLoadout(userId, out var loadout))
+        {
+            _unloaded.Add(mindId);
             return perks;
+        }
 
+        _unloaded.Remove(mindId);
         DeserializeInto(perks, loadout.LevelsJson, loadout.SlotsJson, loadout.LoadoutsJson);
         perks.Loaded = true;
         return perks;

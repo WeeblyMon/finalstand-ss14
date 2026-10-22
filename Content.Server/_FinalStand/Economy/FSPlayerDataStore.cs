@@ -14,10 +14,11 @@ public sealed partial class FSPlayerDataStore : EntitySystem
     private SqliteConnection? _db;
     private SqliteTransaction? _activeTx;
 
-    // After a failed read the database is left alone for a while. Unloaded wallets and levels retry their load on
-    // each payout, and a broken file would otherwise cost a query and an error line for every hit and kill.
+    // After a failed read that player's data is left alone for a while. Unloaded wallets and levels retry their load
+    // on each payout, and a broken row would otherwise cost a query and an error line for every hit and kill. Kept
+    // per player so one bad read doesn't hold up everyone else's loads.
     private static readonly TimeSpan ReadRetryDelay = TimeSpan.FromSeconds(5);
-    private TimeSpan _readRetryAt;
+    private readonly Dictionary<Guid, TimeSpan> _readRetryAt = new();
 
     public override void Initialize()
     {
@@ -108,7 +109,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
     // False only when the read itself failed (a locked file, an I/O error), as opposed to there being no row yet.
     // Whoever loads data to save back later must not save after a failed read: the fallback would replace the row.
     // With no database at all nothing is ever saved, so the fallback is safe to use as loaded.
-    private bool TryRead<T>(string what, Func<T> read, T fallback, out T value)
+    private bool TryRead<T>(Guid userId, string what, Func<T> read, T fallback, out T value)
     {
         value = fallback;
         if (_db == null)
@@ -117,25 +118,26 @@ public sealed partial class FSPlayerDataStore : EntitySystem
             return true;
         }
 
-        if (_timing.RealTime < _readRetryAt)
+        if (_readRetryAt.TryGetValue(userId, out var retryAt) && _timing.RealTime < retryAt)
             return false;
 
         try
         {
             value = read();
+            _readRetryAt.Remove(userId);
             return true;
         }
         catch (Exception e)
         {
             Log.Error($"{what} failed: {e.Message}");
-            _readRetryAt = _timing.RealTime + ReadRetryDelay;
+            _readRetryAt[userId] = _timing.RealTime + ReadRetryDelay;
             return false;
         }
     }
 
-    private T TryRead<T>(string what, Func<T> read, T fallback)
+    private T TryRead<T>(Guid userId, string what, Func<T> read, T fallback)
     {
-        TryRead(what, read, fallback, out var value);
+        TryRead(userId, what, read, fallback, out var value);
         return value;
     }
 
@@ -395,10 +397,10 @@ public sealed partial class FSPlayerDataStore : EntitySystem
 
     // For display. Anything that saves the record back loads it with TryGetFullRecord.
     public FullRecord GetFullRecord(Guid userId)
-        => TryRead($"record load for {userId}", () => GetFullRecordCore(userId), EmptyRecord);
+        => TryRead(userId, $"record load for {userId}", () => GetFullRecordCore(userId), EmptyRecord);
 
     public bool TryGetFullRecord(Guid userId, out FullRecord record)
-        => TryRead($"record load for {userId}", () => GetFullRecordCore(userId), EmptyRecord, out record);
+        => TryRead(userId, $"record load for {userId}", () => GetFullRecordCore(userId), EmptyRecord, out record);
 
     private FullRecord GetFullRecordCore(Guid userId)
     {
@@ -421,10 +423,10 @@ public sealed partial class FSPlayerDataStore : EntitySystem
     }
 
     public int GetPerkPoints(Guid userId)
-        => TryRead($"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0);
+        => TryRead(userId, $"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0);
 
     public bool TryGetPerkPoints(Guid userId, out int perkPoints)
-        => TryRead($"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0, out perkPoints);
+        => TryRead(userId, $"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0, out perkPoints);
 
     private int GetPerkPointsCore(Guid userId)
     {
@@ -484,10 +486,10 @@ public sealed partial class FSPlayerDataStore : EntitySystem
     }
 
     public (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadPerkLoadout(Guid userId)
-        => TryRead($"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""));
+        => TryRead(userId, $"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""));
 
     public bool TryLoadPerkLoadout(Guid userId, out (string LevelsJson, string SlotsJson, string LoadoutsJson) loadout)
-        => TryRead($"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""), out loadout);
+        => TryRead(userId, $"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""), out loadout);
 
     private (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadPerkLoadoutCore(Guid userId)
     {
