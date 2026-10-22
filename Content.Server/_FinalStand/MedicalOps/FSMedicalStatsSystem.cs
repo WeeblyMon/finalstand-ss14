@@ -146,6 +146,14 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
                && mind.UserId != null;
     }
 
+    // A body whose player has left the server is just a sponge for heals, surgeries and topicals.
+    private bool IsAbandoned(EntityUid body)
+    {
+        return _mind.TryGetMind(body, out _, out var mind)
+               && mind.UserId is { } user
+               && !_players.TryGetSessionById(user, out _);
+    }
+
     private void OnPatientDamageChanged(EntityUid uid, FSMedicalPatientComponent comp, DamageChangedEvent args)
     {
         if (args.DamageDelta is null || args.DamageDelta.Empty)
@@ -191,11 +199,10 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         comp.HealedSinceReset[healerMind] = prior + healed;
 
-        if (_mind.TryGetMind(uid, out var patientMind, out var patient) && patientMind == healerMind)
+        if (_mind.TryGetMind(uid, out var patientMind, out _) && patientMind == healerMind)
             return;
 
-        // A body whose player has left the server is just a heal sponge.
-        if (patient?.UserId is { } patientUser && !_players.TryGetSessionById(patientUser, out _))
+        if (IsAbandoned(uid))
             return;
 
         var points = (int)MathF.Round(paid);
@@ -241,7 +248,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private void OnSurgeryCompleted(EntityUid uid, FSMedicalPatientComponent comp, ref FSSurgeryCompletedEvent args)
     {
-        if (args.Surgeon == args.Patient || !TryGetPlayerMind(args.Surgeon, out var surgeonMind))
+        if (args.Surgeon == args.Patient || IsAbandoned(args.Patient) || !TryGetPlayerMind(args.Surgeon, out var surgeonMind))
             return;
 
         if (!TryCountPayout(_surgeriesPaid, surgeonMind, args.Patient, SurgeriesPaidPerPatientPerWave))
@@ -261,6 +268,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         _combatMedic.OnHealedAlly(args.User, args.Target);
 
         if (args.User == args.Target
+            || IsAbandoned(args.Target)
             || !_roster.IsMedical(args.User)
             || !TryGetPlayerMind(args.User, out var medicMind))
             return;
