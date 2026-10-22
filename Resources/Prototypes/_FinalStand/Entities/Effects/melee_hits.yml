@@ -17,6 +17,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitSlashThin
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     state: slash_thin
@@ -26,6 +27,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitBurst
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     state: burst
@@ -35,6 +37,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitHeavySlash
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.35
@@ -45,6 +48,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitThrust
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.25
@@ -56,6 +60,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitShatter
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.33
@@ -67,6 +72,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSpinRing
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.28
@@ -78,6 +84,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitCross
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     state: cross
@@ -87,6 +94,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitEnergy
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     state: slash_clean
@@ -96,6 +104,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitEnergyCross
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     state: cross
@@ -105,6 +114,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitSparks
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.27
@@ -117,6 +127,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeKillBlood
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.32
@@ -126,6 +137,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlashWarriorCrossTinted
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.32
@@ -136,6 +148,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlashWarriorArcTinted
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.29
@@ -146,6 +159,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlashWarriorBurst
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.32
@@ -156,6 +170,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlashWarriorBurstTinted
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.32
@@ -166,6 +181,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlashWarriorCleave
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.23
@@ -176,6 +192,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlashRogueCrescent
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.29
@@ -186,6 +203,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlashRogueDoubleTinted
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.2
@@ -196,6 +214,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeStabEnergy
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.26
@@ -206,6 +225,7 @@
 - type: entity
   parent: FSMeleeStabEnergy
   id: FSMeleeStabHalberd
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     state: halberd
@@ -213,6 +233,7 @@
 - type: entity
   parent: FSMeleeStabEnergy
   id: FSMeleeStabKnife
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     state: knife
@@ -220,6 +241,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlashChainsaw
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.17
@@ -230,6 +252,7 @@
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeSlamShockwave
+  categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
     lifetime: 0.33
