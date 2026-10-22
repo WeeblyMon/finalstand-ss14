@@ -157,11 +157,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnConsoleServerLinkChanged(EntityUid uid, FSTechDatabaseComponent comp, ref ResearchRegistrationChangedEvent args)
     {
-        if (TerminatingOrDeleted(uid))
-            return;
-
-        GetOrCreateStation();
-        SyncConsoles();
+        // A console with no research state yet already shows the empty one; nothing to create here.
+        if (!TerminatingOrDeleted(uid))
+            SyncConsoles();
     }
 
     // The state is its own entity for the round, like medical research's. It used to live on the R&D server, so
@@ -848,7 +846,14 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!TryComp<MindComponent>(mindId, out var mindComp) || !_playerManager.TryGetSessionById(mindComp.UserId, out var session))
             return;
 
-        var station = GetOrCreateStation();
+        // Only reads: it runs on every attach, the ghost made while everything is being deleted included, and
+        // creating the state there left it behind.
+        if (!TryGetStation(out var station))
+        {
+            RaiseNetworkEvent(new FSPersonalResearchStateEvent(null, 0, new List<string>()), Filter.SinglePlayer(session));
+            return;
+        }
+
         ProtoId<FSTechNodePrototype>? nodeId = station.Comp.PersonalPicks.TryGetValue(mindId, out var picked) ? (ProtoId<FSTechNodePrototype>?)picked : null;
         var progress = nodeId is { } id ? station.Comp.NodeProgress.GetValueOrDefault(id.Id) : 0;
         var queue = station.Comp.PersonalQueues.TryGetValue(mindId, out var personalQueue)
