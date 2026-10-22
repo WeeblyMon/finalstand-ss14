@@ -303,7 +303,10 @@ public sealed partial class NPCSteeringSystem
         }
         // Stuck detection
         // Check if we have moved further than the movespeed * stuck time.
+        // FINALSTAND: not while it waits for its first path. With a busy pathfinder that wait asked for the same path
+        // again after a second and gave up on the one still coming after three.
         else if (AntiStuck &&
+                 steering is not { Pathfind: true, CurrentPath.Count: 0 } &&
                  ourCoordinates.TryDistance(EntityManager, steering.LastStuckCoordinates, out var stuckDistance) &&
                  stuckDistance < NPCSteeringComponent.StuckDistance)
         {

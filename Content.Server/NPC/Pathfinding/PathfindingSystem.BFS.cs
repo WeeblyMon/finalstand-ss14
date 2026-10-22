@@ -8,7 +8,7 @@ public sealed partial class PathfindingSystem
 {
     private PathResult UpdateBFSPath(IRobustRandom random, BFSPathRequest request)
     {
-        if (request.Task.IsCanceled)
+        if (request.CancelToken.IsCancellationRequested) // FINALSTAND
         {
             return PathResult.NoPath;
         }

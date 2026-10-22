@@ -544,7 +544,8 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
             return;
         }
 
-        steering.PathfindToken = new CancellationTokenSource();
+        var token = new CancellationTokenSource(); // FINALSTAND
+        steering.PathfindToken = token;
         var plannedFor = _transform.ToMapCoordinates(steering.Coordinates); // FINALSTAND
 
         var flags = _pathfindingSystem.GetFlags(uid);
@@ -554,8 +555,13 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
             xform.Coordinates,
             steering.Coordinates,
             steering.Range,
-            steering.PathfindToken.Token,
+            token.Token,
             flags);
+
+        // FINALSTAND: cancelled for a new destination or an unregister. Vanilla carried on and put the old path in,
+        // or cleared the token of the request made since.
+        if (steering.PathfindToken != token)
+            return;
 
         steering.PathfindToken = null;
 
