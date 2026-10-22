@@ -374,13 +374,11 @@ public abstract partial class SharedMoverController : VirtualController
         return mover.Comp.WishDir;
     }
 
+    // FINALSTAND: no Dirty. WishDir isn't part of the mover's state, so dirtying only resent an unchanged state to
+    // every client in range, every tick, for every mob steering.
     public void SetWishDir(Entity<InputMoverComponent> mover, Vector2 wishDir)
     {
-        if (mover.Comp.WishDir.Equals(wishDir))
-            return;
-
         mover.Comp.WishDir = wishDir;
-        Dirty(mover);
     }
 
     public void LerpRotation(EntityUid uid, InputMoverComponent mover, float frameTime)
