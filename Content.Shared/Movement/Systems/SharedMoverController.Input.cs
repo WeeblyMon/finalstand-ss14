@@ -135,7 +135,9 @@ namespace Content.Shared.Movement.Systems
             args.State = new InputMoverComponentState()
             {
                 CanMove = entity.Comp.CanMove,
-                RelativeEntity = GetNetEntity(entity.Comp.RelativeEntity),
+                // FINALSTAND: the old relative can be deleted inside the second before the mover takes its new grid
+                // (dungeon fill deletes its temporary map), and naming a deleted entity logs an error per session.
+                RelativeEntity = TryGetNetEntity(entity.Comp.RelativeEntity, out var relative) ? relative : null,
                 LerpTarget = entity.Comp.LerpTarget,
                 HeldMoveButtons = entity.Comp.HeldMoveButtons,
                 RelativeRotation = entity.Comp.RelativeRotation,
