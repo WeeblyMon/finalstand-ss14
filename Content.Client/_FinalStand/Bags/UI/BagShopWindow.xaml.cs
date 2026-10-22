@@ -4,13 +4,14 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Client.UserInterface.XAML;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Bags.UI;
 
 [GenerateTypedNameReferences]
 public sealed partial class BagShopWindow : DefaultWindow
 {
-    public event Action<string>? OnBuyPressed;
+    public event Action<EntProtoId>? OnBuyPressed;
 
     public BagShopWindow()
     {
@@ -55,7 +56,7 @@ public sealed partial class BagShopWindow : DefaultWindow
             VerticalAlignment = VAlignment.Center,
             Disabled = credits < entry.Price,
         };
-        buy.OnPressed += _ => OnBuyPressed?.Invoke(entry.ProtoId);
+        buy.OnPressed += _ => OnBuyPressed?.Invoke(entry.Proto);
         row.AddChild(buy);
 
         return row;

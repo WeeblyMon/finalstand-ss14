@@ -1,6 +1,7 @@
 using Content.Client._FinalStand.Bags.UI;
 using Content.Shared._FinalStand.Bags;
 using Robust.Client.UserInterface;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Bags;
 
@@ -33,9 +34,9 @@ public sealed class FSBagShopBoundUserInterface : BoundUserInterface
         _window?.Populate(state);
     }
 
-    private void OnBuyPressed(string protoId)
+    private void OnBuyPressed(EntProtoId proto)
     {
-        SendPredictedMessage(new FSBagShopBuyMessage(protoId));
+        SendPredictedMessage(new FSBagShopBuyMessage(proto));
     }
 
     protected override void Dispose(bool disposing)

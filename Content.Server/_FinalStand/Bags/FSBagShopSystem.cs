@@ -38,7 +38,7 @@ public sealed partial class FSBagShopSystem : EntitySystem
         if (!player.IsValid() || !_mind.TryGetMind(player, out var mindId, out _))
             return;
 
-        var entry = comp.Catalog.FirstOrDefault(e => e.Proto.Id == args.ProtoId);
+        var entry = comp.Catalog.FirstOrDefault(e => e.Proto == args.Proto);
         if (entry == null)
             return;
 
@@ -61,7 +61,7 @@ public sealed partial class FSBagShopSystem : EntitySystem
             return;
 
         var entries = comp.Catalog
-            .Select(e => new FSBagShopEntryState(e.Proto.Id, e.Name, e.Description, e.Price))
+            .Select(e => new FSBagShopEntryState(e.Proto, e.Name, e.Description, e.Price))
             .ToList();
 
         _ui.ServerSendUiMessage(uid, FSBagShopUiKey.Key, new FSBagShopState(entries, _wallet.GetCredits(mindId)), player);
