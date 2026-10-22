@@ -175,11 +175,13 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         var targets = new List<EntityUid>();
         foreach (var hit in args.HitEntities)
         {
-            if (hit != args.User && !IsAlly(args.User, hit))
+            if (hit != args.User && !IsAlly(args.User, hit) && !(TryComp<MobStateComponent>(hit, out var state) && state.CurrentState == MobState.Dead))
                 targets.Add(hit);
         }
 
-        var finisher = !heavy && targets.Count > 0 && AdvanceCombo(args.User, ent);
+        // Walls, crates and the like still feel the hit, but only living mobs build combos.
+        var living = CountLiving(targets);
+        var finisher = !heavy && living > 0 && AdvanceCombo(args.User, ent);
         var profile = Profile(ent, heavy, finisher);
 
         if (heavy)
@@ -198,7 +200,8 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (targets.Count == 0)
             return;
 
-        profile = Embellish(ent, args.User, targets, profile, heavy, args);
+        if (living > 0)
+            profile = Embellish(ent, args.User, targets, profile, heavy, args);
 
         if (!MathHelper.CloseTo(profile.DamageMultiplier, 1f))
             args.BonusDamage += args.BaseDamage * (profile.DamageMultiplier - 1f);
@@ -231,6 +234,18 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         }
 
         OnHit(ent, args.User, targets, direction, heavy, finisher, lethal || profile.Execution, profile, args);
+    }
+
+    public int CountLiving(List<EntityUid> targets)
+    {
+        var count = 0;
+        foreach (var target in targets)
+        {
+            if (TryComp<MobStateComponent>(target, out var state) && state.CurrentState != MobState.Dead)
+                count++;
+        }
+
+        return count;
     }
 
     // Rev, sprint and execution only change the copy this one swing uses.

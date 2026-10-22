@@ -103,7 +103,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         SendHit(user, weapon, targets, direction, heavy, finisher, 0, lethal, false);
-        _style.Swing(user, weapon, heavy, finisher, targets.Count);
+        if (CountLiving(targets) is var living and > 0)
+            _style.Swing(user, weapon, heavy, finisher, living);
         ApplyImpact(user, weapon, targets, profile, damage);
 
         if (profile.Pierce > 0)
@@ -480,7 +481,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         var profile = Profile((strike.Weapon, juice), strike.Heavy, strike.Finisher);
         _audio.PlayPvs(profile.StrikeSound, strike.Targets[0], profile.StrikeSound?.Params.WithPitchScale(1f + profile.StrikePitchStep * strike.Strike));
         SendHit(strike.User, strike.Weapon, strike.Targets, strike.Direction, strike.Heavy, strike.Finisher, strike.Strike, false, false);
-        _style.Bonus(strike.User, FSStyleSystem.StrikePoints * strike.Targets.Count, strike.Targets.Count);
+        var living = CountLiving(strike.Targets);
+        _style.Bonus(strike.User, FSStyleSystem.StrikePoints * living, living);
         ApplyImpact(strike.User, strike.Weapon, strike.Targets, profile, strike.Damage);
     }
 }
