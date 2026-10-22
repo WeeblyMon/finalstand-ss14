@@ -9,11 +9,21 @@ using Robust.Shared.Maths;
 namespace Content.IntegrationTests.Tests.FinalStand;
 
 // Wave zombie spacing adds danger four directions at a time. It has to land on exactly the numbers the one-at-a-time
-// loop did, including directions straight across or square to the push.
+// loop did, including directions straight across or square to the push, and a neighbour whose position went bad.
 [TestFixture]
 [TestOf(typeof(NPCSteeringSystem))]
 public sealed class SteeringDangerLanesTest : GameTest
 {
+    private static readonly Vector2[] NonFinite =
+    {
+        new(float.NaN, float.NaN),
+        new(float.NaN, 0.5f),
+        new(0.5f, float.NaN),
+        new(float.PositiveInfinity, 0f),
+        new(float.NegativeInfinity, 0.3f),
+        new(float.PositiveInfinity, float.NegativeInfinity),
+    };
+
     [Test]
     public async Task LanesMatchTheScalarLoop()
     {
@@ -35,10 +45,13 @@ public sealed class SteeringDangerLanesTest : GameTest
                     lanes[i] = scalar[i] = run % 5 == 0 ? 0f : (float) random.NextDouble();
                 }
 
-                // Every steering direction itself and the angles half way between, then anything at all.
+                // Every steering direction itself and the angles half way between, a few non-finite pushes, then
+                // anything at all.
                 var toward = run < 48
                     ? new Angle(run * SharedNPCSteeringSystem.InterestRadians / 2).ToVec()
-                    : new Angle(random.NextDouble() * Math.Tau).ToVec() * (float) (0.2 + random.NextDouble());
+                    : run < 48 + NonFinite.Length
+                        ? NonFinite[run - 48]
+                        : new Angle(random.NextDouble() * Math.Tau).ToVec() * (float) (0.2 + random.NextDouble());
                 var weight = (float) (random.NextDouble() * 3);
 
                 for (var push = 0; push < 3; push++)

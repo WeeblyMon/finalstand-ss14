@@ -943,7 +943,8 @@ public sealed partial class NPCSteeringSystem
     }
 
     // The twelve directions as three lanes of four. A dense crowd puts a hundred zombies in reach, each a danger
-    // update. Danger never goes below zero, so the max with a dot clamped to zero is the same as skipping it.
+    // update. Danger never goes below zero and weights are positive, so a negative dot loses the max anyway, and
+    // MaxNumber keeps the lane when the dot is NaN, as the old one-at-a-time "dot > 0" check did.
     private static readonly Vector4[] DirectionLanesX = new Vector4[InterestDirections / 4];
     private static readonly Vector4[] DirectionLanesY = new Vector4[InterestDirections / 4];
 
@@ -957,7 +958,7 @@ public sealed partial class NPCSteeringSystem
         for (var i = 0; i < DirectionLanesX.Length; i++)
         {
             var dot = x * DirectionLanesX[i] + y * DirectionLanesY[i];
-            lanes[i] = Vector4.Max(lanes[i], Vector4.Max(dot, Vector4.Zero) * w);
+            lanes[i] = Vector4.MaxNumber(lanes[i], dot * w);
         }
     }
 
