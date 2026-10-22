@@ -71,10 +71,12 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         SaveAll();
         _dirtyWallets.Clear();
 
+        // Perk points were just saved; an unloaded wallet adds the stored total back on load, so it starts empty.
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out _, out var wallet))
         {
             wallet.Credits = 0;
+            wallet.PerkPoints = 0;
             wallet.Loaded = false;
         }
         Log.Debug("Round restart — saved all players, cleared credits.");
