@@ -119,7 +119,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             {
                 if (htn.Blackboard.ContainsKey(FSAIBlackboardKeys.BreachTarget))
                     ClearBreachTarget(htn.Blackboard);
-                _htn.Replan(htn);
+                ReplanBreach(htn);
             }
             if (TryComp<NPCSteeringComponent>(npcUid, out var steering))
                 _steering.RequestRepath((npcUid, steering));
@@ -145,7 +145,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     private void Tick(EntityUid uid, HTNComponent htn, float dt)
     {
         var bb = htn.Blackboard;
-        TickAttackLock(bb, dt);
+        TickAttackLock(htn, dt);
         TickBreachCooldown(bb, dt);
         CheckBreachInterrupts(uid, htn, bb);
         CheckPathProgress(uid, htn, bb, dt);
@@ -159,16 +159,23 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         else bb.SetValue(FSAIBlackboardKeys.BreachCooldown, cd);
     }
 
-    private void TickAttackLock(NPCBlackboard bb, float dt)
+    // Once the lock runs out the target is weighed again from scratch, which the running plan would never do.
+    private void TickAttackLock(HTNComponent htn, float dt)
     {
+        var bb = htn.Blackboard;
         if (!bb.TryGetValue<float>(FSAIBlackboardKeys.AttackLockTimer, out var lockTimer, EntityManager))
             return;
 
         lockTimer -= dt;
         if (lockTimer <= 0f)
+        {
             ClearBreachTarget(bb);
+            ReplanBreach(htn);
+        }
         else
+        {
             bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, lockTimer);
+        }
     }
 
     private void CheckBreachInterrupts(EntityUid uid, HTNComponent htn, NPCBlackboard bb)
@@ -208,6 +215,8 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             if (HasComp<GhostComponent>(nearUid)) continue;
             if (_mobState.IsDead(nearUid)) continue;
 
+            // The hunt outranks the breach plan and takes over if it wants this one; if not, the structure is
+            // still in the way.
             ClearBreachTarget(bb);
             _htn.Replan(htn);
             return;
