@@ -52,7 +52,8 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 
     [DataField] public int MagazineSizeBonus = 0;
     [DataField] public float ResearchMagazinePercent = 0f;
-    [DataField] public float BatteryFireCostReduction = 0f;
+    // Networked: switching fire mode runs predicted, and the client works out the fire cost from it too.
+    [DataField, AutoNetworkedField] public float BatteryFireCostReduction = 0f;
 
     [DataField] public float AttackSpeedMultiplier = 1f;
     [DataField] public int ConcussionClubStunMs = 0;
