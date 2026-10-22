@@ -11,6 +11,7 @@
   - FSPaletteStreetLanding4
   - FSPaletteStreetStreet5
   - FSPaletteStreetTrash6
+  - FSPaletteStreetRoad7
 
 - type: fsMapPalette
   id: FSPaletteStreetLights0
@@ -507,6 +508,19 @@
   - FSPropTrashFull
   - FSTrashBinBlue
   - FSTrashBinGreen
+
+- type: fsMapPalette
+  id: FSPaletteStreetRoad7
+  name: fspalettestreet-80
+  order: 80
+  entities:
+  - FSBarrierCentreRoad
+  - FSBarrierCentreRoadDouble
+  - FSBarrierHandrail
+  - FSBarrierPlasticBlack
+  - FSBarrierPlasticBlue
+  - FSBarrierPlasticRed
+  - FSDeployableBarrier
 
 - type: fsMapPalette
   id: FSPaletteBuilding

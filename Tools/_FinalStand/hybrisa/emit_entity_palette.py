@@ -26,6 +26,7 @@ RULES = [
         (r'^FS\w*Sign(Alt|Fixed)?\d*$', 'Landing Signs', 50),
         (r'^FS(Bench|Planter|Phonebox|BrokenPhonebox)', 'Street Furniture', 60),
         (r'^FS(PropTrash|Trash|Disposal|Condisposal|PropBananaPeel|PropCuppaJoe)', 'Trash', 70),
+        (r'^FS(Barrier|DeployableBarrier)', 'Road Barriers', 80),
     ]),
     ('FSPaletteBuilding', 'fs-palette-building', 'Building', 50, [
         (r'^FSWall', 'Walls', 10),

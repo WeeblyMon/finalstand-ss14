@@ -51,6 +51,7 @@ fspalettestreet-40-wy = WY
 fspalettestreet-50 = Landing Signs
 fspalettestreet-60 = Street Furniture
 fspalettestreet-70 = Trash
+fspalettestreet-80 = Road Barriers
 fs-palette-building = Building
 fspalettebuilding-10 = Walls
 fspalettebuilding-20 = Window Frames
