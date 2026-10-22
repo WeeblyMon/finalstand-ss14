@@ -104,7 +104,8 @@ public sealed partial class NPCCombatSystem
         }
 
         // TODO: When I get parallel operators move this as NPC combat shouldn't be handling this.
-        _steering.Register(uid, new EntityCoordinates(component.Target, Vector2.Zero), steering);
+        steering = _steering.Register(uid, new EntityCoordinates(component.Target, Vector2.Zero), steering);
+        steering.ReachRange = weapon.Range; // FINALSTAND
 
         if (distance > weapon.Range)
         {

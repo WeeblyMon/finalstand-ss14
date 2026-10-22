@@ -54,6 +54,11 @@ public sealed partial class NPCSteeringComponent : Component
     [ViewVariables, AutoPausedField]
     public TimeSpan QueuedUntil;
 
+    // FINALSTAND: melee sets this to its weapon range. Standing still within it of the entity being steered to, with
+    // nothing in the way, is fighting it, not being stuck.
+    [ViewVariables]
+    public float ReachRange;
+
     // FINALSTAND: where the destination was when CurrentPath was planned, to tell whether it has since moved.
     [ViewVariables]
     public MapCoordinates PathPlannedFor = MapCoordinates.Nullspace;

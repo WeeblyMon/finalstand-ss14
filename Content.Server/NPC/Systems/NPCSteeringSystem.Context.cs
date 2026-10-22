@@ -311,10 +311,19 @@ public sealed partial class NPCSteeringSystem
             // Either 1 second or how long it takes to move the stuck distance + buffer if we're REALLY slow.
             var maxStuckTime = Math.Max(1, NPCSteeringComponent.StuckDistance / moveSpeed * 1.2f);
 
+            // FINALSTAND: pressed against what it's hitting. Vanilla repathed after a second and failed the move after
+            // three, so a melee NPC dropped its attack every few seconds against anything that held still.
+            if (stuckTime.TotalSeconds > maxStuckTime
+                && steering.ReachRange > 0f
+                && targetDistance <= steering.ReachRange
+                && _interaction.InRangeUnobstructed(uid, destinationCoordinates.EntityId, steering.ReachRange))
+            {
+                ResetStuck(steering, ourCoordinates);
+            }
             // FINALSTAND: a wave zombie waiting behind another one is queued, not stuck. A repath gives it the same
             // path, failing the move had the back rows of a horde replanning every few seconds, and pushing on
             // keeps the whole crowd awake in physics. It holds still instead and looks again shortly.
-            if (stuckTime.TotalSeconds > maxStuckTime
+            else if (stuckTime.TotalSeconds > maxStuckTime
                 && _waveTagQuery.HasComponent(uid)
                 && IsQueuedBehindWave(uid, steering, ourMap, direction))
             {
@@ -322,8 +331,7 @@ public sealed partial class NPCSteeringSystem
                 steering.QueuedUntil = _timing.CurTime + QueueHold;
                 return false;
             }
-
-            if (stuckTime.TotalSeconds > maxStuckTime)
+            else if (stuckTime.TotalSeconds > maxStuckTime) // FINALSTAND: else
             {
                 // TODO: Blacklist nodes (pathfinder factor wehn)
                 // TODO: This should be a warning but
