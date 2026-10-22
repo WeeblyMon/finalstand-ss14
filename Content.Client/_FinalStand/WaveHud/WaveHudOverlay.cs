@@ -2,6 +2,7 @@
 using Content.Shared._FinalStand.WaveHud;
 using System.Numerics;
 using Content.Client._FinalStand.Shop;
+using Content.Client._FinalStand.UI;
 using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
 using Content.Shared._FinalStand.Leveling;
@@ -16,7 +17,6 @@ using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.GameObjects;
-using Robust.Shared.Graphics;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
@@ -97,11 +97,9 @@ public sealed partial class WaveHudOverlay : Overlay
         return Math.Clamp(screenWidth / refWidth, 0.45f, 1.0f);
     }
 
-    private Texture? _iconCredits;
-    private Texture? _iconTimer;
-    private Texture? _iconEnemies;
-    private Texture? _iconWave;
-    private bool _hudIconsLoaded;
+    private const string IconTimer = "/Textures/_FinalStand/Interface/HUD/hud_timer.png";
+    private const string IconEnemies = "/Textures/_FinalStand/Interface/HUD/hud_enemies.png";
+    private const string IconWave = "/Textures/_FinalStand/Interface/HUD/hud_wave.png";
 
     private int _currentWave = 1;
     private int _currentCredits;
@@ -218,12 +216,7 @@ public sealed partial class WaveHudOverlay : Overlay
     public event Action<bool>? OnReadyUpClicked;
     private bool _prevClickDown;
 
-    private static readonly TextureLoadParameters LinearParams = new()
-    {
-        SampleParameters = new TextureSampleParameters { Filter = true },
-    };
-
-    private readonly Dictionary<string, Texture?> _augIconCache = new();
+    private readonly Dictionary<string, string?> _perkIconPaths = new();
     private readonly List<(UIBox2 Cell, string Id)> _augCells = new();
 
     private readonly List<(UIBox2 Cell, string Label, string[] Tooltip)> _bonusRowCells = new();
@@ -255,28 +248,6 @@ public sealed partial class WaveHudOverlay : Overlay
         IoCManager.InjectDependencies(this);
     }
 
-    private void EnsureHudIcons()
-    {
-        if (_hudIconsLoaded)
-            return;
-        _hudIconsLoaded = true;
-        _iconCredits = LoadHudIcon("hud_credits");
-        _iconTimer   = LoadHudIcon("hud_timer");
-        _iconEnemies = LoadHudIcon("hud_enemies");
-        _iconWave    = LoadHudIcon("hud_wave");
-    }
-
-    private Texture? LoadHudIcon(string name)
-    {
-        try
-        {
-            return _resourceCache
-                .GetResource<TextureResource>(new ResPath($"/Textures/_FinalStand/Interface/HUD/{name}.png"))
-                .Texture;
-        }
-        catch { return null; }
-    }
-
     protected override void Draw(in OverlayDrawArgs args)
     {
         const float margin = ScreenMargin;
@@ -302,8 +273,6 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var labelPt = Math.Max(9, (int)MathF.Round(11f * s));
         var valuePt = Math.Max(14, (int)MathF.Round(20f * s));
-
-        EnsureHudIcons();
 
         var notoRes = _notoRes ??= _resourceCache.GetResource<FontResource>(NotoBoldPath);
         if (_cachedLabelPt != labelPt)
@@ -482,15 +451,15 @@ public sealed partial class WaveHudOverlay : Overlay
             y += btnH + rowPad;
         }
 
-        float DrawRow(Texture? icon, string label, string value, Color valueColor, Font? valueFont = null)
+        float DrawRow(string icon, string label, string value, Color valueColor, Font? valueFont = null)
         {
             screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
             var innerY = y + sepH + rowPad;
             var iconY = innerY + (rowContentH - rowIconSz) / 2f;
             var iconBox = new UIBox2(panelX + panelInset, iconY,
                 panelX + panelInset + rowIconSz, iconY + rowIconSz);
-            if (icon != null)
-                screen.DrawTextureRect(icon, iconBox, Color.White.WithAlpha(0.55f));
+            if (FSMipmaps.Pick(icon, rowIconSz) is { } iconTexture)
+                screen.DrawTextureRect(iconTexture, iconBox, Color.White.WithAlpha(0.55f));
 
             var font = valueFont ?? _valueFont!;
             var thisValueH = screen.GetDimensions(font, value, 1f).Y;
@@ -503,26 +472,26 @@ public sealed partial class WaveHudOverlay : Overlay
             return y + sepH + rowH;
         }
 
-        y = DrawRow(_iconWave, "WAVE", _waveText, FSPalette.Danger);
+        y = DrawRow(IconWave, "WAVE", _waveText, FSPalette.Danger);
 
         if (IsDarkWave)
         {
             var secs = Math.Max(0f, DarkWaveSecondsRemaining);
             var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
-            y = DrawRow(_iconEnemies, "SURVIVE", survive, FSPalette.Warn, _midFont);
+            y = DrawRow(IconEnemies, "SURVIVE", survive, FSPalette.Warn, _midFont);
         }
         else if (EnemiesTotal > 0)
         {
-            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, FSPalette.DangerSoft, _midFont);
+            y = DrawRow(IconEnemies, "ENEMIES LEFT", _enemiesText, FSPalette.DangerSoft, _midFont);
         }
 
         if (ObjectiveLabel != null)
-            y = DrawRow(_iconTimer, ObjectiveLabel, ObjectiveValue, ObjectiveColor, _labelFont);
+            y = DrawRow(IconTimer, ObjectiveLabel, ObjectiveValue, ObjectiveColor, _labelFont);
 
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
             var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
-            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", FSPalette.Warn, _midFont);
+            y = DrawRow(IconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", FSPalette.Warn, _midFont);
         }
 
         DrawReadyUpBlock();
@@ -556,7 +525,7 @@ public sealed partial class WaveHudOverlay : Overlay
             }
             if (!string.IsNullOrEmpty(id))
             {
-                var tex = GetPerkIcon(id);
+                var tex = GetPerkIcon(id, augIconSz);
                 if (tex != null) screen.DrawTextureRect(tex, cell);
 
                 if (PerkStacks.TryGetValue(id, out var stacks) && stacks > 0)
@@ -604,7 +573,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
             foreach (var entry in p.Entries)
             {
-                var tex = GetPerkIcon(entry.PerkId);
+                var tex = GetPerkIcon(entry.PerkId, popupIconSz);
                 if (tex != null)
                     screen.DrawTextureRect(tex,
                         new UIBox2(popupX, rowY, popupX + popupIconSz, rowY + popupIconSz),
@@ -793,23 +762,20 @@ public sealed partial class WaveHudOverlay : Overlay
     }
 
     private Font? _tinyFont;
-    private readonly Dictionary<string, Texture?> _statIconCache = new();
+    private readonly Dictionary<string, string> _statIconPaths = new();
 
     public const string PerkIconPrefix = "perk:";
 
-    private Texture? GetStatIcon(string key)
+    private Texture? GetStatIcon(string key, float pixels)
     {
-        if (_statIconCache.TryGetValue(key, out var cached))
-            return cached;
-        var path = key.StartsWith(PerkIconPrefix)
-            ? $"/Textures/_FinalStand/Interface/Perks/Icons/{key[PerkIconPrefix.Length..]}.png"
-            : $"/Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png";
-        Texture? tex = null;
-        if (_resourceCache.TryContentFileRead(path, out var stream))
-            using (stream)
-                tex = _clyde.LoadTextureFromPNGStream(stream, path, LinearParams);
-        _statIconCache[key] = tex;
-        return tex;
+        if (!_statIconPaths.TryGetValue(key, out var path))
+        {
+            _statIconPaths[key] = path = key.StartsWith(PerkIconPrefix)
+                ? $"/Textures/_FinalStand/Interface/Perks/Icons/{key[PerkIconPrefix.Length..]}.png"
+                : $"/Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png";
+        }
+
+        return FSMipmaps.Pick(path, pixels);
     }
 
     private void DrawBonusIndicator(DrawingHandleScreen screen, float margin)
@@ -842,7 +808,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
         foreach (var row in rows)
         {
-            var icon = GetStatIcon(row.IconKey);
+            var icon = GetStatIcon(row.IconKey, iconSz);
             if (icon != null)
                 screen.DrawTextureRect(icon, new UIBox2(x, y, x + iconSz, y + iconSz), Color.White);
 
@@ -874,7 +840,7 @@ public sealed partial class WaveHudOverlay : Overlay
             var y = bottom;
             foreach (var buff in MedicalBuffs)
             {
-                var icon = GetStatIcon(buff.IconKey) ?? GetStatIcon(MedicalBuffFallbackIcon);
+                var icon = GetStatIcon(buff.IconKey, iconSz) ?? GetStatIcon(MedicalBuffFallbackIcon, iconSz);
                 if (icon != null)
                     screen.DrawTextureRect(icon, new UIBox2(margin, y, margin + iconSz, y + iconSz), Color.White);
 
@@ -1109,22 +1075,15 @@ public sealed partial class WaveHudOverlay : Overlay
         return _clyde.ScreenSize.X - 300f;
     }
 
-    private Texture? GetPerkIcon(string perkId)
+    private Texture? GetPerkIcon(string perkId, float pixels)
     {
-        if (_augIconCache.TryGetValue(perkId, out var cached))
-            return cached;
-        if (!FSPerkDef.All.TryGetValue(perkId, out var def))
+        if (!_perkIconPaths.TryGetValue(perkId, out var path))
         {
-            _augIconCache[perkId] = null;
-            return null;
+            _perkIconPaths[perkId] = path = FSPerkDef.All.TryGetValue(perkId, out var def)
+                ? $"/Textures/_FinalStand/Interface/Perks/Icons/{def.IconFile ?? def.Id.ToLowerInvariant()}.png"
+                : null;
         }
-        var file = def.IconFile ?? def.Id.ToLowerInvariant();
-        var path = $"/Textures/_FinalStand/Interface/Perks/Icons/{file}.png";
-        Texture? tex = null;
-        if (_resourceCache.TryContentFileRead(path, out var stream))
-            using (stream)
-                tex = _clyde.LoadTextureFromPNGStream(stream, path, LinearParams);
-        _augIconCache[perkId] = tex;
-        return tex;
+
+        return path == null ? null : FSMipmaps.Pick(path, pixels);
     }
 }
