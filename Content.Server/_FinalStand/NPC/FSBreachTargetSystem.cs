@@ -4,6 +4,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
+using Content.Server.NPC.Pathfinding;
 using Content.Server.NPC.Systems;
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.NPC;
@@ -21,6 +22,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.NPC;
 
@@ -35,6 +37,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSBreachEvaluator _evaluator = default!;
     [Dependency] private NPCSteeringSystem _steering = default!;
+    [Dependency] private PathfindingSystem _pathfinding = default!;
 
     private const int TickBuckets = 3;
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _waveMobBuffer = new();
@@ -50,6 +53,9 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     private static readonly EntProtoId ZombieNormalProto = "FSZombieNormal";
 
     private const float DoorOpenReplanRadius = 6f;
+
+    // Door changes waiting for the navmesh to take them in.
+    private readonly List<(EntityUid Grid, MapCoordinates At, int Version, GameTick Tick)> _pendingDoorReplans = new();
 
     public override void Initialize()
     {
@@ -110,6 +116,36 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             return;
 
         var epicenter = new MapCoordinates(_transform.GetWorldPosition(xform), xform.MapID);
+
+        // The door stops blocking before it reports open, but the navmesh rebuilds a while after that, so a replan
+        // now plans on the graph with the door still shut and gets the same path back.
+        if (xform.GridUid is { } grid)
+        {
+            _pendingDoorReplans.Add((grid, epicenter, _pathfinding.GetNavmeshVersion(grid), _timing.CurTick));
+            return;
+        }
+
+        ReplanAround(epicenter);
+    }
+
+    private void UpdatePendingDoorReplans()
+    {
+        for (var i = _pendingDoorReplans.Count - 1; i >= 0; i--)
+        {
+            var (grid, at, version, tick) = _pendingDoorReplans[i];
+
+            // A tick later at the earliest: a door being deleted only dirties the navmesh after its shutdown.
+            if (tick == _timing.CurTick || !_pathfinding.IsNavmeshCurrent(grid, version))
+                continue;
+
+            _pendingDoorReplans.RemoveSwap(i);
+            if (!TerminatingOrDeleted(grid))
+                ReplanAround(at);
+        }
+    }
+
+    private void ReplanAround(MapCoordinates epicenter)
+    {
         _waveMobBuffer.Clear();
         _lookup.GetEntitiesInRange(epicenter, DoorOpenReplanRadius, _waveMobBuffer);
 
@@ -129,6 +165,8 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        UpdatePendingDoorReplans();
+
         // Each zombie is ticked every TickBuckets server ticks, a different slice each tick, so the work
         // is spread evenly instead of the whole horde landing on one tick.
         _tick++;
