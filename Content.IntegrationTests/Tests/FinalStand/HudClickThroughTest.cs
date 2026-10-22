@@ -34,8 +34,13 @@ public sealed class HudClickThroughTest : GameTest
 
         var clicks = 0;
         WaveHudOverlay hud = null;
-        await client.WaitPost(() =>
+        WaveHudOverlay realHud = null;
+        await client.WaitAssertion(() =>
         {
+            // One overlay per type: the HUD the client already has, if an earlier test made one, steps aside.
+            if (overlays.TryGetOverlay(out realHud))
+                overlays.RemoveOverlay(realHud);
+
             // A ready-up button under the whole screen, wherever the headless client's mouse is.
             hud = new WaveHudOverlay
             {
@@ -43,7 +48,7 @@ public sealed class HudClickThroughTest : GameTest
                 ReadyUpYesBounds = new UIBox2(-100000f, -100000f, 100000f, 100000f),
             };
             hud.OnReadyUpClicked += _ => clicks++;
-            overlays.AddOverlay(hud);
+            Assert.That(overlays.AddOverlay(hud), "couldn't put the test HUD up");
         });
 
         try
@@ -88,7 +93,12 @@ public sealed class HudClickThroughTest : GameTest
         }
         finally
         {
-            await client.WaitPost(() => overlays.RemoveOverlay(hud));
+            await client.WaitPost(() =>
+            {
+                overlays.RemoveOverlay(hud);
+                if (realHud != null)
+                    overlays.AddOverlay(realHud);
+            });
         }
     }
 
