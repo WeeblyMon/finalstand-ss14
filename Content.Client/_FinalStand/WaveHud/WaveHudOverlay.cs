@@ -186,6 +186,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
     public event Action<bool>? OnReadyUpClicked;
     private bool _prevClickDown;
+    private bool _uiHadPointerLastFrame;
 
     private static readonly TextureLoadParameters LinearParams = new()
     {
@@ -782,9 +783,13 @@ public sealed partial class WaveHudOverlay : Overlay
         if (_respawnClickCooldown > 0f)
             _respawnClickCooldown -= args.DeltaSeconds;
 
+        // A ring, the ping wheel, a popup or a window's close button can shut on the click that picks from it, in
+        // input handling, which runs before this. The UI having had the pointer the frame before keeps that click its own.
         var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
         var mousePos = _input.MouseScreenPosition.Position;
-        var pressed = down && !_prevClickDown && !PointerOverWindow();
+        var uiHasPointer = UiHasPointer();
+        var pressed = down && !_prevClickDown && !uiHasPointer && !_uiHadPointerLastFrame;
+        _uiHadPointerLastFrame = uiHasPointer;
 
         if (IsReadyUpVisible && pressed)
         {
@@ -809,12 +814,25 @@ public sealed partial class WaveHudOverlay : Overlay
 
     // The HUD is drawn under the UI, so a click on a window over it (the escape menu, a console, a shop) is that
     // window's. Otherwise opening the escape menu over the respawn button and clicking it buys the respawn. The build
-    // and upgrade rings and the click-to-pick ping wheel cover the screen the same way.
-    private bool PointerOverWindow()
+    // and upgrade rings and the ping wheel take every click while they're open, and so does an open popup, which a
+    // click anywhere else closes.
+    private bool UiHasPointer()
     {
+        foreach (var child in _uiManager.PopupRoot.Children)
+        {
+            if (child is FSRingControl or FSPingWheel)
+                return true;
+        }
+
+        foreach (var child in _uiManager.ModalRoot.Children)
+        {
+            if (child.Visible)
+                return true;
+        }
+
         for (var control = _uiManager.CurrentlyHovered; control != null; control = control.Parent)
         {
-            if (control is BaseWindow or Popup or FSRingControl or FSPingWheel)
+            if (control is BaseWindow or Popup)
                 return true;
         }
 
