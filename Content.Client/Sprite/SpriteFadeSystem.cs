@@ -158,7 +158,8 @@ public sealed partial class SpriteFadeSystem : EntitySystem
         _spriteTree.QueryAabb(ref state,
             static (ref (EntityQuery<SpriteFadeComponent> Fade, bool Found) state, in ComponentTreeEntry<SpriteComponent> value) =>
             {
-                state.Found = state.Fade.HasComponent(value.Uid);
+                // Every tree under the box gets queried, and stopping only ends the current one.
+                state.Found |= state.Fade.HasComponent(value.Uid);
                 return !state.Found;
             },
             mapPos.MapId,

@@ -17,8 +17,10 @@ public sealed class SpriteFadeShortcutTest : GameTest
 {
     public override PoolSettings PoolSettings => new() { Connected = true };
 
-    [Test]
-    public async Task TreeOverThePlayerFades()
+    // Grids are queried before the map, so a sprite floating in space beside the player comes after the tree.
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task TreeOverThePlayerFades(bool spriteInSpace)
     {
         var server = Pair.Server;
         var client = Pair.Client;
@@ -33,6 +35,13 @@ public sealed class SpriteFadeShortcutTest : GameTest
             var player = sEntMan.SpawnEntity("MobHuman",
                 new EntityCoordinates(map.Grid, map.GridCoords.Position + new Vector2(0f, 0.9f)));
             server.PlayerMan.SetAttachedEntity(Pair.Player!, player);
+
+            // Off the test map's only tile, so it stays parented to the map.
+            if (spriteInSpace)
+            {
+                var item = sEntMan.SpawnEntity("Crowbar", new MapCoordinates(-0.4f, 0.9f, map.MapId));
+                Assert.That(sEntMan.GetComponent<TransformComponent>(item).ParentUid, Is.EqualTo(map.MapUid));
+            }
         });
 
         await Pair.RunTicksSync(10);
