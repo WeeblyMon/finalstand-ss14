@@ -3,7 +3,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSOverhealComponent : Component
 {
     [DataField, AutoNetworkedField]
@@ -18,7 +18,7 @@ public sealed partial class FSOverhealComponent : Component
     [DataField]
     public float DecayPerSecond;
 
-    [DataField]
+    [DataField, AutoPausedField]
     public TimeSpan LastFed;
 }
 

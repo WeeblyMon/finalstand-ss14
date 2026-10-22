@@ -3,7 +3,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSMediDroneComponent : Component
 {
     [ViewVariables]
@@ -45,7 +45,7 @@ public sealed partial class FSMediDroneComponent : Component
     [DataField]
     public TimeSpan ScanInterval = TimeSpan.FromSeconds(1);
 
-    [ViewVariables]
+    [ViewVariables, AutoPausedField]
     public TimeSpan NextScan;
 
     [ViewVariables]

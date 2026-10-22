@@ -7,10 +7,10 @@ using Robust.Shared.Timing;
 namespace Content.Shared._FinalStand.MedicalOps;
 
 // Only the server reads it.
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FSArmorPiercingComponent : Component
 {
-    [DataField]
+    [DataField, AutoPausedField]
     public TimeSpan Until;
 }
 

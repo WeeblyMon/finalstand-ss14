@@ -7,7 +7,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._FinalStand.Mobs;
 
 // three-move boss kit: an aerial gap-closer, a lane-clearing throw and a short punishing dash
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSGiantAbilitiesComponent : Component
 {
     [DataField]
@@ -136,11 +136,11 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public bool Airborne;
 
     public FSGiantAbility Current = FSGiantAbility.None;
-    public TimeSpan PhaseEnd;
-    public TimeSpan NextAbility;
-    public TimeSpan NextSkyJump;
-    public TimeSpan NextBoulder;
-    public TimeSpan NextDash;
+    [AutoPausedField] public TimeSpan PhaseEnd;
+    [AutoPausedField] public TimeSpan NextAbility;
+    [AutoPausedField] public TimeSpan NextSkyJump;
+    [AutoPausedField] public TimeSpan NextBoulder;
+    [AutoPausedField] public TimeSpan NextDash;
     public Vector2 LockedTarget;
     public Vector2 DashOrigin;
     public Vector2 DashLanding;

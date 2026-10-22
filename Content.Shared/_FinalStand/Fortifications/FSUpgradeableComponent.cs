@@ -4,7 +4,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Fortifications;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true), AutoGenerateComponentPause]
 public sealed partial class FSUpgradeableComponent : Component
 {
     [DataField(required: true)]
@@ -29,7 +29,7 @@ public sealed partial class FSUpgradeableComponent : Component
 
     public float WaveMultiplier = 1f;
 
-    public TimeSpan? LastDamaged;
+    [AutoPausedField] public TimeSpan? LastDamaged;
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]

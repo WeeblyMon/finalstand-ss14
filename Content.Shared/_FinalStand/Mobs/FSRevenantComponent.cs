@@ -2,7 +2,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Mobs;
 
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentPause]
 public sealed partial class FSRevenantComponent : Component
 {
     [DataField] public float TargetSearchRange = 100f;
@@ -83,10 +83,10 @@ public sealed partial class FSRevenantComponent : Component
     public EntityUid? CurrentTarget;
 
     public bool OrbitClockwise;
-    public TimeSpan MarkedAt;
+    [AutoPausedField] public TimeSpan MarkedAt;
     public int LightStunCount;
-    public TimeSpan LightStunWindowEnd;
-    public TimeSpan LightStunImmuneUntil;
+    [AutoPausedField] public TimeSpan LightStunWindowEnd;
+    [AutoPausedField] public TimeSpan LightStunImmuneUntil;
 
     public FSRevenantPhase Phase = FSRevenantPhase.Stalk;
     public float PhaseAccum;

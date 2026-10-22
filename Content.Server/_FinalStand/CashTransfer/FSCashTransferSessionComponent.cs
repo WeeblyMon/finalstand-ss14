@@ -1,9 +1,9 @@
 namespace Content.Server._FinalStand.CashTransfer;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FSCashTransferSessionComponent : Component
 {
     public EntityUid Target;
     public EntityUid Opener;
-    public TimeSpan CreatedAt;
+    [AutoPausedField] public TimeSpan CreatedAt;
 }

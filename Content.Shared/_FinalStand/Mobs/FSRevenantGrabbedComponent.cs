@@ -2,7 +2,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Mobs;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSRevenantGrabbedComponent : Component
 {
     [DataField, AutoNetworkedField]
@@ -14,6 +14,6 @@ public sealed partial class FSRevenantGrabbedComponent : Component
     [DataField, AutoNetworkedField]
     public float StopRange = 1f;
 
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan EndsAt;
 }

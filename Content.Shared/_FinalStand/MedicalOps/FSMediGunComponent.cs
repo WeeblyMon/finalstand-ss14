@@ -8,7 +8,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSMediGunComponent : Component
 {
     [ViewVariables] public float? BaseMaxRange;
@@ -26,7 +26,7 @@ public sealed partial class FSMediGunComponent : Component
     [ViewVariables] public float? BaseOverhealRatio;
     [ViewVariables] public float? BaseOverhealDecay;
 
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan? NextTick;
 
     [ViewVariables, AutoNetworkedField]
@@ -132,7 +132,7 @@ public sealed partial class FSMediGunComponent : Component
     [DataField]
     public bool UberInfiniteStamina;
 
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan? UberEndTime;
 
     [DataField]

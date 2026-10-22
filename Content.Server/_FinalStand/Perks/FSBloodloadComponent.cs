@@ -1,10 +1,10 @@
 namespace Content.Server._FinalStand.Perks;
 
 /// <summary>Bloodload reload buff, on the mind.</summary>
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 [Access(typeof(FSBloodloadSystem))]
 public sealed partial class FSBloodloadComponent : Component
 {
-    public TimeSpan EndTime;
+    [AutoPausedField] public TimeSpan EndTime;
     public int Level;
 }

@@ -3,7 +3,7 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._FinalStand.Sprint;
 
 // hold-to-sprint with stamina drain; exhaustion causes a slow instead of a crit stun
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true), AutoGenerateComponentPause]
 [Access(typeof(SharedFSSprintSystem))]
 public sealed partial class FSSprintComponent : Component
 {
@@ -33,5 +33,5 @@ public sealed partial class FSSprintComponent : Component
 
     public float DustAccumulator = 0f;
 
-    public TimeSpan RegenBlockedUntil = TimeSpan.Zero;
+    [AutoPausedField] public TimeSpan RegenBlockedUntil = TimeSpan.Zero;
 }

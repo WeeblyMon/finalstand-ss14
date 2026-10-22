@@ -11,10 +11,10 @@ public sealed partial class FSSkyfallLauncherComponent : Component
     public int MaxLive = 12;
 }
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSSkyfallMissileComponent : Component
 {
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan Launched;
 
     [DataField]

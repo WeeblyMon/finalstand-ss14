@@ -1,6 +1,6 @@
 namespace Content.Server._FinalStand.Perks;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 [Access(typeof(FSUndyingSystem), typeof(FSPerkBodySystem))]
 public sealed partial class FSUndyingComponent : Component
 {
@@ -10,7 +10,7 @@ public sealed partial class FSUndyingComponent : Component
     public bool Used;
 
     /// <summary>When the player dies. Null while Undying is not active.</summary>
-    public TimeSpan? EndTime;
+    [AutoPausedField] public TimeSpan? EndTime;
 
     public int ShownSeconds;
 }

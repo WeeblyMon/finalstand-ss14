@@ -5,11 +5,11 @@ using Robust.Shared.Timing;
 namespace Content.Shared._FinalStand.Mech;
 
 // A pilot thrown out of a wrecked mech gets a few seconds of extra speed to get clear.
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 [Access(typeof(FSMechBailoutSystem))]
 public sealed partial class FSMechBailoutComponent : Component
 {
-    [AutoNetworkedField]
+    [AutoNetworkedField, AutoPausedField]
     public TimeSpan EndTime;
 
     [DataField]

@@ -3,7 +3,7 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._FinalStand.Deployables;
 
 // deployed inert, arms itself after a delay so it cannot be dropped onto a target
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSArmingDelayComponent : Component
 {
     [DataField]
@@ -12,5 +12,5 @@ public sealed partial class FSArmingDelayComponent : Component
     [DataField, AutoNetworkedField]
     public bool Armed;
 
-    public TimeSpan ArmAt;
+    [AutoPausedField] public TimeSpan ArmAt;
 }

@@ -1,6 +1,6 @@
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FSMedicalPatientComponent : Component
 {
     [ViewVariables]
@@ -15,6 +15,6 @@ public sealed partial class FSMedicalPatientComponent : Component
     [ViewVariables]
     public int PendingSaveWave;
 
-    [ViewVariables]
+    [ViewVariables, AutoPausedField]
     public TimeSpan PendingSaveAt;
 }

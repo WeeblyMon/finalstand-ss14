@@ -50,8 +50,8 @@ public sealed partial class FSStunOverrideSystem : EntitySystem
     }
 }
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FSForceStunComponent : Component
 {
-    [DataField] public TimeSpan ExpiresAt = TimeSpan.Zero;
+    [DataField, AutoPausedField] public TimeSpan ExpiresAt = TimeSpan.Zero;
 }

@@ -1,9 +1,9 @@
 namespace Content.Shared._FinalStand.Upgrades.Effects;
 
 // placed on suppressed targets; not refreshed, only re-applied once expired
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FSSuppressionComponent : Component
 {
-    public TimeSpan EndTime;
+    [AutoPausedField] public TimeSpan EndTime;
     public float SlowFactor = 0.85f;
 }

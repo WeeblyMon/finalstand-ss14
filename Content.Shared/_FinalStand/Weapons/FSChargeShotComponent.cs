@@ -6,7 +6,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._FinalStand.Weapons;
 
 // hold to charge: longer holds hit harder, fly faster, pierce further and bounce more
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 [Access(typeof(FSChargeShotSystem))]
 public sealed partial class FSChargeShotComponent : Component
 {
@@ -67,8 +67,8 @@ public sealed partial class FSChargeShotComponent : Component
     [AutoNetworkedField]
     public float Charge;
 
-    public TimeSpan? ChargeStart;
-    public TimeSpan LastHeld;
+    [AutoPausedField] public TimeSpan? ChargeStart;
+    [AutoPausedField] public TimeSpan LastHeld;
     public EntityUid? Shooter;
 
     public Vector2 AimDirection;

@@ -5,7 +5,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._FinalStand.Weapons;
 
 // projectile mirrors off walls instead of being consumed by them, losing energy each time
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentPause]
 public sealed partial class FSRicochetComponent : Component
 {
     [DataField]
@@ -61,5 +61,5 @@ public sealed partial class FSRicochetComponent : Component
 
     public readonly HashSet<EntityUid> Hit = new();
 
-    public TimeSpan NextBounce;
+    [AutoPausedField] public TimeSpan NextBounce;
 }
