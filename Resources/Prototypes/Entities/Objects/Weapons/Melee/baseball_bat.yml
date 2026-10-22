@@ -22,6 +22,7 @@
       path: /Audio/_FinalStand/Melee/crowd_cheer.ogg
       params:
         volume: 2
+  - type: FSMeleeBlood # FINALSTAND
   - type: FSMeleeJuice # FINALSTAND
     heavyRecovery: 1
     light:

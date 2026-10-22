@@ -3,6 +3,7 @@
   parent: UnholyHalberd
   suffix: FinalStand
   components:
+  - type: FSMeleeBlood
   - type: FSMeleeJuice
     heavyRequiresWield: true
     heavyStyle: Spin

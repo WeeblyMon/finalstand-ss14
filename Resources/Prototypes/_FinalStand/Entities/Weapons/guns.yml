@@ -728,6 +728,7 @@
   parent: Cutlass
   suffix: FinalStand
   components:
+  - type: FSMeleeBlood
   - type: FSMeleeJuice
     heavyStyle: Spin
     heavyRecovery: 1.5
@@ -813,6 +814,7 @@
   parent: Chainsaw
   suffix: FinalStand
   components:
+  - type: FSMeleeBlood
   - type: FSMeleeJuice
     revStep: 0.08
     revStacks: 6

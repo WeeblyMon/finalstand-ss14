@@ -110,6 +110,7 @@
   id: CombatKnife
   description: A deadly knife intended for melee confrontations.
   components:
+  - type: FSMeleeBlood # FINALSTAND
   - type: FSMeleeJuice # FINALSTAND
     heavyRecovery: 1.1
     light:

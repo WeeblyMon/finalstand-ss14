@@ -1,8 +1,10 @@
 using System.Numerics;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Upgrades.Effects;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Melee;
+using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
@@ -78,6 +80,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     {
         base.Initialize();
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
     protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, FSMeleeJuiceProfile profile, MeleeHitEvent args)
@@ -145,6 +148,20 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     protected override void OnSprintAttack(EntityUid user)
     {
         _stamina.TakeStaminaDamage(user, SprintStamina, visual: false, silent: true);
+    }
+
+    // Cleaned between waves.
+    private void OnPrepStarted(WavePrepStartedEvent ev)
+    {
+        var query = EntityQueryEnumerator<FSMeleeBloodComponent>();
+        while (query.MoveNext(out var uid, out var blood))
+        {
+            if (blood.Kills == 0)
+                continue;
+
+            blood.Kills = 0;
+            Dirty(uid, blood);
+        }
     }
 
     private void SendHit(EntityUid user, EntityUid weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, int strike, bool lethal, bool includeUser)
@@ -398,6 +415,12 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         var profile = Profile((hit.Weapon, juice), hit.Heavy, hit.Finisher);
         _style.Kill(user, hit.Heavy, hit.Finisher);
+        if (TryComp<FSMeleeBloodComponent>(hit.Weapon, out var blood) && HasComp<BloodstreamComponent>(args.Target))
+        {
+            blood.Kills++;
+            Dirty(hit.Weapon, blood);
+        }
+
         _audio.PlayPvs(profile.KillSound, args.Target, profile.KillSound?.Params.WithVariation(0.08f));
         RaiseNetworkEvent(new FSMeleeKillJuiceEvent(GetNetEntity(user), GetNetEntity(hit.Weapon), GetNetEntity(args.Target), hit.Heavy, hit.Finisher),
             Filter.Pvs(args.Target, entityManager: EntityManager));

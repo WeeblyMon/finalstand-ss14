@@ -49,3 +49,27 @@ public sealed partial class FSMeleeStaggeredComponent : Component
     [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
     public TimeSpan Until;
 }
+
+// Kills on the weapon, shown as blood on its sprite until the wave ends.
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
+public sealed partial class FSMeleeBloodComponent : Component
+{
+    [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
+    public int Kills;
+
+    public static readonly int[] StageKills = [1, 4, 8];
+
+    public int Stage
+    {
+        get
+        {
+            var stage = 0;
+            while (stage < StageKills.Length && Kills >= StageKills[stage])
+            {
+                stage++;
+            }
+
+            return stage;
+        }
+    }
+}

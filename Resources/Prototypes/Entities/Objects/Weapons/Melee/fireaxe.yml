@@ -23,6 +23,7 @@
       path: /Audio/_FinalStand/Melee/slam_full.ogg
       params:
         volume: 3
+  - type: FSMeleeBlood # FINALSTAND
   - type: FSMeleeJuice # FINALSTAND
     heavyStyle: Slam
     heavyRecovery: 1.2
