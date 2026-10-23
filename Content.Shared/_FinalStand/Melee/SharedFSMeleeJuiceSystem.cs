@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Sprint;
 using Content.Shared.ActionBlocker;
 using Content.Shared.CombatMode;
@@ -13,12 +14,14 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Physics;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Wieldable.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
+using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
@@ -58,6 +61,12 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     private const float SprintFlinch = 1.75f;
     private const float SprintLunge = 1.1f;
     private const float RevPitchStep = 0.05f;
+    private const float WallMargin = 0.5f;
+    private const float RevDumpForce = 0.15f;
+    private const float RevDumpTrauma = 0.08f;
+    private static readonly TimeSpan WhirlInterval = TimeSpan.FromSeconds(0.45);
+    public const float WhirlHealthCost = 4f;
+    private const float WhirlHealthFloor = 0.85f;
 
     private readonly List<EntityUid> _expired = new();
 
@@ -80,7 +89,20 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     public FSMeleeJuiceProfile Profile(Entity<FSMeleeJuiceComponent> weapon, bool heavy, bool finisher = false)
     {
         var profile = weapon.Comp.Get(heavy, finisher);
-        return heavy && TryComp<FSMeleeChargeComponent>(weapon, out var charge) ? charge.Apply(profile) : profile;
+        if (!heavy)
+            return profile;
+
+        if (TryComp<FSMeleeChargeComponent>(weapon, out var charge))
+            profile = charge.Apply(profile);
+
+        if (profile.Dash > 0f && TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades) && upgrades.DashBonus > 0f)
+        {
+            profile = profile.Copy();
+            profile.Dash *= 1f + upgrades.DashBonus;
+            profile.DamageMultiplier *= 1f + upgrades.DashBonus;
+        }
+
+        return profile;
     }
 
     private void OnChargeEvent(FSMeleeChargeEvent ev, EntitySessionEventArgs args)
@@ -150,6 +172,10 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
     protected abstract void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, FSMeleeJuiceProfile profile, MeleeHitEvent args);
 
+    protected virtual void OnHeavyShot(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim)
+    {
+    }
+
     protected virtual void OnHeavyMiss(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim, FSMeleeJuiceProfile profile, DamageSpecifier damage)
     {
     }
@@ -168,10 +194,19 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
     private void OnMeleeHit(Entity<FSMeleeJuiceComponent> ent, ref MeleeHitEvent args)
     {
+        var heavy = args.Direction != null;
+        if (heavy && ent.Comp.HeavyStyle == FSMeleeHeavyStyle.Shot && !args.Handled)
+        {
+            args.Handled = true;
+            Recover(args.User, ent);
+            if (args.Direction is { } aim && aim != Vector2.Zero)
+                OnHeavyShot(ent, args.User, aim);
+            return;
+        }
+
         if (args.Handled || !args.IsHit)
             return;
 
-        var heavy = args.Direction != null;
         var targets = new List<EntityUid>();
         foreach (var hit in args.HitEntities)
         {
@@ -251,7 +286,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     // Rev, sprint and execution only change the copy this one swing uses.
     private FSMeleeJuiceProfile Embellish(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, FSMeleeJuiceProfile profile, bool heavy, MeleeHitEvent args)
     {
-        var rev = Rev(weapon, targets);
+        var rev = heavy ? SpendRev(weapon) : Rev(weapon, targets);
         var sprint = !heavy && SprintAttack(user, weapon);
         var execution = targets.Exists(CanExecute);
         if (rev == 0 && !sprint && !execution)
@@ -261,7 +296,20 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (rev > 0)
         {
             profile.Rev = rev;
-            profile.DamageMultiplier *= 1f + weapon.Comp.RevStep * rev;
+            if (heavy)
+            {
+                profile.DamageMultiplier *= 1f + weapon.Comp.RevDumpStep * rev;
+                profile.Knockback *= 1f + RevDumpForce * rev;
+                profile.FlinchDuration *= 1f + RevDumpForce * rev;
+                profile.Trauma = Math.Min(1f, profile.Trauma + RevDumpTrauma * rev);
+                if (rev >= weapon.Comp.RevStacks / 2)
+                    _chargeAudio.PlayPredicted(weapon.Comp.RevDumpSound, weapon, user);
+            }
+            else
+            {
+                profile.DamageMultiplier *= 1f + weapon.Comp.RevStep * rev;
+            }
+
             if (TryComp<MeleeWeaponComponent>(weapon, out var melee) && melee.HitSound is { } sound)
                 args.HitSoundOverride = Pitched(sound, 1f + RevPitchStep * rev);
         }
@@ -313,6 +361,19 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         rev.Last = now;
         Dirty(weapon, rev);
         return rev.Stacks;
+    }
+
+    // Empties the rev into one heavy, if the grind that built it was recent enough.
+    private int SpendRev(Entity<FSMeleeJuiceComponent> weapon)
+    {
+        if (weapon.Comp.RevDumpStep <= 0f || !TryComp<FSMeleeRevComponent>(weapon, out var rev) || rev.Stacks == 0)
+            return 0;
+
+        var stacks = Timing.CurTime - rev.Last <= TimeSpan.FromSeconds(weapon.Comp.RevDumpWindow) ? rev.Stacks : 0;
+        rev.Stacks = 0;
+        rev.Target = null;
+        Dirty(weapon, rev);
+        return stacks;
     }
 
     private bool SprintAttack(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
@@ -370,7 +431,18 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     // Heavy attacks trade the next swing for their reach, so they hold off the weapon's next attack.
     private void Recover(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
     {
-        if (weapon.Comp.HeavyRecovery <= 0f || !TryComp<MeleeWeaponComponent>(weapon, out var melee))
+        if (!TryComp<MeleeWeaponComponent>(weapon, out var melee))
+            return;
+
+        if (CanWhirl(user, weapon))
+        {
+            melee.NextAttack = Timing.CurTime + WhirlInterval;
+            DirtyField(weapon, melee, nameof(MeleeWeaponComponent.NextAttack));
+            OnWhirl(user);
+            return;
+        }
+
+        if (weapon.Comp.HeavyRecovery <= 0f)
             return;
 
         var rate = Melee.GetAttackRate(weapon, user, melee);
@@ -383,6 +455,26 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         melee.NextAttack = next;
         DirtyField(weapon, melee, nameof(MeleeWeaponComponent.NextAttack));
+    }
+
+    // Whirlwind keeps a spin going for as long as the heavy is held, until the wielder is too hurt to pay for it.
+    private bool CanWhirl(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
+    {
+        if (weapon.Comp.HeavyStyle != FSMeleeHeavyStyle.Spin
+            || !TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades)
+            || !upgrades.WhirlwindEnabled)
+            return false;
+
+        if (!TryComp<DamageableComponent>(user, out var damageable)
+            || !TryComp<MobThresholdsComponent>(user, out var thresholds)
+            || !_thresholds.TryGetThresholdForState(user, MobState.Critical, out var critical, thresholds))
+            return true;
+
+        return damageable.TotalDamage + WhirlHealthCost < critical.Value * WhirlHealthFloor;
+    }
+
+    protected virtual void OnWhirl(EntityUid user)
+    {
     }
 
     private Vector2? ClosestOffset(EntityUid user, List<EntityUid> targets)
@@ -451,12 +543,20 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             || !TryComp<PhysicsComponent>(user, out var body))
             return;
 
-        // Stop short of the target instead of walking into it.
+        // Stop short of the target instead of walking into it, and of any wall, which a long dash could skip through.
         distance = Math.Min(distance, toTarget.Length() - 0.8f);
+        var xform = Transform(user);
+        var dir = Vector2.Normalize(toTarget);
+        var ray = new CollisionRay(Xform.GetWorldPosition(xform), dir, (int) CollisionGroup.Impassable);
+        foreach (var hit in _physics.IntersectRay(xform.MapID, ray, distance + WallMargin, user, returnOnFirstHit: true))
+        {
+            distance = Math.Min(distance, hit.Distance - WallMargin);
+        }
+
         if (distance <= 0f)
             return;
 
-        _physics.SetLinearVelocity(user, Vector2.Normalize(toTarget) * distance * MobFriction, body: body);
+        _physics.SetLinearVelocity(user, dir * distance * MobFriction, body: body);
     }
 
     private void OnFlinchSpeed(Entity<FSMeleeFlinchComponent> ent, ref RefreshMovementSpeedModifiersEvent args)

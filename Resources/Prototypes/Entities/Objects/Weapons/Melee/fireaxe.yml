@@ -6,8 +6,8 @@
   components:
   - type: FSMeleeCharge # FINALSTAND
     maxChargeTime: 1.4
-    minDamage: 0.7
-    maxDamage: 1.8
+    minDamage: 0.8
+    maxDamage: 2.4
     minForce: 0.5
     maxForce: 1.4
     chargeSound:
@@ -66,6 +66,7 @@
       flinchDuration: 1.1
       flinchSpeed: 0.15
       staggerRadius: 1.8
+      staggerDamage: 0.6
       hitEffect: FSMeleeHitShatter
       killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeShards
@@ -85,7 +86,7 @@
         params:
           volume: 2
       slashEffect: FSMeleeSlamShockwave
-      slashOffset: 1.1
+      slashOffset: 1.5
       slashTravel: 0
       slashGrow: 1.15
       killZoom: 0.06

@@ -730,8 +730,11 @@
   components:
   - type: FSMeleeBlood
   - type: FSMeleeJuice
-    heavyStyle: Spin
-    heavyRecovery: 1.5
+    # Right click fires the flintlock that comes with the cutlass.
+    heavyStyle: Shot
+    heavyRecovery: 2.5
+    shotWeapon: WeaponPistolFlintlock
+    shotAmmo: FSCartridgeFlintlock
     light:
       anticipation: 0.05
       hitstop: 0.03
@@ -763,38 +766,9 @@
       slashScale: 1.05
       slashOffset: 0.6
       slashTravel: 0.45
-    heavy:
-      anticipation: 0.08
-      hitstop: 0.05
-      reach: 1.05
-      trauma: 0.35
-      shakeMode: Radial
-      knockback: 7
-      knockbackDuration: 0.2
-      flinchDuration: 0.3
-      flinchSpeed: 0.4
-      extraStrikes: 1
-      strikeInterval: 0.22
-      strikeDamageFraction: 0.6
-      strikeSound:
-        path: /Audio/Weapons/bladeslice.ogg
-      strikePitchStep: 0.15
-      hitEffect: FSMeleeHitCross
-      killEffect: FSMeleeKillBlood
-      hitEmitter: FSMeleeGlint
-      particleTint: "#ffd27a"
-      killEmitter: FSMeleeBlood
-      killSound:
-        collection: FSMeleeFleshSquish
-      swingEffect: FSMeleeSpinCutlass
-      trailColor: "#9ec3ffcc"
-      trailWidth: 0.07
-      trailDuration: 0.18
-      fleshSound:
-        collection: FSMeleeBladeFlesh
   - type: MeleeWeapon
     range: 1.8
-    angle: 360
+    angle: 100
     animation: FSWeaponArcSwing
     damage:
       types:
@@ -816,9 +790,15 @@
   suffix: FinalStand
   components:
   - type: FSMeleeBlood
+  # Left click grinds one target to build rev; right click spends it on a rip through the crowd.
   - type: FSMeleeJuice
     revStep: 0.08
     revStacks: 6
+    revDumpStep: 0.25
+    revDumpSound:
+      path: /Audio/Weapons/chainsaw_pull.ogg
+      params:
+        volume: 2
     sprintAttack: false
     heavyRecovery: 0.5
     light:
@@ -830,9 +810,8 @@
       flinchDuration: 0.3
       flinchSpeed: 0.3
       flinchedBonus: 0
-      hitEffect: FSMeleeHitSparks
       killEffect: FSMeleeKillBlood
-      hitEmitter: FSMeleeChainsawSparks
+      hitEmitter: FSMeleeBlood
       killEmitter: FSMeleeBloodBurst
       killSound:
         collection: gib
@@ -840,13 +819,11 @@
         collection: FSMeleeBladeFlesh
         params:
           volume: -5
-      slashEffect: FSMeleeSlashChainsaw
-      slashColor: "#ffffff"
-      slashScale: 1.0
-      slashOffset: 0.6
+      slashEffect: FSMeleeStabChainsaw
+      slashScale: 0.55
+      slashOffset: 0.7
       slashTravel: 0.15
-      slashGrow: 1.1
-    # Right click rips through the crowd in front instead of grinding one target.
+      slashGrow: 1.05
     heavy:
       anticipation: 0.05
       hitstop: 0.04
@@ -857,9 +834,8 @@
       flinchSpeed: 0.3
       flinchedBonus: 0
       maxTargets: 4
-      hitEffect: FSMeleeHitSparks
       killEffect: FSMeleeKillBlood
-      hitEmitter: FSMeleeBlood
+      hitEmitter: FSMeleeBloodBurst
       killEmitter: FSMeleeBloodBurst
       killSound:
         collection: gib
@@ -867,15 +843,11 @@
         collection: FSMeleeBladeFlesh
         params:
           volume: -2
-      trailColor: "#ff9a3caa"
-      trailWidth: 0.08
-      trailDuration: 0.18
-      slashEffect: FSMeleeSlashWarriorArcTinted
-      slashColor: "#ff9a3c"
-      slashScale: 1.15
+      slashEffect: FSMeleeSlashChainsawRip
+      slashScale: 1.0
       slashOffset: 0.55
-      slashTravel: 0.35
-      slashGrow: 1.2
+      slashTravel: 0.1
+      slashGrow: 1.1
   - type: MeleeWeapon
     range: 1.8
     autoAttack: true
@@ -908,6 +880,9 @@
   parent: EnergySwordDouble
   suffix: FinalStand
   components:
+  - type: EnergySword
+    colorOptions:
+    - "#1E90FF"
   - type: ItemToggleMeleeWeapon
     activatedDamage:
         types:

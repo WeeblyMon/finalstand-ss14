@@ -83,17 +83,6 @@
 
 - type: entity
   parent: FSMeleeEffectBase
-  id: FSMeleeSpinCutlass
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: TimedDespawn
-    lifetime: 0.3
-  - type: Sprite
-    sprite: _FinalStand/Effects/Melee/whirl.rsi
-    state: cutlass
-
-- type: entity
-  parent: FSMeleeEffectBase
   id: FSMeleeHitCross
   categories: [ HideSpawnMenu ]
   components:
@@ -121,19 +110,6 @@
     state: cross
     scale: 1.05, 1.05
     color: "#5ce1ff"
-
-- type: entity
-  parent: FSMeleeEffectBase
-  id: FSMeleeHitSparks
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: TimedDespawn
-    lifetime: 0.27
-  - type: Sprite
-    sprite: _FinalStand/Effects/Melee/sparks.rsi
-    state: sparks
-    scale: 1.3, 1.3
-    color: "#ffc860"
 
 - type: entity
   parent: FSMeleeEffectBase
@@ -250,14 +226,24 @@
     state: knife
 
 - type: entity
-  parent: FSMeleeEffectBase
-  id: FSMeleeSlashChainsaw
+  parent: FSMeleeStabEnergy
+  id: FSMeleeStabChainsaw
   categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
-    lifetime: 0.17
+    lifetime: 0.21
   - type: Sprite
-    sprite: _FinalStand/Effects/Melee/grind.rsi
+    state: chainsaw
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashChainsawRip
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.25
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/rip.rsi
     state: chainsaw
 
 - type: entity

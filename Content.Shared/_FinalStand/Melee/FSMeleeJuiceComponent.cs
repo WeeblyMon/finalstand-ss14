@@ -49,9 +49,27 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public float RevWindow = 0.4f;
 
+    // A heavy spends the built-up rev for this much extra damage per stack.
+    [DataField]
+    public float RevDumpStep;
+
+    // Seconds after the last grind that the rev can still be spent.
+    [DataField]
+    public float RevDumpWindow = 1.5f;
+
+    [DataField]
+    public SoundSpecifier? RevDumpSound;
+
     // Light swings while sprinting become a running lunge.
     [DataField]
     public bool SprintAttack = true;
+
+    // A Shot heavy fires this gun from the attacker's inventory, loading it with ShotAmmo.
+    [DataField]
+    public EntProtoId? ShotWeapon;
+
+    [DataField]
+    public EntProtoId? ShotAmmo;
 
     public FSMeleeJuiceProfile Get(bool heavy, bool finisher = false)
     {
@@ -108,6 +126,10 @@ public sealed partial class FSMeleeJuiceProfile
     // Mobs this close to the target are knocked back and flinch too.
     [DataField]
     public float StaggerRadius;
+
+    // Damage those staggered mobs take, as a fraction of the hit.
+    [DataField]
+    public float StaggerDamage;
 
     [DataField]
     public float Bleed;
@@ -260,6 +282,7 @@ public enum FSMeleeHeavyStyle : byte
     Swing,
     Spin,
     Slam,
+    Shot,
 }
 
 public enum FSMeleeShakeMode : byte

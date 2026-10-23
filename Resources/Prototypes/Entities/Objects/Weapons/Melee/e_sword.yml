@@ -27,8 +27,8 @@
       trailDuration: 0.16
       slashEffect: FSMeleeStabEnergy
       slashScale: 0.5
-      slashOffset: 0.6
-      slashTravel: 0.25
+      slashOffset: 0.9
+      slashTravel: 0.3
       slashGrow: 1.1
     heavy:
       anticipation: 0.03
@@ -38,7 +38,7 @@
       knockback: 6
       flinchDuration: 0.3
       flinchSpeed: 0.4
-      dash: 2
+      dash: 4
       pierce: 3
       pierceRange: 2
       damageMultiplier: 1.2
@@ -175,6 +175,9 @@
   id: EnergySword
   description: A very loud & dangerous sword with a beam made of pure, concentrated plasma. Cuts through unarmored targets like butter.
   components:
+  - type: EnergySword # FINALSTAND: always blue
+    colorOptions:
+    - "#1E90FF"
   - type: MeleeWeapon # FINALSTAND: reach zombie claws
     range: 1.8
   - type: Sprite

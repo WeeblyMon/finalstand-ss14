@@ -1,9 +1,13 @@
 using System.Numerics;
 using Content.Server._FinalStand.Perks;
+using Content.Server._FinalStand.Shop;
 using Content.Server._FinalStand.Upgrades.Effects;
+using Content.Server.Popups;
+using Content.Server.Weapons.Ranged.Systems;
 using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Melee;
+using Content.Shared._FinalStand.Mobs;
+using Content.Shared._FinalStand.Shop;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
@@ -20,6 +24,7 @@ using Content.Shared.Movement.Systems;
 using Content.Shared.Physics;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
+using Content.Shared.Weapons.Ranged.Components;
 using Robust.Server.Audio;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
@@ -46,6 +51,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private FSStyleSystem _style = default!;
     [Dependency] private FSStunOverrideSystem _stun = default!;
     [Dependency] private SharedStaminaSystem _stamina = default!;
+    [Dependency] private FSInventorySearchSystem _search = default!;
+    [Dependency] private GunSystem _gun = default!;
+    [Dependency] private PopupSystem _popup = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
     private const float WallSlamKnockback = 4f;
@@ -60,6 +68,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float WallBounce = 0.3f;
     private const float MaxBounceDelay = 0.25f;
     private const float SprintStamina = 12f;
+    private const float ShotRange = 10f;
     private const float ExecutionHeal = 6f;
     private static readonly ProtoId<DamageTypePrototype> WallSlamType = "Blunt";
     private static readonly SoundSpecifier WallSlamSound = new SoundCollectionSpecifier("FSMeleeBluntHit");
@@ -93,6 +102,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (profile.Execution)
             Execute(user, targets);
 
+        var living = CountLiving(targets);
+        if (!heavy && living > 0 && TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades) && upgrades.StabHeal > 0f)
+            _damageable.HealEvenly(user, FixedPoint2.New(-upgrades.StabHeal * living));
+
         if (profile.FlinchedBonus > 0f)
         {
             foreach (var target in targets)
@@ -103,7 +116,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         SendHit(user, weapon, targets, direction, heavy, finisher, 0, lethal, false);
-        if (CountLiving(targets) is var living and > 0)
+        if (living > 0)
             _style.Swing(user, weapon, heavy, finisher, living);
         ApplyImpact(user, weapon, targets, profile, damage);
 
@@ -111,7 +124,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             Pierce(user, weapon, targets, Xform.GetMapCoordinates(targets[0]), direction, profile.PierceRange, heavy, finisher, profile, damage);
 
         if (profile.StaggerRadius > 0f)
-            Stagger(user, targets, profile, SlamPoint(weapon, user, direction, heavy) ?? Xform.GetMapCoordinates(targets[0]));
+            Stagger(user, weapon, targets, profile, SlamPoint(weapon, user, direction, heavy) ?? Xform.GetMapCoordinates(targets[0]), damage, heavy, finisher);
 
         if (profile.ExtraStrikes <= 0)
             return;
@@ -144,6 +157,32 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         _damageable.HealEvenly(user, FixedPoint2.New(-ExecutionHeal * executed));
         _style.Bonus(user, FSStyleSystem.ExecutionPoints * executed);
+    }
+
+    // The cutlass's off hand: a heavy fires the flintlock carried with it.
+    protected override void OnHeavyShot(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim)
+    {
+        if (weapon.Comp.ShotWeapon is not { } gunProto || weapon.Comp.ShotAmmo is not { } ammoProto)
+            return;
+
+        if (_search.FindFirst(user, new HashSet<string> { gunProto.Id }) is not { } found
+            || !TryComp<GunComponent>(found.Uid, out var gun))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-melee-no-shot-weapon"), user, user);
+            return;
+        }
+
+        var from = Transform(user).Coordinates;
+        var to = Xform.ToCoordinates(Xform.GetMapCoordinates(user).Offset(Vector2.Normalize(aim) * ShotRange));
+        var cartridge = Spawn(ammoProto, Xform.GetMapCoordinates(user));
+        _gun.Shoot((found.Uid, gun), cartridge, from, to, out _, user);
+        if (!TerminatingOrDeleted(cartridge))
+            QueueDel(cartridge);
+    }
+
+    protected override void OnWhirl(EntityUid user)
+    {
+        _damageable.ChangeDamage(user, new DamageSpecifier(_proto.Index(WallSlamType), WhirlHealthCost), ignoreResistances: true, interruptsDoAfters: false);
     }
 
     protected override void OnSprintAttack(EntityUid user)
@@ -363,7 +402,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     protected override void OnHeavyMiss(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim, FSMeleeJuiceProfile profile, DamageSpecifier damage)
     {
         if (profile.StaggerRadius > 0f && SlamPoint(weapon, user, aim, true) is { } point)
-            Stagger(user, new List<EntityUid>(), profile, point);
+            Stagger(user, weapon, new List<EntityUid>(), profile, point, damage * profile.DamageMultiplier, true, false);
 
         if (profile.Dash > 0f && profile.Pierce > 0 && IsActive(weapon) && TryComp<MeleeWeaponComponent>(weapon, out var melee))
             Pierce(user, weapon, new List<EntityUid>(), Xform.GetMapCoordinates(user), aim, profile.Dash + melee.Range, true, false, profile, damage * profile.DamageMultiplier);
@@ -377,8 +416,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         return Xform.GetMapCoordinates(user).Offset(Vector2.Normalize(direction) * melee.Range * SlamReach);
     }
 
-    private void Stagger(EntityUid user, List<EntityUid> targets, FSMeleeJuiceProfile profile, MapCoordinates center)
+    private void Stagger(EntityUid user, EntityUid weapon, List<EntityUid> targets, FSMeleeJuiceProfile profile, MapCoordinates center, DamageSpecifier damage, bool heavy, bool finisher)
     {
+        DamageSpecifier? shockwave = profile.StaggerDamage > 0f ? damage * profile.StaggerDamage : null;
         _nearby.Clear();
         _lookup.GetEntitiesInRange(center, profile.StaggerRadius, _nearby);
         var staggered = 0;
@@ -391,6 +431,13 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _knockback.Push(mob, push, profile.Knockback * 0.6f, TimeSpan.FromSeconds(profile.KnockbackDuration));
             Flinch(mob, profile.FlinchDuration, profile.FlinchSpeed);
             staggered++;
+
+            if (shockwave == null)
+                continue;
+
+            _hitsThisTick[(user, mob)] = (weapon, heavy, finisher);
+            _killPipeline.MarkMeleeHit(user, mob);
+            _damageable.ChangeDamage(mob.Owner, shockwave, origin: user);
         }
 
         _style.Bonus(user, FSStyleSystem.StaggerPoints * Math.Min(staggered, 6));

@@ -80,9 +80,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private readonly List<PendingImpact> _impacts = new();
 
-    private readonly record struct PendingSlash(float Due, EntityUid User, FSMeleeJuiceProfile Profile, Angle Rotation, Vector2 Direction, bool Mirror, bool Visible, SoundSpecifier? Sound);
+    private readonly record struct PendingSlash(float Due, EntityUid User, FSMeleeJuiceProfile Profile, Angle Rotation, Vector2 Direction, bool Mirror, bool Visible, SoundSpecifier? Sound, bool Anchored);
 
-    private readonly record struct ActiveSlash(EntityUid Effect, EntityUid User, FSMeleeJuiceProfile Profile, Vector2 Direction, bool Mirror, float Start);
+    // Anchored slashes stay where they landed instead of following the attacker.
+    private readonly record struct ActiveSlash(EntityUid Effect, EntityUid User, FSMeleeJuiceProfile Profile, Vector2 Direction, bool Mirror, float Start, Vector2? Anchor);
 
     private readonly List<PendingSlash> _slashes = new();
     private readonly List<ActiveSlash> _activeSlashes = new();
@@ -326,7 +327,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         var visible = profile.SlashEffect != null && _cfg.GetCVar(CCVars.FSMeleeEffects);
         var sound = LandingSound(weapon, heavy);
         if (visible || sound != null)
-            _slashes.Add(new PendingSlash(RealTime + anticipation + StrikeDelay(weapon, heavy, length), user, profile, rotation, direction.Normalized(), mirror, visible, sound));
+            _slashes.Add(new PendingSlash(RealTime + anticipation + StrikeDelay(weapon, heavy, length), user, profile, rotation, direction.Normalized(), mirror, visible, sound, GetStyle(weapon, heavy) == FSMeleeHeavyStyle.Slam));
     }
 
     // A fully charged slam booms where it lands, hit or miss.
@@ -355,7 +356,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         _sprite.SetRotation((effect, sprite), slash.Rotation);
         _sprite.SetColor((effect, sprite), slash.Profile.SlashColor);
-        var active = new ActiveSlash(effect, slash.User, slash.Profile, slash.Direction, slash.Mirror, RealTime);
+        var anchor = slash.Anchored ? Xform.GetWorldPosition(slash.User) : (Vector2?) null;
+        var active = new ActiveSlash(effect, slash.User, slash.Profile, slash.Direction, slash.Mirror, RealTime, anchor);
         _activeSlashes.Add(active);
         MoveSlash(active, sprite, 0f);
     }
@@ -366,7 +368,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         var ease = 1f - MathF.Pow(1f - t, 3f);
         var profile = slash.Profile;
         var distance = profile.SlashOffset + profile.SlashTravel * ease;
-        Xform.SetWorldPosition(slash.Effect, Xform.GetWorldPosition(slash.User) + slash.Direction * distance);
+        Xform.SetWorldPosition(slash.Effect, (slash.Anchor ?? Xform.GetWorldPosition(slash.User)) + slash.Direction * distance);
 
         var scale = profile.SlashScale * (1f + (profile.SlashGrow - 1f) * ease);
         _sprite.SetScale((slash.Effect, sprite), new Vector2(slash.Mirror ? -scale : scale, scale));

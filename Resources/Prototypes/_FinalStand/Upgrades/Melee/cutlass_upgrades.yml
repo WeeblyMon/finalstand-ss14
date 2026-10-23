@@ -1,5 +1,5 @@
 # ── Cutlass Shop ─────────────────────────────────────────────────────────────
-# Pirate sabre. Slash-and-stamina playstyle, plus flintlock crit synergy via Pirate.
+# Pirate sabre. Slash-and-stamina playstyle; right click fires the flintlock that comes with it.
 
 - type: entity
   id: FSWeaponShopCutlass
@@ -53,14 +53,15 @@
       valuePerLevel: 0.1
     - id: cutlass-pirate
       name: Pirate
-      description: Crits with all flintlocks after a Cutlass kill (and vice versa). Spawns a flintlock. 5s crit window.
+      description: Comes with the cutlass. A flintlock in your pack fires on the cutlass's right click, and crits with all flintlocks after a Cutlass kill (and vice versa) for 5s.
       maxLevel: 1
       baseCost: 6500
+      starter: true
       type: FlintlockCritSynergy
       valuePerLevel: 5
       spawnProtoId: WeaponPistolFlintlock
       spawnCountPerLevel: 1
-    # ── Flintlock upgrades (hidden until Pirate is bought; applied to the held Flintlock) ─────
+    # ── Flintlock upgrades (applied to the Flintlock that comes with the cutlass) ─────
     # Recovered from the removed FSWeaponShopFlintlock (commit 34e27bcbd9).
     - id: flintlock-extra-load
       name: Extra Load

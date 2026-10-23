@@ -32,6 +32,10 @@ public sealed partial class MeleeWeaponSystem
         var anticipation = juice?.Anticipation ?? 0f;
         var hold = _fsJuice.TakeHold(user);
 
+        // The weapon stays put when its heavy is a shot from something else.
+        if (juiceHeavy && _fsJuice.GetStyle(weapon, true) == FSMeleeHeavyStyle.Shot)
+            return;
+
         var lunge = GetLungeAnimation(localPos, anticipation, hold);
 
         // Stop any existing lunges on the user.

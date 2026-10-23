@@ -84,20 +84,6 @@
   fadeOut: 0.5
 
 - type: fsParticleEmitter
-  id: FSMeleeChainsawSparks
-  texture: /Textures/_FinalStand/Effects/Particles/spark.png
-  burst: 2
-  lifetime: 0.15, 0.3
-  speed: 2, 4.5
-  drag: 4
-  size: 0.18, 0.06
-  color: "#ffb040"
-  alignToVelocity: true
-  stretch: 2
-  fadeIn: 0
-  fadeOut: 0.5
-
-- type: fsParticleEmitter
   id: FSMeleeEnergyHit
   texture: /Textures/_FinalStand/Effects/Particles/glint.png
   burst: 4

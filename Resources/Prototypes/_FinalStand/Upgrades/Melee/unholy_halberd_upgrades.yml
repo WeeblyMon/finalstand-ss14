@@ -37,6 +37,20 @@
       baseCost: 4000
       type: CritChance
       valuePerLevel: 0.1
+    - id: halberd-whirlwind
+      name: Whirlwind
+      description: Hold right click to keep spinning, at 4 health a spin. Stops before it would put you down.
+      maxLevel: 1
+      baseCost: 9000
+      type: Whirlwind
+      valuePerLevel: 1
+    - id: halberd-sanguine-thrust
+      name: Sanguine Thrust
+      description: Each thrust that lands restores 2 health per level.
+      maxLevel: 3
+      baseCost: 5000
+      type: StabLifeSteal
+      valuePerLevel: 2
   - type: Sprite
     sprite: Objects/Weapons/Melee/cult_halberd.rsi
     state: icon
