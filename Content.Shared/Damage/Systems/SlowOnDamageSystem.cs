@@ -28,6 +28,11 @@ public sealed partial class SlowOnDamageSystem : EntitySystem
         SubscribeLocalEvent<IgnoreSlowOnDamageComponent, StatusEffectAppliedEvent>(OnIgnoreApplied);
         SubscribeLocalEvent<IgnoreSlowOnDamageComponent, StatusEffectRemovedEvent>(OnIgnoreRemoved);
         SubscribeLocalEvent<IgnoreSlowOnDamageComponent, StatusEffectRelayedEvent<ModifySlowOnDamageSpeedEvent>>(OnIgnoreModifySpeed);
+        // FINALSTAND: on the mob itself too, where wave enemies and the old-style adrenaline status put it; only the
+        // status-effect relay was handled, so neither did anything.
+        SubscribeLocalEvent<IgnoreSlowOnDamageComponent, ModifySlowOnDamageSpeedEvent>(OnIgnoreModifyOwnSpeed);
+        SubscribeLocalEvent<IgnoreSlowOnDamageComponent, ComponentStartup>(OnIgnoreChanged);
+        SubscribeLocalEvent<IgnoreSlowOnDamageComponent, ComponentShutdown>(OnIgnoreChanged);
     }
 
     private void OnRefreshMovespeed(EntityUid uid, SlowOnDamageComponent component, RefreshMovementSpeedModifiersEvent args)
@@ -61,6 +66,10 @@ public sealed partial class SlowOnDamageSystem : EntitySystem
 
     private void OnDamageChanged(EntityUid uid, SlowOnDamageComponent component, DamageChangedEvent args)
     {
+        // FINALSTAND: a mob that ignores the slowdown outright has nothing to refresh; every hit on every zombie did.
+        if (HasComp<IgnoreSlowOnDamageComponent>(uid))
+            return;
+
         // We -could- only refresh if it crossed a threshold but that would kind of be a lot of duplicated
         // code and this isn't a super hot path anyway since basically only humans have this
 
@@ -106,6 +115,19 @@ public sealed partial class SlowOnDamageSystem : EntitySystem
     private void OnIgnoreModifySpeed(Entity<IgnoreSlowOnDamageComponent> ent, ref StatusEffectRelayedEvent<ModifySlowOnDamageSpeedEvent> args)
     {
         args.Args = args.Args with { Speed = 1f };
+    }
+
+    // FINALSTAND: a shutting-down one no longer counts, so the refresh it triggers puts the slowdown back.
+    private void OnIgnoreModifyOwnSpeed(Entity<IgnoreSlowOnDamageComponent> ent, ref ModifySlowOnDamageSpeedEvent args)
+    {
+        if (ent.Comp.LifeStage <= ComponentLifeStage.Running)
+            args.Speed = 1f;
+    }
+
+    // FINALSTAND: damage doesn't refresh speed while it's there, so it has to on the way in and out.
+    private void OnIgnoreChanged<T>(Entity<IgnoreSlowOnDamageComponent> ent, ref T args)
+    {
+        _movementSpeedModifierSystem.RefreshMovementSpeedModifiers(ent.Owner);
     }
 }
 
