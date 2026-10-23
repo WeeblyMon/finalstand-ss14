@@ -40,6 +40,10 @@ public sealed partial class FSMeleeRevComponent : Component
 
     [AutoNetworkedField]
     public TimeSpan Last;
+
+    // Bloodthirsty: a rev dump that killed makes the next grind hit crit.
+    [AutoNetworkedField]
+    public bool CritReady;
 }
 
 // Knocked hard enough to be executed while badly hurt.
@@ -88,5 +92,23 @@ public sealed partial class FSMeleeSweepComponent : Component
     [AutoNetworkedField]
     public TimeSpan PassUntil;
 
+    // Tempest: whether this sweep's follow-up spin has been used.
+    [AutoNetworkedField]
+    public bool TempestUsed;
+
     public readonly Dictionary<EntityUid, TimeSpan> Marked = new();
+}
+
+// Shots a Shot heavy has ready and when the next comes back.
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSMeleeShotStateComponent : Component
+{
+    [AutoNetworkedField]
+    public int Charges = 1;
+
+    [AutoNetworkedField]
+    public int MaxCharges = 1;
+
+    [AutoNetworkedField]
+    public TimeSpan NextCharge;
 }

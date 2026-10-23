@@ -6,6 +6,7 @@
   - type: FSMeleeJuice # FINALSTAND
     # Right click is a sweeping blade: dash through the zombie nearest the cursor, harder each time it's chained.
     heavyStyle: Sweep
+    critWhen: SweepChain
     light:
       anticipation: 0.04
       hitstop: 0.045

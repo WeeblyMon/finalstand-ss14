@@ -8,6 +8,7 @@ using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Particles;
 using Content.Shared.Body.Components;
 using Content.Shared.Camera;
+using Content.Shared.Damage;
 using Content.Shared.Rotation;
 using Content.Shared.CCVar;
 using Content.Shared.Weapons.Melee;
@@ -149,6 +150,17 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             ? weapon.Comp.ComboReadySound
             : null;
         Play(user, weapon, targets, direction, heavy, finisher, 0, lethal, cue, profile);
+    }
+
+    private static readonly EntProtoId TempestRing = "FSMeleeTempestRing";
+
+    protected override void OnTempest(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> ring, DamageSpecifier damage)
+    {
+        if (!Timing.IsFirstTimePredicted || !_cfg.GetCVar(CCVars.FSMeleeEffects))
+            return;
+
+        var effect = Spawn(TempestRing, Xform.GetMapCoordinates(user));
+        EnsureComp<TrackUserComponent>(effect).User = user;
     }
 
     private void OnHitEvent(FSMeleeHitJuiceEvent ev)

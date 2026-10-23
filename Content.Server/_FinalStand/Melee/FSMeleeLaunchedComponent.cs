@@ -13,4 +13,7 @@ public sealed partial class FSMeleeLaunchedComponent : Component
     public Vector2 Direction;
     public TimeSpan Until;
     public readonly HashSet<EntityUid> Hit = new();
+
+    // Ricochet: walls bounced off so far.
+    public int Bounces;
 }

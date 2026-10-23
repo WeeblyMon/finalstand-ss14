@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Melee;
 using Content.Shared.FixedPoint;
 using Robust.Shared.GameStates;
 
@@ -91,4 +92,6 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField, AutoNetworkedField] public float DashBonus = 0f;
     [DataField, AutoNetworkedField] public bool WhirlwindEnabled = false;
     [DataField] public float StabHeal = 0f;
+
+    [DataField, AutoNetworkedField] public Dictionary<FSMeleeSignature, float> Signatures = new();
 }

@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Client.Weapons.Melee;
 using Content.Shared._FinalStand.Melee;
+using Content.Shared.Mobs.Components;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Enums;
@@ -38,7 +39,7 @@ public sealed class FSExecutionMarkerOverlay : Overlay
 
         if (_player.LocalEntity is not { } local
             || !_melee.TryGetWeapon(local, out var weapon, out _)
-            || !_entities.HasComponent<FSMeleeJuiceComponent>(weapon))
+            || !_entities.TryGetComponent<FSMeleeJuiceComponent>(weapon, out var juice))
             return;
 
         var handle = args.WorldHandle;
@@ -47,10 +48,11 @@ public sealed class FSExecutionMarkerOverlay : Overlay
         var time = (float) _timing.RealTime.TotalSeconds;
         var pulse = 0.5f + 0.5f * MathF.Sin(time * 9f);
 
-        var query = _entities.EntityQueryEnumerator<FSMeleeStaggeredComponent, TransformComponent>();
+        // Every mob, since Hemorrhage opens bleeding ones up without a stagger.
+        var query = _entities.EntityQueryEnumerator<MobStateComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var xform))
         {
-            if (xform.MapID != args.MapId || !_juice.CanExecute(uid))
+            if (xform.MapID != args.MapId || !_juice.CanExecute(uid, (weapon, juice)))
                 continue;
 
             var pos = _xform.GetWorldPosition(xform);

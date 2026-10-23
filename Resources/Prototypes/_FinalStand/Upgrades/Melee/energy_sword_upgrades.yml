@@ -73,6 +73,22 @@
       baseCost: 10000
       type: DashPower
       valuePerLevel: 0.25
+    - id: esword-tempest
+      name: Tempest
+      description: A left click right after a Sweeping Blade becomes a spinning cut that hits everything around where you landed.
+      maxLevel: 1
+      baseCost: 15000
+      type: MeleeSignature
+      signature: Tempest
+      valuePerLevel: 1
+    - id: esword-last-breath
+      name: Last Breath
+      description: Sweeping through a zombie that's knocked down or sent flying finishes it outright.
+      maxLevel: 1
+      baseCost: 18000
+      type: MeleeSignature
+      signature: LastBreath
+      valuePerLevel: 1
     - id: esword-dual-wield
       name: Dual Wield
       description: Upgrades to dual energy swords. +50% attack speed.

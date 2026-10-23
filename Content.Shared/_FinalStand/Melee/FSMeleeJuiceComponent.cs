@@ -64,6 +64,18 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public bool SprintAttack = true;
 
+    // Hits that always crit with this weapon.
+    [DataField]
+    public FSMeleeCritWhen CritWhen = FSMeleeCritWhen.Never;
+
+    // Staggered zombies under this fraction of their health can be executed.
+    [DataField]
+    public float ExecutionHealth = 0.25f;
+
+    // A fully charged heavy sets what it hits and staggers alight.
+    [DataField]
+    public bool IgniteOnFullCharge;
+
     // A Sweep heavy dashes through the enemy nearest the cursor within this many tiles.
     [DataField]
     public float SweepRange = 3.5f;
@@ -95,6 +107,18 @@ public sealed partial class FSMeleeJuiceComponent : Component
 
     [DataField]
     public EntProtoId? ShotAmmo;
+
+    // Shots held before the first runs out; more come from the gun's magazine upgrades.
+    [DataField]
+    public int ShotCharges = 1;
+
+    // Seconds to get one shot back.
+    [DataField]
+    public float ShotRecharge = 2.5f;
+
+    // Seconds between shots while there are charges left.
+    [DataField]
+    public float ShotInterval = 0.35f;
 
     public FSMeleeJuiceProfile Get(bool heavy, bool finisher = false)
     {
@@ -279,6 +303,7 @@ public sealed partial class FSMeleeJuiceProfile
     public bool Sprint { get; set; }
     public bool Execution { get; set; }
     public bool FullCharge { get; set; }
+    public bool Crit { get; set; }
 
     public FSMeleeJuiceProfile Copy()
     {

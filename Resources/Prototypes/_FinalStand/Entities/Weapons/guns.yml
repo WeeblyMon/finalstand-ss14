@@ -728,11 +728,11 @@
   parent: Cutlass
   suffix: FinalStand
   components:
+  - type: FSMeleeShotState
   - type: FSMeleeBlood
   - type: FSMeleeJuice
     # Right click fires the flintlock that comes with the cutlass.
     heavyStyle: Shot
-    heavyRecovery: 2.5
     shotWeapon: WeaponPistolFlintlock
     shotAmmo: FSCartridgeFlintlock
     light:
@@ -792,6 +792,7 @@
   - type: FSMeleeBlood
   # Left click grinds one target to build rev; right click spends it on a rip through the crowd.
   - type: FSMeleeJuice
+    critWhen: MaxRev
     revStep: 0.08
     revStacks: 6
     revDumpStep: 0.25

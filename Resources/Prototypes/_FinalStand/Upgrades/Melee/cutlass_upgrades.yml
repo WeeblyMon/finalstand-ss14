@@ -51,9 +51,25 @@
       baseCost: 4000
       type: CritChance
       valuePerLevel: 0.1
+    - id: cutlass-quick-reload
+      name: Quick Reload
+      description: Each cutlass kill brings your next flintlock shot back 1s sooner per level.
+      maxLevel: 2
+      baseCost: 5000
+      type: MeleeSignature
+      signature: QuickReload
+      valuePerLevel: 1
+    - id: cutlass-broadside
+      name: Broadside
+      description: The cutlass's flintlock shot fires three balls in a spread.
+      maxLevel: 1
+      baseCost: 9000
+      type: MeleeSignature
+      signature: Broadside
+      valuePerLevel: 1
     - id: cutlass-pirate
       name: Pirate
-      description: Comes with the cutlass. A flintlock in your pack fires on the cutlass's right click, and crits with all flintlocks after a Cutlass kill (and vice versa) for 5s.
+      description: Comes with the cutlass. A flintlock in your pack fires on the cutlass's right click, recharging a shot every 2.5s. A cutlass kill readies a flintlock crit, and a flintlock kill or landed shot readies a cutlass crit, for 5s.
       maxLevel: 1
       baseCost: 6500
       starter: true
@@ -65,7 +81,7 @@
     # Recovered from the removed FSWeaponShopFlintlock (commit 34e27bcbd9).
     - id: flintlock-extra-load
       name: Extra Load
-      description: Expands the Flintlock's barrel capacity by 1 round per level. Up to 6 shots before reloading.
+      description: Holds 1 more round per level, in the Flintlock and as a stored shot on the cutlass's right click.
       maxLevel: 5
       baseCost: 100
       type: MagazineSize

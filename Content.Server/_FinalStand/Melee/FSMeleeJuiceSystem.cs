@@ -1,13 +1,19 @@
 using System.Numerics;
+using Content.Server._FinalStand.Crit;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Shop;
+using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
+using Content.Server.Atmos.EntitySystems;
+using Content.Server.NPC.Components;
 using Content.Server.Popups;
 using Content.Server.Weapons.Ranged.Systems;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Upgrades.Effects;
+using Content.Shared.Atmos.Components;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
@@ -54,6 +60,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private FSInventorySearchSystem _search = default!;
     [Dependency] private GunSystem _gun = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private CritSystem _crit = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
     private const float WallSlamKnockback = 4f;
@@ -69,6 +77,15 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float MaxBounceDelay = 0.25f;
     private const float SprintStamina = 12f;
     private const float ShotRange = 10f;
+    private const float BroadsideSpread = 9f;
+    private const int RipAndTearStacks = 5;
+    private const float RipAndTearMoney = 0.5f;
+    private const float SlamFireStacks = 3f;
+    private const float CrashBleedScale = 0.2f;
+    private const float RicochetSpeed = 0.6f;
+    private const float RicochetProbe = 0.8f;
+    private static readonly TimeSpan RicochetFlight = TimeSpan.FromSeconds(0.35);
+    private static readonly TimeSpan CrashBleedTime = TimeSpan.FromSeconds(3);
     private const float ExecutionHeal = 6f;
     private static readonly ProtoId<DamageTypePrototype> WallSlamType = "Blunt";
     private static readonly SoundSpecifier WallSlamSound = new SoundCollectionSpecifier("FSMeleeBluntHit");
@@ -100,11 +117,31 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _hitsThisTick[(user, target)] = (weapon, heavy, finisher);
 
         if (profile.Execution)
-            Execute(user, targets);
+            Execute(user, weapon, targets);
 
         var living = CountLiving(targets);
         if (!heavy && living > 0 && TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades) && upgrades.StabHeal > 0f)
             _damageable.HealEvenly(user, FixedPoint2.New(-upgrades.StabHeal * living));
+
+        Crits(user, weapon, targets, profile, damage);
+        Opportunist(user, weapon, targets, damage);
+
+        // Rip and Tear: a big rev dump feeds the wielder and pays out on what it kills.
+        if (heavy && profile.Rev >= RipAndTearStacks && Signature(weapon, FSMeleeSignature.RipAndTear) is var feed and > 0f && living > 0)
+        {
+            _damageable.HealEvenly(user, FixedPoint2.New(-feed * living));
+            foreach (var target in targets)
+            {
+                var bonus = EnsureComp<FSPendingKillBonusComponent>(target);
+                bonus.MoneyPercent = Math.Max(bonus.MoneyPercent, RipAndTearMoney);
+            }
+        }
+
+        if (weapon.Comp.IgniteOnFullCharge && profile.FullCharge)
+        {
+            foreach (var target in targets)
+                Ignite(user, target);
+        }
 
         if (profile.FlinchedBonus > 0f)
         {
@@ -137,26 +174,80 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
     }
 
-    private void Execute(EntityUid user, List<EntityUid> targets)
+    private void Execute(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets)
     {
-        var executed = 0;
         foreach (var target in targets)
         {
-            if (!CanExecute(target) || !TryComp<DamageableComponent>(target, out var damageable) || HealthLost(target) is not { } lost)
-                continue;
-
-            var remaining = (float) damageable.TotalDamage / lost - (float) damageable.TotalDamage;
-            _killPipeline.MarkMeleeHit(user, target);
-            _damageable.ChangeDamage(target, new DamageSpecifier(_proto.Index(WallSlamType), FixedPoint2.New(remaining * 2f + 10f)), ignoreResistances: true, origin: user);
-            _audio.PlayPvs(ExecutionSound, target, ExecutionSound.Params.WithVariation(0.06f));
-            executed++;
+            if (CanExecute(target, weapon))
+                Kill(user, target);
         }
+    }
 
-        if (executed == 0)
+    // Finishes the target outright, with the execution's sound, heal and style.
+    private void Kill(EntityUid user, EntityUid target)
+    {
+        if (!TryComp<DamageableComponent>(target, out var damageable) || DeadThreshold(target) is not { } threshold || damageable.TotalDamage >= threshold)
             return;
 
-        _damageable.HealEvenly(user, FixedPoint2.New(-ExecutionHeal * executed));
-        _style.Bonus(user, FSStyleSystem.ExecutionPoints * executed);
+        _killPipeline.MarkMeleeHit(user, target);
+        _damageable.ChangeDamage(target, new DamageSpecifier(_proto.Index(WallSlamType), FixedPoint2.New((threshold - (float) damageable.TotalDamage) * 2f + 10f)), ignoreResistances: true, origin: user);
+        _audio.PlayPvs(ExecutionSound, target, ExecutionSound.Params.WithVariation(0.06f));
+        _damageable.HealEvenly(user, FixedPoint2.New(-ExecutionHeal));
+        _style.Bonus(user, FSStyleSystem.ExecutionPoints);
+    }
+
+    // Each weapon's guaranteed crits, on top of the hit.
+    private void Crits(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, FSMeleeJuiceProfile profile, DamageSpecifier damage)
+    {
+        DamageSpecifier? extra = null;
+        foreach (var target in targets)
+        {
+            if (!profile.Crit && !TargetCrits(weapon, target) || !HasComp<MobStateComponent>(target))
+                continue;
+
+            extra ??= damage * (_crit.CalculateCritMultiplier(weapon) - 1f);
+            _damageable.ChangeDamage(target, extra, origin: user);
+            _crit.MarkPendingCrit(user, target);
+        }
+    }
+
+    // Opportunist: zombies busy with someone else take extra damage.
+    private void Opportunist(EntityUid user, EntityUid weapon, List<EntityUid> targets, DamageSpecifier damage)
+    {
+        if (Signature(weapon, FSMeleeSignature.Opportunist) is not (var bonus and > 0f))
+            return;
+
+        foreach (var target in targets)
+        {
+            if (TryComp<NPCMeleeCombatComponent>(target, out var combat) && combat.Target != user && Exists(combat.Target))
+                _damageable.ChangeDamage(target, damage * bonus, origin: user);
+        }
+    }
+
+    private void Ignite(EntityUid user, EntityUid target)
+    {
+        if (IsAlly(user, target) || !TryComp<FlammableComponent>(target, out var flammable))
+            return;
+
+        flammable.FireStacks += SlamFireStacks;
+        _flammable.Ignite(target, user, flammable, ignitionSourceUser: user);
+    }
+
+    protected override bool Airborne(EntityUid target)
+    {
+        return base.Airborne(target) || HasComp<FSMeleeLaunchedComponent>(target);
+    }
+
+    protected override void OnTempest(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> ring, DamageSpecifier damage)
+    {
+        foreach (var target in ring)
+        {
+            _hitsThisTick[(user, target)] = (weapon, false, false);
+            _killPipeline.MarkMeleeHit(user, target);
+            _damageable.ChangeDamage(target, damage, origin: user);
+        }
+
+        _style.Bonus(user, FSStyleSystem.StrikePoints * ring.Count, ring.Count);
     }
 
     // The cutlass's off hand: a heavy fires the flintlock carried with it.
@@ -172,12 +263,29 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             return;
         }
 
+        // The gun's magazine upgrades hold more shots.
+        if (TryComp<FSMeleeShotStateComponent>(weapon, out var shots))
+        {
+            var max = weapon.Comp.ShotCharges + (TryComp<FSWeaponUpgradeStateComponent>(found.Uid, out var gunUpgrades) ? gunUpgrades.MagazineSizeBonus : 0);
+            if (shots.MaxCharges != max)
+            {
+                shots.MaxCharges = max;
+                Dirty(weapon, shots);
+            }
+        }
+
+        // Broadside: three balls in a spread.
+        var spread = Signature(weapon, FSMeleeSignature.Broadside) > 0f ? new[] { 0f, -BroadsideSpread, BroadsideSpread } : new[] { 0f };
         var from = Transform(user).Coordinates;
-        var to = Xform.ToCoordinates(Xform.GetMapCoordinates(user).Offset(Vector2.Normalize(aim) * ShotRange));
-        var cartridge = Spawn(ammoProto, Xform.GetMapCoordinates(user));
-        _gun.Shoot((found.Uid, gun), cartridge, from, to, out _, user);
-        if (!TerminatingOrDeleted(cartridge))
-            QueueDel(cartridge);
+        foreach (var degrees in spread)
+        {
+            var dir = Angle.FromDegrees(degrees).RotateVec(Vector2.Normalize(aim));
+            var to = Xform.ToCoordinates(Xform.GetMapCoordinates(user).Offset(dir * ShotRange));
+            var cartridge = Spawn(ammoProto, Xform.GetMapCoordinates(user));
+            _gun.Shoot((found.Uid, gun), cartridge, from, to, out _, user);
+            if (!TerminatingOrDeleted(cartridge))
+                QueueDel(cartridge);
+        }
     }
 
     protected override void OnWhirl(EntityUid user)
@@ -185,8 +293,14 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         _damageable.ChangeDamage(user, new DamageSpecifier(_proto.Index(WallSlamType), WhirlHealthCost), ignoreResistances: true, interruptsDoAfters: false);
     }
 
-    protected override void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage)
+    protected override void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage, bool lastBreath)
     {
+        if (lastBreath && Airborne(target) && !HasComp<FSSpecialZombieComponent>(target))
+        {
+            Kill(user, target);
+            return;
+        }
+
         _killPipeline.MarkMeleeHit(user, target);
         _damageable.ChangeDamage(target, damage, origin: user);
     }
@@ -310,11 +424,26 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (struck.Count == 0)
             return;
 
+        // The bat crits every body it bowls over, and Lucille opens them up.
+        var crit = CompOrNull<FSMeleeJuiceComponent>(launched.Weapon)?.CritWhen == FSMeleeCritWhen.Crash;
+        var damage = crit ? launched.Damage * _crit.CalculateCritMultiplier(launched.Weapon) : launched.Damage;
+        var bleed = CompOrNull<FSWeaponUpgradeStateComponent>(launched.Weapon)?.BleedLevel ?? 0;
         foreach (var mob in struck)
         {
             _hitsThisTick[(user, mob)] = (launched.Weapon, true, false);
             _killPipeline.MarkMeleeHit(user, mob);
-            _damageable.ChangeDamage(mob, launched.Damage, origin: user);
+            _damageable.ChangeDamage(mob, damage, origin: user);
+            if (crit)
+                _crit.MarkPendingCrit(user, mob);
+
+            if (bleed > 0)
+            {
+                var bleeding = EnsureComp<FSBleedingComponent>(mob);
+                bleeding.DamagePerSecond = damage.GetTotal().Float() * CrashBleedScale * bleed;
+                bleeding.ExpiresAt = Timing.CurTime + CrashBleedTime;
+                bleeding.NextTickAt = Timing.CurTime;
+                bleeding.Instigator = user;
+            }
 
             var away = Xform.GetWorldPosition(mob) - center.Position;
             var push = launched.Direction + (away == Vector2.Zero ? Vector2.Zero : Vector2.Normalize(away));
@@ -353,14 +482,55 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (TerminatingOrDeleted(target) || _mobState.IsDead(target))
             return;
 
-        if (TryComp<PhysicsComponent>(target, out var body))
+        // Ricochet: a launched body comes off the wall still flying, and can bowl over the same mobs again.
+        if (TryComp<FSMeleeLaunchedComponent>(target, out var launched)
+            && launched.Bounces == 0
+            && Signature(launched.Weapon, FSMeleeSignature.Ricochet) > 0f)
+        {
+            var dir = Reflect(target, bounce.Direction);
+            _physics.SetLinearVelocity(target, dir * bounce.Speed * RicochetSpeed);
+            launched.Direction = dir;
+            launched.Bounces++;
+            launched.Hit.Clear();
+            launched.Until = Timing.CurTime + RicochetFlight;
+        }
+        else if (TryComp<PhysicsComponent>(target, out var body))
+        {
             _physics.SetLinearVelocity(target, -bounce.Direction * bounce.Speed * WallBounce, body: body);
+        }
 
         Flinch(target, WallSlamFlinch, 0.1f);
         _style.Bonus(bounce.User, FSStyleSystem.WallSlamPoints);
         _damageable.ChangeDamage(target, new DamageSpecifier(_proto.Index(WallSlamType), WallSlamDamage), origin: bounce.User);
         _audio.PlayPvs(WallSlamSound, target, AudioParams.Default.WithVariation(0.1f));
         RaiseNetworkEvent(new FSMeleeWallBounceEvent(GetNetEntity(target), bounce.Direction), Filter.Pvs(target, entityManager: EntityManager));
+    }
+
+    // Mirrors dir off whichever side of the target the wall is on.
+    private Vector2 Reflect(EntityUid target, Vector2 dir)
+    {
+        var xform = Transform(target);
+        var pos = Xform.GetWorldPosition(xform);
+        bool Blocked(Vector2 axis)
+        {
+            if (axis == Vector2.Zero)
+                return false;
+
+            var ray = new CollisionRay(pos, axis, (int) CollisionGroup.Impassable);
+            foreach (var _ in _physics.IntersectRay(xform.MapID, ray, RicochetProbe, target, returnOnFirstHit: true))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        var blockedX = Blocked(new Vector2(MathF.Sign(dir.X), 0f));
+        var blockedY = Blocked(new Vector2(0f, MathF.Sign(dir.Y)));
+        if (!blockedX && !blockedY)
+            return -dir;
+
+        return Vector2.Normalize(new Vector2(blockedX ? -dir.X : dir.X, blockedY ? -dir.Y : dir.Y));
     }
 
     private bool IsActive(EntityUid weapon)
@@ -422,7 +592,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         return Xform.GetMapCoordinates(user).Offset(Vector2.Normalize(direction) * melee.Range * SlamReach);
     }
 
-    private void Stagger(EntityUid user, EntityUid weapon, List<EntityUid> targets, FSMeleeJuiceProfile profile, MapCoordinates center, DamageSpecifier damage, bool heavy, bool finisher)
+    private void Stagger(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, FSMeleeJuiceProfile profile, MapCoordinates center, DamageSpecifier damage, bool heavy, bool finisher)
     {
         DamageSpecifier? shockwave = profile.StaggerDamage > 0f ? damage * profile.StaggerDamage : null;
         _nearby.Clear();
@@ -437,6 +607,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _knockback.Push(mob, push, profile.Knockback * 0.6f, TimeSpan.FromSeconds(profile.KnockbackDuration));
             Flinch(mob, profile.FlinchDuration, profile.FlinchSpeed);
             staggered++;
+            if (weapon.Comp.IgniteOnFullCharge && profile.FullCharge)
+                Ignite(user, mob);
 
             if (shockwave == null)
                 continue;
@@ -475,6 +647,20 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             Dirty(hit.Weapon, blood);
         }
 
+        // Quick Reload: melee kills bring the next shot back sooner.
+        if (Signature(hit.Weapon, FSMeleeSignature.QuickReload) is var reload and > 0f && TryComp<FSMeleeShotStateComponent>(hit.Weapon, out var shots) && shots.Charges < shots.MaxCharges)
+        {
+            shots.NextCharge -= TimeSpan.FromSeconds(reload);
+            Dirty(hit.Weapon, shots);
+        }
+
+        // Bloodthirsty: a kill off a rev dump makes the next grind hit crit.
+        if (hit.Heavy && Signature(hit.Weapon, FSMeleeSignature.Bloodthirsty) > 0f && TryComp<FSMeleeRevComponent>(hit.Weapon, out var rev) && !rev.CritReady)
+        {
+            rev.CritReady = true;
+            Dirty(hit.Weapon, rev);
+        }
+
         _audio.PlayPvs(profile.KillSound, args.Target, profile.KillSound?.Params.WithVariation(0.08f));
         RaiseNetworkEvent(new FSMeleeKillJuiceEvent(GetNetEntity(user), GetNetEntity(hit.Weapon), GetNetEntity(args.Target), hit.Heavy, hit.Finisher),
             Filter.Pvs(args.Target, entityManager: EntityManager));
@@ -507,6 +693,21 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         UpdateLaunched();
+        UpdateShots(now);
+    }
+
+    private void UpdateShots(TimeSpan now)
+    {
+        var query = EntityQueryEnumerator<FSMeleeShotStateComponent, FSMeleeJuiceComponent>();
+        while (query.MoveNext(out var uid, out var shots, out var juice))
+        {
+            if (shots.Charges >= shots.MaxCharges || now < shots.NextCharge)
+                continue;
+
+            shots.Charges++;
+            shots.NextCharge = now + TimeSpan.FromSeconds(juice.ShotRecharge);
+            Dirty(uid, shots);
+        }
     }
 
     private void RunStrike(PendingStrike strike)

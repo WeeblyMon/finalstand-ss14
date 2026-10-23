@@ -121,6 +121,12 @@ public sealed partial class FSPlayerUpgradesSystem
                     state.StabHeal += def.ValuePerLevel;
                     break;
                 }
+            case WeaponUpgradeType.MeleeSignature:
+                {
+                    if (def.Signature is { } signature)
+                        state.Signatures[signature] = newLevel * def.ValuePerLevel;
+                    break;
+                }
 
             default:
                 return false;

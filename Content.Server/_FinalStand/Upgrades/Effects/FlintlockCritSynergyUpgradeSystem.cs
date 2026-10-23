@@ -1,4 +1,4 @@
-// Pirate cross-family crit: kill with cutlass arms flintlock; kill with flintlock arms cutlass. Consumed on use, dropped weapons untag, 5s expiry.
+// Pirate cross-family crit: kill with cutlass arms flintlock; kill with flintlock, or land a cutlass-fired shot, arms cutlass. Consumed on use, dropped weapons untag, 5s expiry.
 using Content.Server._FinalStand.Crit;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
@@ -134,14 +134,41 @@ public sealed partial class FlintlockCritSynergyUpgradeSystem : EntitySystem
     {
         if (ev.Shooter is not { } shooter || ev.Weapon is not { } weapon)
             return;
-        if (!HasComp<FSCritReadyComponent>(weapon))
+
+        if (HasComp<FSCritReadyComponent>(weapon))
+        {
+            ev.AdditionalMultiplier *= CritMultiplier;
+            _crit.MarkPendingCrit(shooter, ev.Target);
+
+            _justConsumedCrit.Add(shooter);
+            CloseWindow(shooter);
+            return;
+        }
+
+        ArmCutlassFromShot(shooter, weapon, ev.Target);
+    }
+
+    // A flintlock ball fired off the cutlass's right click that lands readies the cutlass's next swing.
+    private void ArmCutlassFromShot(EntityUid shooter, EntityUid weapon, EntityUid target)
+    {
+        if (!IsFlintlock(weapon)
+            || _justConsumedCrit.Contains(shooter)
+            || !HasComp<MobStateComponent>(target)
+            || !TryComp<HandsComponent>(shooter, out var hands)
+            || !_hands.TryGetActiveItem((shooter, hands), out var active)
+            || !IsCutlassWithSynergy(active.Value))
             return;
 
-        ev.AdditionalMultiplier *= CritMultiplier;
-        _crit.MarkPendingCrit(shooter, ev.Target);
+        var durationSec = GetSynergyDuration(shooter, hands);
+        if (durationSec <= 0)
+            return;
 
-        _justConsumedCrit.Add(shooter);
-        CloseWindow(shooter);
+        var window = EnsureComp<FSFlintlockCritWindowComponent>(shooter);
+        var expiry = _timing.CurTime + TimeSpan.FromSeconds(durationSec);
+        if (expiry > window.ExpiresAt)
+            window.ExpiresAt = expiry;
+        Dirty(shooter, window);
+        EnsureComp<FSCritReadyComponent>(active.Value);
     }
 
     private void OnArmedWeaponDropped(EntityUid weapon, FSCritReadyComponent _, GotUnequippedHandEvent args)

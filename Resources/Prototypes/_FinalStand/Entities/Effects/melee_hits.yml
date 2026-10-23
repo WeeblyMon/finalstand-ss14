@@ -82,6 +82,16 @@
     color: "#c04848cc"
 
 - type: entity
+  parent: FSMeleeSpinRing
+  id: FSMeleeTempestRing
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: ring
+    scale: 1.7, 1.7
+    color: "#7ff0ffdd"
+
+- type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitCross
   categories: [ HideSpawnMenu ]

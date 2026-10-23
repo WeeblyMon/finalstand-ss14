@@ -113,6 +113,8 @@
   - type: FSMeleeBlood # FINALSTAND
   - type: FSMeleeJuice # FINALSTAND
     heavyRecovery: 1.1
+    critWhen: Wounded
+    executionHealth: 0.35
     light:
       anticipation: 0.03
       hitstop: 0.035

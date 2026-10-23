@@ -451,7 +451,9 @@ public sealed partial class WeaponShopWindow
         WeaponUpgradeType.MovementSpeed or WeaponUpgradeType.AttackSpeed or WeaponUpgradeType.ReloadSpeed
             or WeaponUpgradeType.SpeedLoader or WeaponUpgradeType.BattleTrance => "speed",
         WeaponUpgradeType.Bleed => "bleed",
-        WeaponUpgradeType.DualWieldEnergySword => "melee",
+        WeaponUpgradeType.DualWieldEnergySword or WeaponUpgradeType.Whirlwind or WeaponUpgradeType.MeleeSignature => "melee",
+        WeaponUpgradeType.DashPower => "speed",
+        WeaponUpgradeType.StabLifeSteal => "heart",
         WeaponUpgradeType.DeployableCapacity => "deployable",
         _ => "upgrade",
     };

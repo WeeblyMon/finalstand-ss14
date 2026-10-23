@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Sprint;
 using Content.Shared.ActionBlocker;
+using Content.Shared.Body.Components;
 using Content.Shared.CombatMode;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
@@ -56,7 +57,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     // Flinches this long leave a zombie open to an execution once it is badly hurt.
     private const float StaggerFlinch = 0.35f;
     private static readonly TimeSpan StaggerGrace = TimeSpan.FromSeconds(1.2);
-    public const float ExecutionHealth = 0.25f;
     private const float ExecutionHitstop = 0.14f;
     private const float ExecutionZoom = 0.12f;
 
@@ -112,6 +112,14 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             profile.DamageMultiplier *= 1f + upgrades.DashBonus;
         }
 
+        // Grand Slam: a full charge sends its target twice as far and its crashes land in full.
+        if (profile.FullCharge && Signature(weapon, FSMeleeSignature.GrandSlam) > 0f)
+        {
+            profile = profile.Copy();
+            profile.Knockback *= GrandSlamForce;
+            profile.Launch = 1f;
+        }
+
         return profile;
     }
 
@@ -137,6 +145,11 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             return;
 
         charge.ChargeStart = Timing.CurTime;
+
+        // Running Start: a wind-up begun at a sprint starts half full.
+        if (Signature(weapon.Value, FSMeleeSignature.RunningStart) > 0f && TryComp<FSSprintComponent>(user, out var sprint) && sprint.IsSprinting)
+            charge.ChargeStart -= TimeSpan.FromSeconds(charge.MaxChargeTime * RunningStartCharge);
+
         Dirty(weapon.Value, charge);
 
         if (_net.IsServer)
@@ -208,8 +221,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (heavy && ent.Comp.HeavyStyle == FSMeleeHeavyStyle.Shot && !args.Handled)
         {
             args.Handled = true;
-            Recover(args.User, ent);
-            if (args.Direction is { } aim && aim != Vector2.Zero)
+            if (args.Direction is { } aim && aim != Vector2.Zero && TakeShot(ent))
                 OnHeavyShot(ent, args.User, aim);
             return;
         }
@@ -249,6 +261,9 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             if (targets.Count == 0 && args.Direction is { } missed && missed != Vector2.Zero)
                 OnHeavyMiss(ent, args.User, missed, profile, args.BaseDamage + args.BonusDamage);
         }
+
+        if (!heavy)
+            TryTempest(ent, args.User, targets, args);
 
         if (targets.Count == 0)
             return;
@@ -293,11 +308,21 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     {
         var rev = heavy ? SpendRev(weapon) : Rev(weapon, targets);
         var sprint = !heavy && SprintAttack(user, weapon);
-        var execution = targets.Exists(CanExecute);
-        if (rev == 0 && !sprint && !execution)
+        var execution = targets.Exists(t => CanExecute(t, weapon));
+        var crit = SwingCrits(weapon, profile, heavy, rev);
+        var brace = !heavy && Braced(user, weapon);
+        if (rev == 0 && !sprint && !execution && !crit && !brace)
             return profile;
 
         profile = profile.Copy();
+        profile.Crit = crit;
+        if (brace)
+        {
+            profile.Pierce = Math.Max(profile.Pierce, BracePierce);
+            profile.Knockback *= BraceForce;
+            profile.FlinchDuration *= BraceForce;
+        }
+
         if (rev > 0)
         {
             profile.Rev = rev;
@@ -307,7 +332,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
                 profile.Knockback *= 1f + RevDumpForce * rev;
                 profile.FlinchDuration *= 1f + RevDumpForce * rev;
                 profile.Trauma = Math.Min(1f, profile.Trauma + RevDumpTrauma * rev);
-                if (rev >= weapon.Comp.RevStacks / 2)
+                if (rev >= RevCap(weapon) / 2)
                     _chargeAudio.PlayPredicted(weapon.Comp.RevDumpSound, weapon, user);
             }
             else
@@ -331,6 +356,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         if (execution)
         {
+            CoupDeGrace(user, weapon);
             profile.Execution = true;
             profile.Hitstop += ExecutionHitstop;
             profile.KillZoom = Math.Max(profile.KillZoom, ExecutionZoom);
@@ -359,7 +385,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         var now = Timing.CurTime;
         var rev = EnsureComp<FSMeleeRevComponent>(weapon);
         var same = rev.Target is { } last && targets.Contains(last) && now - rev.Last <= TimeSpan.FromSeconds(weapon.Comp.RevWindow);
-        rev.Stacks = same ? Math.Min(rev.Stacks + 1, weapon.Comp.RevStacks) : 0;
+        rev.Stacks = same ? Math.Min(rev.Stacks + 1, RevCap(weapon)) : 0;
         if (!same)
             rev.Target = targets[0];
 
@@ -406,24 +432,34 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     {
     }
 
-    // A staggered ordinary zombie that is nearly dead dies to the next hit.
-    public bool CanExecute(EntityUid target)
+    // A staggered ordinary zombie that is nearly dead dies to the next hit. Hemorrhage counts bleeding as staggered.
+    public bool CanExecute(EntityUid target, Entity<FSMeleeJuiceComponent> weapon)
     {
-        return TryComp<FSMeleeStaggeredComponent>(target, out var staggered)
-            && Timing.CurTime < staggered.Until
-            && HealthLost(target) is >= 1f - ExecutionHealth and < 1f;
+        var open = TryComp<FSMeleeStaggeredComponent>(target, out var staggered) && Timing.CurTime < staggered.Until
+            || Signature(weapon, FSMeleeSignature.Hemorrhage) > 0f
+                && !HasComp<FSSpecialZombieComponent>(target)
+                && TryComp<BloodstreamComponent>(target, out var blood) && blood.BleedAmount > 0f;
+
+        return open && HealthLost(target) is { } lost && lost >= 1f - weapon.Comp.ExecutionHealth && lost < 1f;
     }
 
     // Fraction of the way to dead, or null for anything that can't die.
     public float? HealthLost(EntityUid target)
     {
-        if (!TryComp<DamageableComponent>(target, out var damageable)
-            || !TryComp<MobThresholdsComponent>(target, out var thresholds)
+        if (!TryComp<DamageableComponent>(target, out var damageable) || DeadThreshold(target) is not { } threshold)
+            return null;
+
+        return (float) damageable.TotalDamage / threshold;
+    }
+
+    protected float? DeadThreshold(EntityUid target)
+    {
+        if (!TryComp<MobThresholdsComponent>(target, out var thresholds)
             || !_thresholds.TryGetThresholdForState(target, MobState.Dead, out var threshold, thresholds)
             || threshold <= 0)
             return null;
 
-        return (float) (damageable.TotalDamage / threshold.Value);
+        return threshold.Value.Float();
     }
 
     // Sweeping Blade: dash through the enemy nearest the cursor, faster and harder the more sweeps are chained.
@@ -460,6 +496,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         sweep.Last = now;
         sweep.Marked[target.Value] = now + TimeSpan.FromSeconds(weapon.Comp.SweepMarkTime);
         sweep.PassUntil = now + SweepPassTime;
+        sweep.TempestUsed = false;
         Dirty(user, sweep);
 
         var offset = Xform.GetWorldPosition(target.Value) - Xform.GetWorldPosition(user);
@@ -469,11 +506,13 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         profile = profile.Copy();
         profile.DamageMultiplier *= reach * (1f + weapon.Comp.SweepStackBonus * chained);
         profile.Trauma = Math.Min(1f, profile.Trauma + 0.08f * chained);
+        profile.Crit = weapon.Comp.CritWhen == FSMeleeCritWhen.SweepChain && sweep.Stacks >= weapon.Comp.SweepMaxStacks;
+        profile.Execution = Signature(weapon, FSMeleeSignature.LastBreath) > 0f && Airborne(target.Value);
         args.BonusDamage += args.BaseDamage * (profile.DamageMultiplier - 1f);
         var damage = args.BaseDamage + args.BonusDamage;
 
-        OnHit(weapon, user, new List<EntityUid> { target.Value }, dir, true, false, WouldKill(target.Value, damage.GetTotal()), profile, args);
-        OnSweepHit(user, target.Value, damage);
+        OnHit(weapon, user, new List<EntityUid> { target.Value }, dir, true, false, profile.Execution || WouldKill(target.Value, damage.GetTotal()), profile, args);
+        OnSweepHit(user, target.Value, damage, profile.Execution);
     }
 
     private bool WouldKill(EntityUid target, FixedPoint2 damage)
@@ -511,7 +550,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         return best;
     }
 
-    protected virtual void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage)
+    protected virtual void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage, bool lastBreath)
     {
     }
 

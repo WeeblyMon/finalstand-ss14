@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Robust.Shared.Prototypes;
 
@@ -124,6 +125,8 @@ public enum WeaponUpgradeType : byte
     Whirlwind,
     // Health restored per target a light attack hits.
     StabLifeSteal,
+    // Turns on the upgrade's Signature, at ValuePerLevel a level.
+    MeleeSignature,
 }
 
 [DataDefinition]
@@ -142,6 +145,11 @@ public sealed partial class WeaponUpgradeDef
 
     // Given free at its first level when the weapon is bought.
     [DataField] public bool Starter;
+
+    [DataField] public FSMeleeSignature? Signature;
+
+    // Another upgrade on the same weapon this one can't be owned alongside.
+    [DataField] public string? Excludes;
 
     [DataField] public string? RequiresUpgrade;
 

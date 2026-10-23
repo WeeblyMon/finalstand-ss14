@@ -24,6 +24,7 @@
         volume: 2
   - type: FSMeleeBlood # FINALSTAND
   - type: FSMeleeJuice # FINALSTAND
+    critWhen: Crash
     heavyRecovery: 1
     light:
       anticipation: 0.07
