@@ -1,0 +1,95 @@
+- type: weightedRandomEntity
+  id: FSMysteryBoxUncommon
+  weights:
+    WeaponPistolMk58: 1.0
+    WeaponPistolViper: 1.0
+    FSWeaponMateba: 1.0
+    WeaponPistolN1984: 0.8
+    FSWeaponShotgunBlunderbuss: 0.8
+    BaseBallBat: 1.0
+    FSWeaponCutlass: 1.0
+    FSWeaponUnholyHalberd: 0.9
+    FireAxe: 0.8
+
+- type: weightedRandomEntity
+  id: FSMysteryBoxRare
+  weights:
+    FSWeaponShotgunKammerer: 1.2
+    FSWeaponChainsaw: 1.1
+    WeaponAdvancedLaser: 1.0
+    FSWeaponShotgunHushpup: 1.0
+    FSWeaponRifleLecter: 1.0
+    FSWeaponDoubleBarrel: 0.8
+    FSWeaponShotgunBulldog: 0.8
+    EnergySword: 0.8
+
+- type: weightedRandomEntity
+  id: FSMysteryBoxVeryRare
+  weights:
+    WeaponEnergyMagnum: 1.2
+    FSWeaponRifleAk: 1.2
+    FSWeaponLaserCarbine: 0.9
+    FSWeaponEnergyShotgun: 0.8
+
+- type: weightedRandomEntity
+  id: FSMysteryBoxReallyRare
+  weights:
+    FSWeaponPulseRifle: 1.0
+
+- type: weightedRandomEntity
+  id: FSMysteryBoxWonder
+  weights:
+    FSWeaponRayGun: 1.0
+
+- type: entity
+  id: FSMysteryBox
+  parent: BaseStructure
+  name: mystery box
+  description: A battered crate that hums with something that isn't electricity. Feed it credits and it hands you a weapon. Which weapon is up to the box.
+  components:
+  - type: Sprite
+    drawdepth: Objects
+    sprite: _FinalStand/Structures/mystery_box.rsi
+    offset: 0.5,0
+    layers:
+    - state: base
+    - state: lid
+      map: [ "lid" ]
+    - map: [ "display" ]
+      visible: false
+      shader: unshaded
+  - type: InteractionOutline
+  - type: PointLight
+    enabled: false
+    radius: 3
+    energy: 2
+    color: "#9FD8FF"
+  - type: FSMysteryBox
+    tiers:
+    - pool: FSGachaImprovised
+      weight: 24
+    - pool: FSGachaSurplus
+      weight: 12
+    - pool: FSMysteryBoxUncommon
+      weight: 20
+    - pool: FSGachaJackpot
+      weight: 5
+    - pool: FSMysteryBoxRare
+      weight: 17
+    - pool: FSMysteryBoxVeryRare
+      weight: 13
+    - pool: FSMysteryBoxReallyRare
+      weight: 5
+    - pool: FSMysteryBoxWonder
+      weight: 4
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.45,-0.4,1.45,0.3"
+        density: 190
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
