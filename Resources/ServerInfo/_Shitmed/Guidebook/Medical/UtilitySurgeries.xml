@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 # Wounds
 
 ## Tend Wounds
-Tend Bruise Wounds and Tend Burn Wounds heal brute or burn damage on one part without topicals. Make a careful incision, then repair the tissue with a hemostat. The repair keeps going until the part is healed. When it's done, the window moves you on to closing the incision with a cautery.
+Tend Bruise Wounds and Tend Burn Wounds heal brute or burn damage on one part without topicals. Make a careful incision, then repair the tissue with a hemostat. The repair keeps going until the part is healed. Then the plan moves on to closing the incision with a cautery.
 
 <Box>
 <GuideEntityEmbed Entity="Scalpel" Caption="scalpel"/>
@@ -17,5 +17,5 @@ Tend Bruise Wounds and Tend Burn Wounds heal brute or burn damage on one part wi
 Bleeding wounds can't be tended. Stop the bleeding first with gauze or the Stop Bleeding operation. A part with organ damage or a severed limb won't heal either until that is fixed.
 
 ## Cavity Implant
-Hides a tiny or small item inside the torso. Open the incision and the ribcage first, then hold the item and insert it.
+Hides a tiny or small item inside the torso. Pick it from Other procedures on the torso. Open the incision and the ribcage first, then hold the item and insert it.
 </Document>

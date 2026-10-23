@@ -22,5 +22,5 @@ The torso holds the heart and lungs. The groin holds the liver, stomach and kidn
 Heavy hits can damage the organs inside a part. While they are damaged, that part won't heal. Open the part that holds them and run [color=#a4885c]Heal Organs[/color] until the damage is gone, then close up.
 
 ## Transplants
-To swap an organ, open the part that holds it, run the matching [color=#a4885c]Remove[/color] operation, then the matching [color=#a4885c]Insert[/color] operation while holding the new organ.
+To swap an organ, pick the matching [color=#a4885c]Remove[/color] operation from Other procedures on the part that holds it. Then pick the matching [color=#a4885c]Insert[/color] operation while holding the new organ.
 </Document>
