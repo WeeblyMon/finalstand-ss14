@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Ray Gun trail supplied for Final Stand",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "ring",
+      "delays": [
+        [
+          0.035,
+          0.035,
+          0.035,
+          0.035,
+          0.035,
+          0.035,
+          0.035,
+          0.035,
+          0.035
+        ]
+      ]
+    }
+  ]
+}
