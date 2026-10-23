@@ -1,9 +1,0 @@
-// One harsh black-and-white frame: everything brighter than the threshold goes black, the rest white.
-uniform sampler2D SCREEN_TEXTURE;
-uniform highp float threshold;
-
-void fragment() {
-    highp vec4 c = zTextureSpec(SCREEN_TEXTURE, UV);
-    highp float lit = step(threshold, zGrayscale(c.rgb));
-    COLOR = vec4(vec3(1.0 - lit), 1.0);
-}
