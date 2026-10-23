@@ -24,7 +24,6 @@
         volume: 2
   - type: FSMeleeBlood # FINALSTAND
   - type: FSMeleeJuice # FINALSTAND
-    hint: fs-melee-hint-bat
     critWhen: Crash
     heavyRecovery: 1
     light:

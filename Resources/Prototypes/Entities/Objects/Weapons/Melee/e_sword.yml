@@ -5,7 +5,6 @@
   components:
   - type: FSMeleeJuice # FINALSTAND
     # Right click is a sweeping blade: dash through the zombie nearest the cursor, harder each time it's chained.
-    hint: fs-melee-hint-esword
     heavyStyle: Sweep
     critWhen: SweepChain
     light:

@@ -9,7 +9,6 @@ using Content.Shared.CombatMode;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
-using Content.Shared.Examine;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands;
 using Content.Shared.Interaction;
@@ -105,7 +104,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         SubscribeLocalEvent<FSMeleeFlinchComponent, RefreshMovementSpeedModifiersEvent>(OnFlinchSpeed);
         SubscribeLocalEvent<FSMeleeFlinchComponent, AttackAttemptEvent>(OnFlinchAttack);
         SubscribeLocalEvent<FSMeleeJuiceComponent, ComponentShutdown>(OnWeaponShutdown);
-        SubscribeLocalEvent<FSMeleeJuiceComponent, ExaminedEvent>(OnExamined);
         SubscribeAllEvent<FSMeleeChargeEvent>(OnChargeEvent);
         SubscribeLocalEvent<FSMeleeChargeComponent, AttemptMeleeEvent>(OnChargeAttempt);
         SubscribeLocalEvent<FSMeleeChargeComponent, GotUnequippedHandEvent>(OnChargeUnequipped);
@@ -115,12 +113,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         SubscribeLocalEvent<FSMeleeDashComponent, AttemptMobCollideEvent>(OnDashMobCollide);
         SubscribeLocalEvent<FSMeleeDashComponent, AttemptMobTargetCollideEvent>(OnDashMobTargetCollide);
         SubscribeLocalEvent<FSMeleeGuardComponent, DamageModifyEvent>(OnGuardDamage);
-    }
-
-    private void OnExamined(Entity<FSMeleeJuiceComponent> ent, ref ExaminedEvent args)
-    {
-        if (ent.Comp.Hint is { } hint)
-            args.PushMarkup(Loc.GetString(hint));
     }
 
     // Heavy profiles grow with the charge behind them.

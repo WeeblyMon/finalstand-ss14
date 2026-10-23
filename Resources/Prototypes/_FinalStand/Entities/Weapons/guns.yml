@@ -732,7 +732,6 @@
   - type: FSMeleeBlood
   - type: FSMeleeJuice
     # Right click fires the flintlock that comes with the cutlass.
-    hint: fs-melee-hint-cutlass
     heavyStyle: Shot
     shotWeapon: WeaponPistolFlintlock
     shotAmmo: FSCartridgeFlintlock
@@ -796,7 +795,6 @@
   - type: FSMeleeBlood
   # Left click builds rev with every hit in a row; right click spends it on a rip through the crowd.
   - type: FSMeleeJuice
-    hint: fs-melee-hint-chainsaw
     critWhen: MaxRev
     revStep: 0.08
     revStacks: 6

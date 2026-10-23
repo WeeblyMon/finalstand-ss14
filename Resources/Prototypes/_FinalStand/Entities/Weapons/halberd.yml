@@ -5,7 +5,6 @@
   components:
   - type: FSMeleeBlood
   - type: FSMeleeJuice
-    hint: fs-melee-hint-halberd
     heavyRequiresWield: true
     heavyStyle: Spin
     critWhen: Downed

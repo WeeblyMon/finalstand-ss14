@@ -25,7 +25,6 @@
         volume: 3
   - type: FSMeleeBlood # FINALSTAND
   - type: FSMeleeJuice # FINALSTAND
-    hint: fs-melee-hint-fireaxe
     heavyStyle: Slam
     critWhen: FullCharge
     igniteOnFullCharge: true
