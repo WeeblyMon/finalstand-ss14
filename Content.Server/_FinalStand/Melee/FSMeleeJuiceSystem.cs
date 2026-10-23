@@ -5,6 +5,7 @@ using Content.Server._FinalStand.Shop;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Atmos.EntitySystems;
+using Content.Server.Effects;
 using Content.Server.NPC.Components;
 using Content.Server.Popups;
 using Content.Server.Weapons.Ranged.Systems;
@@ -21,6 +22,7 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
+using Content.Shared.Hands.Components;
 using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
@@ -31,8 +33,10 @@ using Content.Shared.Physics;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Weapons.Ranged.Events;
 using Robust.Server.Audio;
 using Robust.Shared.Audio;
+using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
@@ -62,6 +66,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private FlammableSystem _flammable = default!;
+    [Dependency] private ColorFlashEffectSystem _color = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
     private const float WallSlamKnockback = 4f;
@@ -86,6 +92,13 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float RicochetProbe = 0.8f;
     private static readonly TimeSpan RicochetFlight = TimeSpan.FromSeconds(0.35);
     private static readonly TimeSpan CrashBleedTime = TimeSpan.FromSeconds(3);
+    private const float WildfireRadius = 2f;
+    private const float AftershockReach = 1.5f;
+    private const float AftershockDamage = 0.5f;
+    private static readonly TimeSpan AftershockDelay = TimeSpan.FromSeconds(0.4);
+    private static readonly TimeSpan ShotRefresh = TimeSpan.FromSeconds(1);
+    private const string WildfireBurst = "FSMeleeWildfireBurst";
+    private const string AftershockBurst = "FSMeleeAftershockBurst";
     private const float ExecutionHeal = 6f;
     private static readonly ProtoId<DamageTypePrototype> WallSlamType = "Blunt";
     private static readonly SoundSpecifier WallSlamSound = new SoundCollectionSpecifier("FSMeleeBluntHit");
@@ -98,6 +111,11 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private readonly record struct PendingStrike(EntityUid User, EntityUid Weapon, List<EntityUid> Targets, DamageSpecifier Damage, Vector2 Direction, bool Heavy, bool Finisher, int Strike, TimeSpan Due);
 
     private readonly List<PendingStrike> _strikes = new();
+
+    private readonly record struct PendingAftershock(EntityUid User, EntityUid Weapon, MapCoordinates Center, DamageSpecifier Damage, FSMeleeJuiceProfile Profile, TimeSpan Due);
+
+    private readonly List<PendingAftershock> _aftershocks = new();
+    private TimeSpan _nextShotRefresh;
     private readonly Dictionary<(EntityUid User, EntityUid Target), (EntityUid Weapon, bool Heavy, bool Finisher)> _hitsThisTick = new();
     private readonly HashSet<Entity<MobStateComponent>> _nearby = new();
     private readonly List<EntityUid> _launched = new();
@@ -107,6 +125,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         base.Initialize();
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
+        SubscribeLocalEvent<FSMeleeQuietShotComponent, GunMuzzleFlashAttemptEvent>(OnQuietShot);
     }
 
     protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, FSMeleeJuiceProfile profile, MeleeHitEvent args)
@@ -161,7 +180,11 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             Pierce(user, weapon, targets, Xform.GetMapCoordinates(targets[0]), direction, profile.PierceRange, heavy, finisher, profile, damage);
 
         if (profile.StaggerRadius > 0f)
-            Stagger(user, weapon, targets, profile, SlamPoint(weapon, user, direction, heavy) ?? Xform.GetMapCoordinates(targets[0]), damage, heavy, finisher);
+        {
+            var center = SlamPoint(weapon, user, direction, heavy) ?? Xform.GetMapCoordinates(targets[0]);
+            Stagger(user, weapon, targets, profile, center, damage, heavy, finisher);
+            QueueAftershock(user, weapon, profile, center, damage);
+        }
 
         if (profile.ExtraStrikes <= 0)
             return;
@@ -263,20 +286,13 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             return;
         }
 
-        // The gun's magazine upgrades hold more shots.
         if (TryComp<FSMeleeShotStateComponent>(weapon, out var shots))
-        {
-            var max = weapon.Comp.ShotCharges + (TryComp<FSWeaponUpgradeStateComponent>(found.Uid, out var gunUpgrades) ? gunUpgrades.MagazineSizeBonus : 0);
-            if (shots.MaxCharges != max)
-            {
-                shots.MaxCharges = max;
-                Dirty(weapon, shots);
-            }
-        }
+            SetMaxShots((weapon, shots), weapon.Comp, found.Uid);
 
         // Broadside: three balls in a spread.
         var spread = Signature(weapon, FSMeleeSignature.Broadside) > 0f ? new[] { 0f, -BroadsideSpread, BroadsideSpread } : new[] { 0f };
         var from = Transform(user).Coordinates;
+        EnsureComp<FSMeleeQuietShotComponent>(found.Uid);
         foreach (var degrees in spread)
         {
             var dir = Angle.FromDegrees(degrees).RotateVec(Vector2.Normalize(aim));
@@ -286,11 +302,75 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             if (!TerminatingOrDeleted(cartridge))
                 QueueDel(cartridge);
         }
+
+        RemComp<FSMeleeQuietShotComponent>(found.Uid);
+
+        // The gun's own shot sound leaves out whoever fired it, expecting them to have predicted it.
+        _audio.PlayEntity(gun.SoundGunshotModified, Filter.Entities(user), user, true);
     }
 
-    protected override void OnWhirl(EntityUid user)
+    private void OnQuietShot(Entity<FSMeleeQuietShotComponent> ent, ref GunMuzzleFlashAttemptEvent args)
     {
-        _damageable.ChangeDamage(user, new DamageSpecifier(_proto.Index(WallSlamType), WhirlHealthCost), ignoreResistances: true, interruptsDoAfters: false);
+        args.Cancelled = true;
+    }
+
+    // The gun's magazine upgrades hold more shots.
+    private void SetMaxShots(Entity<FSMeleeShotStateComponent> shots, FSMeleeJuiceComponent juice, EntityUid? gun)
+    {
+        var max = gun == null ? juice.ShotCharges : juice.ShotCharges + (CompOrNull<FSWeaponUpgradeStateComponent>(gun)?.MagazineSizeBonus ?? 0);
+        if (shots.Comp.MaxCharges == max)
+            return;
+
+        shots.Comp.MaxCharges = max;
+        shots.Comp.Charges = Math.Min(shots.Comp.Charges, max);
+        Dirty(shots);
+    }
+
+    // Aftershock: a full-charge slam goes off again a moment later, wider and weaker.
+    private void QueueAftershock(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, FSMeleeJuiceProfile profile, MapCoordinates center, DamageSpecifier damage)
+    {
+        if (!profile.FullCharge || Signature(weapon, FSMeleeSignature.Aftershock) <= 0f)
+            return;
+
+        var shock = profile.Copy();
+        shock.StaggerRadius *= AftershockReach;
+        shock.StaggerDamage = AftershockDamage;
+        _aftershocks.Add(new PendingAftershock(user, weapon, center, damage, shock, Timing.CurTime + AftershockDelay));
+    }
+
+    private void RunAftershock(PendingAftershock shock)
+    {
+        if (TerminatingOrDeleted(shock.User) || !TryComp<FSMeleeJuiceComponent>(shock.Weapon, out var juice))
+            return;
+
+        Stagger(shock.User, (shock.Weapon, juice), new List<EntityUid>(), shock.Profile, shock.Center, shock.Damage, true, false);
+        Burst(shock.Center, AftershockBurst);
+    }
+
+    // Wildfire: a burning zombie the axe kills spreads its fire to those around it.
+    private void Wildfire(EntityUid user, EntityUid source)
+    {
+        var center = Xform.GetMapCoordinates(source);
+        _nearby.Clear();
+        _lookup.GetEntitiesInRange(center, WildfireRadius, _nearby);
+        foreach (var mob in _nearby)
+        {
+            if (mob.Owner != source && CanSpill(user, center, mob, WildfireRadius))
+                Ignite(user, mob);
+        }
+
+        Burst(center, WildfireBurst);
+    }
+
+    private void Burst(MapCoordinates at, string effect)
+    {
+        RaiseNetworkEvent(new FSMeleeBurstEvent(GetNetCoordinates(Xform.ToCoordinates(at)), effect), Filter.Pvs(at));
+    }
+
+    protected override void OnWhirl(EntityUid user, float cost)
+    {
+        _damageable.ChangeDamage(user, new DamageSpecifier(_proto.Index(WallSlamType), cost), ignoreResistances: true, interruptsDoAfters: false);
+        _color.RaiseEffect(Color.Red, [user], Filter.Pvs(user, entityManager: EntityManager));
     }
 
     protected override void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage, bool lastBreath)
@@ -313,6 +393,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     // Cleaned between waves.
     private void OnPrepStarted(WavePrepStartedEvent ev)
     {
+        _aftershocks.Clear();
+
         var query = EntityQueryEnumerator<FSMeleeBloodComponent>();
         while (query.MoveNext(out var uid, out var blood))
         {
@@ -578,7 +660,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     protected override void OnHeavyMiss(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim, FSMeleeJuiceProfile profile, DamageSpecifier damage)
     {
         if (profile.StaggerRadius > 0f && SlamPoint(weapon, user, aim, true) is { } point)
+        {
             Stagger(user, weapon, new List<EntityUid>(), profile, point, damage * profile.DamageMultiplier, true, false);
+            QueueAftershock(user, weapon, profile, point, damage * profile.DamageMultiplier);
+        }
 
         if (profile.Dash > 0f && profile.Pierce > 0 && IsActive(weapon) && TryComp<MeleeWeaponComponent>(weapon, out var melee))
             Pierce(user, weapon, new List<EntityUid>(), Xform.GetMapCoordinates(user), aim, profile.Dash + melee.Range, true, false, profile, damage * profile.DamageMultiplier);
@@ -654,6 +739,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             Dirty(hit.Weapon, shots);
         }
 
+        if (Signature(hit.Weapon, FSMeleeSignature.Wildfire) > 0f && TryComp<FlammableComponent>(args.Target, out var burning) && burning.OnFire)
+            Wildfire(user, args.Target);
+
         // Bloodthirsty: a kill off a rev dump makes the next grind hit crit.
         if (hit.Heavy && Signature(hit.Weapon, FSMeleeSignature.Bloodthirsty) > 0f && TryComp<FSMeleeRevComponent>(hit.Weapon, out var rev) && !rev.CritReady)
         {
@@ -682,6 +770,16 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             RunStrike(strike);
         }
 
+        for (var i = _aftershocks.Count - 1; i >= 0; i--)
+        {
+            var shock = _aftershocks[i];
+            if (now < shock.Due)
+                continue;
+
+            _aftershocks.RemoveAt(i);
+            RunAftershock(shock);
+        }
+
         for (var i = _bounces.Count - 1; i >= 0; i--)
         {
             var bounce = _bounces[i];
@@ -698,9 +796,17 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private void UpdateShots(TimeSpan now)
     {
+        var refresh = now >= _nextShotRefresh;
+        if (refresh)
+            _nextShotRefresh = now + ShotRefresh;
+
         var query = EntityQueryEnumerator<FSMeleeShotStateComponent, FSMeleeJuiceComponent>();
         while (query.MoveNext(out var uid, out var shots, out var juice))
         {
+            if (refresh && juice.ShotWeapon is { } gunProto
+                && _container.TryGetContainingContainer(uid, out var hand) && HasComp<HandsComponent>(hand.Owner))
+                SetMaxShots((uid, shots), juice, _search.FindFirst(hand.Owner, new HashSet<string> { gunProto.Id })?.Uid);
+
             if (shots.Charges >= shots.MaxCharges || now < shots.NextCharge)
                 continue;
 

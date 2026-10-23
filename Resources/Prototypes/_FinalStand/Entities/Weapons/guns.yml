@@ -735,6 +735,9 @@
     heavyStyle: Shot
     shotWeapon: WeaponPistolFlintlock
     shotAmmo: FSCartridgeFlintlock
+    shotSprite:
+      sprite: Objects/Weapons/Guns/Snipers/flintlock.rsi
+      state: base
     light:
       anticipation: 0.05
       hitstop: 0.03

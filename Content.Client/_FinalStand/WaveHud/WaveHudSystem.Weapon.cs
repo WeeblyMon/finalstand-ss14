@@ -10,6 +10,7 @@ using Content.Shared._FinalStand.HMG;
 using Content.Shared.Mech.Components;
 using Content.Shared.Vehicle.Components;
 using Content.Shared._FinalStand.Materials;
+using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD.Components;
 using Content.Shared._FinalStand.MedicalOps;
@@ -60,6 +61,7 @@ public sealed partial class WaveHudSystem
         overlay.WeaponTakesMagazines = false;
         overlay.ItemDetail = null;
         overlay.Uber = null;
+        overlay.Shots = null;
 
         if (_player.LocalEntity is not { } player)
             return;
@@ -98,6 +100,7 @@ public sealed partial class WaveHudSystem
         {
             overlay.ItemDetail = GetItemDetail(held);
             UpdateUberMeter(overlay, held);
+            UpdateShotMeter(overlay, held);
             return;
         }
 
@@ -157,6 +160,16 @@ public sealed partial class WaveHudSystem
             : TryComp<FSAmmoCrateComponent>(hmg.Comp.Crate, out var crate)
                 ? Loc.GetString("fs-hud-hmg-detail", ("crate", crate.Rounds), ("heat", heat))
                 : Loc.GetString("fs-hud-hmg-no-crate", ("heat", heat));
+    }
+
+    private void UpdateShotMeter(WaveHudOverlay overlay, EntityUid held)
+    {
+        if (!TryComp<FSMeleeShotStateComponent>(held, out var shots) || !TryComp<FSMeleeJuiceComponent>(held, out var juice))
+            return;
+
+        var left = shots.Charges < shots.MaxCharges ? Math.Max(0f, (float) (shots.NextCharge - _timing.CurTime).TotalSeconds) : 0f;
+        var refill = juice.ShotRecharge > 0f ? 1f - Math.Clamp(left / juice.ShotRecharge, 0f, 1f) : 1f;
+        overlay.Shots = new WaveHudOverlay.ShotMeter(shots.Charges, shots.MaxCharges, refill, left);
     }
 
     private void UpdateUberMeter(WaveHudOverlay overlay, EntityUid held)

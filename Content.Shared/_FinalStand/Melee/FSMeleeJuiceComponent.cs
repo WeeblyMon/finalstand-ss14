@@ -1,6 +1,7 @@
 using Content.Shared._FinalStand.Particles;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Melee;
 
@@ -107,6 +108,10 @@ public sealed partial class FSMeleeJuiceComponent : Component
 
     [DataField]
     public EntProtoId? ShotAmmo;
+
+    // The gun as drawn in place of this weapon while it fires.
+    [DataField]
+    public SpriteSpecifier.Rsi? ShotSprite;
 
     // Shots held before the first runs out; more come from the gun's magazine upgrades.
     [DataField]

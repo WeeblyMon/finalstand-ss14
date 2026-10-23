@@ -84,7 +84,7 @@ public abstract partial class SharedFSMeleeJuiceSystem
     }
 
     // Spends one of the weapon's shots, or waits a moment if none are ready.
-    private bool TakeShot(Entity<FSMeleeJuiceComponent> weapon)
+    private bool TakeShot(Entity<FSMeleeJuiceComponent> weapon, Vector2 aim)
     {
         if (!TryComp<MeleeWeaponComponent>(weapon, out var melee))
             return false;
@@ -98,6 +98,8 @@ public abstract partial class SharedFSMeleeJuiceSystem
                 shots.NextCharge = now + TimeSpan.FromSeconds(weapon.Comp.ShotRecharge);
 
             shots.Charges--;
+            shots.LastShot = now;
+            shots.LastAim = aim.ToAngle();
             Dirty(weapon, shots);
         }
 

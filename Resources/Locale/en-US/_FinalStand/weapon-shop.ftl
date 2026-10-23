@@ -5,7 +5,6 @@ shop-upgrade-purchased = {$name} upgraded!
 shop-upgrade-max-level = Already at max level.
 shop-upgrade-hold-target = Hold the {$proto} to upgrade it, or keep it in a pocket.
 shop-upgrade-locked = Locked — buy the prerequisite upgrade first.
-shop-upgrade-excluded = Can't be combined with { $name }.
 shop-upgrade-locked-research = Locked — research {$node} first.
 shop-upgrade-research-label = LOCKED · {$node}
 

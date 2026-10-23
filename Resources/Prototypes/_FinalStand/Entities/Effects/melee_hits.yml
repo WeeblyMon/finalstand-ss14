@@ -91,6 +91,42 @@
     scale: 1.7, 1.7
     color: "#7ff0ffdd"
 
+# The gun a Shot heavy draws for its shot; its sprite layer comes from the weapon.
+- type: entity
+  id: FSMeleeDrawnGun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: OverMobs
+  - type: AnimationPlayer
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  parent: FSMeleeSpinRing
+  id: FSMeleeWildfireBurst
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Sprite
+    state: ring
+    scale: 2.4, 2.4
+    color: "#ff7a1ce0"
+
+- type: entity
+  parent: FSMeleeSpinRing
+  id: FSMeleeAftershockBurst
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Sprite
+    state: ring
+    scale: 3.2, 3.2
+    color: "#d8a060d0"
+
 - type: entity
   parent: FSMeleeEffectBase
   id: FSMeleeHitCross

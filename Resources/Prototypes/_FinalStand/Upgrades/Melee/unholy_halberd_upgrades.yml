@@ -39,21 +39,28 @@
       valuePerLevel: 0.1
     - id: halberd-whirlwind
       name: Whirlwind
-      description: Hold right click to keep spinning, at 4 health a spin. Stops before it would put you down. Can't be combined with Brace.
+      description: Hold right click to keep spinning, at 4 health a spin. Stops before it would put you down.
       maxLevel: 1
       baseCost: 9000
       type: Whirlwind
       valuePerLevel: 1
-      excludes: halberd-brace
+    - id: halberd-cyclone
+      name: Cyclone
+      description: Whirlwind spins 30% faster per level, at the same health a second.
+      maxLevel: 2
+      baseCost: 7000
+      type: MeleeSignature
+      signature: Cyclone
+      valuePerLevel: 0.3
+      requiresUpgrade: halberd-whirlwind
     - id: halberd-brace
       name: Brace
-      description: Thrusts from a standing start drive through two zombies behind and knock back twice as hard. Can't be combined with Whirlwind.
+      description: Thrusts from a standing start drive through two zombies behind and knock back twice as hard.
       maxLevel: 1
       baseCost: 9000
       type: MeleeSignature
       signature: Brace
       valuePerLevel: 1
-      excludes: halberd-whirlwind
     - id: halberd-sanguine-thrust
       name: Sanguine Thrust
       description: Each thrust that lands restores 2 health per level.

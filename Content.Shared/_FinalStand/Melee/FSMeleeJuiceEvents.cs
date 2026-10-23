@@ -1,4 +1,5 @@
 using System.Numerics;
+using Robust.Shared.Map;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Melee;
@@ -43,4 +44,12 @@ public sealed class FSMeleeWallBounceEvent(NetEntity target, Vector2 direction) 
 {
     public NetEntity Target = target;
     public Vector2 Direction = direction;
+}
+
+// A burst of fire or force going off on its own, away from any swing.
+[Serializable, NetSerializable]
+public sealed class FSMeleeBurstEvent(NetCoordinates at, string effect) : EntityEventArgs
+{
+    public NetCoordinates At = at;
+    public string Effect = effect;
 }

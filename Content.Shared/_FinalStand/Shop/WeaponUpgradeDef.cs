@@ -148,9 +148,6 @@ public sealed partial class WeaponUpgradeDef
 
     [DataField] public FSMeleeSignature? Signature;
 
-    // Another upgrade on the same weapon this one can't be owned alongside.
-    [DataField] public string? Excludes;
-
     [DataField] public string? RequiresUpgrade;
 
     /// <summary>While this upgrade is owned, the row shows AltName and AltDescription instead.</summary>

@@ -1,3 +1,4 @@
+using System.Numerics;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Melee;
@@ -111,4 +112,33 @@ public sealed partial class FSMeleeShotStateComponent : Component
 
     [AutoNetworkedField]
     public TimeSpan NextCharge;
+
+    // When and where the last shot went, so the wielder is seen drawing the gun and firing.
+    [AutoNetworkedField]
+    public TimeSpan LastShot;
+
+    [AutoNetworkedField]
+    public Angle LastAim;
+}
+
+// Carries the user at a set speed with friction off, so a dash travels rather than jumps.
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSMeleeDashComponent : Component
+{
+    [AutoNetworkedField]
+    public Vector2 Velocity;
+
+    [AutoNetworkedField]
+    public TimeSpan Until;
+}
+
+// Cuts the damage the user takes during a dash, or for as long as a weapon is winding up.
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSMeleeGuardComponent : Component
+{
+    [AutoNetworkedField]
+    public TimeSpan Until;
+
+    [AutoNetworkedField]
+    public EntityUid? Charging;
 }

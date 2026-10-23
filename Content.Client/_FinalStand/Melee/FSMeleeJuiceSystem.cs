@@ -112,6 +112,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         SubscribeNetworkEvent<FSMeleeHitJuiceEvent>(OnHitEvent);
         SubscribeNetworkEvent<FSMeleeKillJuiceEvent>(OnKillEvent);
         SubscribeNetworkEvent<FSMeleeWallBounceEvent>(OnWallBounce);
+        SubscribeNetworkEvent<FSMeleeBurstEvent>(OnBurst);
         SubscribeLocalEvent<FSMeleeShakeComponent, GetEyeOffsetEvent>(OnEyeOffset);
 
         UpdatesAfter.Add(typeof(EyeLerpingSystem));
@@ -504,6 +505,16 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
     }
 
+    private void OnBurst(FSMeleeBurstEvent ev)
+    {
+        if (!_cfg.GetCVar(CCVars.FSMeleeEffects))
+            return;
+
+        var at = GetCoordinates(ev.At);
+        Spawn(ev.Effect, at);
+        _particles.Burst(Dust, Xform.ToMapCoordinates(at), null, 3f);
+    }
+
     private void OnWallBounce(FSMeleeWallBounceEvent ev)
     {
         if (!TryGetEntity(ev.Target, out var target) || !TryComp<SpriteComponent>(target, out var sprite))
@@ -632,6 +643,21 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             Color = profile.TrailColor,
             Opacity = opacity,
             Until = RealTime + swingLength,
+        });
+    }
+
+    // A streak left on the ground behind a dashing body.
+    public void TrackDash(EntityUid body, float seconds, float duration, float width, Color color)
+    {
+        Trails.Add(new Trail
+        {
+            Arc = body,
+            Map = Transform(body).MapID,
+            Duration = duration,
+            Width = width,
+            Color = color,
+            Opacity = 1f,
+            Until = RealTime + seconds,
         });
     }
 

@@ -8,6 +8,7 @@ using Content.Shared.Body.Components;
 using Content.Shared.CombatMode;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands;
 using Content.Shared.Interaction;
@@ -71,10 +72,16 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     private const float RevDumpForce = 0.15f;
     private const float SweepPickRadius = 2f;
     private const float SweepRetry = 0.15f;
-    private static readonly TimeSpan SweepPassTime = TimeSpan.FromSeconds(0.25);
+    private static readonly TimeSpan SweepPassTime = TimeSpan.FromSeconds(0.1);
+    private static readonly TimeSpan SweepGuardTime = TimeSpan.FromSeconds(0.3);
+    private const float SweepDashSpeed = 15f;
+    private const float SweepDashMin = 0.15f;
+    private const float SweepDashMax = 0.4f;
+    private const float DashExitSpeed = 4f;
+    private const float GuardDamage = 0.5f;
     private const float RevDumpTrauma = 0.08f;
     private static readonly TimeSpan WhirlInterval = TimeSpan.FromSeconds(0.45);
-    public const float WhirlHealthCost = 4f;
+    private const float WhirlHealthCost = 4f;
     private const float WhirlHealthFloor = 0.85f;
 
     private readonly List<EntityUid> _expired = new();
@@ -93,6 +100,8 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         SubscribeLocalEvent<FSMeleeChargeComponent, GotUnequippedHandEvent>(OnChargeUnequipped);
         SubscribeLocalEvent<FSMeleeChargeComponent, HandDeselectedEvent>(OnChargeDeselected);
         SubscribeLocalEvent<FSMeleeSweepComponent, PreventCollideEvent>(OnSweepCollide);
+        SubscribeLocalEvent<FSMeleeDashComponent, RefreshFrictionModifiersEvent>(OnDashFriction);
+        SubscribeLocalEvent<FSMeleeGuardComponent, DamageModifyEvent>(OnGuardDamage);
     }
 
     // Heavy profiles grow with the charge behind them.
@@ -145,6 +154,14 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             return;
 
         charge.ChargeStart = Timing.CurTime;
+
+        // Unstoppable: the wind-up takes half damage.
+        if (Signature(weapon.Value, FSMeleeSignature.Unstoppable) > 0f)
+        {
+            var guard = EnsureComp<FSMeleeGuardComponent>(user);
+            guard.Charging = weapon;
+            Dirty(user, guard);
+        }
 
         // Running Start: a wind-up begun at a sprint starts half full.
         if (Signature(weapon.Value, FSMeleeSignature.RunningStart) > 0f && TryComp<FSSprintComponent>(user, out var sprint) && sprint.IsSprinting)
@@ -221,7 +238,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (heavy && ent.Comp.HeavyStyle == FSMeleeHeavyStyle.Shot && !args.Handled)
         {
             args.Handled = true;
-            if (args.Direction is { } aim && aim != Vector2.Zero && TakeShot(ent))
+            if (args.Direction is { } aim && aim != Vector2.Zero && TakeShot(ent, aim))
                 OnHeavyShot(ent, args.User, aim);
             return;
         }
@@ -491,17 +508,18 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (target == null)
             return;
 
+        var offset = Xform.GetWorldPosition(target.Value) - Xform.GetWorldPosition(user);
+        var dir = offset == Vector2.Zero ? Vector2.Normalize(cursor) : Vector2.Normalize(offset);
+        var dashing = SweepDash(user, dir, offset.Length() + weapon.Comp.SweepOvershoot * reach);
+        Guard(user, now + dashing + SweepGuardTime);
+
         var chained = now - sweep.Last <= TimeSpan.FromSeconds(weapon.Comp.SweepStackWindow) ? sweep.Stacks : 0;
         sweep.Stacks = Math.Min(chained + 1, weapon.Comp.SweepMaxStacks);
         sweep.Last = now;
         sweep.Marked[target.Value] = now + TimeSpan.FromSeconds(weapon.Comp.SweepMarkTime);
-        sweep.PassUntil = now + SweepPassTime;
+        sweep.PassUntil = now + dashing + SweepPassTime;
         sweep.TempestUsed = false;
         Dirty(user, sweep);
-
-        var offset = Xform.GetWorldPosition(target.Value) - Xform.GetWorldPosition(user);
-        var dir = offset == Vector2.Zero ? Vector2.Normalize(cursor) : Vector2.Normalize(offset);
-        Dash(user, dir, offset.Length() + weapon.Comp.SweepOvershoot * reach);
 
         profile = profile.Copy();
         profile.DamageMultiplier *= reach * (1f + weapon.Comp.SweepStackBonus * chained);
@@ -573,11 +591,13 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (!TryComp<MeleeWeaponComponent>(weapon, out var melee))
             return;
 
-        if (CanWhirl(user, weapon))
+        // Cyclone spins faster for the same health a second.
+        var whirl = 1f / (1f + Signature(weapon, FSMeleeSignature.Cyclone));
+        if (CanWhirl(user, weapon, WhirlHealthCost * whirl))
         {
-            melee.NextAttack = Timing.CurTime + WhirlInterval;
+            melee.NextAttack = Timing.CurTime + WhirlInterval * whirl;
             DirtyField(weapon, melee, nameof(MeleeWeaponComponent.NextAttack));
-            OnWhirl(user);
+            OnWhirl(user, WhirlHealthCost * whirl);
             return;
         }
 
@@ -597,7 +617,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     }
 
     // Whirlwind keeps a spin going for as long as the heavy is held, until the wielder is too hurt to pay for it.
-    private bool CanWhirl(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
+    private bool CanWhirl(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, float cost)
     {
         if (weapon.Comp.HeavyStyle != FSMeleeHeavyStyle.Spin
             || !TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades)
@@ -609,10 +629,10 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             || !_thresholds.TryGetThresholdForState(user, MobState.Critical, out var critical, thresholds))
             return true;
 
-        return damageable.TotalDamage + WhirlHealthCost < critical.Value * WhirlHealthFloor;
+        return damageable.TotalDamage + cost < critical.Value * WhirlHealthFloor;
     }
 
-    protected virtual void OnWhirl(EntityUid user)
+    protected virtual void OnWhirl(EntityUid user, float cost)
     {
     }
 
@@ -692,6 +712,30 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (!Resolve(user, ref body, false))
             return;
 
+        distance = ClearDistance(user, dir, distance);
+        if (distance > 0f)
+            _physics.SetLinearVelocity(user, dir * distance * MobFriction, body: body);
+    }
+
+    // Carries the user along dir at a steady speed for as long as the distance takes, rather than in one shove.
+    private TimeSpan SweepDash(EntityUid user, Vector2 dir, float distance)
+    {
+        distance = ClearDistance(user, dir, distance);
+        if (distance <= 0f || !TryComp<PhysicsComponent>(user, out var body))
+            return TimeSpan.Zero;
+
+        var time = Math.Clamp(distance / SweepDashSpeed, SweepDashMin, SweepDashMax);
+        var dash = EnsureComp<FSMeleeDashComponent>(user);
+        dash.Velocity = dir * (distance / time);
+        dash.Until = Timing.CurTime + TimeSpan.FromSeconds(time);
+        Dirty(user, dash);
+        _movement.RefreshFrictionModifiers(user);
+        _physics.SetLinearVelocity(user, dash.Velocity, body: body);
+        return TimeSpan.FromSeconds(time);
+    }
+
+    private float ClearDistance(EntityUid user, Vector2 dir, float distance)
+    {
         var xform = Transform(user);
         var ray = new CollisionRay(Xform.GetWorldPosition(xform), dir, (int) CollisionGroup.Impassable);
         foreach (var hit in _physics.IntersectRay(xform.MapID, ray, distance + WallMargin, user, returnOnFirstHit: true))
@@ -699,10 +743,51 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             distance = Math.Min(distance, hit.Distance - WallMargin);
         }
 
-        if (distance <= 0f)
+        return distance;
+    }
+
+    private void OnDashFriction(Entity<FSMeleeDashComponent> ent, ref RefreshFrictionModifiersEvent args)
+    {
+        if (ent.Comp.Velocity == Vector2.Zero)
             return;
 
-        _physics.SetLinearVelocity(user, dir * distance * MobFriction, body: body);
+        args.ModifyFriction(0f);
+        args.ModifyAcceleration(0f);
+    }
+
+    // Ends finished dashes with a short skid. The client only runs its own, predicted body.
+    private void UpdateDashes()
+    {
+        var now = Timing.CurTime;
+        var dashes = EntityQueryEnumerator<FSMeleeDashComponent, PhysicsComponent>();
+        while (dashes.MoveNext(out var uid, out var dash, out var body))
+        {
+            if (dash.Velocity == Vector2.Zero || now < dash.Until || !_net.IsServer && !body.Predict)
+                continue;
+
+            var speed = Math.Min(body.LinearVelocity.Length(), DashExitSpeed);
+            _physics.SetLinearVelocity(uid, Vector2.Normalize(dash.Velocity) * speed, body: body);
+            dash.Velocity = Vector2.Zero;
+            Dirty(uid, dash);
+            _movement.RefreshFrictionModifiers(uid);
+        }
+    }
+
+    private void Guard(EntityUid user, TimeSpan until)
+    {
+        var guard = EnsureComp<FSMeleeGuardComponent>(user);
+        if (guard.Until >= until)
+            return;
+
+        guard.Until = until;
+        Dirty(user, guard);
+    }
+
+    private void OnGuardDamage(Entity<FSMeleeGuardComponent> ent, ref DamageModifyEvent args)
+    {
+        if (Timing.CurTime < ent.Comp.Until
+            || ent.Comp.Charging is { } weapon && TryComp<FSMeleeChargeComponent>(weapon, out var charge) && charge.ChargeStart != null)
+            args.Damage *= GuardDamage;
     }
 
     private void OnFlinchSpeed(Entity<FSMeleeFlinchComponent> ent, ref RefreshMovementSpeedModifiersEvent args)
@@ -745,6 +830,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        UpdateDashes();
 
         if (!_net.IsServer)
             return;

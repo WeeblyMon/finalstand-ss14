@@ -295,13 +295,6 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             }
         }
 
-        if (def.Excludes is { } excluded && state.Levels.GetValueOrDefault(excluded, 0) > 0)
-        {
-            var other = comp.Upgrades.FirstOrDefault(u => u.Id == excluded)?.Name ?? excluded;
-            _popup.PopupEntity(Loc.GetString("shop-upgrade-excluded", ("name", other)), uid, player);
-            return;
-        }
-
         var cost = def.LevelCost(currentLevel + 1,
             def.DiscountResearch is { } discountNode && _fsResearch.IsNodeUnlocked(discountNode));
 

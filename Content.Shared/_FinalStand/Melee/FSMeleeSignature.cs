@@ -13,8 +13,14 @@ public enum FSMeleeSignature : byte
     Ricochet,
     RunningStart,
 
+    // Fire axe
+    Unstoppable,
+    Wildfire,
+    Aftershock,
+
     // Halberd
     Brace,
+    Cyclone,
 
     // Cutlass
     QuickReload,
