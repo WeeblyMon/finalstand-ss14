@@ -199,7 +199,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                 _particles.Burst(emitter, target.Value, profile.ParticleTint, 1.5f);
         }
 
-        if (TryGetEntity(ev.User, out var user) && user == _player.LocalEntity && RealTime - _zoomStart > KillZoomCooldown)
+        // A sweep kill lands mid-dash, where a zoom punch only fights the camera.
+        if (TryGetEntity(ev.User, out var user) && user == _player.LocalEntity && RealTime - _zoomStart > KillZoomCooldown
+            && !(ev.Heavy && juice.HeavyStyle == FSMeleeHeavyStyle.Sweep))
             StartZoom(profile.KillZoom);
     }
 

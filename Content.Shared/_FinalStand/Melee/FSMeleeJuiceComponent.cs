@@ -81,10 +81,6 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public float SweepRange = 3.5f;
 
-    // Tiles carried past the enemy.
-    [DataField]
-    public float SweepOvershoot = 1.2f;
-
     [DataField]
     public float SweepCooldown = 0.4f;
 

@@ -74,9 +74,9 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     private const float SweepRetry = 0.15f;
     private static readonly TimeSpan SweepPassTime = TimeSpan.FromSeconds(0.1);
     private static readonly TimeSpan SweepGuardTime = TimeSpan.FromSeconds(0.3);
-    private const float SweepDashSpeed = 15f;
-    private const float SweepDashMin = 0.15f;
-    private const float SweepDashMax = 0.4f;
+    private const float SweepDashSpeed = 9f;
+    private const float SweepDashMin = 0.2f;
+    private const float SweepDashMax = 0.6f;
     private const float DashExitSpeed = 4f;
     private const float GuardDamage = 0.5f;
     private const float RevDumpTrauma = 0.08f;
@@ -510,7 +510,8 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         var offset = Xform.GetWorldPosition(target.Value) - Xform.GetWorldPosition(user);
         var dir = offset == Vector2.Zero ? Vector2.Normalize(cursor) : Vector2.Normalize(offset);
-        var dashing = SweepDash(user, dir, offset.Length() + weapon.Comp.SweepOvershoot * reach);
+        // Always the full range, so it carries through the target and both sides agree where it ends.
+        var dashing = SweepDash(user, dir, range);
         Guard(user, now + dashing + SweepGuardTime);
 
         var chained = now - sweep.Last <= TimeSpan.FromSeconds(weapon.Comp.SweepStackWindow) ? sweep.Stacks : 0;
@@ -521,9 +522,13 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         sweep.TempestUsed = false;
         Dirty(user, sweep);
 
+        // The dash already moves the camera; shaking, zooming or freezing it on top feels like lag.
         profile = profile.Copy();
         profile.DamageMultiplier *= reach * (1f + weapon.Comp.SweepStackBonus * chained);
-        profile.Trauma = Math.Min(1f, profile.Trauma + 0.08f * chained);
+        profile.Trauma = 0f;
+        profile.Hitstop = 0f;
+        profile.KillHitstopBonus = 0f;
+        profile.KillZoom = 0f;
         profile.Crit = weapon.Comp.CritWhen == FSMeleeCritWhen.SweepChain && sweep.Stacks >= weapon.Comp.SweepMaxStacks;
         profile.Execution = Signature(weapon, FSMeleeSignature.LastBreath) > 0f && Airborne(target.Value);
         args.BonusDamage += args.BaseDamage * (profile.DamageMultiplier - 1f);

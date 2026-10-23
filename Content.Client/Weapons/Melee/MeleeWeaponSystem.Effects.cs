@@ -36,11 +36,15 @@ public sealed partial class MeleeWeaponSystem
         if (juiceHeavy && _fsJuice.GetStyle(weapon, true) == FSMeleeHeavyStyle.Shot)
             return;
 
-        var lunge = GetLungeAnimation(localPos, anticipation, hold);
+        // FINALSTAND: a sweep moves the body itself, so a lunge on top only jerks the sprite.
+        if (!(juiceHeavy && _fsJuice.GetStyle(weapon, true) == FSMeleeHeavyStyle.Sweep))
+        {
+            var lunge = GetLungeAnimation(localPos, anticipation, hold);
 
-        // Stop any existing lunges on the user.
-        _animation.Stop(user, MeleeLungeKey);
-        _animation.Play(user, lunge, MeleeLungeKey);
+            // Stop any existing lunges on the user.
+            _animation.Stop(user, MeleeLungeKey);
+            _animation.Play(user, lunge, MeleeLungeKey);
+        }
 
         if (localPos == Vector2.Zero || animation == null)
             return;

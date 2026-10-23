@@ -14,6 +14,7 @@ using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
+using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
@@ -371,6 +372,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     {
         _damageable.ChangeDamage(user, new DamageSpecifier(_proto.Index(WallSlamType), cost), ignoreResistances: true, interruptsDoAfters: false);
         _color.RaiseEffect(Color.Red, [user], Filter.Pvs(user, entityManager: EntityManager));
+        if (TryComp<ActorComponent>(user, out var actor))
+            RaiseNetworkEvent(new FSDamageNumberEvent { Target = GetNetEntity(user), Amount = cost }, actor.PlayerSession);
     }
 
     protected override void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage, bool lastBreath)
