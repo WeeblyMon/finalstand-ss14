@@ -1,3 +1,4 @@
+#nullable enable
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.IntegrationTests.Tests.Helpers;
@@ -8,14 +9,19 @@ using Content.Shared._FinalStand.Medical;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._Shitmed.Medical.Surgery.Steps.Parts;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
+using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Atmos;
 using Content.Shared.Body;
 using Content.Shared.DoAfter;
 using Content.Shared.Gravity;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Interaction;
+using Content.Shared.Medical;
 using Content.Shared.Mind;
 using Content.Shared.Standing;
+using Robust.Server.GameObjects;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 using ServerSurgerySystem = Content.Server._Shitmed.Medical.Surgery.SurgerySystem;
@@ -31,7 +37,7 @@ public sealed class SurgeryFlowTest : GameTest
 
     private const string Blunt = "Blunt";
 
-    private static readonly string[] FloorTools = ["Scalpel", "Retractor", "Hemostat", "Cautery"];
+    private static readonly string[] FloorTools = ["Scalpel", "Retractor", "Hemostat", "Cautery", "BoneGel", "MedicalStitches", "Saw"];
 
     private sealed class Theatre
     {
@@ -297,6 +303,205 @@ public sealed class SurgeryFlowTest : GameTest
             Assert.That(Completions(theatre, "SurgeryAttachLeftArm"), Is.EqualTo(1),
                 "sealing the arm did not finish the operation");
             Assert.That(Points(theatre), Is.GreaterThan(before), "reattaching an arm paid the surgeon nothing");
+        });
+    }
+
+    private async Task<EntityUid> BleedingArm(Theatre theatre)
+    {
+        var arm = EntityUid.Invalid;
+
+        await Server.WaitAssertion(() =>
+        {
+            arm = Part(theatre, OrganCategories.ArmLeft);
+            Assert.That(SEntMan.System<WoundSystem>().TryInduceWound(arm, Blunt, 12, out _), Is.True,
+                "the arm could not be hurt");
+        });
+
+        await RunTicksSync(5);
+        return arm;
+    }
+
+    private FSSurgeryPlan Plan(Theatre theatre, EntityUid part)
+    {
+        return SEntMan.System<FSSurgeryPlanSystem>().BuildPlan(theatre.Patient, part);
+    }
+
+    [Test]
+    public async Task ABleedingArmIsOpenedFirstAndTheRestWaitsOnTheBleeding()
+    {
+        var theatre = await Prepare();
+        var arm = await BleedingArm(theatre);
+
+        await Server.WaitAssertion(() =>
+        {
+            var plan = Plan(theatre, arm);
+            var problems = plan.Groups.Where(g => g.Kind == FSPlanGroupKind.Problem).ToList();
+
+            Assert.That(problems.Any(g => g.Surgery == "SurgeryStopBloodOutput" && g.Blocker == null), Is.True,
+                "a bleeding arm is not planned for Stop Bleeding");
+            Assert.That(plan.Groups.First().Kind, Is.EqualTo(FSPlanGroupKind.Opening), "the plan does not open the arm first");
+            Assert.That(plan.Groups.Last().Kind, Is.EqualTo(FSPlanGroupKind.Closing), "the plan does not end by closing the arm");
+            Assert.That(plan.Groups.Last().Rows.All(r => r.State == FSPlanRowState.Waiting), Is.True,
+                "closing the arm shows as done before it was opened");
+            Assert.That(plan.Next?.Surgery.Id, Is.EqualTo("SurgeryOpenIncision"), "the first step is not the incision");
+
+            foreach (var waiting in problems.Where(g => g.Blocker != null))
+            {
+                Assert.That(waiting.Blocker!.Value.Id,
+                    Is.AnyOf("fs-surgery-wait-bleeding", "fs-surgery-tend-wounds-blocked"),
+                    $"{waiting.Surgery} waits for the wrong reason");
+            }
+        });
+    }
+
+    [Test]
+    public async Task DoingWhatThePlanSaysFixesAndClosesTheArm()
+    {
+        var theatre = await Prepare();
+        var arm = await BleedingArm(theatre);
+
+        for (var i = 0; i < 40; i++)
+        {
+            FSSurgeryPlanRow? next = null;
+            await Server.WaitPost(() => next = Plan(theatre, arm).Next);
+
+            if (next == null)
+                break;
+
+            await Perform(theatre, arm, next.Surgery, next.Step);
+        }
+
+        await Server.WaitAssertion(() =>
+        {
+            var plan = Plan(theatre, arm);
+            Assert.That(plan.Next, Is.Null, "the plan never ran out of steps");
+            Assert.That(plan.Groups.Where(g => g.Kind == FSPlanGroupKind.Problem), Is.Empty,
+                "problems are left on the arm after following the plan");
+            Assert.That(plan.IsOpen, Is.False, "the arm was left open");
+            Assert.That(SEntMan.GetComponent<WoundableComponent>(arm).Bleeds.Float(), Is.EqualTo(0f), "the arm still bleeds");
+            Assert.That(Points(theatre), Is.GreaterThan(0), "fixing the arm paid nothing");
+        });
+    }
+
+    [Test]
+    public async Task DoAllFinishesThePlanOnItsOwn()
+    {
+        var theatre = await Prepare();
+        var arm = await BleedingArm(theatre);
+
+        await Server.WaitPost(() =>
+        {
+            SEntMan.System<UserInterfaceSystem>().OpenUi(theatre.Patient, SurgeryUIKey.Key, theatre.Surgeon);
+
+            var auto = SEntMan.EnsureComponent<FSSurgeryAutoComponent>(theatre.Surgeon);
+            auto.Patient = theatre.Patient;
+            auto.Part = arm;
+        });
+
+        for (var i = 0; i < 400; i++)
+        {
+            await RunSeconds(1);
+
+            var running = true;
+            await Server.WaitPost(() => running = SEntMan.HasComponent<FSSurgeryAutoComponent>(theatre.Surgeon));
+            if (!running)
+                break;
+        }
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.HasComponent<FSSurgeryAutoComponent>(theatre.Surgeon), Is.False, "Do all never stopped");
+
+            var plan = Plan(theatre, arm);
+            Assert.That(plan.Next, Is.Null, $"Do all stopped with {plan.Next?.Step} still to do");
+            Assert.That(plan.IsOpen, Is.False, "Do all left the arm open");
+        });
+    }
+
+    [Test]
+    public async Task UsingAToolOnThePatientDoesTheNextStep()
+    {
+        var theatre = await Prepare();
+        var arm = await BleedingArm(theatre);
+        var scalpel = EntityUid.Invalid;
+
+        await Server.WaitAssertion(() =>
+        {
+            scalpel = SEntMan.SpawnEntity("Scalpel", SEntMan.GetComponent<TransformComponent>(theatre.Surgeon).Coordinates);
+            Assert.That(SEntMan.System<SharedHandsSystem>().TryPickupAnyHand(theatre.Surgeon, scalpel), Is.True);
+
+            SEntMan.EnsureComponent<TargetingComponent>(theatre.Surgeon).Target = TargetBodyPart.LeftArm;
+
+            var ev = new AfterInteractEvent(theatre.Surgeon,
+                scalpel,
+                theatre.Patient,
+                SEntMan.GetComponent<TransformComponent>(theatre.Patient).Coordinates,
+                true);
+            SEntMan.EventBus.RaiseLocalEvent(scalpel, ev);
+
+            Assert.That(ev.Handled, Is.True, "using a scalpel on the patient was ignored");
+            Assert.That(SEntMan.HasComponent<ActiveDoAfterComponent>(theatre.Surgeon), Is.True,
+                "using a scalpel on the patient did not start the incision");
+        });
+
+        await WaitForTheSurgeon(theatre, "SurgeryStepOpenIncisionScalpel");
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.HasComponent<IncisionOpenComponent>(arm), Is.True, "the incision was not made on the targeted arm");
+        });
+    }
+
+    [Test]
+    public async Task UsingTheWrongToolStartsNothing()
+    {
+        var theatre = await Prepare();
+        await BleedingArm(theatre);
+
+        await Server.WaitAssertion(() =>
+        {
+            var cautery = SEntMan.SpawnEntity("Cautery", SEntMan.GetComponent<TransformComponent>(theatre.Surgeon).Coordinates);
+            Assert.That(SEntMan.System<SharedHandsSystem>().TryPickupAnyHand(theatre.Surgeon, cautery), Is.True);
+
+            SEntMan.EnsureComponent<TargetingComponent>(theatre.Surgeon).Target = TargetBodyPart.LeftArm;
+
+            var ev = new AfterInteractEvent(theatre.Surgeon,
+                cautery,
+                theatre.Patient,
+                SEntMan.GetComponent<TransformComponent>(theatre.Patient).Coordinates,
+                true);
+            SEntMan.EventBus.RaiseLocalEvent(cautery, ev);
+
+            Assert.That(SEntMan.HasComponent<ActiveDoAfterComponent>(theatre.Surgeon), Is.False,
+                "a cautery started a step that needs a scalpel");
+        });
+    }
+
+    [Test]
+    public async Task ASutureThatFitsNoStepStillHeals()
+    {
+        var theatre = await Prepare();
+        await BleedingArm(theatre);
+
+        await Server.WaitAssertion(() =>
+        {
+            SEntMan.System<UserInterfaceSystem>().OpenUi(theatre.Patient, SurgeryUIKey.Key, theatre.Surgeon);
+
+            var suture = SEntMan.SpawnEntity("MedicatedSuture", SEntMan.GetComponent<TransformComponent>(theatre.Surgeon).Coordinates);
+            Assert.That(SEntMan.System<SharedHandsSystem>().TryPickupAnyHand(theatre.Surgeon, suture), Is.True);
+
+            var ev = new AfterInteractEvent(theatre.Surgeon,
+                suture,
+                theatre.Patient,
+                SEntMan.GetComponent<TransformComponent>(theatre.Patient).Coordinates,
+                true);
+            SEntMan.EventBus.RaiseLocalEvent(suture, ev);
+
+            var doAfters = SEntMan.GetComponent<DoAfterComponent>(theatre.Surgeon).DoAfters.Values;
+            Assert.That(doAfters.Any(d => d.Args.Event is SurgeryDoAfterEvent), Is.False,
+                "a suture started a step that needs a scalpel");
+            Assert.That(doAfters.Any(d => d.Args.Event is HealingDoAfterEvent), Is.True,
+                "the open surgery window stopped the suture from healing");
         });
     }
 
