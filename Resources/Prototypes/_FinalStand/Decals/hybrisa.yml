@@ -1,0 +1,893 @@
+- type: decal
+  abstract: true
+  id: FSDecalHybrisaBase
+  tags: ["station", "markings"]
+
+# Road
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge5
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal5
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge6
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal6
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge7
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal7
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge8
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal8
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge9
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal9
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge10
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal10
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge11
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal11
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadEdge12
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: road_edge_decal12
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRoadLinesMiddle
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: roadlinesmiddle
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStopDecal1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stop_decal1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStopDecal2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stop_decal2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStopDecal3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stop_decal3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStopDecal4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stop_decal4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStopDecal5
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stop_decal5
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZE4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: Z_E4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZM1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: Z_M1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZM2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: Z_M2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZN2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: Z_N2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZS3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: Z_S3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZW1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: Z_W1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZDE4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: ZD_E4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZDM1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: ZD_M1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZDM2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: ZD_M2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZDN2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: ZD_N2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZDS3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: ZD_S3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZDW1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: ZD_W1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaZCorner
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: Z_corner
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWEYALogo1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: weya_logo1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWEYALogo2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: weya_logo2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWEYALogoWorn1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: weya_logo_worn1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWEYALogoWorn2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: weya_logo_worn2
+
+# Warning Stripes
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningWest
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: W
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningEast
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: E
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningNorth
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: NORTH
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningSouth
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: S
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningNorthEast
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: NE-out
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningNorthWest
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: NW-out
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningSouthEast
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: SE-out
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningSouthWest
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: SW-out
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRedWarningWest
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: red_W
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRedWarningEast
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: red_E
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRedWarningNorth
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: red_N
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRedWarningSouth
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: red_S
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRedWarningNorthEast
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: red_NE-out
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRedWarningNorthWest
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: red_NW-out
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRedWarningSouthEast
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: red_SE-out
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaRedWarningSouthWest
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: red_SW-out
+
+# Trash
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash5
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_5
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash6
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_6
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash7
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_7
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash8
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_8
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash9
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_9
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash10
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_10
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash11
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_11
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash12
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_12
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash13
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_13
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash14
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_14
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash15
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_15
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash16
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_16
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaTrash17
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: trash_17
+
+# Stone Trim
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdge1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdge2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdge3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdge4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeDeco1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_deco_1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeDeco2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_deco_2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeDeco3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_deco_3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeDeco4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_deco_4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeAlt1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_alt_1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeAlt2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_alt_2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeAlt3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_alt_3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeAlt4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_alt_4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeDecoAlt1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_deco_alt_1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeDecoAlt2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_deco_alt_2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeDecoAlt3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_deco_alt_3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaStoneEdgeDecoAlt4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: stone_edging_deco_alt_4
+
+# Diagonal
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaHalfGrate
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: zhalfgrate1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaHalfGrate2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: zhalfgrate2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaHalfGrate3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: zhalfgrate3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaHalfGrate4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: zhalfgrate4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningStripesAngled
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: warningstripes_angled
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningStripesAngled2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: warningstripes_angled2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningStripesAngled3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: warningstripes_angled3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningStripesAngled4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: warningstripes_angled4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningStripesAngledCorner
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: warningstripes_angled_corner
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningStripesAngledCorner2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: warningstripes_angled_corner2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningStripesAngledCorner3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: warningstripes_angled_corner3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWarningStripesAngledCorner4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: warningstripes_angled_corner4
+
+# Engineer Ship
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatformCorners
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engPlatform_corners
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatformCorners2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engPlatform_corners2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatformCorners3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engPlatform_corners3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatformCorners4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engPlatform_corners4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatingAngled
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: plating_angled
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatingAngled2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: plating_angled2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatingAngled3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: plating_angled3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatingAngled4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: plating_angled4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiHullAngled
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: hull_angled
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiHullAngled2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: hull_angled2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiHullAngled3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: hull_angled3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiHullAngled4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: hull_angled4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiHullAngledAlt
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: hull_angled_alt
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiHullAngledAlt2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: hull_angled_alt2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiHullAngledAlt3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: hull_angled_alt3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiHullAngledAlt4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: hull_angled_alt4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatform
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engineer_platform
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatform2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engineer_platform2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatform3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engineer_platform3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatform4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engineer_platform4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatformDeco
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engineer_platform_deco
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatformDeco2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engineer_platform_deco2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatformDeco3
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engineer_platform_deco3
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaEngiPlatformDeco4
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: engineer_platform_deco4
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWorkerSign1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: workers_decal1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaWorkerSign2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: workers_decal2
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaCheckpointSign1
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: checkpoint_decal1
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaCheckpointSign2
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: checkpoint_decal2
+
+# Gold line
+
+- type: decal
+  parent: FSDecalHybrisaBase
+  id: FSDecalHybrisaCasinoGoldline
+  sprite:
+    sprite: _FinalStand/Decals/hybrisa.rsi
+    state: goldline

@@ -1,0 +1,264 @@
+- type: entity
+  parent: BaseStructureDynamic
+  id: FSFloodlightSmall
+  name: small floodlight
+  description: A small bit of light in the darkness.
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Anchorable
+    flags:
+    - Anchorable
+  - type: Sprite
+    noRot: true
+    sprite: _FinalStand/Structures/Lights/floodlight.rsi
+    layers:
+    - state: smallfloodon
+    - state: smallflood
+      visible: false
+      map: [ "light" ]
+  - type: InteractionOutline
+  - type: Repairable
+  - type: Damageable
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: PointLight
+    enabled: true
+    radius: 6
+    netsync: false
+    energy: 5
+    offset: "0, 0"
+    color: "#ECFFFF"
+    mask: /Textures/_FinalStand/Effects/LightMasks/quad_cone.png
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 150
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalGlassBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          SheetSteel1:
+            min: 1
+            max: 1
+          SheetGlass1:
+            min: 1
+            max: 1
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 50
+        mask:
+        - MachineMask
+        layer:
+        - WallLayer
+  - type: Appearance
+
+- type: entity
+  parent: BaseStructure
+  id: FSFloodlightTall
+  name: tall floodlight
+  description: A pillar of light in the darkness.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Anchorable
+    flags:
+    - Anchorable
+  - type: Sprite
+    noRot: true
+    sprite: _FinalStand/Structures/Lights/floodlightbig.rsi
+    layers:
+    - state: bigfloodon
+    - state: bigflood
+      visible: false
+      map: [ "light" ]
+    offset: "0.0,0.5"
+    drawdepth: Mobs
+  - type: Construction
+    graph: FSFloodlightRepair
+    node: completed
+  - type: InteractionOutline
+  - type: Repairable
+  - type: Damageable
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: PointLight
+    enabled: true
+    radius: 10
+    netsync: false
+    energy: 7
+    offset: "0,0.5"
+    color: "#ECFFFF"
+    mask: /Textures/_FinalStand/Effects/LightMasks/quad_cone.png
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 300
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalGlassBreak
+      - !type:ChangeConstructionNodeBehavior
+        node: start
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 50
+        mask:
+        - MachineMask
+        layer:
+        - WallLayer
+  - type: Appearance
+
+- type: entity
+  parent: BaseStructure
+  id: FSFloodlightTallBroken
+  name: broken tall floodlight
+  description: A pasted on note says 'To fix, unscrew the panel, crowbar out the damaged assembly, weld it fixed, add 2 cable, then close the panel.'
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Anchorable
+    flags:
+    - Anchorable
+  - type: Sprite
+    noRot: true
+    sprite: _FinalStand/Structures/Lights/floodlightbig.rsi
+    state: broken
+    offset: "0.0,0.5"
+    drawdepth: Mobs
+  - type: Construction
+    graph: FSFloodlightRepair
+    node: start
+  - type: InteractionOutline
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 155
+        mask:
+        - MachineMask
+        layer:
+        - WallLayer
+
+- type: entity
+  parent: BaseStructure
+  id: FSFloodlightSealed
+  name: sealed floodlight
+  suffix: Indestructible
+  description: A sealed bit of light in the darkness. Never seems to run out of power.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Sprite
+    noRot: true
+    sprite: _FinalStand/Structures/Lights/floodlight.rsi
+    state: magical
+  - type: InteractionOutline
+  - type: PointLight
+    enabled: true
+    radius: 5
+    energy: 3
+    netsync: false
+    color: "#ECFFFF"
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 50
+        mask:
+        - HighImpassable
+  - type: Appearance
+
+- type: entity
+  parent: FSFloodlightSealed
+  id: FSEngineerShipLight
+  name: circular light
+  description: A huge circular light.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Lights/engineer_ship.rsi
+    state: engineerlight_on
+
+- type: entity
+  parent: FSFloodlightTall
+  id: FSStreetlight
+  name: colony streetlight
+  description: A tall street lamp. The casing is thin enough to buckle under a determined crowd.
+  components:
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.1,-0.1,0.1,0.1"
+        density: 50
+        mask:
+        - MachineMask
+        layer:
+        - WallLayer
+  - type: Sprite
+    noRot: true
+    sprite: _FinalStand/Structures/Lights/streetlight.rsi
+    offset: 0.0,0.8
+    layers:
+    - state: street_on
+    - state: street_off
+      visible: false
+      map: [ "light" ]
+    drawdepth: Mobs
+  - type: Construction
+    graph: FSStreetlightRepair
+    node: completed
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalGlassBreak
+      - !type:ChangeConstructionNodeBehavior
+        node: start
+
+- type: entity
+  parent: FSFloodlightTallBroken
+  id: FSStreetlightBroken
+  name: broken colony streetlight
+  description: A pasted on note says 'To fix, unscrew the panel, crowbar out the damaged assembly, weld it fixed, add 2 cable, then close the panel.'
+  components:
+  - type: Sprite
+    noRot: true
+    sprite: _FinalStand/Structures/Lights/streetlight.rsi
+    offset: 0.0,0.8
+    state: broken
+    drawdepth: Mobs
+  - type: Construction
+    graph: FSStreetlightRepair
+    node: start

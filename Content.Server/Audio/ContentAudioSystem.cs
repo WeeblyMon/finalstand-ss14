@@ -22,6 +22,7 @@ public sealed partial class ContentAudioSystem : SharedContentAudioSystem
 
     private SoundCollectionPrototype? _lobbyMusicCollection = default!;
     private string[]? _lobbyPlaylist;
+    private bool _shuffledAtRoundEnd;
 
     public override void Initialize()
     {
@@ -59,6 +60,14 @@ public sealed partial class ContentAudioSystem : SharedContentAudioSystem
     private void OnRoundCleanup(RoundRestartCleanupEvent ev)
     {
         SilenceAudio();
+
+        if (!_shuffledAtRoundEnd)
+        {
+            _lobbyPlaylist = ShuffleLobbyPlaylist();
+            RaiseNetworkEvent(new LobbyPlaylistChangedEvent(_lobbyPlaylist));
+        }
+
+        _shuffledAtRoundEnd = false;
     }
 
     private void OnProtoReload(PrototypesReloadedEventArgs obj)
@@ -91,6 +100,7 @@ public sealed partial class ContentAudioSystem : SharedContentAudioSystem
         // in order for the lobby song status display to be accurate.
         _lobbyPlaylist = ShuffleLobbyPlaylist();
         RaiseNetworkEvent(new LobbyPlaylistChangedEvent(_lobbyPlaylist));
+        _shuffledAtRoundEnd = true;
     }
 
     private string[] ShuffleLobbyPlaylist()

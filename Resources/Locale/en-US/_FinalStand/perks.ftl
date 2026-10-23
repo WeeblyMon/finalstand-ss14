@@ -64,3 +64,7 @@ fs-archetype-tycoon-keystone = +30% kill credits
 fs-archetype-specialist = Specialist
 fs-archetype-specialist-effect = +3% damage, speed and credits, 3% less damage taken
 fs-archetype-specialist-keystone = +8% damage and credits, +5% speed, 8% less damage taken
+
+fs-medievalist-no-guns = Your oath forbids firearms.
+fs-perk-locked = That perk is locked in until the round ends.
+fs-medievalist-no-armour = Your oath forbids armour.

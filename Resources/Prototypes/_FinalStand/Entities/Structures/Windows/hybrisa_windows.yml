@@ -1,0 +1,655 @@
+- type: entity
+  parent: BaseStructure
+  id: FSWindowFrameHybrisa
+  name: window frame
+  description: A metal frame, waiting for a pane.
+  components:
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          PartRodMetal1:
+            min: 2
+            max: 2
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame.rsi
+    state: strata_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame.rsi
+    state: strata_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: BaseStructure
+  id: FSWindowFrameHybrisaReinforced
+  name: window frame
+  description: A metal frame, waiting for a pane.
+  components:
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          PartRodMetal1:
+            min: 2
+            max: 2
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame.rsi
+    state: strata_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame.rsi
+    state: strata_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: BaseWindowStructure
+  id: FSWindowHybrisa
+  name: window
+  description: A glass window inside a wall frame.
+  components:
+  - type: Damageable
+    damageModifierSet: Glass
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/hybrisa_window.rsi
+    state: strata_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/hybrisa_window.rsi
+    state: strata_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_window
+    mode: CardinalFlags
+  - type: Repairable
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 40
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisa
+
+- type: entity
+  parent: BaseWindowStructure
+  id: FSWindowHybrisaReinforced
+  name: reinforced window
+  description: A glass window. Light refracts incorrectly when looking through. It looks rather strong. Might take a few good hits to shatter it.
+  components:
+  - type: Damageable
+    damageModifierSet: Glass
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/hybrisa_window.rsi
+    state: strata_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/hybrisa_window.rsi
+    state: strata_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_window
+    mode: CardinalFlags
+  - type: Repairable
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+              PartRodMetal1:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisaReinforced
+
+- type: entity
+  parent: BaseWindowStructure
+  id: FSWindowHybrisaHull
+  name: hull window
+  description: A glass window. Light refracts incorrectly when looking through. It looks rather strong. No way to get through here.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/hybrisa_window.rsi
+    state: strata_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/hybrisa_window.rsi
+    state: strata_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_window
+    mode: CardinalFlags
+
+# Medical
+
+- type: entity
+  parent: FSWindowFrameHybrisaReinforced
+  id: FSWindowFrameHybrisaMedicalReinforced
+  suffix: medical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame_medical.rsi
+    state: strata_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame_medical.rsi
+    state: strata_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: FSWindowHybrisaReinforced
+  id: FSWindowHybrisaMedicalReinforced
+  suffix: medical
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/hybrisa_window_medical.rsi
+    state: strata_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/hybrisa_window_medical.rsi
+    state: strata_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_window
+    mode: CardinalFlags
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+              PartRodMetal1:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisaMedicalReinforced
+
+# Engineering
+
+- type: entity
+  parent: FSWindowFrameHybrisaReinforced
+  id: FSWindowFrameHybrisaEngiReinforced
+  suffix: engineering
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame_engineering.rsi
+    state: strata_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame_engineering.rsi
+    state: strata_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: FSWindowHybrisaReinforced
+  id: FSWindowHybrisaEngiReinforced
+  suffix: engineering
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/hybrisa_window_engineering.rsi
+    state: strata_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/hybrisa_window_engineering.rsi
+    state: strata_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_window
+    mode: CardinalFlags
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+              PartRodMetal1:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisaEngiReinforced
+
+# Office
+
+- type: entity
+  parent: FSWindowFrameHybrisaReinforced
+  id: FSWindowFrameHybrisaOfficeReinforced
+  suffix: office
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame_office.rsi
+    state: strata_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame_office.rsi
+    state: strata_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: FSWindowHybrisaReinforced
+  id: FSWindowHybrisaOfficeReinforced
+  suffix: office
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/hybrisa_window_office.rsi
+    state: strata_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/hybrisa_window_office.rsi
+    state: strata_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_window
+    mode: CardinalFlags
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+              PartRodMetal1:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisaOfficeReinforced
+
+# Space Port
+
+- type: entity
+  parent: FSWindowFrameHybrisa
+  id: FSWindowFrameHybrisaSpacePort
+  suffix: space port
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_spaceport_frame.rsi
+    state: prison_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_spaceport_frame.rsi
+    state: prison_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: prison_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: FSWindowHybrisa
+  id: FSWindowHybrisaSpacePort
+  suffix: space port
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/spaceport_window.rsi
+    state: prison_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/spaceport_window.rsi
+    state: prison_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: prison_window
+    mode: CardinalFlags
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+              PartRodMetal1:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisaSpacePort
+
+- type: entity
+  parent: FSWindowFrameHybrisaReinforced
+  id: FSWindowFrameHybrisaSpacePortReinforced
+  suffix: space port
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_spaceport_frame.rsi
+    state: prison_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_spaceport_frame.rsi
+    state: prison_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: prison_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: FSWindowHybrisaReinforced
+  id: FSWindowHybrisaSpacePortReinforced
+  suffix: space port
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/rspaceport_window.rsi
+    state: prison_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/rspaceport_window.rsi
+    state: prison_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: prison_window
+    mode: CardinalFlags
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+              PartRodMetal1:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisaSpacePortReinforced
+
+- type: entity
+  parent: FSWindowFrameHybrisaReinforced
+  id: FSWindowFrameHybrisaSpacePortCell
+  suffix: space port
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_spaceport_frame.rsi
+    state: prison_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_spaceport_frame.rsi
+    state: prison_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: prison_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: FSWindowHybrisaReinforced
+  id: FSWindowHybrisaSpacePortCell
+  suffix: space port
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/spaceport_cellwindow.rsi
+    state: prison_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/spaceport_cellwindow.rsi
+    state: prison_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: prison_window
+    mode: CardinalFlags
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+              PartRodMetal1:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisaSpacePortCell
+
+# Research
+
+- type: entity
+  parent: FSWindowFrameHybrisaReinforced
+  id: FSWindowFrameHybrisaResearchReinforced
+  suffix: research
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame_research.rsi
+    state: strata_frame0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/Frames/hybrisa_frame_research.rsi
+    state: strata_frame0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_frame
+    mode: CardinalFlags
+
+- type: entity
+  parent: FSWindowHybrisaReinforced
+  id: FSWindowHybrisaResearchReinforced
+  suffix: research
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Windows/hybrisa_window_research.rsi
+    state: strata_window0
+  - type: Icon
+    sprite: _FinalStand/Structures/Windows/hybrisa_window_research.rsi
+    state: strata_window0
+  - type: IconSmooth
+    key: windows
+    additionalKeys:
+    - doors
+    base: strata_window
+    mode: CardinalFlags
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600 # excessive damage destroys window and frame
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:DoActsBehavior
+            acts: ["Destruction"]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:PlaySoundBehavior
+            sound:
+              collection: WindowShatter
+          - !type:SpawnEntitiesBehavior
+            spawn:
+              ShardGlass:
+                min: 1
+                max: 1
+              PartRodMetal1:
+                min: 1
+                max: 1
+          - !type:ChangeConstructionNodeBehavior
+            node: windowFrameHybrisaResearchReinforced

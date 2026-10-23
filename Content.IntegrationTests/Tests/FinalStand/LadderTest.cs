@@ -41,8 +41,10 @@ public sealed class LadderTest : GameTest
                 Assert.That(ladder.RecordRun(otherLadder), Is.True, "each difficulty keeps its own ladder");
             });
 
-            var normal = ladder.GetTopRuns(FSDifficulty.Normal, FSPlayerBracket.Crew).Select(r => r.Players);
+            var normal = ladder.GetTopRuns(FSDifficulty.Normal, FSPlayerBracket.Any).Select(r => r.Players);
             Assert.That(normal, Is.EqualTo(new[] { "Cy", "Ada", "Bo" }));
+            Assert.That(ladder.RecordRun(first with { Players = "Ed", Bracket = FSPlayerBracket.Squad, Waves = 20 }), Is.False,
+                "a smaller crew competes against the same any-size record");
             Assert.That(ladder.GetTopRuns(FSDifficulty.Normal, FSPlayerBracket.Solo), Is.Empty);
         });
     }
@@ -118,8 +120,8 @@ public sealed class LadderTest : GameTest
             var board = CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(normal));
             Assert.Multiple(() =>
             {
-                Assert.That(board.Runs.Select(r => r.Players), Is.EqualTo(new[] { "Ada" }),
-                    "a freshly placed board already shows its ladder, and only its ladder");
+                Assert.That(board.Runs.Select(r => r.Players), Is.EqualTo(new[] { "Bo", "Ada" }),
+                    "a freshly placed board already shows its ladder, every crew size together");
                 Assert.That(CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(hard)).Runs, Is.Empty);
                 Assert.That(CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(weekly)).Runs, Is.Empty);
             });
@@ -145,13 +147,25 @@ public sealed class LadderTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(board.Runs, Has.Count.EqualTo(FSLadderBoardComponent.ShownRuns), "the board keeps to its top rows");
-                Assert.That(board.Runs.Take(2).Select(r => r.Players), Is.EqualTo(new[] { "Cy", "Ada" }),
+                Assert.That(board.Runs.Take(2).Select(r => r.Players), Is.EqualTo(new[] { "Cy", "Bo" }),
                     "a new record goes straight to the top without anyone touching the board");
                 Assert.That(CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(hard)).Runs.Select(r => r.Players),
-                    Is.EqualTo(new[] { "Gus", "Di" }), "the Hard board shows every crew size");
+                    Is.EqualTo(new[] { "Gus", "Di" }), "boards show every crew size");
                 Assert.That(weeklyBoard.Runs.Select(r => r.Players), Is.EqualTo(new[] { "Ed" }));
                 Assert.That(weeklyBoard.WeeklyName, Is.Not.Null.And.Not.Empty, "the weekly board names this week's challenge");
             });
+        });
+    }
+
+    [Test]
+    public void YourOwnNameComesFirstInACrew()
+    {
+        var crew = "Ada, Bo, Cy";
+        Assert.Multiple(() =>
+        {
+            Assert.That(Content.Client._FinalStand.Ladder.FSLadderBoardOverlay.CrewFor(crew, "cy"), Is.EqualTo(new[] { "Cy", "Ada", "Bo" }));
+            Assert.That(Content.Client._FinalStand.Ladder.FSLadderBoardOverlay.CrewFor(crew, "Zed"), Is.EqualTo(new[] { "Ada", "Bo", "Cy" }));
+            Assert.That(Content.Client._FinalStand.Ladder.FSLadderBoardOverlay.CrewFor(crew, null), Is.EqualTo(new[] { "Ada", "Bo", "Cy" }));
         });
     }
 
@@ -187,8 +201,8 @@ public sealed class LadderTest : GameTest
             var text = Descendants(window).OfType<Label>().Select(l => l.Text ?? "").ToList();
             Assert.That(text, Has.Some.Contains("Ada"), "the first request goes out and its answer fills the window");
 
-            window.Select(FSDifficulty.Hard, FSPlayerBracket.Crew, false);
-            window.Select(FSDifficulty.Normal, FSPlayerBracket.Crew, false);
+            window.Select(FSDifficulty.Hard, FSPlayerBracket.Any, false);
+            window.Select(FSDifficulty.Normal, FSPlayerBracket.Any, false);
         });
         await Task.Delay(TimeSpan.FromSeconds(1));
         await Pair.RunTicksSync(30);

@@ -1,0 +1,194 @@
+- type: entity
+  parent: BaseStructure
+  abstract: true
+  id: FSBaseLandingSign
+  name: sign
+  description: A sign.
+  components:
+  - type: Transform
+    anchored: false
+  - type: Physics
+    bodyType: Static
+  - type: InteractionOutline
+  - type: Sprite
+    drawdepth: OverMobs
+    sprite: _FinalStand/Structures/landing_signs.rsi
+  - type: AnimationPlayer
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSLazarusLandingSign
+  name: Lazarus landing sign
+  description: A large sign reading 'lazarus landing por-' the rest of it is smeared in blood.
+  components:
+  - type: Sprite
+    state: laz_sign
+
+- type: entity
+  parent: FSLazarusLandingSign
+  id: FSLazarusLandingSignFixed
+  description: A large sign reading 'Lazarus Landing - POP. 73'. The Company logo is emblazoned in the corner.
+  components:
+  - type: Sprite
+    state: laz_sign_fixed
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSSolarisRidgeSign
+  name: Solaris Ridge sign
+  description: A large sign that reads 'Solaris Ridge -', the rest of it is scraped away.
+  components:
+  - type: Sprite
+    state: red_sign
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSPrisonSign
+  name: UN Prison Docking sign
+  description: A large sign that reads 'UN Prison Docking -', the rest of it is obscured by claw marks.
+  components:
+  - type: Sprite
+    state: prison_sign
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSShivaIceSign
+  name: Shiva's Ice landing sign
+  description: A large sign that reads 'Shiva's Ice L-nding -', bullet holes and torn metal obscure the rest of the signage.
+  components:
+  - type: Sprite
+    state: ice_sign
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSTrijentSign
+  name: Trijent landing sign
+  description: A large sign that reads 'Trijent mining col-', with the rest being obscured by what looks to be dried blood, and damage.
+  components:
+  - type: Sprite
+    state: dam_sign
+
+- type: entity
+  parent: FSTrijentSign
+  id: FSTrijentSignAlt
+  description: A large sign that reads 'Trijent mining colony', with half the sign written in Japanese.
+  components:
+  - type: Sprite
+    state: dam_sign_2
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSSorokyneSign
+  name: Sorokyne landing sign
+  description: A large sign that reads 'Sorokyne - СОРОКІНО - POP. 110' The Company logo is proudly emblazoned in the corner. Don't eat the resin coated snow.
+  components:
+  - type: Sprite
+    state: sorokyne_1
+
+- type: entity
+  parent: FSSorokyneSign
+  id: FSSorokyneSignAlt
+  description: A large sign that reads 'Sorokyne - СОРОКІНО - POP. 110' The Company logo is proudly emblazoned in the corner. Someone has crudely written 'FUCK OFF' in teal paint across the majority of the sign.
+  components:
+  - type: Sprite
+    state: sorokyne
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSNewVaraderoSign
+  name: UNMC New Varadero Base Sign
+  description: A large sign that reads 'UNMC - New Varadero Base' A graphic of a palm tree adorns the sign, as well as a warning for trespassers.
+  components:
+  - type: Sprite
+    state: new_varadero
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSFortBicepSign
+  name: Fort Bicep sign
+  description: A large sign that reads 'Fort Bicep, T-COMMS'.
+  components:
+  - type: Sprite
+    state: fort_biceps
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSHybrisaProsperaSign
+  name: Hybrisa Prospera welcome sign
+  description: A large sign that reads 'Welcome to Hybrisa Prospera', The Weston Yamada 'Wings' and logo adorn the sign, as well as some information about the colony.
+  components:
+  - type: Sprite
+    state: hybrisa_sign
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSHybrisaProsperaMedicalSign
+  name: Hybrisa Prospera - Emergency Medical Landing Zone one sign
+  description: A large sign that reads 'Emergency Medical - HBP - LZ - 01'.
+  components:
+  - type: Sprite
+    state: hybrisamedical_sign
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSHybrisaProsperaMiningSign
+  name: Hybrisa Prospera - Weston-Yamada Tartarus Mining - Landing Zone two sign
+  description: A large sign that reads 'WEYA - TMCC Mining - HBP - LZ - 01' The Tartarus Mining logo is adorns the sign.
+  components:
+  - type: Sprite
+    state: hybrisamining_sign
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSChancesClaimLandingSign
+  name: Chance's Claim landing sign
+  description: A large sign that reads 'Chance's Claim', with information regarding the colony written in the corner. Most of the sign is damaged from the constant wind and rain, although the writing and corporate-coloured accents seem to have been repainted.
+  components:
+  - type: Sprite
+    state: chances_claim
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSPortNereidCargoSign
+  name: Port Nereid - Weston-Yamada Cargo Depot AC-170 - Landing Zone one sign
+  description: A large sign that identifies this area as "Cargo Depot AC-170". It's clearly seen many days of rain, and jungle flora has started to creep up it.
+  components:
+  - type: Sprite
+    state: nereidcargo_sign
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSPortNereidSpaceportSign
+  name: Port Nereid - Port Nereid International Spaceport - Landing Zone two sign
+  description: A large sign that reads 'Port Nereid Spaceport". Under the blue light, you can read some incredibly mundane information about the colony, above a sweeping graphic of what appears to be a stylized spaceship. Although the sign has some vine growing on it, it's clear it's been repainted many times, keeping it clean and sleek.
+  components:
+  - type: Sprite
+    state: nereidspaceport_sign
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSTyrargoSign1
+  name: Tyrargo Rift - Firebase Charlie Landing Zone One sign
+  description: A medium sized sign, illuminated by red lights, designating this area as Firebase Charlie.
+  components:
+  - type: Sprite
+    state: tyrargo_sign1
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSTyrargoSign2
+  name: Tyrargo Rift - UNMC Airbase Anderson Landing Zone Two sign
+  description: A large sign that designates this area as being a UNMC airbase.
+  components:
+  - type: Sprite
+    state: tyrargo_sign2
+
+- type: entity
+  parent: FSBaseLandingSign
+  id: FSTyrargoSign3
+  name: Tyrargo Rift - City Limit sign
+  description: A large sign designating the city limit of Tyrargo Rift.
+  components:
+  - type: Sprite
+    state: tyrargo_sign3
+

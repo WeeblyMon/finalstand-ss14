@@ -1,0 +1,556 @@
+- type: entity
+  id: FSCarpetBase
+  parent: BaseStructure
+  name: carpet
+  description: "Fancy walking surface."
+  abstract: true
+  components:
+  - type: Sprite
+    drawdepth: FloorTiles
+  - type: Icon
+    state: full
+  - type: IconSmooth
+    key: full
+    base: carpet_
+  - type: Tag
+    tags: [ Carpet ]
+  - type: Physics
+    canCollide: false
+  - type: Fixtures
+  - type: Damageable
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 10
+        behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
+
+- type: entity
+  id: FSCarpetBaseNonIconsmooth
+  parent: BaseStructure
+  name: carpet
+  description: Fancy walking surface.
+  abstract: true
+  components:
+  - type: Sprite
+    drawdepth: FloorTiles
+  - type: Icon
+    state: full
+  - type: Tag
+    tags: [ Carpet ]
+  - type: Physics
+    canCollide: false
+  - type: Fixtures
+  - type: Damageable
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 10
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+
+- type: entity
+  id: FSCarpetPrison
+  parent: CarpetBase
+  components:
+  - type: Clickable
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/Carpets/prison_carpet.rsi
+  - type: Icon
+    sprite: _FinalStand/Structures/Furniture/Carpets/prison_carpet.rsi
+
+- type: entity
+  id: FSCarpetBlue1
+  parent: FSCarpetBaseNonIconsmooth
+  name: blue carpet
+  components:
+  - type: Clickable
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/Carpets/blue_carpet.rsi
+    state: bcarpet01
+  - type: Icon
+    sprite: _FinalStand/Structures/Furniture/Carpets/blue_carpet.rsi
+    state: bcarpet01
+
+- type: entity
+  id: FSCarpetBlue2
+  parent: FSCarpetBlue1
+  components:
+  - type: Sprite
+    state: bcarpet02
+  - type: Icon
+    state: bcarpet02
+
+- type: entity
+  id: FSCarpetBlue3
+  parent: FSCarpetBlue1
+  components:
+  - type: Sprite
+    state: bcarpet03
+  - type: Icon
+    state: bcarpet03
+
+- type: entity
+  id: FSCarpetBlue4
+  parent: FSCarpetBlue1
+  components:
+  - type: Sprite
+    state: bcarpet04
+  - type: Icon
+    state: bcarpet04
+
+- type: entity
+  id: FSCarpetBlue5
+  parent: FSCarpetBlue1
+  components:
+  - type: Sprite
+    state: bcarpet05
+  - type: Icon
+    state: bcarpet05
+
+- type: entity
+  id: FSCarpetBlue6
+  parent: FSCarpetBlue1
+  components:
+  - type: Sprite
+    state: bcarpet06
+  - type: Icon
+    state: bcarpet06
+
+- type: entity
+  id: FSCarpetBlue7
+  parent: FSCarpetBlue1
+  components:
+  - type: Sprite
+    state: bcarpet07
+  - type: Icon
+    state: bcarpet07
+
+- type: entity
+  id: FSCarpetBlue8
+  parent: FSCarpetBlue1
+  components:
+  - type: Sprite
+    state: bcarpet08
+  - type: Icon
+    state: bcarpet08
+
+- type: entity
+  id: FSCarpetBlue9
+  parent: FSCarpetBlue1
+  components:
+  - type: Sprite
+    state: bcarpet09
+  - type: Icon
+    state: bcarpet09
+
+- type: entity
+  id: FSCarpetBeige1
+  parent: FSCarpetBaseNonIconsmooth
+  name: beige carpet
+  components:
+  - type: Clickable
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/Carpets/beige_carpet.rsi
+    state: bcarpet01
+  - type: Icon
+    sprite: _FinalStand/Structures/Furniture/Carpets/beige_carpet.rsi
+    state: bcarpet01
+
+- type: entity
+  id: FSCarpetBeige2
+  parent: FSCarpetBeige1
+  components:
+  - type: Sprite
+    state: bcarpet02
+  - type: Icon
+    state: bcarpet02
+
+- type: entity
+  id: FSCarpetBeige3
+  parent: FSCarpetBeige1
+  components:
+  - type: Sprite
+    state: bcarpet03
+  - type: Icon
+    state: bcarpet03
+
+- type: entity
+  id: FSCarpetBeige4
+  parent: FSCarpetBeige1
+  components:
+  - type: Sprite
+    state: bcarpet04
+  - type: Icon
+    state: bcarpet04
+
+- type: entity
+  id: FSCarpetBeige5
+  parent: FSCarpetBeige1
+  components:
+  - type: Sprite
+    state: bcarpet05
+  - type: Icon
+    state: bcarpet05
+
+- type: entity
+  id: FSCarpetBeige6
+  parent: FSCarpetBeige1
+  components:
+  - type: Sprite
+    state: bcarpet06
+  - type: Icon
+    state: bcarpet06
+
+- type: entity
+  id: FSCarpetBeige7
+  parent: FSCarpetBeige1
+  components:
+  - type: Sprite
+    state: bcarpet07
+  - type: Icon
+    state: bcarpet07
+
+- type: entity
+  id: FSCarpetBeige8
+  parent: FSCarpetBeige1
+  components:
+  - type: Sprite
+    state: bcarpet08
+  - type: Icon
+    state: bcarpet08
+
+- type: entity
+  id: FSCarpetBeige9
+  parent: FSCarpetBeige1
+  components:
+  - type: Sprite
+    state: bcarpet09
+  - type: Icon
+    state: bcarpet09
+
+- type: entity
+  id: FSCarpetGreyBlue1
+  parent: FSCarpetBaseNonIconsmooth
+  name: grey blue carpet
+  components:
+  - type: Clickable
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/Carpets/grey_blue_carpet.rsi
+    state: bcarpet01
+  - type: Icon
+    sprite: _FinalStand/Structures/Furniture/Carpets/grey_blue_carpet.rsi
+    state: bcarpet01
+
+- type: entity
+  id: FSCarpetGreyBlue2
+  parent: FSCarpetGreyBlue1
+  components:
+  - type: Sprite
+    state: bcarpet02
+  - type: Icon
+    state: bcarpet02
+
+- type: entity
+  id: FSCarpetGreyBlue3
+  parent: FSCarpetGreyBlue1
+  components:
+  - type: Sprite
+    state: bcarpet03
+  - type: Icon
+    state: bcarpet03
+
+- type: entity
+  id: FSCarpetGreyBlue4
+  parent: FSCarpetGreyBlue1
+  components:
+  - type: Sprite
+    state: bcarpet04
+  - type: Icon
+    state: bcarpet04
+
+- type: entity
+  id: FSCarpetGreyBlue5
+  parent: FSCarpetGreyBlue1
+  components:
+  - type: Sprite
+    state: bcarpet05
+  - type: Icon
+    state: bcarpet05
+
+- type: entity
+  id: FSCarpetGreyBlue6
+  parent: FSCarpetGreyBlue1
+  components:
+  - type: Sprite
+    state: bcarpet06
+  - type: Icon
+    state: bcarpet06
+
+- type: entity
+  id: FSCarpetGreyBlue7
+  parent: FSCarpetGreyBlue1
+  components:
+  - type: Sprite
+    state: bcarpet07
+  - type: Icon
+    state: bcarpet07
+
+- type: entity
+  id: FSCarpetGreyBlue8
+  parent: FSCarpetGreyBlue1
+  components:
+  - type: Sprite
+    state: bcarpet08
+  - type: Icon
+    state: bcarpet08
+
+- type: entity
+  id: FSCarpetGreyBlue9
+  parent: FSCarpetGreyBlue1
+  components:
+  - type: Sprite
+    state: bcarpet09
+  - type: Icon
+    state: bcarpet09
+
+- type: entity
+  id: FSCarpetPink1
+  parent: FSCarpetBaseNonIconsmooth
+  name: pink carpet
+  components:
+  - type: Clickable
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/Carpets/pink_carpet.rsi
+    state: bcarpet01
+  - type: Icon
+    sprite: _FinalStand/Structures/Furniture/Carpets/pink_carpet.rsi
+    state: bcarpet01
+
+- type: entity
+  id: FSCarpetPink2
+  parent: FSCarpetPink1
+  components:
+  - type: Sprite
+    state: bcarpet02
+  - type: Icon
+    state: bcarpet02
+
+- type: entity
+  id: FSCarpetPink3
+  parent: FSCarpetPink1
+  components:
+  - type: Sprite
+    state: bcarpet03
+  - type: Icon
+    state: bcarpet03
+
+- type: entity
+  id: FSCarpetPink4
+  parent: FSCarpetPink1
+  components:
+  - type: Sprite
+    state: bcarpet04
+  - type: Icon
+    state: bcarpet04
+
+- type: entity
+  id: FSCarpetPink5
+  parent: FSCarpetPink1
+  components:
+  - type: Sprite
+    state: bcarpet05
+  - type: Icon
+    state: bcarpet05
+
+- type: entity
+  id: FSCarpetPink6
+  parent: FSCarpetPink1
+  components:
+  - type: Sprite
+    state: bcarpet06
+  - type: Icon
+    state: bcarpet06
+
+- type: entity
+  id: FSCarpetPink7
+  parent: FSCarpetPink1
+  components:
+  - type: Sprite
+    state: bcarpet07
+  - type: Icon
+    state: bcarpet07
+
+- type: entity
+  id: FSCarpetPink8
+  parent: FSCarpetPink1
+  components:
+  - type: Sprite
+    state: bcarpet08
+  - type: Icon
+    state: bcarpet08
+
+- type: entity
+  id: FSCarpetPink9
+  parent: FSCarpetPink1
+  components:
+  - type: Sprite
+    state: bcarpet09
+  - type: Icon
+    state: bcarpet09
+
+- type: entity
+  id: FSCarpetBlack1
+  parent: FSCarpetBaseNonIconsmooth
+  name: black carpet
+  components:
+  - type: Clickable
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/Carpets/black_carpet.rsi
+    state: bcarpet01
+  - type: Icon
+    sprite: _FinalStand/Structures/Furniture/Carpets/black_carpet.rsi
+    state: bcarpet01
+
+- type: entity
+  id: FSCarpetBlack2
+  parent: FSCarpetBlack1
+  components:
+  - type: Sprite
+    state: bcarpet02
+  - type: Icon
+    state: bcarpet02
+
+- type: entity
+  id: FSCarpetBlack3
+  parent: FSCarpetBlack1
+  components:
+  - type: Sprite
+    state: bcarpet03
+  - type: Icon
+    state: bcarpet03
+
+- type: entity
+  id: FSCarpetBlack4
+  parent: FSCarpetBlack1
+  components:
+  - type: Sprite
+    state: bcarpet04
+  - type: Icon
+    state: bcarpet04
+
+- type: entity
+  id: FSCarpetBlack5
+  parent: FSCarpetBlack1
+  components:
+  - type: Sprite
+    state: bcarpet05
+  - type: Icon
+    state: bcarpet05
+
+- type: entity
+  id: FSCarpetBlack6
+  parent: FSCarpetBlack1
+  components:
+  - type: Sprite
+    state: bcarpet06
+  - type: Icon
+    state: bcarpet06
+
+- type: entity
+  id: FSCarpetBlack7
+  parent: FSCarpetBlack1
+  components:
+  - type: Sprite
+    state: bcarpet07
+  - type: Icon
+    state: bcarpet07
+
+- type: entity
+  id: FSCarpetBlack8
+  parent: FSCarpetBlack1
+  components:
+  - type: Sprite
+    state: bcarpet08
+  - type: Icon
+    state: bcarpet08
+
+- type: entity
+  id: FSCarpetBlack9
+  parent: FSCarpetBlack1
+  components:
+  - type: Sprite
+    state: bcarpet09
+  - type: Icon
+    state: bcarpet09
+
+# Rug
+- type: entity
+  id: FSBaseColourableRug
+  abstract: true
+  name: rug
+  components:
+  - type: Transform
+    anchored: false
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/Carpets/rug.rsi
+    drawdepth: FloorTiles
+    state: colorable_rug
+  - type: Clickable
+  - type: Physics
+    canCollide: false
+  - type: Fixtures
+  - type: Damageable
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 10
+        behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSBaseColourableRug
+  id: FSColourableRugGrey
+  name: rubber mat
+  suffix: Grey
+  components:
+  - type: Sprite
+    color: "#3d3d3d"
+
+- type: entity
+  parent: FSColourableRugGrey
+  id: FSColourableRugGreen
+  suffix: green
+  components:
+  - type: Sprite
+    color: "#3C563FFF"
+
+- type: entity
+  parent: FSBaseColourableRug
+  id: FSColourableRugRed
+  name: rug
+  suffix: Red
+  components:
+  - type: Sprite
+    color: "#8c3c3c"
+
+- type: entity
+  parent: FSBaseColourableRug
+  id: FSColourableRugBlue
+  name: rug
+  suffix: Blue
+  components:
+  - type: Sprite
+    color: "#3c588c"

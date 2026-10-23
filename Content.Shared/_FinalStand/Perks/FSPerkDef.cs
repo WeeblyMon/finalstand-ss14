@@ -324,6 +324,121 @@ public sealed class FSPerkDef
                 "Kills can drop a supply cache holding ammo, a heal or credits.",
                 PerkCategory.Purple,
                 PctTable("{0}% Drop Chance", FSPerkBonusConstants.ScavengerChance)),
+
+            new("ConcealedCarry", "Concealed Carry",
+                "More crit chance with guns. Halved for large guns, none for huge ones.",
+                PerkCategory.Red,
+                Pct("+{0}% Crit Chance", FSPerkBonusConstants.ConcealedCarryPerLevel)),
+
+            new("Gunslinger", "Gunslinger",
+                "Pistols hit harder and fire faster. Two-handed guns get the reverse.",
+                PerkCategory.Red,
+                Pct("+{0}% Pistol Damage / +{1}% Pistol Fire Rate",
+                    FSPerkBonusConstants.GunslingerDamagePerLevel, FSPerkBonusConstants.GunslingerFireRatePerLevel)),
+
+            new("LoneWolf", "Lone Wolf",
+                "With no teammate within 10 tiles, deal more damage and regenerate health.",
+                PerkCategory.Purple,
+                Pct("+{0}% Damage / +{1} HP/s", FSPerkBonusConstants.LoneWolfDamagePerLevel,
+                    FSPerkBonusConstants.LoneWolfRegenPerLevel / 100f)),
+
+            new("BunkeredDown", "Bunkered Down",
+                "More damage and toughness within 12 tiles of the CCC, 10% less damage away from it.",
+                PerkCategory.Purple,
+                Pct("+{0}% Damage / +{1} Resistance", FSPerkBonusConstants.BunkeredDownDamagePerLevel,
+                    FSPerkBonusConstants.BunkeredDownResistPerLevel)),
+
+            new("DeadlyGear", "Deadly Gear",
+                "Your sentries, HMG fire and landmines deal more damage.",
+                PerkCategory.Red,
+                Pct("+{0}% Equipment Damage", FSPerkBonusConstants.DeadlyGearPerLevel)),
+
+            new("OlReliable", "Ol' Reliable",
+                "Shotguns deal more damage for each of your sentries still standing, up to 5.",
+                PerkCategory.Red,
+                Pct("+{0}% Shotgun Damage per Sentry", FSPerkBonusConstants.OlReliablePerSentryPerLevel)),
+
+            new("StylePoints", "Style Points",
+                "A gun left unfired for 5s builds up bonus damage. Firing it drains the bonus.",
+                PerkCategory.Red,
+                Pct("Up to +{0}% Damage", FSPerkBonusConstants.StylePointsPerLevel)),
+
+            new("SmokingKills", "Smoking Kills",
+                "Deal more damage while a lit cigarette, cigar or pipe is in your mouth.",
+                PerkCategory.Red,
+                Pct("+{0}% Damage", FSPerkBonusConstants.SmokingKillsPerLevel)),
+
+            new("Wiseguy", "Wiseguy",
+                "Each wave you finish without going down raises your income. Going down resets it.",
+                PerkCategory.Yellow,
+                Levels("+{0:0.#}% Money/Wave (Max {1:0}%)",
+                    i => [FSPerkBonusConstants.WiseguyPerWave[i] * 100f, FSPerkBonusConstants.WiseguyCap[i] * 100f])),
+
+            new("LookingThin", "Looking Thin",
+                "Move faster with no armour on. Light armour halves it, heavy armour removes it.",
+                PerkCategory.Green,
+                Pct("+{0}% Speed", FSPerkBonusConstants.LookingThinPerLevel)),
+
+            new("PackMule", "Pack Mule",
+                "Slowdowns from armour, heavy guns, wounds and the like hit you less.",
+                PerkCategory.Green,
+                Pct("-{0}% Speed Penalties", FSPerkBonusConstants.PackMulePerLevel)),
+
+            new("Aggravator", "Aggravator",
+                "Kills stack +1% damage and draw nearby zombies to you. Lose a stack every 5s.",
+                PerkCategory.Purple,
+                Flat("+{0} Max Stacks", FSPerkBonusConstants.AggravatorStacksPerLevel)),
+
+            new("StunningStrikes", "Stunning Strikes",
+                "Riot shield hits can stun zombies for 1.2s. Specials: half as long, once per 10s.",
+                PerkCategory.Green,
+                Pct("{0}% Stun Chance", FSPerkBonusConstants.StunningStrikesChancePerLevel)),
+
+            new("Bulwark", "Bulwark",
+                "Tougher riot shield. Blocking draws zombies to you, melee kills mend the shield.",
+                PerkCategory.Blue,
+                Pct("+{0}% Shield Durability / +{1}% Mend per Kill", FSPerkBonusConstants.BulwarkDurabilityPerLevel,
+                    FSPerkBonusConstants.BulwarkRepairPerKillPerLevel)),
+
+            new("BeaconOfLight", "Beacon of Light",
+                "While blocking with a riot shield, nearby allies stop bleeding and slowly heal.",
+                PerkCategory.Blue,
+                Levels("{0:0} Tile Radius / +{1:0.##} HP/s",
+                    i => [FSPerkBonusConstants.BeaconOfLightRadius[i], FSPerkBonusConstants.BeaconOfLightHealPerLevel * (i + 1)])),
+
+            new("Medievalist", "Medievalist",
+                "No guns or armour. Big melee damage and toughness. Locks in at wave start.",
+                PerkCategory.Purple,
+                Pct("+{0}% Melee Damage / +{1} Resistance", FSPerkBonusConstants.MedievalistMeleePerLevel,
+                    FSPerkBonusConstants.MedievalistResistPerLevel)),
+
+            new("SlushFund", "Slush Fund",
+                "An extra share of what you earn goes into the Medical fund. Medical staff only.",
+                PerkCategory.Yellow,
+                Pct("+{0}% of Income to Fund", FSPerkBonusConstants.SlushFundPerLevel)),
+
+            new("DrunkenBerserker", "Drunken Berserker",
+                "Drunk: more melee damage and fire rate, but worse aim and frailer. No alcohol poisoning.",
+                PerkCategory.Purple,
+                Pct("+{0}% Melee Damage and Spread / +{1}% Fire Rate", FSPerkBonusConstants.DrunkenBerserkerPerLevel,
+                    FSPerkBonusConstants.DrunkenBerserkerFireRatePerLevel)),
+
+            new("ExplosiveEngineering", "Explosive Engineering",
+                "Drunk: bigger blasts from your grenades and rockets, harder-hitting sentries.",
+                PerkCategory.Red,
+                Pct("+{0}% Blast Radius / +{1}% Sentry Damage", FSPerkBonusConstants.ExplosiveEngineeringRadiusPerLevel,
+                    FSPerkBonusConstants.ExplosiveEngineeringSentryPerLevel)),
+
+            new("RagingAlcoholic", "Raging Alcoholic",
+                "No alcohol poisoning. The drunker you are, the faster you heal.",
+                PerkCategory.Blue,
+                Flat("Up to +{0} HP/s", FSPerkBonusConstants.RagingAlcoholicRegenPerLevel)),
+
+            new("WolfPack", "Wolf Pack",
+                "With a teammate within 6 tiles, reload faster and take less damage.",
+                PerkCategory.Purple,
+                Pct("+{0}% Reload Speed / +{1} Resistance", FSPerkBonusConstants.WolfPackReloadPerLevel,
+                    FSPerkBonusConstants.WolfPackResistPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

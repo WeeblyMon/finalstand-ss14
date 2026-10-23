@@ -1,0 +1,46 @@
+# Couch
+- type: entity
+  parent: SeatBase
+  id: FSBenchLeft
+  name: bench
+  description: A metal frame, with seats that are fitted with synthetic leather, they've faded in time.
+  suffix: Left
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Strap
+    enabled: false
+  - type: Physics
+    bodyType: Static
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/bench.rsi
+    state: bench_left
+  - type: Damageable
+    damageModifierSet: StructuralMetallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 50
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          SheetSteel1:
+            min: 1
+            max: 1
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+
+- type: entity
+  parent: FSBenchLeft
+  id: FSBenchRight
+  suffix: Right
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Furniture/bench.rsi
+    state: bench_right

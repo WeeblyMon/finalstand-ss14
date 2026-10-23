@@ -1,0 +1,149 @@
+- type: entity
+  abstract: true
+  parent: BaseStructure
+  id: FSRoadBarrierBase
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,-0.5,0.5,0.5"
+        density: 100
+        mask:
+        - TableMask
+        layer:
+        - TableLayer
+  - type: Climbable
+  - type: Rotatable
+  - type: InteractionOutline
+  - type: Clickable
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+
+- type: entity
+  parent: FSRoadBarrierBase
+  id: FSBarrierHandrail
+  name: handrail
+  description: A painted steel handrail, the sort that lines a colony walkway.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/hybrisa_barriers.rsi
+    state: handrail_hybrisa
+    drawdepth: Mobs
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 150
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          PartRodMetal1:
+            min: 1
+            max: 2
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSRoadBarrierBase
+  id: FSBarrierCentreRoad
+  name: central reservation barrier
+  description: A steel barrier dividing the carriageway.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/hybrisa_barriers.rsi
+    state: centerroadbarrier2
+    drawdepth: Mobs
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          PartRodMetal1:
+            min: 1
+            max: 2
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSBarrierCentreRoad
+  id: FSBarrierCentreRoadDouble
+  suffix: Double
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/hybrisa_barriers.rsi
+    state: centerroadbarrier1
+    drawdepth: Mobs
+
+- type: entity
+  parent: FSRoadBarrierBase
+  id: FSBarrierPlasticRed
+  name: plastic road barrier
+  description: A hollow plastic barrier, meant to be filled with water. This one is empty.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/hybrisa_barriers.rsi
+    state: plasticroadbarrierred
+    drawdepth: Mobs
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 100
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSBarrierPlasticRed
+  id: FSBarrierPlasticBlue
+  suffix: Blue
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/hybrisa_barriers.rsi
+    state: plasticroadbarrierblue
+    drawdepth: Mobs
+
+- type: entity
+  parent: FSBarrierPlasticRed
+  id: FSBarrierPlasticBlack
+  suffix: Black
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/hybrisa_barriers.rsi
+    state: plasticroadbarrierblack
+    drawdepth: Mobs
+
+- type: entity
+  parent: DeployableBarrier
+  id: FSDeployableBarrier
+  name: deployable barrier
+  description: A collapsible barrier for crowd control.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/barrier.rsi
+    layers:
+    - state: idle
+    - state: locked
+      map: ["enum.LockVisualLayers.Lock"]

@@ -25,9 +25,6 @@ public sealed partial class CCVars
     public static readonly CVarDef<bool> FSRcdHintSeen =
         CVarDef.Create("fs.rcd_hint_seen", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 
-    public static readonly CVarDef<bool> FSHudMigrated =
-        CVarDef.Create("fs.hud_migrated", false, CVar.CLIENTONLY | CVar.ARCHIVE);
-
     public static readonly CVarDef<bool> FSUiScaleMigrated =
         CVarDef.Create("fs.ui_scale_migrated", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 

@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.RiotShield;
 using Content.Shared._FinalStand.WaveHud;
@@ -17,6 +18,7 @@ public sealed partial class FSRiotShieldSystem : EntitySystem
     [Dependency] private BlockingSystem _blocking = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private FSBulwarkSystem _bulwark = default!;
 
     public override void Initialize()
     {
@@ -50,7 +52,7 @@ public sealed partial class FSRiotShieldSystem : EntitySystem
         if (comp.Wielder is { } wielder && _mobState.IsIncapacitated(wielder))
             return;
 
-        var blocked = (float) args.DamageDelta.GetTotal();
+        var blocked = (float) args.DamageDelta.GetTotal() * _bulwark.WearFactor(comp.Wielder);
         comp.CurrentDurability -= blocked;
         if (comp.CurrentDurability <= 0f)
         {
