@@ -45,7 +45,7 @@
   id: FSMysteryBox
   parent: BaseStructure
   name: mystery box
-  description: A battered crate that hums with something that isn't electricity. Feed it credits and it hands you a weapon. Which weapon is up to the box.
+  description: A battered crate that hums with something that isn't electricity. Feed it credits and it hands you something, usually a weapon. What you get is up to the box.
   components:
   - type: Sprite
     drawdepth: Objects
@@ -63,18 +63,20 @@
     color: "#9FD8FF"
   - type: FSMysteryBox
     tiers:
+    - pool: FSGachaMisc
+      weight: 15
     - pool: FSGachaImprovised
-      weight: 24
+      weight: 19
     - pool: FSGachaSurplus
-      weight: 12
+      weight: 10
     - pool: FSMysteryBoxUncommon
-      weight: 20
-    - pool: FSGachaJackpot
-      weight: 5
-    - pool: FSMysteryBoxRare
       weight: 17
+    - pool: FSGachaJackpot
+      weight: 4
+    - pool: FSMysteryBoxRare
+      weight: 15
     - pool: FSMysteryBoxVeryRare
-      weight: 13
+      weight: 11
     - pool: FSMysteryBoxReallyRare
       weight: 5
     - pool: FSMysteryBoxWonder
