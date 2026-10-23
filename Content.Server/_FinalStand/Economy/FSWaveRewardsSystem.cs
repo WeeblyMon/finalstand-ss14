@@ -1,5 +1,7 @@
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Perks;
+using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
@@ -19,6 +21,8 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
     [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private FSEnemyDamageTrackerSystem _damageTracker = default!;
+    [Dependency] private FSArchetypeSystem _archetypes = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
 
     private readonly List<EntityUid> _assisters = new();
 
@@ -65,7 +69,9 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
         if (args.Killer is { } killer && _mind.TryGetMind(killer, out var mindId, out _))
         {
             killerMind = mindId;
-            _wallet.GiveCredits(mindId, killCredits);
+            // Archetype and title bonuses are the killer's own; assists are a share of the plain value.
+            _wallet.GiveCredits(mindId, (int) (killCredits * _archetypes.Bonus(mindId).Credits
+                * _titleBuffs.ForMind(mindId).KillCredits));
 
             if (IsSecurity(mindId))
                 _wallet.GiveCredits(mindId, rewards.SecurityKillBonus);
@@ -133,7 +139,7 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
                && department.ID == SecurityDepartment;
     }
 
-    // What killing this enemy pays its killer now; 0 outside a wave rule.
+    // What killing this enemy pays now, before the killer's own bonuses; 0 outside a wave rule.
     public int KillCredits(EntityUid enemy)
     {
         return TryGetRewards(out var rewards) ? KillCredits(enemy, rewards) : 0;
@@ -144,7 +150,8 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
         var value = TryComp<FSEnemyValueComponent>(enemy, out var enemyValue)
             ? enemyValue.KillCredits
             : rewards.KillReward;
-        return (int) (value * KillMultiplier(_waveRule.GetWaveNumber()) * rewards.KillShare);
+        return (int) (value * KillMultiplier(_waveRule.GetWaveNumber()) * rewards.KillShare
+            * _waveRule.GetRewardMultiplier());
     }
 
     private static float KillMultiplier(int wave)

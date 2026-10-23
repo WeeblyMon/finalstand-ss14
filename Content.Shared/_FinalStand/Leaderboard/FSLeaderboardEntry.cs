@@ -14,7 +14,9 @@ public sealed record FSLeaderboardEntry(
     int Level,
     int Prestige,
     int Credits,
-    int Score)
+    int Score,
+    bool Rookie = false,
+    string? Title = null)
 {
     public int Fortify { get; init; }
 

@@ -8,6 +8,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Effects;
 
+[ByRefEvent]
+public readonly record struct FSStructureDestroyedEvent(EntityUid Structure);
+
 public sealed partial class FSFlairSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -59,5 +62,8 @@ public sealed partial class FSFlairSystem : EntitySystem
         Burst(Debris, coords, kick: 0.4f);
         Burst(DustPuff, coords);
         Spawn(Rubble, coords);
+
+        var destroyed = new FSStructureDestroyedEvent(ent);
+        RaiseLocalEvent(ref destroyed);
     }
 }

@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Upgrades.Effects;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Hitscan.Events;
@@ -23,7 +24,15 @@ public sealed partial class HitscanBasicDamageSystem : EntitySystem
 
         var dmg = ent.Comp.Damage * _damage.UniversalHitscanDamageModifier;
 
-        // FINALSTAND: upgrades, crits and hit effects scale the shot before it lands, as they do a projectile's.
+        // FINALSTAND: the gun's upgrade multiplier (shared, so the client predicts it), then crits and hit effects
+        // scale the shot before it lands, as they do a projectile's.
+        if (args.Data.Gun is { } gun)
+        {
+            var modify = new FSHitscanDamageModifyEvent(dmg);
+            RaiseLocalEvent(gun, ref modify);
+            dmg = modify.Damage;
+        }
+
         var scale = new FSHitscanDamageEvent(args.Data, dmg);
         RaiseLocalEvent(ent, ref scale);
         dmg = scale.Damage;

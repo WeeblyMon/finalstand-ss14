@@ -153,6 +153,9 @@
         - !type:MetabolizerTypeCondition
           type: [ Dwarf ]
           inverted: true
+        - !type:TagCondition
+          tag: FSAlcoholTolerant
+          inverted: true
         damage:
           types:
             Poison: 0.1
@@ -182,6 +185,9 @@
         - !type:ReagentCondition
           reagent: Ethanol
           min: 12
+        - !type:TagCondition
+          tag: FSAlcoholTolerant
+          inverted: true
         # dwarves immune to vomiting from alcohol
         - !type:MetabolizerTypeCondition
           type: [ Dwarf ]

@@ -53,6 +53,7 @@ public sealed partial class FSMechHudOverlay : Overlay
     private FSMechHudSystem? _hud;
     private SharedTransformSystem? _xform;
     private SpriteSystem? _sprite;
+    private FSMechWeaponSelectSystem? _weapons;
     private Font? _caption;
     private Font? _readout;
     private Font? _ammo;
@@ -88,6 +89,7 @@ public sealed partial class FSMechHudOverlay : Overlay
     protected override void Draw(in OverlayDrawArgs args)
     {
         _hud ??= _entMan.System<FSMechHudSystem>();
+        _weapons ??= _entMan.System<FSMechWeaponSelectSystem>();
         if (args.ViewportControl == null)
             return;
 
@@ -176,7 +178,7 @@ public sealed partial class FSMechHudOverlay : Overlay
             Faded(powerColor, boot), false, s);
 
         var cardsAt = new Vector2(c.X + radius + 40f * s, c.Y - radius * 0.92f);
-        Cards(handle, comp, cardsAt, now, motion, s);
+        Cards(handle, mech.Owner, comp, cardsAt, now, motion, s);
         CombatBox = UIBox2.FromDimensions(cardsAt - new Vector2(0f, 28f * s), new Vector2(CardWidth * s, 22f * s));
         Callouts(handle, mech, new Vector2(c.X, c.Y + radius + 16f * s), power, now, motion, s);
     }
@@ -259,7 +261,7 @@ public sealed partial class FSMechHudOverlay : Overlay
         handle.DrawString(_readout!, new Vector2(right ? at.X - valueSize.X : at.X, at.Y - 2f * s), value, color);
     }
 
-    private void Cards(DrawingHandleScreen handle, MechComponent mech, Vector2 origin, double real, bool motion, float s)
+    private void Cards(DrawingHandleScreen handle, EntityUid mechUid, MechComponent mech, Vector2 origin, double real, bool motion, float s)
     {
         var now = _timing.CurTime;
         var width = CardWidth * s;
@@ -269,7 +271,7 @@ public sealed partial class FSMechHudOverlay : Overlay
         for (var i = 0; i < equipment.Count && i < FSMechHudSystem.WeaponKeys; i++)
         {
             var item = equipment[i];
-            var selected = mech.CurrentSelectedEquipment == item;
+            var selected = _weapons!.IsArmed(mechUid, item);
             var enter = motion ? EaseOut((float) Math.Clamp((real - _bootAt - 0.15 - i * 0.08) / 0.25, 0d, 1d)) : 1f;
             if (enter <= 0f)
                 continue;

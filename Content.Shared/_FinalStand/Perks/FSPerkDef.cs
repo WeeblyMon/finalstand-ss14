@@ -234,6 +234,63 @@ public sealed class FSPerkDef
             new("Underdog", PerkCategory.Purple, PctTable(FSPerkBonusConstants.UnderdogPerZombie)),
 
             new("Scavenger", PerkCategory.Purple, PctTable(FSPerkBonusConstants.ScavengerChance)),
+
+            new("ConcealedCarry", PerkCategory.Red, Pct(FSPerkBonusConstants.ConcealedCarryPerLevel)),
+
+            new("Gunslinger", PerkCategory.Red,
+                Pct(FSPerkBonusConstants.GunslingerDamagePerLevel, FSPerkBonusConstants.GunslingerFireRatePerLevel)),
+
+            new("LoneWolf", PerkCategory.Purple,
+                Levels(i => [FSPerkBonusConstants.LoneWolfDamagePerLevel * (i + 1) * 100f,
+                    FSPerkBonusConstants.LoneWolfRegenPerLevel * (i + 1)])),
+
+            new("BunkeredDown", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.BunkeredDownDamagePerLevel, FSPerkBonusConstants.BunkeredDownResistPerLevel)),
+
+            new("DeadlyGear", PerkCategory.Red, Pct(FSPerkBonusConstants.DeadlyGearPerLevel)),
+
+            new("OlReliable", PerkCategory.Red, Pct(FSPerkBonusConstants.OlReliablePerSentryPerLevel)),
+
+            new("StylePoints", PerkCategory.Red, Pct(FSPerkBonusConstants.StylePointsPerLevel)),
+
+            new("SmokingKills", PerkCategory.Red, Pct(FSPerkBonusConstants.SmokingKillsPerLevel)),
+
+            new("Wiseguy", PerkCategory.Yellow,
+                Levels(i => [FSPerkBonusConstants.WiseguyPerWave[i] * 100f,
+                    FSPerkBonusConstants.WiseguyCap[i] * 100f])),
+
+            new("LookingThin", PerkCategory.Green, Pct(FSPerkBonusConstants.LookingThinPerLevel)),
+
+            new("PackMule", PerkCategory.Green, Pct(FSPerkBonusConstants.PackMulePerLevel)),
+
+            new("Aggravator", PerkCategory.Purple, Flat(FSPerkBonusConstants.AggravatorStacksPerLevel)),
+
+            new("StunningStrikes", PerkCategory.Green, Pct(FSPerkBonusConstants.StunningStrikesChancePerLevel)),
+
+            new("Bulwark", PerkCategory.Blue,
+                Pct(FSPerkBonusConstants.BulwarkDurabilityPerLevel, FSPerkBonusConstants.BulwarkRepairPerKillPerLevel)),
+
+            new("BeaconOfLight", PerkCategory.Blue,
+                Levels(i => [FSPerkBonusConstants.BeaconOfLightRadius[i],
+                    FSPerkBonusConstants.BeaconOfLightHealPerLevel * (i + 1)])),
+
+            new("Medievalist", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.MedievalistMeleePerLevel, FSPerkBonusConstants.MedievalistResistPerLevel)),
+
+            new("SlushFund", PerkCategory.Yellow, Pct(FSPerkBonusConstants.SlushFundPerLevel)),
+
+            new("DrunkenBerserker", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.DrunkenBerserkerPerLevel,
+                    FSPerkBonusConstants.DrunkenBerserkerFireRatePerLevel)),
+
+            new("ExplosiveEngineering", PerkCategory.Red,
+                Pct(FSPerkBonusConstants.ExplosiveEngineeringRadiusPerLevel,
+                    FSPerkBonusConstants.ExplosiveEngineeringSentryPerLevel)),
+
+            new("RagingAlcoholic", PerkCategory.Blue, Flat(FSPerkBonusConstants.RagingAlcoholicRegenPerLevel)),
+
+            new("WolfPack", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.WolfPackReloadPerLevel, FSPerkBonusConstants.WolfPackResistPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

@@ -111,12 +111,15 @@ public sealed partial class FSReadyUpSystem : EntitySystem
             return;
 
         var (ready, crew) = Count();
-        if (msg.IsReady && _shaved.Add(session.UserId))
+        var majority = ready > crew / 2;
+
+        // The ready that passes the vote doesn't shave, so the early deployment bonus pays for the time that was left.
+        if (msg.IsReady && !majority && _shaved.Add(session.UserId))
             _waveRule.ShavePrepTime(crew);
 
         BroadcastState();
 
-        if (ready > crew / 2)
+        if (majority)
             _waveRule.RequestWaveStart();
     }
 

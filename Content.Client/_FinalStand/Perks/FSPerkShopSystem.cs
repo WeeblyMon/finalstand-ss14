@@ -46,6 +46,7 @@ public sealed partial class FSPerkShopSystem : EntitySystem
             _window.OnUnequipPerk += msg => RaiseNetworkEvent(msg);
             _window.OnSaveLoadout   += msg => RaiseNetworkEvent(msg);
             _window.OnLoadLoadout   += msg => RaiseNetworkEvent(msg);
+            _window.OnApplyStarterBuild += msg => RaiseNetworkEvent(msg);
             _window.OnRespecRequested += () =>
                 RaiseNetworkEvent(new FSRespecPerkMessage());
             _window.OnPrestigeRequested += () =>

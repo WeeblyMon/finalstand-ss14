@@ -92,6 +92,10 @@
     whitelist:
       tags:
       - CartridgeLightRifle
+  - type: CursorOffsetRequiresWield
+  - type: EyeCursorOffset
+    maxOffset: 6
+    pvsIncrease: 0.6
   - type: Crit
     baseCritChance: 0.25
   - type: StaticPrice

@@ -49,6 +49,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSMedicalStatusEvent>(OnMedicalStatus);
         SubscribeNetworkEvent<FSPlayerBonusSummaryEvent>(OnBonusSummary);
         SubscribeNetworkEvent<FSRespawnOfferEvent>(OnRespawnOffer);
+        SubscribeNetworkEvent<FSWaveObjectiveStateEvent>(OnObjectiveState);
         SubscribeNetworkEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
     }
@@ -118,6 +119,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         UpdateDownedDim(overlay);
         UpdateAlertsAnchor(overlay);
         UpdateChatClearance(overlay);
+        UpdateObjective(overlay);
     }
 
     // The server keeps this on the wave rule entity; timers count down against our own clock.
@@ -162,6 +164,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
         _perkBuffs.Clear();
+        _objective = null;
         if (_overlay != null)
         {
             _overlay.IsRespawnOfferVisible = false;
@@ -380,6 +383,8 @@ public sealed partial class WaveHudSystem : EntitySystem
         RaiseNetworkEvent(new WalletRequestEvent());
         RaiseNetworkEvent(new FSPerkStateRequestMessage());
         RaiseNetworkEvent(new FSRespawnOfferRequestEvent());
+        RaiseNetworkEvent(new FSWaveHudRequestEvent());
+        RaiseNetworkEvent(new FSLevelingRequestMessage());
     }
 
     private WaveHudOverlay EnsureOverlay()

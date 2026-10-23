@@ -1,6 +1,8 @@
 using System.Numerics;
 using Content.Client.Weapons.Ranged.Systems;
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.Perks;
+using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Weapons.Prediction;
 using Content.Shared.CCVar;
@@ -9,6 +11,7 @@ using Content.Shared.Effects;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Projectiles;
+using Content.Shared.Vehicle.Components;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Hitscan.Systems;
 using Content.Shared.Weapons.Ranged.Components;
@@ -191,6 +194,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
             Body = body,
             Fixture = fixture,
             Shooter = user,
+            Vehicle = CompOrNull<VehicleOperatorComponent>(user)?.Vehicle,
             Map = from.MapId,
             Origin = from.Position,
             Direction = direction,
@@ -201,7 +205,8 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
             Mask = fixture.CollisionMask,
             ImpactEffect = projectile.ImpactEffect,
             SoundHit = projectile.SoundHit,
-            Start = _timing.RealTime,
+            Start = _timing.CurTime,
+            FiredAt = _timing.RealTime,
         };
     }
 
@@ -221,9 +226,10 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         var results = _physics.IntersectRay(from.MapId, ray, raycast.MaxDistance, user, false);
 
         var friendly = _friendlyQuery.HasComp(user);
-        var inContainer = _container.IsEntityOrParentInContainer(user);
         EntityUid? vehicle = _container.TryGetContainingContainer(user, out var holder) ? holder.Owner : null;
+        var inContainer = _container.IsEntityOrParentInContainer(user) && !HasComp<VehicleComponent>(vehicle);
         RayCastResults? hit = null;
+        var pierce = inContainer ? 0 : GetHitscanPierce(gun, user);
 
         foreach (var result in results)
         {
@@ -237,6 +243,12 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
                 if (friendly && _friendlyQuery.HasComp(result.HitEntity))
                     continue;
+
+                if (pierce > 0 && _mobQuery.HasComp(result.HitEntity) && !_friendlyQuery.HasComp(result.HitEntity))
+                {
+                    pierce--;
+                    continue;
+                }
             }
 
             hit = result;
@@ -260,6 +272,15 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
             RaiseLocalEvent(effects);
     }
 
+    private int GetHitscanPierce(EntityUid gun, EntityUid user)
+    {
+        var shop = TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgrade)
+            ? (int) Math.Round(upgrade.PierceThreshold.Float())
+            : 0;
+        var perk = CompOrNull<FSPerkPierceComponent>(user)?.Level ?? 0;
+        return Math.Max(shop, perk);
+    }
+
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
@@ -267,7 +288,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         if (_shots.Count == 0)
             return;
 
-        var now = _timing.RealTime;
+        var now = _timing.CurTime;
         var local = _player.LocalEntity;
 
         var twins = EntityQueryEnumerator<FSShotTwinComponent>();
@@ -364,7 +385,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         var results = _physics.IntersectRayWithPredicate(shot.Map,
             new CollisionRay(start, shot.Direction, shot.Mask),
             (this, shot),
-            static (ent, state) => ent == state.shot.Cosmetic || ent == state.shot.Shooter || state.Item1._mobQuery.HasComp(ent),
+            static (ent, state) => ent == state.shot.Cosmetic || ent == state.shot.Shooter || ent == state.shot.Vehicle || state.Item1._mobQuery.HasComp(ent),
             span,
             false);
 
@@ -392,7 +413,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
         foreach (var mob in _mobs)
         {
-            if (mob.Owner == shot.Shooter || TerminatingOrDeleted(mob))
+            if (mob.Owner == shot.Shooter || mob.Owner == shot.Vehicle || TerminatingOrDeleted(mob))
                 continue;
 
             var position = _transform.GetMapCoordinates(mob);
@@ -451,7 +472,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
     {
         shot.Ended = true;
         shot.EndDistance = distance;
-        shot.EndedAt = _timing.RealTime;
+        shot.EndedAt = _timing.CurTime;
 
         if (!TerminatingOrDeleted(shot.Cosmetic))
             QueueDel(shot.Cosmetic);
@@ -460,7 +481,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
     private void OnTwinSeen(PredictedShot shot, EntityUid twin, FSShotTwinComponent comp)
     {
         shot.Twin = twin;
-        LastServerBulletDelay = _timing.RealTime - shot.Start;
+        LastServerBulletDelay = _timing.RealTime - shot.FiredAt;
 
         if (comp.Hideable && Matches(shot, twin))
         {
@@ -517,7 +538,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
         if (shot.Ended)
         {
-            if (Along(shot, position.Position) > shot.EndDistance + ContinueSlack)
+            if (Stopped(twin) || Along(shot, position.Position) > shot.EndDistance + ContinueSlack)
                 SetTwinVisible(shot, true);
             else
                 SetTwinVisible(shot, false);
@@ -558,6 +579,15 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
             shot.TwinLightHidden = false;
             _lights.SetEnabled(twin, true, light);
         }
+    }
+
+    private bool Stopped(EntityUid twin)
+    {
+        var xform = Transform(twin);
+        if (xform.ParentUid != xform.GridUid && xform.ParentUid != xform.MapUid)
+            return true;
+
+        return _physicsQuery.TryComp(twin, out var body) && body.LinearVelocity.LengthSquared() < 0.01f;
     }
 
     private static float Along(PredictedShot shot, Vector2 position)
@@ -601,6 +631,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         public PhysicsComponent Body = default!;
         public Fixture Fixture = default!;
         public EntityUid Shooter;
+        public EntityUid? Vehicle;
         public MapId Map;
         public Vector2 Origin;
         public Vector2 Direction;
@@ -612,6 +643,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         public EntProtoId? ImpactEffect;
         public SoundSpecifier? SoundHit;
         public TimeSpan Start;
+        public TimeSpan FiredAt;
         public float Traveled;
         public float? ForcedEnd;
         public bool Ended;

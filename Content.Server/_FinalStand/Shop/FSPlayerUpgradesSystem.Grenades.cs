@@ -14,7 +14,7 @@ public sealed partial class FSPlayerUpgradesSystem
         {
             case WeaponUpgradeType.GrenadeCapacity:
                 {
-                    if (TryComp<FSGrenadePackComponent>(weapon, out var pack))
+                    if (TryComp<FSGrenadePackComponent>(weapon, out var pack) && !pack.IsSingularity)
                     {
                         pack.MaxStock += (int)def.ValuePerLevel;
                         pack.Stock = Math.Min(pack.Stock + (int)def.ValuePerLevel, pack.MaxStock);
@@ -218,6 +218,8 @@ public sealed partial class FSPlayerUpgradesSystem
                     if (TryComp<FSGrenadePackComponent>(weapon, out var pack) && !pack.IsSingularity)
                     {
                         pack.IsSingularity = true;
+                        pack.MaxStock = 1;
+                        pack.Stock = Math.Min(pack.Stock, pack.MaxStock);
                         Dirty(weapon, pack);
                         _grenadeSelect.SyncPackCounter(weapon, pack);
                     }

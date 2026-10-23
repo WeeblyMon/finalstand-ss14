@@ -67,6 +67,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
     };
 
     private readonly HashSet<Entity<MechComponent>> _parked = new();
+    private readonly HashSet<EntityUid> _serviced = new();
     private TimeSpan _nextUpkeep;
 
     public override void Initialize()
@@ -325,6 +326,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
         _nextUpkeep = _timing.CurTime + UpkeepInterval;
         var seconds = (float) UpkeepInterval.TotalSeconds;
 
+        _serviced.Clear();
         var bays = EntityQueryEnumerator<FSMechBayComponent, TransformComponent>();
         while (bays.MoveNext(out _, out var bay, out var xform))
         {
@@ -332,6 +334,9 @@ public sealed partial class FSMechBaySystem : EntitySystem
             _lookup.GetEntitiesInRange(xform.Coordinates, bay.ParkRange, _parked);
             foreach (var mech in _parked)
             {
+                if (!_serviced.Add(mech))
+                    continue;
+
                 if (mech.Comp.Energy < mech.Comp.MaxEnergy)
                     _mech.TryChangeEnergy(mech, FixedPoint2.Min(bay.RechargePerSecond * seconds, mech.Comp.MaxEnergy - mech.Comp.Energy), mech.Comp);
 

@@ -141,6 +141,26 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         return value;
     }
 
+    // Reads that aren't one player's data (ladder, title counts, meta). Nothing saves them back, so no backoff.
+    private T TryRead<T>(string what, Func<T> read, T fallback)
+    {
+        if (_db == null)
+        {
+            Log.Error($"{what}: database is not open");
+            return fallback;
+        }
+
+        try
+        {
+            return read();
+        }
+        catch (Exception e)
+        {
+            Log.Error($"{what} failed: {e.Message}");
+            return fallback;
+        }
+    }
+
     private bool DbReady(string what)
     {
         if (_db != null)
@@ -223,6 +243,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
 
         TryMigrateOldSchema();
         TryRenameLegacyColumns(db);
+        InitProgressSchema(db);
 
         Log.Debug("Prestige database opened.");
     }

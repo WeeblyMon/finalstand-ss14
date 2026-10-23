@@ -62,6 +62,7 @@
     killCredits: 1500
   - type: FSMoneyOnHitCap
     maxMoneyPerPlayer: 1100
+    researchCapMultiplier: 6
   - type: FSDeathLoot
     drops:
     - proto: FSResearchDisk

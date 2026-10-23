@@ -1,11 +1,19 @@
+using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
+using Content.Server._FinalStand.Titles;
 using Content.Server.Damage.Systems;
 using Content.Shared._FinalStand.Perks;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.HMG;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Upgrades.Effects;
+using Content.Shared.Armor;
+using Content.Shared.Inventory;
+using Content.Shared.Inventory.Events;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Damage.Components;
@@ -25,6 +33,7 @@ namespace Content.Server._FinalStand.Perks;
 public sealed partial class FSPerkBuffSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
@@ -34,6 +43,10 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private FSBerserkerSystem _berserker = default!;
     [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
     [Dependency] private FSPierceSystem _pierce = default!;
+    [Dependency] private FSWeaponClassifierSystem _classifier = default!;
+    [Dependency] private FSStylePointsSystem _stylePoints = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private FSDrunkPerkSystem _drunk = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
@@ -44,6 +57,8 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
         SubscribeLocalEvent<GunComponent, AmmoShotEvent>(OnGunShot);
         SubscribeLocalEvent<MobMoverComponent, RefreshMovementSpeedModifiersEvent>(OnLightweight);
+        SubscribeLocalEvent<MobMoverComponent, DidEquipEvent>((uid, _, _) => RefreshIfLookingThin(uid));
+        SubscribeLocalEvent<MobMoverComponent, DidUnequipEvent>((uid, _, _) => RefreshIfLookingThin(uid));
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);
     }
 
@@ -68,6 +83,22 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
         if (augs.GetSlottedLevel("Pacifist") > 0)
             ev.AdditionalMultiplier *= 1f - FSPerkBonusConstants.PacifistPenalty;
+
+        if (ev.Weapon is { } weapon)
+            ev.AdditionalMultiplier *= 1f + GunslingerSign(weapon, augs) * augs.GetSlottedLevel("Gunslinger")
+                * FSPerkBonusConstants.GunslingerDamagePerLevel;
+
+        if (HasComp<FSDeployableProjectileComponent>(ev.ProjectileUid) || HasComp<FSHMGComponent>(ev.Weapon))
+            ev.AdditionalMultiplier *= DeadlyGearMultiplier(augs);
+
+        if (HasComp<FSDeployableProjectileComponent>(ev.ProjectileUid))
+            ev.AdditionalMultiplier *= _drunk.SentryMultiplier(ev.Shooter.Value, augs);
+
+        if (ev.Weapon is { } shotgun && _tags.HasTag(shotgun, ShotgunTag))
+            ev.AdditionalMultiplier *= OlReliableMultiplier(mindId, augs);
+
+        if (ev.Weapon is { } styled && !HasComp<FSDeployableProjectileComponent>(ev.ProjectileUid))
+            ev.AdditionalMultiplier *= _stylePoints.GetMultiplier(mindId, augs, styled);
 
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
             ev.AdditionalMultiplier *= 1f + ob.Level * FSPerkBonusConstants.OfficerBuffPerLevel;
@@ -96,9 +127,77 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 
         var level = augs.GetSlottedLevel("BulletStorm");
-        if (level <= 0) return;
+        if (level > 0)
+            args.FireRate *= 1f + level * FSPerkBonusConstants.BulletStormPerLevel;
 
-        args.FireRate *= 1f + level * FSPerkBonusConstants.BulletStormPerLevel;
+        args.FireRate *= 1f + GunslingerSign(args.Gun, augs) * augs.GetSlottedLevel("Gunslinger")
+            * FSPerkBonusConstants.GunslingerFireRatePerLevel;
+
+        var berserkLevel = _drunk.LevelIfDrunk(holder, augs, "DrunkenBerserker");
+        if (berserkLevel > 0)
+        {
+            var spread = 1f + berserkLevel * FSPerkBonusConstants.DrunkenBerserkerPerLevel;
+            args.FireRate *= 1f + berserkLevel * FSPerkBonusConstants.DrunkenBerserkerFireRatePerLevel;
+            args.MinAngle = new Angle(args.MinAngle.Theta * spread);
+            args.MaxAngle = new Angle(args.MaxAngle.Theta * spread);
+        }
+    }
+
+    public float OlReliableMultiplier(EntityUid mindId, FSPerkLevelsComponent perks)
+    {
+        var level = perks.GetSlottedLevel("OlReliable");
+        if (level <= 0)
+            return 1f;
+
+        var sentries = 0;
+        var query = EntityQueryEnumerator<FSSentryTurretComponent, FSDeployedByComponent>();
+        while (query.MoveNext(out var uid, out _, out var deployed))
+        {
+            if (deployed.OwnerMind == mindId && !TerminatingOrDeleted(uid))
+                sentries++;
+        }
+
+        return 1f + Math.Min(sentries, FSPerkBonusConstants.OlReliableMaxSentries) * level
+            * FSPerkBonusConstants.OlReliablePerSentryPerLevel;
+    }
+
+    public float LookingThinFactor(EntityUid body)
+    {
+        if (!_inventory.TryGetSlotEntity(body, "outerClothing", out var outer)
+            || !TryComp<ArmorComponent>(outer, out var armor))
+            return 1f;
+
+        var coefficients = armor.Modifiers.Coefficients;
+        var average = (coefficients.GetValueOrDefault("Blunt", 1f)
+                       + coefficients.GetValueOrDefault("Slash", 1f)
+                       + coefficients.GetValueOrDefault("Piercing", 1f)) / 3f;
+        return Math.Clamp((average - FSPerkBonusConstants.LookingThinNoBonusArmor)
+                          / (1f - FSPerkBonusConstants.LookingThinNoBonusArmor), 0f, 1f);
+    }
+
+    private void RefreshIfLookingThin(EntityUid body)
+    {
+        if (_mind.TryGetMind(body, out var mindId, out _)
+            && TryComp<FSPerkLevelsComponent>(mindId, out var perks)
+            && perks.GetSlottedLevel("LookingThin") > 0)
+            _movement.RefreshMovementSpeedModifiers(body);
+    }
+
+    public static float DeadlyGearMultiplier(FSPerkLevelsComponent perks)
+        => 1f + perks.GetSlottedLevel("DeadlyGear") * FSPerkBonusConstants.DeadlyGearPerLevel;
+
+    public float DeadlyGearMultiplier(EntityUid body)
+        => _mind.TryGetMind(body, out var mindId, out _) && TryComp<FSPerkLevelsComponent>(mindId, out var perks)
+            ? DeadlyGearMultiplier(perks)
+            : 1f;
+
+    public int GunslingerSign(EntityUid gun, FSPerkLevelsComponent perks)
+    {
+        if (perks.GetSlottedLevel("Gunslinger") <= 0)
+            return 0;
+        if (_classifier.IsPistol(gun))
+            return 1;
+        return _classifier.IsTwoHandedGun(gun) ? -1 : 0;
     }
 
     private void OnLightweight(EntityUid uid, MobMoverComponent mover, RefreshMovementSpeedModifiersEvent args)
@@ -120,6 +219,13 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             mult *= 1f + ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageSpeedPerLevel;
 
+        var thinLevel = augs.GetSlottedLevel("LookingThin");
+        if (thinLevel > 0)
+            mult *= 1f + thinLevel * FSPerkBonusConstants.LookingThinPerLevel * LookingThinFactor(uid);
+
+        mult *= FSArchetypeSystem.Bonus(augs).Speed;
+        mult *= _titleBuffs.ForBody(uid).Speed;
+
         if (Math.Abs(mult - 1f) > 0.0001f)
             args.ModifySpeed(mult, mult);
     }
@@ -132,6 +238,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 
         _perkAmmo.OnShot(uid, holder, augs);
+        _stylePoints.OnShot(mindId, augs, uid);
 
         var level = augs.GetSlottedLevel("DeepImpact");
         if (level <= 0) return;
@@ -150,6 +257,14 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         var snsLevel = augs.GetSlottedLevel("SwordAndShield");
         if (snsLevel > 0)
             args.Damage *= 1f + snsLevel * FSPerkBonusConstants.SwordAndShieldPerLevel;
+
+        var medievalLevel = augs.GetSlottedLevel("Medievalist");
+        if (medievalLevel > 0)
+            args.Damage *= 1f + medievalLevel * FSPerkBonusConstants.MedievalistMeleePerLevel;
+
+        var berserkLevel = _drunk.LevelIfDrunk(args.User, augs, "DrunkenBerserker");
+        if (berserkLevel > 0)
+            args.Damage *= 1f + berserkLevel * FSPerkBonusConstants.DrunkenBerserkerPerLevel;
 
         if (augs.GetSlottedLevel("Pacifist") > 0)
             args.Damage *= 1f - FSPerkBonusConstants.PacifistPenalty;

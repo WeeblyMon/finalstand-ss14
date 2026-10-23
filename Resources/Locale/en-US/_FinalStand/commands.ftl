@@ -30,6 +30,7 @@ cmd-forcenextwave-help = Usage: forcenextwave [wave]
     With no argument, advances to the next wave. Pass a number to jump to that wave.
     Note this skips WaveEndedEvent, so per-wave payouts and resets do not fire.
 cmd-forcenextwave-done = Jumped to wave { $wave }.
+cmd-forcenextwave-won = The round is already won.
 
 cmd-pausewavespawns-desc = Toggle wave enemy spawning on or off.
 cmd-pausewavespawns-help = Usage: pausewavespawns

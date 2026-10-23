@@ -47,8 +47,6 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
         base.Initialize();
         _ffQuery = GetEntityQuery<FSFriendlyFireComponent>();
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, MeleeHitEvent>(OnMeleeHit);
-        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, GetMeleeDamageEvent>(OnGetMeleeDamage);
-        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
     }
 
     private void OnMeleeHit(EntityUid weapon, FSWeaponUpgradeStateComponent state, MeleeHitEvent args)
@@ -76,8 +74,12 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
             args.BonusDamage += args.BaseDamage * (multiplier - 1f);
         }
 
+        var friendlyUser = _ffQuery.HasComponent(user);
         foreach (var target in args.HitEntities)
         {
+            if (friendlyUser && _ffQuery.HasComponent(target))
+                continue;
+
             // stun before CritVsStunned so the same swing can trigger both
             if (state.ConcussionClubStunMs > 0 && heavyAttack)
             {
@@ -146,20 +148,5 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
             foreach (var target in args.HitEntities)
                 _crit.MarkPendingCrit(user, target);
         }
-    }
-
-    private void OnGetMeleeDamage(EntityUid weapon, FSWeaponUpgradeStateComponent state, ref GetMeleeDamageEvent args)
-    {
-        if (state.DamageMultiplier > 1f)
-            args.Damage *= state.DamageMultiplier;
-
-        if (state.PierceThreshold > FixedPoint2.Zero)
-            args.ResistanceBypass = true;
-    }
-
-    private void OnGetMeleeAttackRate(EntityUid weapon, FSWeaponUpgradeStateComponent state, ref GetMeleeAttackRateEvent args)
-    {
-        if (state.AttackSpeedMultiplier > 1f)
-            args.Multipliers *= state.AttackSpeedMultiplier;
     }
 }

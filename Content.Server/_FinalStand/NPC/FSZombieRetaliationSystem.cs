@@ -164,6 +164,23 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
         return attackerDist + SwitchMargin < chasedDist;
     }
 
+    public bool Taunt(EntityUid zombie, EntityUid target, float seconds)
+    {
+        if (!TryComp<HTNComponent>(zombie, out var htn) || _mobState.IsDead(zombie))
+            return false;
+
+        var bb = htn.Blackboard;
+        if (bb.TryGetValue<EntityUid>(FSAIBlackboardKeys.LastAttacker, out var existing, EntityManager)
+            && existing != target && Exists(existing) && !_mobState.IsDead(existing))
+            return false;
+
+        bb.SetValue(FSAIBlackboardKeys.LastAttacker, target);
+        bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, seconds);
+        bb.SetValue(FSAIBlackboardKeys.AggroGraceUntil, _timing.CurTime + TimeSpan.FromSeconds(seconds));
+        _htn.Replan(htn);
+        return true;
+    }
+
     private void AlertNearby(EntityUid uid, EntityUid attacker)
     {
         _peerBuffer.Clear();

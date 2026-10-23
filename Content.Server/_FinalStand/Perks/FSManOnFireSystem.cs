@@ -31,9 +31,9 @@ public sealed partial class FSManOnFireSystem : EntitySystem
         return level <= 0 ? 0f : FSPerkBonusConstants.ManOnFireResist[Math.Min(level, FSPerkDef.MaxLevel) - 1];
     }
 
-    public bool IsHeatImmune(EntityUid uid)
+    public float GetHeatResist(EntityUid uid)
     {
-        return TryComp<FSManOnFireComponent>(uid, out var comp) && GetResist(comp.Level) >= 1f;
+        return TryComp<FSManOnFireComponent>(uid, out var comp) ? MathF.Min(GetResist(comp.Level), 1f) : 0f;
     }
 
     private void OnGetFireProtection(Entity<FSManOnFireComponent> ent, ref GetFireProtectionEvent args)
@@ -63,11 +63,12 @@ public sealed partial class FSManOnFireSystem : EntitySystem
             if (temp.Temperature > normalTemp)
                 _temperature.ChangeHeat((uid, temp), (normalTemp - temp.Temperature) * temp.HeatCapacity, ignoreHeatResistance: true);
 
-            if (resist > 1f && flammable.OnFire)
-            {
+            if (!flammable.OnFire)
+                continue;
+
+            _healingFire.MarkHealing(uid);
+            if (resist > 1f)
                 _damageable.HealEvenly(uid, FixedPoint2.New(-FSPerkBonusConstants.ManOnFireHealPerSecond));
-                _healingFire.MarkHealing(uid);
-            }
         }
     }
 }

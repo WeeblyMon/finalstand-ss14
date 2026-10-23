@@ -84,7 +84,7 @@
       maxLevel: 2
       baseCost: 5000
       type: GrenadeBurnDuration
-      valuePerLevel: 5
+      valuePerLevel: 3
     - id: incendiary-extra-charges
       name: fs-upgrade-incendiary-extra-charges
       description: fs-upgrade-incendiary-extra-charges-desc

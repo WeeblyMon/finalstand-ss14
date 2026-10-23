@@ -27,11 +27,14 @@
                    FontColorOverride="#FFD700"/>
             <Label Name="LevelLabel" HorizontalAlignment="Center" Margin="1 1"
                    FontColorOverride="#FFD700"/>
+            <Label Name="TitleLabel" HorizontalAlignment="Center" Margin="1 1" Visible="False"/>
             <Label Name="XpLabel" HorizontalAlignment="Center" Margin="1 3"
                    FontColorOverride="#AAAAAA"/>
-            <Button Name="PerkShopButton" Text="{Loc 'fs-lobby-perks-button'}"
-                    HorizontalAlignment="Center"
-                    Margin="0 4 0 0"/>
+            <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 4 0 0" SeparationOverride="4">
+                <Button Name="PerkShopButton" Text="{Loc 'fs-lobby-perks-button'}"/>
+                <Button Name="TitlesButton" Text="{Loc 'fs-lobby-titles-button'}"/>
+                <Button Name="MentorButton" Text="{Loc 'fs-lobby-mentor-button'}"/>
+            </BoxContainer>
             <!-- FINALSTAND -->
             <Button Name="PrestigeButton" Text="{Loc 'fs-lobby-prestige-button'}"
                     HorizontalAlignment="Center"

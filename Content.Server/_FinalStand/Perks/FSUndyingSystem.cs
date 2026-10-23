@@ -1,5 +1,6 @@
 using Content.Server.Popups;
 using Content.Server._Shitmed.DelayedDeath;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -25,6 +26,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
         SubscribeLocalEvent<FSUndyingComponent, UpdateMobStateEvent>(OnUpdateMobState, after: [typeof(MobThresholdSystem)]);
         SubscribeLocalEvent<FSUndyingComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSUndyingComponent, RejuvenateEvent>(OnRejuvenate);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
     // A paid respawn revives the same body, so this is where a new life starts.
@@ -32,6 +34,17 @@ public sealed partial class FSUndyingSystem : EntitySystem
     {
         comp.Used = false;
         comp.EndTime = null;
+    }
+
+    // Recharges every prep for anyone who isn't mid-countdown.
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
+    {
+        var query = EntityQueryEnumerator<FSUndyingComponent>();
+        while (query.MoveNext(out _, out var undying))
+        {
+            if (undying.EndTime == null)
+                undying.Used = false;
+        }
     }
 
     public bool IsActive(EntityUid uid)

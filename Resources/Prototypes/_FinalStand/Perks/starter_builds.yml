@@ -1,0 +1,38 @@
+- type: fsStarterBuild
+  id: FSStarterRifleman
+  name: fs-starter-build-rifleman-name
+  description: fs-starter-build-rifleman-desc
+  order: 0
+  perks:
+  - StoppingPower
+  - Juggernaught
+  - LifeLeech
+  - Speedload
+  - BulletStorm
+  - Bandolier
+
+- type: fsStarterBuild
+  id: FSStarterMedic
+  name: fs-starter-build-medic-name
+  description: fs-starter-build-medic-desc
+  order: 1
+  perks:
+  - FieldMedic
+  - CombatMedic
+  - Juggernaught
+  - Untouchable
+  - Lightweight
+  - LifeLeech
+
+- type: fsStarterBuild
+  id: FSStarterFortifier
+  name: fs-starter-build-fortifier-name
+  description: fs-starter-build-fortifier-desc
+  order: 2
+  perks:
+  - BuiltToLast
+  - Technician
+  - Juggernaught
+  - StoppingPower
+  - Scavenger
+  - Speedload

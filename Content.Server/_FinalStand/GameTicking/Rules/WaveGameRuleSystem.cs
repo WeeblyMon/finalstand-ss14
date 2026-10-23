@@ -2,18 +2,18 @@ using System.Linq;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
-using Content.Server.Players.PlayTimeTracking;
 using Content.Server.RoundEnd;
 using Content.Server._FinalStand.Cleanup;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
+using Content.Server._FinalStand.Onboarding;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared.GameTicking;
 using Content.Shared.GameTicking.Components;
+using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
-using Content.Shared.Players.PlayTimeTracking;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.WaveHud;
@@ -21,9 +21,11 @@ using Robust.Server.GameObjects;
 using Robust.Server.GameStates;
 using Robust.Server.Player;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.GameTicking.Rules;
@@ -36,20 +38,22 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private FSCorpseCleanupSystem _corpseCleaner = default!;
     [Dependency] private FSFriendlyFireSystem _friendlyFire = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private WaveEnemySpawningSystem _spawning = default!;
     [Dependency] private FSDarkWaveSystem _darkWave = default!;
-    [Dependency] private PlayTimeTrackingManager _playTime = default!;
+    [Dependency] private FSOnboardingSystem _onboarding = default!;
+    [Dependency] private FSRoundPresenceSystem _presence = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
     [Dependency] private PvsOverrideSystem _pvsOverride = default!;
 
     private static readonly TimeSpan DarkWaveSpawnDelay = TimeSpan.FromSeconds(5);
 
-    private static readonly TimeSpan NewPlayerScalingExemption = TimeSpan.FromHours(10);
-
     private static readonly TimeSpan VoteCountdown = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan WipeRoundEndCountdown = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan VictoryRoundEndCountdown = TimeSpan.FromSeconds(45);
+    private static readonly Color VictoryColor = Color.FromHex("#FFD700");
 
 
     public override void Initialize()
@@ -75,13 +79,31 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         _friendlyFire.AssignFactionToAllPlayers();
         EnsureComp<FSWaveStateComponent>(uid);
         _pvsOverride.AddGlobalOverride(uid);
+        RollModifiers(comp);
         StartPrepPhase(uid, comp);
+        StartDifficultyVote(comp);
         SyncState(uid, comp);
+    }
+
+    protected override void Ended(EntityUid uid, WaveGameRuleComponent comp,
+        GameRuleComponent gameRule, GameRuleEndedEvent args)
+    {
+        base.Ended(uid, comp, gameRule, args);
+        CancelDifficultyVote();
+        CancelRerollVote();
+        CancelEndlessVote();
     }
 
     protected override void ActiveTick(EntityUid uid, WaveGameRuleComponent comp,
         GameRuleComponent gameRule, float frameTime)
     {
+        // A won round waits on the endless vote or the round end.
+        if (IsWon(comp))
+        {
+            SyncState(uid, comp);
+            return;
+        }
+
         var now = Timing.CurTime;
 
         switch (comp.Phase)
@@ -210,6 +232,15 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         base.AppendRoundEndText(uid, comp, gameRule, ref args);
         _wallet.SaveAll();
+        if (comp.Endless)
+            args.AddLine(Loc.GetString("fs-endless-round-end", ("victory", comp.VictoryWave), ("wave", comp.WavesCompleted)));
+        else if (comp.Victory)
+            args.AddLine(Loc.GetString("fs-wave-victory-round-end", ("wave", comp.WaveNumber)));
+        args.AddLine(Loc.GetString("fs-difficulty-round-end",
+            ("name", Loc.GetString(FSDifficultyRules.NameLocId(comp.Difficulty)))));
+        var modifiers = GetModifiers(comp).Select(m => Loc.GetString(m.Name)).ToList();
+        if (modifiers.Count > 0)
+            args.AddLine(Loc.GetString("fs-modifier-round-end", ("modifiers", string.Join(", ", modifiers))));
         args.AddLine(Loc.GetString("final-stand-round-end",
             ("wave", comp.WavesCompleted),
             ("killed", comp.TotalEnemiesKilled)));
@@ -231,15 +262,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.VoteCountdownActive = false;
         comp.VoteCountdownSoundPlayed = false;
         comp.VoteCountdownSoundTime = TimeSpan.Zero;
-        comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
-        comp.PrepEndUnshaved = comp.PhaseEndTime;
+        comp.PhaseEndTime = Timing.CurTime + PrepDuration(comp);
         _darkWave.Roll(uid, comp.WaveNumber, IsBossWave(comp.WaveNumber));
 
         _spawning.SelectSpawners(comp, CountScalingPlayers());
         if (comp.SpawnerEntities.Count == 0)
             Log.Warning($"No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
 
-        Log.Info($"Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
+        Log.Info($"Prep phase started. Wave {comp.WaveNumber} begins in {PrepDuration(comp).TotalSeconds}s. " +
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
 
         comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountScalingPlayers(), CountPrimarySpawners(comp));
@@ -251,12 +281,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         RaiseLocalEvent(ref prepStarted);
     }
 
-    private static int CalcEnemyTotal(WaveGameRuleComponent comp, int players, int primarySpawners)
+    private int CalcEnemyTotal(WaveGameRuleComponent comp, int players, int primarySpawners)
     {
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
             ? players * comp.PlayerEnemyBonus
             : 0;
-        var total = Math.Min((int)((4.4f * comp.WaveNumber + 7 + playerBonus) * 1.5f), comp.MaxEnemyCap);
+        var total = Math.Min((int)((4.4f * comp.WaveNumber + 7 + playerBonus) * 1.5f
+            * FSDifficultyRules.CountMultiplier(comp.Difficulty)
+            * ModifierFactor(comp, m => m.EnemyCount)), comp.MaxEnemyCap);
         if (comp.WaveNumber >= 5 && primarySpawners == 1)
             total = Math.Min(total * 2, comp.MaxEnemyCap);
         return total;
@@ -277,6 +309,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         comp.Phase = WavePhase.Combat;
         comp.CombatStartTime = Timing.CurTime;
+        LockDifficulty(comp);
 
         if (comp.SpawnerEntities.Count == 0)
             _spawning.SelectSpawners(comp, CountScalingPlayers());
@@ -348,13 +381,56 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
         comp.GiantEntity = EntityUid.Invalid;
         comp.WavesCompleted++;
+
+        if (!comp.Endless && IsVictoryWave(comp.WaveNumber, comp.VictoryWave))
+        {
+            ClaimVictory(comp);
+            return;
+        }
+
         comp.WaveNumber++;
+        if (comp.Endless)
+            EscalateEndless(comp);
         StartPrepPhase(uid, comp);
+    }
+
+    public static bool IsVictoryWave(int wave, int victoryWave) => victoryWave > 0 && wave >= victoryWave;
+
+    // Stays true through the endless vote; endless clears it by carrying on.
+    private static bool IsWon(WaveGameRuleComponent comp) => comp.Victory && !comp.Endless;
+
+    private void ClaimVictory(WaveGameRuleComponent comp)
+    {
+        comp.Victory = true;
+        Log.Info($"Wave {comp.WaveNumber} cleared. The round is won.");
+
+        // Only players who held at least one wave share the win.
+        var points = comp.VictoryPerkReward + FSDifficultyRules.VictoryBonusPerkPoints(comp.Difficulty);
+        if (points > 0)
+        {
+            foreach (var session in _playerManager.Sessions)
+            {
+                if (_presence.GetWavesPresent(session.UserId) > 0 && _mind.TryGetMind(session, out var mindId, out _))
+                    _wallet.AddPerkPoints(mindId, points);
+            }
+        }
+
+        _chatManager.DispatchServerAnnouncement(
+            Loc.GetString("fs-wave-victory", ("wave", comp.WaveNumber), ("points", points)),
+            VictoryColor);
+
+        if (comp.WaveEndSound != null)
+            _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
+
+        var victory = new FSRoundVictoryEvent(comp.WaveNumber, comp.Difficulty);
+        RaiseLocalEvent(ref victory);
+
+        OfferEndless(comp);
     }
 
     public int? FailWave()
     {
-        if (!TryGetActiveRule(out var uid, out var comp) || comp.Phase != WavePhase.Combat)
+        if (!TryGetActiveRule(out var uid, out var comp) || comp.Phase != WavePhase.Combat || IsWon(comp))
             return null;
 
         Log.Info($"Wave {comp.WaveNumber} lost with the CCC. Back to prep for the same wave.");
@@ -395,7 +471,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 continue;
             if (!HasComp<MobStateComponent>(mob) || _mobState.IsDead(mob))
                 continue;
-            if (IsNewPlayer(session))
+            if (_onboarding.IsRookie(session))
                 continue;
             count++;
         }
@@ -416,14 +492,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
 
         return anyPlayer;
-    }
-
-    private bool IsNewPlayer(ICommonSession session)
-    {
-        if (!_playTime.TryGetTrackerTimes(session, out var times))
-            return false;
-
-        return times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall) < NewPlayerScalingExemption;
     }
 
     private static bool IsBossWave(int wave) => wave % 5 == 0;
@@ -484,8 +552,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         _darkWave.WarnNow(uid);
 
-        // The countdown itself doesn't count as time saved.
-        var skipped = comp.PrepEndUnshaved - Timing.CurTime - VoteCountdown;
+        // Pays for the time left on the timer, after ready-ups shaved it. The countdown itself doesn't count.
+        var skipped = comp.PhaseEndTime - Timing.CurTime - VoteCountdown;
         if (skipped > TimeSpan.Zero)
         {
             var skippedEv = new WavePrepSkippedEvent(skipped);
@@ -500,9 +568,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     public record struct CCCStateData(
         int WaveNumber,
+        WavePhase Phase,
         int TotalEnemies,
         string SpawnerDirections,
         bool IsBossWave,
+        bool IsDarkWave,
         LocId FactionDisplay,
         List<string> NextWaveEnemyTypes);
 
@@ -526,19 +596,23 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var directions = dark ? Loc.GetString("fs-ccc-spawners-all") : _spawning.GetSpawnDirections(comp);
         data = new CCCStateData(
             comp.WaveNumber,
+            comp.Phase,
             comp.EnemyTotalThisWave,
             directions,
             IsBossWave(comp.WaveNumber),
+            dark,
             comp.FactionDisplay,
             types);
         return true;
     }
 
-    // Returns the wave the rule is on afterwards, or null if no wave rule is running.
+    // Returns the wave the rule is on afterwards, or null if no wave rule is running or the round is already won.
     public int? ForceNextWave(int? targetWave = null)
     {
-        if (!TryGetActiveRule(out var uid, out var comp))
+        if (!TryGetActiveRule(out var uid, out var comp) || IsWon(comp))
             return null;
+
+        comp.AdminAssisted = true;
 
         if (comp.Phase == WavePhase.Combat)
         {
@@ -572,6 +646,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return comp.WaveNumber;
     }
 
+    public bool IsWon()
+    {
+        return TryGetActiveRule(out _, out var comp) && IsWon(comp);
+    }
+
     public bool IsPrep()
     {
         return TryGetActiveRule(out _, out var comp) && comp.Phase == WavePhase.Prep;
@@ -580,6 +659,52 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     public int GetWaveNumber()
     {
         return TryGetActiveRule(out _, out var comp) ? comp.WaveNumber : 0;
+    }
+
+    // Adds an enemy to the running wave at a random lane. The wave doesn't clear until it's dead.
+    public EntityUid? SpawnExtraEnemy(EntProtoId proto)
+    {
+        if (!TryGetActiveRule(out var uid, out var comp)
+            || comp.Phase != WavePhase.Combat
+            || IsWon(comp)
+            || comp.SpawnerEntities.Count == 0)
+        {
+            return null;
+        }
+
+        var spawner = RobustRandom.Pick(comp.SpawnerEntities);
+        var enemy = _spawning.SpawnWaveEnemy(proto, Transform(spawner).Coordinates, comp);
+        comp.AliveEnemies.Add(enemy);
+        comp.EnemiesSpawnedThisWave++;
+        // A dark wave's total is int.MaxValue; it ends on its timer.
+        if (!_darkWave.IsActive(uid))
+            comp.EnemyTotalThisWave++;
+        return enemy;
+    }
+
+    public IReadOnlyCollection<EntityUid> AliveEnemies()
+    {
+        return TryGetActiveRule(out _, out var comp) ? comp.AliveEnemies : Array.Empty<EntityUid>();
+    }
+
+    public bool TryPickSpawnerCoords(out EntityCoordinates coords)
+    {
+        coords = default;
+        if (!TryGetActiveRule(out _, out var comp) || comp.SpawnerEntities.Count == 0)
+            return false;
+
+        coords = Transform(RobustRandom.Pick(comp.SpawnerEntities)).Coordinates;
+        return true;
+    }
+
+    public bool IsBoss(EntityUid uid)
+    {
+        return uid.IsValid() && TryGetActiveRule(out _, out var comp) && comp.GiantEntity == uid;
+    }
+
+    public int GetScalingPlayers()
+    {
+        return TryGetActiveRule(out _, out var comp) ? comp.ScalingPlayersThisWave : 0;
     }
 
     public bool TryGetWaveStatus(out int wave, out WavePhase phase)
@@ -607,7 +732,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             return;
         }
 
-        comp.PhaseEndTime -= comp.PrepDuration / crewCount;
+        // The modified length, so a shorter prep (Night Shift) isn't emptied by half the crew.
+        comp.PhaseEndTime -= PrepDuration(comp) / crewCount;
         if (comp.PhaseEndTime < Timing.CurTime)
             comp.PhaseEndTime = Timing.CurTime;
     }

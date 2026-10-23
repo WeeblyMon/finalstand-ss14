@@ -304,6 +304,9 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             Award(healerMind, "revive", points: RevivePoints, revives: 1,
                 credits: ReviveCredits, fund: ReviveFund);
 
+            var revived = new FSAllyRevivedEvent(healerMind, uid);
+            RaiseLocalEvent(ref revived);
+
             comp.PendingSaveCredit = healerMind;
             comp.PendingSaveWave = _waveRule.GetWaveNumber();
             comp.PendingSaveAt = _timing.CurTime;

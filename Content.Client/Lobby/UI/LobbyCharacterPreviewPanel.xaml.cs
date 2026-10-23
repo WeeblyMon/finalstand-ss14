@@ -77,6 +77,15 @@ public sealed partial class LobbyCharacterPreviewPanel : Control
     // FINALSTAND: leveling display
     public Button PerkShopButtonControl => PerkShopButton;
     public Button PrestigeButtonControl => PrestigeButton;
+    public Button TitlesButtonControl => TitlesButton;
+    public Button MentorButtonControl => MentorButton;
+
+    public void SetTitle(string? text, Color color)
+    {
+        TitleLabel.Visible = text != null;
+        TitleLabel.Text = text ?? string.Empty;
+        TitleLabel.FontColorOverride = color;
+    }
 
     public void SetLevelText(string text) => LevelLabel.Text = text;
     public void SetXpText(string text) => XpLabel.Text = text;

@@ -9,7 +9,8 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public float CritChance = 0f;
     // Added on top of the weapon's own crit multiplier (FSCritMath).
     [DataField] public float CritDamageBonus;
-    [DataField] public FixedPoint2 PierceThreshold = FixedPoint2.Zero;
+    // Pierce, damage and attack speed are networked: FSWeaponUpgradeDamageSystem predicts melee and hitscan with them.
+    [DataField, AutoNetworkedField] public FixedPoint2 PierceThreshold = FixedPoint2.Zero;
 
     [DataField] public Dictionary<string, int> Levels = new();
 
@@ -29,7 +30,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public float LifeStealPercent = 0f;
     [DataField] public int StaminaStealLevel = 0;
     [DataField] public float StaminaStealDrain = 0f;
-    [DataField] public float DamageMultiplier = 1.0f;
+    [DataField, AutoNetworkedField] public float DamageMultiplier = 1.0f;
     [DataField] public int ExtraPellets = 0;
     [DataField] public bool ScrapshotEnabled = false;
     [DataField] public int BleedLevel = 0;
@@ -55,7 +56,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     // Networked: switching fire mode runs predicted, and the client works out the fire cost from it too.
     [DataField, AutoNetworkedField] public float BatteryFireCostReduction = 0f;
 
-    [DataField] public float AttackSpeedMultiplier = 1f;
+    [DataField, AutoNetworkedField] public float AttackSpeedMultiplier = 1f;
     [DataField] public int ConcussionClubStunMs = 0;
     [DataField] public bool CritVsStunned = false;
     [DataField] public int StunOnHitMs = 0;

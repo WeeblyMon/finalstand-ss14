@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
+using Content.Shared.Item;
 using Content.Shared.Mind;
 using Robust.Shared.Random;
 
@@ -15,6 +16,7 @@ public sealed partial class FSPerkCritSystem : EntitySystem
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedItemSystem _item = default!;
 
     public override void Initialize()
     {
@@ -22,18 +24,43 @@ public sealed partial class FSPerkCritSystem : EntitySystem
         SubscribeLocalEvent<FSPlayerMeleeHitEvent>(OnPlayerMeleeHit);
     }
 
-    public float GetCritChanceBonus(EntityUid user, EntityUid weapon, bool melee)
+    public float GetCritChanceBonus(EntityUid user, EntityUid weapon, bool melee, List<(string PerkId, float Chance)>? sources = null)
     {
         if (!TryGetPerks(user, out var perks))
             return 0f;
 
         var bonus = 0f;
+
+        void Add(string perkId, float chance)
+        {
+            if (chance <= 0f)
+                return;
+            bonus += chance;
+            sources?.Add((perkId, chance));
+        }
+
         if (melee)
-            bonus += perks.GetSlottedLevel("Ravage") * FSPerkBonusConstants.RavageCritPerLevel;
-        else if (_classifier.IsSemiAutoRifle(weapon))
-            bonus += perks.GetSlottedLevel("Rifleman") * FSPerkBonusConstants.RiflemanPerLevel;
+        {
+            Add("Ravage", perks.GetSlottedLevel("Ravage") * FSPerkBonusConstants.RavageCritPerLevel);
+            return bonus;
+        }
+
+        if (_classifier.IsSemiAutoRifle(weapon))
+            Add("Rifleman", perks.GetSlottedLevel("Rifleman") * FSPerkBonusConstants.RiflemanPerLevel);
+
+        Add("ConcealedCarry", perks.GetSlottedLevel("ConcealedCarry") * FSPerkBonusConstants.ConcealedCarryPerLevel
+            * ConcealedCarryFactor(weapon));
 
         return bonus;
+    }
+
+    public float ConcealedCarryFactor(EntityUid weapon)
+    {
+        if (!TryComp<ItemComponent>(weapon, out var item))
+            return 0f;
+
+        var weight = _item.GetSizePrototype(item.Size).Weight;
+        return weight >= HugeWeight ? 0f : weight >= LargeWeight ? 0.5f : 1f;
     }
 
     public float GetCritMultiplierBonus(EntityUid user, EntityUid weapon)
@@ -47,6 +74,9 @@ public sealed partial class FSPerkCritSystem : EntitySystem
 
         return bonus;
     }
+
+    private const int LargeWeight = 8;
+    private const int HugeWeight = 16;
 
     public static float CombineChance(float a, float b) => MathF.Min(1f - (1f - a) * (1f - b), 1f);
 

@@ -8,6 +8,7 @@ using Content.Shared.Database;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Ranged.Systems;
+using Content.Shared.Vehicle.Components; // FINALSTAND
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
@@ -66,11 +67,13 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
         //  3.) Skip friendly players (pass-through with no collision/VFX).
         //  4.) Skip entities marked for pierce pre-pass by FSHitscanPierceFriendlySystem.
         EntityUid? vehicle = _container.TryGetContainingContainer(shooter, out var holder) ? holder.Owner : null;
-        var result = _container.IsEntityOrParentInContainer(shooter)
+        // FINALSTAND: a vehicle pilot aims like someone outside it, past their own vehicle.
+        var result = _container.IsEntityOrParentInContainer(shooter) && !HasComp<VehicleComponent>(vehicle)
             ? rayCastResults.FirstOrNull(hit => hit.HitEntity != vehicle)
             : rayCastResults.FirstOrNull(hit =>
-                (hit.HitEntity == target || CompOrNull<RequireProjectileTargetComponent>(hit.HitEntity)?.Active != true)
-                && !(isFriendlyShooter && _ffQuery.HasComponent(hit.HitEntity))
+                hit.HitEntity != vehicle
+                && (hit.HitEntity == target || CompOrNull<RequireProjectileTargetComponent>(hit.HitEntity)?.Active != true)
+                && !(isFriendlyShooter && (_ffQuery.HasComponent(hit.HitEntity) || HasComp<Content.Shared._FinalStand.Repair.FSPlateRepairComponent>(hit.HitEntity)))
                 && !(skipComp != null && skipComp.Targets.Contains(hit.HitEntity)));
 
         var distanceTried = result?.Distance ?? ent.Comp.MaxDistance;

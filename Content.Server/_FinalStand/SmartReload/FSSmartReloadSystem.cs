@@ -40,6 +40,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private FSBloodloadSystem _bloodload = default!;
     [Dependency] private FSSpeedloadSystem _speedload = default!;
+    [Dependency] private FSWolfPackSystem _wolfPack = default!;
 
     private readonly Dictionary<EntityUid, DoAfterId> _activeShellInserts = new();
 
@@ -163,7 +164,8 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
     private float GetReloadMultiplier(EntityUid user, EntityUid gun)
     {
-        var mult = _bloodload.GetReloadTimeMultiplier(user) * _speedload.GetReloadTimeMultiplier(user);
+        var mult = _bloodload.GetReloadTimeMultiplier(user) * _speedload.GetReloadTimeMultiplier(user)
+                   * _wolfPack.GetReloadTimeMultiplier(user);
         if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var state))
             mult *= state.ReloadSpeedMultiplier * state.ResearchReloadMultiplier;
         return mult;

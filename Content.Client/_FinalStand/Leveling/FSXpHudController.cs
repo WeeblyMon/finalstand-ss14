@@ -14,7 +14,7 @@ using Robust.Shared.Maths;
 
 namespace Content.Client._FinalStand.Leveling;
 
-public sealed partial class FSXpHudController : UIController
+public sealed partial class FSXpHudController : UIController, IOnSystemChanged<FSUiEventRelaySystem>
 {
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -30,10 +30,13 @@ public sealed partial class FSXpHudController : UIController
     private ProgressBar? _bar;
     private Label? _label;
 
+    public void OnSystemLoaded(FSUiEventRelaySystem system) => system.LevelingUpdated += OnLevelingUpdated;
+
+    public void OnSystemUnloaded(FSUiEventRelaySystem system) => system.LevelingUpdated -= OnLevelingUpdated;
+
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeNetworkEvent<FSLevelingUpdatedEvent>(OnLevelingUpdated);
 
         var screenLoad = UIManager.GetUIController<GameplayStateLoadController>();
         screenLoad.OnScreenLoad += OnScreenLoad;
@@ -131,7 +134,7 @@ public sealed partial class FSXpHudController : UIController
         _label = null;
     }
 
-    private void OnLevelingUpdated(FSLevelingUpdatedEvent ev, EntitySessionEventArgs _)
+    private void OnLevelingUpdated(FSLevelingUpdatedEvent ev)
     {
         _cached = ev;
         Apply(ev);
@@ -147,9 +150,12 @@ public sealed partial class FSXpHudController : UIController
 
         var xp = ev.Experience.ToString("N0");
         var next = ev.XpToNextLevel.ToString("N0");
-        _label.Text = ev.PrestigeLevel > 0
+        var progress = ev.PrestigeLevel > 0
             ? Loc.GetString("fs-xp-bar-progress-prestige",
                 ("prestige", ev.PrestigeLevel), ("level", ev.Level), ("xp", xp), ("next", next))
             : Loc.GetString("fs-xp-bar-progress", ("level", ev.Level), ("xp", xp), ("next", next));
+        var reward = Loc.GetString("fs-xp-hud-next-reward", ("points", FSLevelingRules.PerkPointsForReaching(ev.Level + 1)));
+        var catchUp = ev.CatchUp ? Loc.GetString("fs-xp-hud-catch-up") : string.Empty;
+        _label.Text = $"{progress}  —  {reward}{catchUp}";
     }
 }

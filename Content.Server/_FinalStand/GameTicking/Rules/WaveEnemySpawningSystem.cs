@@ -1,11 +1,11 @@
-﻿using System.Linq;
-using Content.Server._FinalStand.CCC;
+﻿using Content.Server._FinalStand.CCC;
 using Content.Shared._FinalStand.CCC;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Ghost;
@@ -30,6 +30,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private WaveEnemyScalingSystem _scaling = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
 
     private static readonly IReadOnlyList<EntProtoId> FallbackEnemyPool = new List<EntProtoId> { "MobXeno" };
@@ -41,6 +42,8 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private readonly List<EntityUid> _secondaryBuffer = new();
     private readonly List<EntityUid> _spawnPlan = new();
     private readonly HashSet<EntityUid> _spawnClearBuffer = new();
+    private readonly HashSet<string> _activeSides = new();
+    private (EntityUid Grid, System.Numerics.Vector2 Local)? _cccAnchor;
 
     public override void Initialize()
     {
@@ -57,27 +60,41 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         {
             rule.PreviousSpawnerEntities.Remove(ent.Owner);
             if (rule.SpawnerEntities.Remove(ent.Owner) && !ent.Comp.Secondary)
-                DropUnsupportedSecondaries(rule, ent.Comp.DirectionLabel);
+                DropUnsupportedSecondaries(rule);
         }
     }
 
-    private void DropUnsupportedSecondaries(WaveGameRuleComponent rule, string lane)
+    // Lanes come from where the spawners stand, so every listed secondary is checked against the primaries left.
+    private void DropUnsupportedSecondaries(WaveGameRuleComponent rule)
     {
+        CollectActiveSides(rule);
         _secondaryBuffer.Clear();
         foreach (var uid in rule.SpawnerEntities)
         {
-            if (!TryComp<WaveEnemySpawnerComponent>(uid, out var spawner) || spawner.DirectionLabel != lane)
-                continue;
-
-            // Another primary still holds the lane.
-            if (!spawner.Secondary)
-                return;
-
-            _secondaryBuffer.Add(uid);
+            if (TryComp<WaveEnemySpawnerComponent>(uid, out var spawner)
+                && spawner.Secondary
+                && (!TryGetSide(uid, out var side) || !_activeSides.Contains(side)))
+            {
+                _secondaryBuffer.Add(uid);
+            }
         }
 
         foreach (var uid in _secondaryBuffer)
             rule.SpawnerEntities.Remove(uid);
+    }
+
+    private void CollectActiveSides(WaveGameRuleComponent rule)
+    {
+        _activeSides.Clear();
+        foreach (var uid in rule.SpawnerEntities)
+        {
+            if (TryComp<WaveEnemySpawnerComponent>(uid, out var spawner)
+                && !spawner.Secondary
+                && TryGetSide(uid, out var side))
+            {
+                _activeSides.Add(side);
+            }
+        }
     }
 
     // Picks a random non-empty subset of the spawners unlocked at the current wave number.
@@ -127,23 +144,15 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
 
         // Secondaries only support a lane that's already active this wave, never an unlisted one.
+        CollectActiveSides(comp);
         foreach (var secondary in _secondaryBuffer)
         {
-            if (!TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner))
+            if (!TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner)
+                || !TryGetSide(secondary, out var side)
+                || !_activeSides.Contains(side))
                 continue;
 
-            var supported = false;
-            foreach (var primary in comp.SpawnerEntities)
-            {
-                if (TryComp<WaveEnemySpawnerComponent>(primary, out var primarySpawner) &&
-                    primarySpawner.DirectionLabel == spawner.DirectionLabel)
-                {
-                    supported = true;
-                    break;
-                }
-            }
-
-            if (supported && _random.NextFloat() < spawner.ActivationChance)
+            if (_random.NextFloat() < spawner.ActivationChance)
                 comp.SpawnerEntities.Add(secondary);
         }
     }
@@ -224,9 +233,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             if (proto == RevenantProto && CountAliveRevenants() >= MaxAliveRevenants)
                 proto = _random.Pick(pool);
 
-            if (TryGetRevenantSpawn(proto, comp.WaveNumber, out var flank))
-                coords = flank;
-
             var enemy = SpawnWaveEnemy(proto, coords, comp);
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
@@ -267,45 +273,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return count;
     }
 
-    private bool TryGetRevenantSpawn(EntProtoId proto, int waveNumber, out EntityCoordinates coords)
-    {
-        coords = default;
-
-        if (proto != RevenantProto)
-            return false;
-
-        _spawnerBuffer.Clear();
-        var query = EntityQueryEnumerator<FSRevenantSpawnerComponent>();
-        while (query.MoveNext(out var uid, out var spawner))
-        {
-            if (waveNumber >= spawner.FromWave)
-                _spawnerBuffer.Add(uid);
-        }
-
-        if (_spawnerBuffer.Count == 0)
-            return false;
-
-        var chosen = _random.Pick(_spawnerBuffer);
-        coords = Transform(chosen).Coordinates;
-
-        if (!TryComp<FSRevenantSpawnerComponent>(chosen, out var chosenComp) || chosenComp.SpawnRadius <= 0f)
-            return true;
-
-        for (var attempt = 0; attempt < 8; attempt++)
-        {
-            var angle = _random.NextFloat() * MathF.Tau;
-            var radius = MathF.Sqrt(_random.NextFloat()) * chosenComp.SpawnRadius;
-            var candidate = coords.Offset(new System.Numerics.Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius));
-            if (IsSpawnClear(candidate))
-            {
-                coords = candidate;
-                break;
-            }
-        }
-
-        return true;
-    }
-
     // Shared by the boss spawn and the regular batch spawn so the two paths can't drift apart.
     public EntityUid SpawnWaveEnemy(EntProtoId proto, EntityCoordinates coords, WaveGameRuleComponent comp)
     {
@@ -331,14 +298,21 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 htn.Blackboard.SetValue("VisionRadius", boom.AggroVisionRadius);
             }
         }
-        _scaling.ScaleEnemyHp(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
+        foreach (var modifier in _waveRule.GetModifiers(comp))
+            EntityManager.AddComponents(enemy, modifier.EnemyComponents);
+
+        _scaling.ScaleEnemyHp(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave,
+            FSDifficultyRules.HealthMultiplier(comp.Difficulty) * _waveRule.ModifierFactor(comp, m => m.EnemyHealth));
         _scaling.ScaleBossForPlayers(enemy, comp.ScalingPlayersThisWave);
-        _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber);
-        _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
+        _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber, _waveRule.ModifierFactor(comp, m => m.EnemySpeed));
+        _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave,
+            FSDifficultyRules.DamageMultiplier(comp.Difficulty) * _waveRule.ModifierFactor(comp, m => m.EnemyDamage));
         _scaling.ScaleEnemyFireRate(enemy, comp.WaveNumber);
         // Armor system recalculates MaxArmor after the HP scale.
         var scaled = new FSEnemyHpScaledEvent();
         RaiseLocalEvent(enemy, ref scaled);
+        var spawned = new FSWaveEnemySpawnedEvent(enemy, proto);
+        RaiseLocalEvent(ref spawned);
         return enemy;
     }
 
@@ -346,7 +320,8 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     {
         foreach (var special in comp.SpecialEnemyPool)
         {
-            if (comp.WaveNumber >= special.FromWave && _random.NextFloat() < special.SpawnChance)
+            if (comp.WaveNumber >= special.FromWave
+                && _random.NextFloat() < special.SpawnChance * _waveRule.ModifierFactor(comp, m => m.SpecialChance))
                 return special.EnemyId;
         }
         return _random.Pick(pool);
@@ -407,23 +382,18 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return null;
     }
 
+    private static readonly string[] CompassOrder = ["N", "E", "S", "W"];
+    private static readonly Comparer<string> CompassComparer =
+        Comparer<string>.Create((a, b) => Array.IndexOf(CompassOrder, a).CompareTo(Array.IndexOf(CompassOrder, b)));
+
+    // Dark waves spawn around players instead; the caller reports those as "all".
     public string GetSpawnDirections(WaveGameRuleComponent comp)
     {
-        var labels = new SortedSet<string>();
+        var labels = new SortedSet<string>(CompassComparer);
         foreach (var spawnerUid in comp.SpawnerEntities)
         {
-            if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawner) && spawner.DirectionLabel.Length > 0)
-                labels.Add(spawner.DirectionLabel);
-        }
-
-        if (RevenantPossible(comp))
-        {
-            var query = EntityQueryEnumerator<FSRevenantSpawnerComponent>();
-            while (query.MoveNext(out var uid, out var spawner))
-            {
-                if (comp.WaveNumber >= spawner.FromWave && TryGetCompassLabel(uid, out var label))
-                    labels.Add(label);
-            }
+            if (TryGetSide(spawnerUid, out var side))
+                labels.Add(side);
         }
 
         if (labels.Count == 0)
@@ -432,30 +402,27 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return string.Join("/", labels);
     }
 
-    private bool RevenantPossible(WaveGameRuleComponent comp)
+    public bool TryGetSide(EntityUid spawner, out string side)
     {
-        foreach (var special in comp.SpecialEnemyPool)
-        {
-            if (special.EnemyId == RevenantProto && comp.WaveNumber >= special.FromWave)
-                return true;
-        }
+        side = string.Empty;
 
-        return GetDirectorPool(comp).Contains(RevenantProto);
-    }
+        var query = EntityQueryEnumerator<FinalStandCCCComponent, TransformComponent>();
+        if (query.MoveNext(out var ccc, out _, out var cccXform) && cccXform.GridUid is { } grid)
+            _cccAnchor = (grid, GridLocal(grid, ccc));
 
-    private bool TryGetCompassLabel(EntityUid uid, out string label)
-    {
-        label = string.Empty;
-
-        var query = EntityQueryEnumerator<FinalStandCCCComponent>();
-        if (!query.MoveNext(out var cccUid, out _))
+        if (_cccAnchor is not { } anchor || !Exists(anchor.Grid))
             return false;
 
-        var delta = _transform.GetWorldPosition(uid) - _transform.GetWorldPosition(cccUid);
-        label = MathF.Abs(delta.X) > MathF.Abs(delta.Y)
+        var delta = GridLocal(anchor.Grid, spawner) - anchor.Local;
+        side = MathF.Abs(delta.X) > MathF.Abs(delta.Y)
             ? delta.X > 0 ? "E" : "W"
             : delta.Y > 0 ? "N" : "S";
         return true;
+    }
+
+    private System.Numerics.Vector2 GridLocal(EntityUid grid, EntityUid ent)
+    {
+        return System.Numerics.Vector2.Transform(_transform.GetWorldPosition(ent), _transform.GetInvWorldMatrix(grid));
     }
 
     public static IReadOnlyList<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)

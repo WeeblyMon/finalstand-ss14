@@ -49,3 +49,15 @@ public sealed class FSCryoStatusEvent : EntityEventArgs
 public sealed class FSCryoStatusRequestEvent : EntityEventArgs
 {
 }
+
+[Serializable, NetSerializable]
+public sealed class FSCryoEnterPromptEvent(NetEntity pod) : EntityEventArgs
+{
+    public readonly NetEntity Pod = pod;
+}
+
+[Serializable, NetSerializable]
+public sealed class FSCryoEnterConfirmEvent(NetEntity pod) : EntityEventArgs
+{
+    public readonly NetEntity Pod = pod;
+}

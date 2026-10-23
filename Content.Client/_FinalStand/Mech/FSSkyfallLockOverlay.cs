@@ -50,6 +50,7 @@ public sealed partial class FSSkyfallLockOverlay : Overlay
     private SharedInteractionSystem? _interaction;
     private MobStateSystem? _mobState;
     private NpcFactionSystem? _faction;
+    private FSMechWeaponSelectSystem? _weapons;
     private readonly HashSet<Entity<MobStateComponent>> _nearby = new();
     private readonly List<(EntityUid Target, MapCoordinates At, float Distance)> _candidates = new();
     private readonly List<EntityUid> _preview = new();
@@ -121,14 +122,25 @@ public sealed partial class FSSkyfallLockOverlay : Overlay
         }
     }
 
+    private EntityUid? ArmedPod(EntityUid mech, MechComponent mechComp)
+    {
+        _weapons ??= _entMan.System<FSMechWeaponSelectSystem>();
+        foreach (var equipment in mechComp.EquipmentContainer.ContainedEntities)
+        {
+            if (_entMan.HasComponent<FSSkyfallLauncherComponent>(equipment) && _weapons.IsArmed(mech, equipment))
+                return equipment;
+        }
+
+        return null;
+    }
+
     private void DrawPilot(DrawingHandleScreen handle, Matrix3x2 matrix, MapId map, TimeSpan now)
     {
         if (_player.LocalEntity is not { } local
             || !_entMan.TryGetComponent<VehicleOperatorComponent>(local, out var op)
             || op.Vehicle is not { } mech
             || !_entMan.TryGetComponent<MechComponent>(mech, out var mechComp)
-            || mechComp.CurrentSelectedEquipment is not { } pod
-            || !_entMan.HasComponent<FSSkyfallLauncherComponent>(pod)
+            || ArmedPod(mech, mechComp) is not { } pod
             || !_entMan.TryGetComponent<GunComponent>(pod, out var gun))
         {
             ResetPreview();

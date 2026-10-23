@@ -18,7 +18,7 @@ fs-upgrade-incendiary-blast-bonus = Inferno
 fs-upgrade-incendiary-blast-bonus-desc = +25% fire damage (ignite rate) per level.
 
 fs-upgrade-incendiary-burn-duration = Prolonged Burn
-fs-upgrade-incendiary-burn-duration-desc = Fire zone lasts +5 seconds per level.
+fs-upgrade-incendiary-burn-duration-desc = Fire zone lasts +3 seconds per level.
 
 fs-upgrade-incendiary-extra-charges = Extra Charges
 fs-upgrade-incendiary-extra-charges-desc = +2 max grenades per level.
@@ -56,7 +56,7 @@ fs-upgrade-pipe-bait-duration-alt-desc = The singularity holds +2 seconds longer
 fs-upgrade-pipe-extra-charges = Extra Charges
 fs-upgrade-pipe-extra-charges-desc = +1 max grenade per level.
 fs-upgrade-pipe-extra-charges-alt = Extra Cores
-fs-upgrade-pipe-extra-charges-alt-desc = +1 max gravaton bomb per level.
+fs-upgrade-pipe-extra-charges-alt-desc = No effect. Gravaton bombs are capped at 1.
 
 fs-upgrade-pipe-faster-regen = Faster Regen
 fs-upgrade-pipe-faster-regen-desc = Refill +1 extra grenade each prep phase per level.
@@ -69,7 +69,7 @@ fs-upgrade-pipe-effect-radius-alt = Deep Well
 fs-upgrade-pipe-effect-radius-alt-desc = Singularity pull radius +1 tile.
 
 fs-upgrade-pipe-singularity = Singularity
-fs-upgrade-pipe-singularity-desc = Replaces the pipe bomb with a gravaton bomb. Instead of baiting, it collapses into a singularity that drags nearby enemies into its centre.
+fs-upgrade-pipe-singularity-desc = Replaces the pipe bomb with a gravaton bomb. Instead of baiting, it collapses into a singularity that drags nearby enemies into its centre. Holds only 1 bomb.
 
 fs-upgrade-shield-thorns = Thorns
 fs-upgrade-shield-thorns-desc = Reflects 10% of absorbed damage back to the attacker per level.

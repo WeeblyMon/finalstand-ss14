@@ -53,6 +53,25 @@ public sealed partial class PerkShopWindow
         for (var i = 0; i < FSPerkDef.MaxLevel; i++)
             LevelEffectsBox.AddChild(LadderRow(def, i, level, accent));
 
+        var masteryKills = _state?.Mastery.GetValueOrDefault(def.Id) ?? 0;
+        if (maxed || masteryKills > 0)
+        {
+            var tier = FSPerkMastery.Tier(masteryKills);
+            var next = FSPerkMastery.NextThreshold(masteryKills);
+            LevelEffectsBox.AddChild(new Label
+            {
+                Text = next is { } target
+                    ? Loc.GetString("fs-mastery-progress", ("tier", Loc.GetString(FSPerkMastery.TierLocId(tier))),
+                        ("kills", masteryKills.ToString("N0")), ("next", target.ToString("N0")))
+                    : Loc.GetString("fs-mastery-progress-max", ("tier", Loc.GetString(FSPerkMastery.TierLocId(tier))),
+                        ("kills", masteryKills.ToString("N0"))),
+                FontOverride = _fontSmallBold,
+                FontColorOverride = tier == FSMasteryTier.None ? FSUiPalette.TextMuted : FSPerkMastery.TierColor(tier),
+                ToolTip = Loc.GetString("fs-mastery-hint"),
+                Margin = new Thickness(0, 6, 0, 0),
+            });
+        }
+
         var cost = FSPerkDef.CostForUpgrade(level);
         var points = _state?.PerkPoints ?? 0;
         var affordable = !maxed && points >= cost;

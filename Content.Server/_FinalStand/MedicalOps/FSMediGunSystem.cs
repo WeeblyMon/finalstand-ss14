@@ -140,7 +140,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         MendWorstBone(healed, comp.BoneRepairPerTick);
 
-        var potency = new FSHealingPotencyEvent(1f);
+        var potency = new FSHealingPotencyEvent(1f, healed);
         RaiseLocalEvent(wielder, ref potency);
 
         // Ungated by the soft cap below: that measures the HP bar, limb wounds are a separate pool.

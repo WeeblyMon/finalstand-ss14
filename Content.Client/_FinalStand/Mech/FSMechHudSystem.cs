@@ -103,7 +103,7 @@ public sealed partial class FSMechHudSystem : EntitySystem
         if (Piloted() is not { } mech || index >= mech.Comp.EquipmentContainer.ContainedEntities.Count)
             return;
 
-        RaiseNetworkEvent(new FSMechSelectWeaponEvent(GetNetEntity(mech.Comp.EquipmentContainer.ContainedEntities[index])));
+        RaisePredictiveEvent(new FSMechSelectWeaponEvent(GetNetEntity(mech.Comp.EquipmentContainer.ContainedEntities[index])));
     }
 
     public Entity<MechComponent>? Piloted()

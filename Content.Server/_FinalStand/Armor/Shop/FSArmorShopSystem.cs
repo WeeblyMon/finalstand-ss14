@@ -2,6 +2,7 @@ using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Armor.Shop;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
@@ -58,6 +59,12 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         if (!player.IsValid()) return;
         if (!_mind.TryGetMind(player, out var mindId, out _)) return;
 
+        if (HasComp<FSMedievalistComponent>(player))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-medievalist-no-armour"), player, player);
+            return;
+        }
+
         if (args.Tier.Id is null || !_proto.TryIndex(args.Tier, out var tier))
             return;
 
@@ -108,7 +115,9 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out _)) return;
-        if (_purchasedTier.TryGetValue(mindId, out var tierId) && _proto.TryIndex(tierId, out var tier))
+        if (_purchasedTier.TryGetValue(mindId, out var tierId)
+            && _proto.TryIndex(tierId, out var tier)
+            && !HasComp<FSMedievalistComponent>(ev.Mob))
             ApplyArmorToMob(ev.Mob, tier);
     }
 

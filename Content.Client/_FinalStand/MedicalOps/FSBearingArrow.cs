@@ -7,10 +7,11 @@ namespace Content.Client._FinalStand.MedicalOps;
 public sealed class FSBearingArrow : Control
 {
     private const float Radius = 7f;
-    private const float BackSweep = 0.55f;
-    private const float HalfWidth = 0.7f;
+    private const float BackSweep = 0.8f;
+    private const float HalfWidth = 0.6f;
+    private const float Notch = 0.3f;
 
-    private readonly Vector2[] _points = new Vector2[3];
+    private readonly Vector2[] _points = new Vector2[6];
 
     private Vector2? _direction;
 
@@ -40,10 +41,14 @@ public sealed class FSBearingArrow : Control
         var apex = centre + dir * Radius * scale;
         var back = centre - dir * Radius * BackSweep * scale;
         var wing = perp * Radius * HalfWidth * scale;
+        var notch = centre - dir * Radius * Notch * scale;
 
         _points[0] = apex;
         _points[1] = back + wing;
-        _points[2] = back - wing;
+        _points[2] = notch;
+        _points[3] = apex;
+        _points[4] = notch;
+        _points[5] = back - wing;
 
         handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _points, ArrowColor);
     }

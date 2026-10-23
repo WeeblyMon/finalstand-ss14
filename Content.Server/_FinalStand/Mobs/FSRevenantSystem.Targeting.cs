@@ -6,6 +6,7 @@ using Content.Shared.Ghost.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
+using Content.Shared.Vehicle.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
 
@@ -177,7 +178,7 @@ public sealed partial class FSRevenantSystem
     {
         candidatePos = default;
 
-        if (!IsValidVictim(candidate))
+        if (!IsValidVictim(candidate) || HasComp<VehicleOperatorComponent>(candidate))
             return false;
 
         candidatePos = _transform.GetMapCoordinates(candidate);

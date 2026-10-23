@@ -623,6 +623,9 @@
   id: Fruit # SpecialDigestible: OrganReptilianStomach. CargoBounty: BountyFruit
 
 - type: Tag
+  id: FSAlcoholTolerant # FINALSTAND: set on bodies with a drunk perk (FSDrunkPerkSystem); ethanol skips its poison damage and vomiting.
+
+- type: Tag
   id: FSArmorTierItem # FINALSTAND: marks a hardsuit spawned by the Armor Vendor so it can be safely replaced on tier upgrade.
 
 - type: Tag

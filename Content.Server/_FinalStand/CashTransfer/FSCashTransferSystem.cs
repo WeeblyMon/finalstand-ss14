@@ -212,7 +212,7 @@ public sealed partial class FSCashTransferSystem : EntitySystem
         }
 
         // Deduct from the sender first; only credit the target if that succeeded.
-        if (!_wallet.TryDeductCredits(senderMindId, args.Amount))
+        if (!_wallet.TryDeductCredits(senderMindId, args.Amount, spending: false))
         {
             _popup.PopupEntity(Loc.GetString("fs-cash-transfer-fail-funds"), sender, sender, PopupType.SmallCaution);
             return;

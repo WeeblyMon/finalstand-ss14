@@ -112,7 +112,7 @@
     stock: 2
     maxStock: 2
     regenPerWave: 2
-    burnDuration: 10
+    burnDuration: 6
     grenadeProtoId: FSGrenadeIncendiary
     selectActionProtoId: FSActionSelectIncendiary
   - type: Sprite
@@ -484,6 +484,7 @@
     layers:
     - state: "3"
       shader: unshaded
+      color: "#FFFFFF80"
   - type: TimedDespawn
     lifetime: 5
 

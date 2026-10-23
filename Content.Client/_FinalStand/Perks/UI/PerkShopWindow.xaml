@@ -14,6 +14,7 @@
                         <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
                             <Label Name="EquippedTitle" Text="{Loc 'fs-perk-shop-equipped'}" Margin="0 0 8 0" />
                             <Label Name="EquippedCountLabel" Text="0 / 6" />
+                            <Label Name="ArchetypeLabel" Margin="14 0 0 0" />
                         </BoxContainer>
                         <BoxContainer Name="SlotsRow" Orientation="Horizontal" SeparationOverride="8" />
                     </BoxContainer>
@@ -24,7 +25,15 @@
                             <Label Name="PpUnitLabel" Text="{Loc 'fs-perk-shop-pp-unit'}" VerticalAlignment="Bottom" Margin="0 0 0 3" />
                         </BoxContainer>
                         <Label Name="InvestedLabel" Text="" HorizontalAlignment="Right" />
+                        <Button Name="StarterBuildsButton" HorizontalAlignment="Right" MinHeight="26" Margin="0 6 0 0" />
                     </BoxContainer>
+                </BoxContainer>
+            </PanelContainer>
+
+            <PanelContainer Name="StarterBanner" Visible="False">
+                <BoxContainer Orientation="Horizontal" Margin="20 8" SeparationOverride="12">
+                    <Label Name="StarterBannerLabel" VerticalAlignment="Center" HorizontalExpand="True" />
+                    <Button Name="StarterBannerButton" MinHeight="30" />
                 </BoxContainer>
             </PanelContainer>
 

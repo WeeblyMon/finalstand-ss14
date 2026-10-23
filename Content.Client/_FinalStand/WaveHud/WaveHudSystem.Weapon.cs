@@ -13,6 +13,7 @@ using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared._FinalStand.Utility;
 using Content.Shared.Charges.Components;
+using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
@@ -31,6 +32,7 @@ using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
+using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.WaveHud;
 
@@ -50,6 +52,7 @@ public sealed partial class WaveHudSystem
     private FSHudText<(string Mode, string Key)> _toolModeText = default!;
     private FSHudText<int> _chargeText = default!;
     private FSHudText<(FixedPoint2 Volume, FixedPoint2 Max)> _volumeText = default!;
+    private FSHudText<(LocId Mode, FixedPoint2? Amount, FixedPoint2 Volume, FixedPoint2 Max)> _injectorText = default!;
     private FSHudText<int> _stackText = default!;
     private FSHudText<(int Left, int Max)> _chargesText = default!;
     private FSHudText<int> _storageText = default!;
@@ -60,6 +63,13 @@ public sealed partial class WaveHudSystem
         _toolModeText = new(v => Loc.GetString("fs-hud-tool-mode", ("mode", v.Mode.ToLowerInvariant()), ("key", v.Key)));
         _chargeText = new(percent => Loc.GetString("fs-hud-item-charge", ("percent", percent)));
         _volumeText = new(v => Loc.GetString("fs-hud-item-volume", ("volume", v.Volume), ("max", v.Max)));
+        _injectorText = new(v =>
+        {
+            var mode = FormattedMessage.RemoveMarkupPermissive(Loc.GetString(v.Mode));
+            return v.Amount is { } amount
+                ? Loc.GetString("fs-hud-item-injector-amount", ("mode", mode), ("amount", amount), ("volume", v.Volume), ("max", v.Max))
+                : Loc.GetString("fs-hud-item-injector", ("mode", mode), ("volume", v.Volume), ("max", v.Max));
+        });
         _stackText = new(count => Loc.GetString("fs-hud-item-stack", ("count", count)));
         _chargesText = new(v => Loc.GetString("fs-hud-item-charges", ("charges", v.Left), ("max", v.Max)));
         _storageText = new(count => Loc.GetString("fs-hud-item-storage", ("count", count)));
@@ -209,6 +219,15 @@ public sealed partial class WaveHudSystem
 
         if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
             return _chargeText.Get((int) MathF.Round(_battery.GetChargeLevel((held, battery)) * 100f, MidpointRounding.AwayFromZero));
+
+        // Syringes: mode, the picked amount when the mode has a choice, and the fill.
+        if (TryComp<InjectorComponent>(held, out var injector)
+            && _solutions.TryGetSolution(held, injector.SolutionName, out _, out var injected)
+            && ProtoMan.Resolve(injector.ActiveModeProtoId, out var mode))
+        {
+            var amount = mode.TransferAmounts.Count > 1 ? injector.CurrentTransferAmount : null;
+            return _injectorText.Get((mode.Name, amount, injected.Volume, injected.MaxVolume));
+        }
 
         if (_solutions.TryGetDrainableSolution(held, out _, out var drainable))
             return _volumeText.Get((drainable.Volume, drainable.MaxVolume));

@@ -23,10 +23,9 @@ public sealed partial class FSHitscanEffectSystem : EntitySystem
         if (args.Data.HitEntity is not { } target)
             return;
 
+        // Already scaled by the gun's upgrade multiplier (FSWeaponUpgradeDamageSystem, predicted on the client).
         var damage = args.Damage;
         TryComp<FSWeaponUpgradeStateComponent>(args.Data.Gun, out var upgradeState);
-        if (upgradeState is { DamageMultiplier: > 1.0f })
-            damage *= upgradeState.DamageMultiplier;
 
         var didCrit = false;
         if (args.Data.Shooter is { } shooter

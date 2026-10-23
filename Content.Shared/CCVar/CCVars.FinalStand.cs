@@ -24,6 +24,12 @@ public sealed partial class CCVars
     public static readonly CVarDef<bool> FSUiScaleMigrated =
         CVarDef.Create("fs.ui_scale_migrated", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 
+    public static readonly CVarDef<string> FSChatSize =
+        CVarDef.Create("fs.chat_size", "", CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSChatSizeMigrated =
+        CVarDef.Create("fs.chat_size_migrated", false, CVar.CLIENTONLY | CVar.ARCHIVE);
+
     public static readonly CVarDef<bool> FSClassicHud =
         CVarDef.Create("fs.classic_hud", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 
@@ -44,4 +50,25 @@ public sealed partial class CCVars
     // How many backward-nudge attempts before a stuck wave zombie is silently deleted.
     public static readonly CVarDef<int> WaveZombieStuckNudgeLimit =
         CVarDef.Create("npc.wave_zombie_stuck_nudge_limit", 3);
+
+    public static readonly CVarDef<int> FSDifficultyVoteSeconds =
+        CVarDef.Create("fs.difficulty_vote_seconds", 60, CVar.SERVERONLY);
+
+    public static readonly CVarDef<int> FSEndlessVoteSeconds =
+        CVarDef.Create("fs.endless_vote_seconds", 30, CVar.SERVERONLY);
+
+    public static readonly CVarDef<float> FSWaveObjectiveChance =
+        CVarDef.Create("fs.wave_objective_chance", 0.35f, CVar.SERVERONLY);
+
+    public static readonly CVarDef<int> FSRoundModifierCount =
+        CVarDef.Create("fs.round_modifier_count", 1, CVar.SERVERONLY);
+
+    public static readonly CVarDef<string> FSDiscordWebhook =
+        CVarDef.Create("fs.discord_webhook", string.Empty, CVar.SERVERONLY | CVar.CONFIDENTIAL);
+
+    public static readonly CVarDef<int> FSDiscordLivePlayers =
+        CVarDef.Create("fs.discord_live_players", 4, CVar.SERVERONLY);
+
+    public static readonly CVarDef<int> FSDiscordLiveCooldownMinutes =
+        CVarDef.Create("fs.discord_live_cooldown_minutes", 120, CVar.SERVERONLY);
 }

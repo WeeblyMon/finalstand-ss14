@@ -120,10 +120,6 @@ public sealed partial class WaveGameRuleComponent : Component
 
     public int ScalingPlayersThisWave = 0;
 
-    // PhaseEndTime is pulled forward by every ready-up, so the payout needs the untouched deadline.
-    [AutoPausedField]
-    public TimeSpan PrepEndUnshaved;
-
     [DataField]
     public float BaseZombieMeleeDamage = 10f;
 
@@ -134,6 +130,39 @@ public sealed partial class WaveGameRuleComponent : Component
     // The wave whose boss perk point has been paid. A wave replayed after a lost CCC life spawns its boss again but
     // doesn't pay the point again.
     public int BossRewardPaidWave;
+
+    // Clearing this wave wins the round; 0 turns victory off.
+    [DataField]
+    public int VictoryWave = 30;
+
+    [DataField]
+    public int VictoryPerkReward = 5;
+
+    // Endless adds a modifier every this many waves past VictoryWave.
+    [DataField]
+    public int EndlessEscalationInterval = 5;
+
+    [DataField]
+    public bool DifficultyVote = true;
+
+    public bool Victory;
+    public bool AwaitingEndless;
+    public bool Endless;
+    public int EndlessEscalations;
+
+    // An admin skipped waves, so the run doesn't count for the ladder.
+    public bool AdminAssisted;
+
+    public FSDifficulty Difficulty = FSDifficulty.Normal;
+
+    // Difficulty and modifiers are fixed once wave 1 starts.
+    public bool DifficultyLocked;
+
+    public readonly List<ProtoId<FSRoundModifierPrototype>> Modifiers = new();
+    public bool ModifiersRerolled;
+
+    public ProtoId<FSWeeklyChallengePrototype>? WeeklyChallenge;
+    public string? WeeklyKey;
 
     public bool RoundLost;
 }

@@ -62,6 +62,53 @@ public static class FSPerkBonusConstants
     public const int UnderdogMaxZombies = 8;
     public const float ScavengerHeal = 15f;
     public const int ScavengerCredits = 150;
+    public const float ConcealedCarryPerLevel = 0.04f;
+    public const float GunslingerDamagePerLevel = 0.06f;
+    public const float GunslingerFireRatePerLevel = 0.10f;
+    public const float LoneWolfDamagePerLevel = 0.03f;
+    public const float LoneWolfRegenPerLevel = 0.5f;
+    public const float LoneWolfRadius = 10f;
+    public const float BunkeredDownDamagePerLevel = 0.05f;
+    public const float BunkeredDownResistPerLevel = 0.10f;
+    public const float BunkeredDownRadius = 12f;
+    public const float BunkeredDownAwayPenalty = 0.10f;
+    public const float DeadlyGearPerLevel = 0.05f;
+    public const float OlReliablePerSentryPerLevel = 0.02f;
+    public const int OlReliableMaxSentries = 5;
+    public const float StylePointsPerLevel = 0.10f;
+    public const float StylePointsRestSeconds = 5f;
+    public const float StylePointsRampSeconds = 5f;
+    public const float StylePointsDrainSeconds = 5f;
+    public const float SmokingKillsPerLevel = 0.04f;
+    public const float LookingThinPerLevel = 0.04f;
+    public const float LookingThinNoBonusArmor = 0.4f;
+    public const float PackMulePerLevel = 0.20f;
+    public const int AggravatorStacksPerLevel = 5;
+    public const float AggravatorDamagePerStack = 0.01f;
+    public const float AggravatorRadiusPerStack = 0.5f;
+    public const float AggravatorTauntSeconds = 3f;
+    public const float AggravatorDecaySeconds = 5f;
+    public const float StunningStrikesChancePerLevel = 0.10f;
+    public const float StunningStrikesSeconds = 1.2f;
+    public const float StunningStrikesSpecialFactor = 0.5f;
+    public const float StunningStrikesSpecialCooldown = 10f;
+    public const float BulwarkDurabilityPerLevel = 0.25f;
+    public const float BulwarkRepairPerKillPerLevel = 0.005f;
+    public const float BulwarkTauntRadius = 4f;
+    public const float BeaconOfLightHealPerLevel = 0.25f;
+    public const float MedievalistMeleePerLevel = 0.15f;
+    public const float MedievalistResistPerLevel = 0.10f;
+    public const float SlushFundPerLevel = 0.05f;
+    public const float DrunkenBerserkerPerLevel = 0.10f;
+    public const float DrunkenBerserkerFireRatePerLevel = 0.05f;
+    public const float DrunkenBerserkerDamageTaken = 0.10f;
+    public const float ExplosiveEngineeringRadiusPerLevel = 0.05f;
+    public const float ExplosiveEngineeringSentryPerLevel = 0.10f;
+    public const float RagingAlcoholicRegenPerLevel = 0.25f;
+    public const float RagingAlcoholicFullSeconds = 60f;
+    public const float WolfPackReloadPerLevel = 0.07f;
+    public const float WolfPackResistPerLevel = 0.05f;
+    public const float WolfPackRadius = 6f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
@@ -79,6 +126,10 @@ public static class FSPerkBonusConstants
     public static readonly float[] BuiltToLastHeal = [5f, 10f, 15f, 20f];
     public static readonly float[] UnderdogPerZombie = [0.02f, 0.03f, 0.04f, 0.05f];
     public static readonly float[] ScavengerChance = [0.03f, 0.05f, 0.075f, 0.10f];
+    public static readonly float[] WiseguyPerWave = [0.01f, 0.015f, 0.02f, 0.025f];
+    public static readonly float[] WiseguyCap = [0.10f, 0.12f, 0.14f, 0.16f];
+    public static readonly float[] BeaconOfLightRadius = [3f, 4f, 5f, 6f];
+    public static readonly float[] DrunkenBerserkerBooze = [2f, 1.8f, 1.6f, 1.4f];
 
     public static int TechnicianBonus(int level, int baseMaxStock)
         => level <= 0 ? 0 : baseMaxStock >= 2 ? level : 1;

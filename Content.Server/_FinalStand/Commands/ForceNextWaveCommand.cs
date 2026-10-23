@@ -26,6 +26,12 @@ public sealed partial class ForceNextWaveCommand : LocalizedEntityCommands
             target = parsed;
         }
 
+        if (_waveRule.IsWon())
+        {
+            shell.WriteError(Loc.GetString("cmd-forcenextwave-won"));
+            return;
+        }
+
         if (_waveRule.ForceNextWave(target) is not { } wave)
         {
             shell.WriteError(Loc.GetString("cmd-wave-rule-not-active"));

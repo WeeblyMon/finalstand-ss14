@@ -75,6 +75,9 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
             if (!fireImmune)
                 continue;
 
+            if (TryComp<FlammableComponent>(tUid, out var burning) && burning.OnFire)
+                _healingFire.MarkHealing(tUid);
+
             var normalTemp = TryComp<ThermalRegulatorComponent>(tUid, out var regulator)
                 ? regulator.NormalBodyTemperature
                 : Atmospherics.T20C;
@@ -86,11 +89,9 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
 
     private void OnWielderHeatExchange(Entity<HandsComponent> ent, ref BeforeHeatExchangeEvent args)
     {
-        if (_manOnFire.IsHeatImmune(ent))
-        {
-            args.HeatTransferModifier = 0f;
+        args.HeatTransferModifier *= 1f - _manOnFire.GetHeatResist(ent);
+        if (args.HeatTransferModifier <= 0f)
             return;
-        }
 
         foreach (var held in _hands.EnumerateHeld((ent.Owner, ent.Comp)))
         {

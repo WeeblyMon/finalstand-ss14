@@ -3,12 +3,14 @@ using System.Text.Json;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
+using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared._FinalStand.Leaderboard;
+using Content.Shared._FinalStand.Onboarding;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
@@ -23,6 +25,7 @@ namespace Content.Server._FinalStand.Leveling;
 public sealed partial class FSLevelingSystem : EntitySystem
 {
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private FSPlayerDataStore _store = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private SharedMindSystem _mind = default!;
@@ -39,6 +42,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyPrestige = new();
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
+    private readonly Dictionary<EntityUid, int> _roundEarned = new();
 
     private const int HealingScoreWeight = 10;
 
@@ -70,6 +74,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
         SubscribeLocalEvent<FSPrestigeWipedEvent>(OnPrestigeWiped);
         SubscribeNetworkEvent<FSPrestigeRequestMessage>(OnPrestigeRequest);
         SubscribeNetworkEvent<FSLevelingRequestMessage>(OnLevelingRequest);
+        SubscribeLocalEvent<FSPlayerLevelComponent, FSCreditsGivenEvent>(OnCreditsGiven);
 
         // A server stop flushes entities without shutting systems down, so this is the last point the minds exist.
         EntityManager.BeforeEntityFlush += SaveDirty;
@@ -128,6 +133,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
         _unsaved.Clear();
     }
 
+    // The leaderboard scores what was earned this round, not what's left in the wallet.
+    private void OnCreditsGiven(Entity<FSPlayerLevelComponent> ent, ref FSCreditsGivenEvent args)
+    {
+        _roundEarned[ent.Owner] = _roundEarned.GetValueOrDefault(ent.Owner) + args.Amount;
+    }
+
     private void OnEnemyWaveTagInit(EntityUid uid, WaveSpawnedTagComponent _, ComponentInit args)
     {
         EnsureComp<FSEnemyDamageTrackerComponent>(uid);
@@ -139,7 +150,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
         _waveRule.TryGetWaveStatus(out var wave, out _);
         var baseXp = TryComp<FSEnemyValueComponent>(uid, out var val) ? val.KillCredits : 100;
-        var waveMult = GetXpMultiplier(wave);
+        var waveMult = GetXpMultiplier(wave) * _waveRule.GetRewardMultiplier();
         var killXp = (int)(baseXp * waveMult);
         var assistXp = (int)(baseXp * 0.5f * waveMult);
 
@@ -153,7 +164,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private void OnWaveEnded(ref WaveEndedEvent args)
     {
-        var xp = WaveCompletionXpPerWave * args.WaveNumber;
+        var xp = (int) (WaveCompletionXpPerWave * args.WaveNumber * _waveRule.GetRewardMultiplier());
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out var mindId, out _))
@@ -167,7 +178,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     private void OnRoundEnd(RoundEndTextAppendEvent args)
     {
         if (!_waveRule.TryGetWaveStatus(out var wave, out _)) return;
-        var xp = RoundEndXpPerWave * wave;
+        var xp = (int) (RoundEndXpPerWave * wave * _waveRule.GetRewardMultiplier());
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out var mindId, out _))
@@ -292,6 +303,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
         SaveDirty();
         _unsent.Clear();
         _roundStats.Clear();
+        _roundEarned.Clear();
         _lastLobbyRequest.Clear();
         _lastLobbyPrestige.Clear();
 
@@ -387,7 +399,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             SendLevelingUpdate(mindId, lvl);
         }
 
-        var amount = (int)(rawAmount * lvl.XpMultiplier);
+        var amount = (int)(rawAmount * lvl.XpMultiplier * lvl.CatchUpMultiplier * _titleBuffs.ForMind(mindId).Xp);
         lvl.Experience += amount;
 
         _roundStats.TryGetValue(mindId, out var stats);
@@ -406,7 +418,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             lvl.Experience -= lvl.XpToNextLevel;
             lvl.Level++;
             lvl.XpToNextLevel = XpToNextLevel(lvl.Level);
-            var ap = lvl.Level % 5 == 0 ? 5 : 1;
+            var ap = FSLevelingRules.PerkPointsForReaching(lvl.Level);
             _wallet.AddPerkPoints(mindId, ap);
             totalAp += ap;
         }
@@ -479,8 +491,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
             Experience = lvl.Experience,
             XpToNextLevel = lvl.XpToNextLevel,
             PrestigeLevel = lvl.PrestigeLevel,
+            CatchUp = lvl.CatchUpMultiplier > 1f,
         }, Filter.SinglePlayer(session));
     }
+
+    public (int Xp, int Kills, int Assists) GetRoundStats(EntityUid mindId)
+        => _roundStats.GetValueOrDefault(mindId);
 
     public (int Kills, int Assists) KillsOf(EntityUid mindId)
     {
@@ -501,13 +517,15 @@ public sealed partial class FSLevelingSystem : EntitySystem
             var stats = _roundStats.TryGetValue(mindId, out var cur)
                 ? cur
                 : (Xp: 0, Kills: 0, Assists: 0);
-            var walletCredits = TryComp<FSPlayerWalletComponent>(mindId, out var wallet) ? wallet.Credits : 0;
+            var earned = _roundEarned.GetValueOrDefault(mindId);
 
             var healing = _medicalStats.GetStats(mindId).HealingPoints;
             var fortify = (int) _engineerStats.GetStats(mindId).Points;
 
             var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5
-                        + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + fortify * HealingScoreWeight + walletCredits;
+                        + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + fortify * HealingScoreWeight + earned;
+
+            TryComp<FSPlayerBadgeComponent>(mind.CurrentEntity, out var badge);
 
             entries.Add(new FSLeaderboardEntry(
                 mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name"),
@@ -517,8 +535,10 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 stats.Xp,
                 lvl.Level,
                 lvl.PrestigeLevel,
-                walletCredits,
-                score) { Fortify = fortify });
+                earned,
+                score,
+                badge?.Rookie ?? false,
+                badge?.Title?.Id) { Fortify = fortify });
         }
 
         return FSLeaderboardEntry.Sort(entries);

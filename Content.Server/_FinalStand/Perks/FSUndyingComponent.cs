@@ -6,7 +6,7 @@ public sealed partial class FSUndyingComponent : Component
 {
     public int Level;
 
-    /// <summary>Once per life: set when Undying triggers, cleared when the body is rejuvenated (respawn).</summary>
+    /// <summary>Set when Undying triggers; cleared at the start of each prep and when the body is rejuvenated (respawn).</summary>
     public bool Used;
 
     /// <summary>When the player dies. Null while Undying is not active.</summary>

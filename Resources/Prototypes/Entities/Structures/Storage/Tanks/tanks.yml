@@ -30,7 +30,8 @@
       types:
         Heat: 10
   - type: PacifismDangerousAttack
-  - type: FSPlayerDamageImmune # FINALSTAND
+  - type: Godmode # FINALSTAND: fuel tanks can't be damaged at all
+  - type: FSPlayerDamageImmune # FINALSTAND: kept with Godmode so life steal doesn't heal off a tank that takes no damage
   - type: Explosive
     explosionType: Default
     totalIntensity: 60 # Mediocre explosion. Not enough to do any meaningful structural damage to anything other then windows, provided you're only using one tank.

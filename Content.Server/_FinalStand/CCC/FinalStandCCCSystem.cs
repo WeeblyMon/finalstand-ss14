@@ -86,6 +86,9 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
         if (!args.DamageIncreased)
             return;
 
+        var damaged = new FSCccDamagedEvent(uid);
+        RaiseLocalEvent(ref damaged);
+
         if (comp.MaxHealth > 0f
             && comp.LivesLeft > 1
             && _damageable.GetTotalDamage((uid, args.Damageable)).Float() >= comp.MaxHealth)

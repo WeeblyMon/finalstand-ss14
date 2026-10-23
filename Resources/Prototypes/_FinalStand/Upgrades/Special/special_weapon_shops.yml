@@ -366,7 +366,7 @@
     - id: xray-pierce
       name: fs-upgrade-xray-pierce
       description: fs-upgrade-xray-pierce-desc
-      maxLevel: 3
+      maxLevel: 10
       baseCost: 13000
       targetWeaponProtoId: WeaponXrayCannonFS
       requiresResearch: FSOrdnanceXrayCannon

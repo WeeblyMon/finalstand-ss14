@@ -20,6 +20,7 @@ fs-shop-bound-examine-other = [color=orange]Bound to {$owner}.[/color] Only they
 fs-shop-bound-someone = someone else
 fs-shop-bound-not-yours = This belongs to someone else.
 shop-item-already-owned-elsewhere = You already own one. It isn't on you - go find it.
+fs-upgrade-damage-examine = Upgrades add [color=#7ec8ff]+{$percent}%[/color] damage.
 
 fs-weapon-shop-upgraded-suffix = (Upgraded)
 fs-weapon-shop-sell-none-found = No copy of this weapon found in inventory.

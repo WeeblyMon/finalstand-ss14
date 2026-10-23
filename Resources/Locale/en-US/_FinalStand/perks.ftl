@@ -146,7 +146,7 @@ fs-perk-untouchable-level-3 = +3 Max Charges
 fs-perk-untouchable-level-4 = +4 Max Charges
 
 fs-perk-martyr-name = Martyr
-fs-perk-martyr-desc = Going down triggers an explosion at your feet.
+fs-perk-martyr-desc = Going down triggers an explosion at your feet. 20 second cooldown.
 fs-perk-martyr-level-1 = Small Explosion
 fs-perk-martyr-level-2 = Medium Explosion
 fs-perk-martyr-level-3 = Large Explosion
@@ -297,3 +297,152 @@ fs-perk-underdog-level = +{ $value }% per Nearby Zombie
 fs-perk-scavenger-name = Scavenger
 fs-perk-scavenger-desc = Kills can drop a supply cache holding ammo, a heal or credits.
 fs-perk-scavenger-level = { $value }% Drop Chance
+
+fs-perk-concealed-carry-name = Concealed Carry
+fs-perk-concealed-carry-desc = More crit chance with guns. Halved for large guns, none for huge ones.
+fs-perk-concealed-carry-level = +{ $value }% Crit Chance
+
+fs-perk-gunslinger-name = Gunslinger
+fs-perk-gunslinger-desc = Pistols hit harder and fire faster. Two-handed guns get the reverse.
+fs-perk-gunslinger-level = +{ $value }% Pistol Damage / +{ $value2 }% Pistol Fire Rate
+
+fs-perk-lone-wolf-name = Lone Wolf
+fs-perk-lone-wolf-desc = With no teammate within 10 tiles, deal more damage and regenerate health.
+fs-perk-lone-wolf-level = +{ $value }% Damage / +{ $value2 } HP/s
+
+fs-perk-bunkered-down-name = Bunkered Down
+fs-perk-bunkered-down-desc = More damage and toughness within 12 tiles of the CCC, 10% less damage away from it.
+fs-perk-bunkered-down-level = +{ $value }% Damage / +{ $value2 } Resistance
+
+fs-perk-deadly-gear-name = Deadly Gear
+fs-perk-deadly-gear-desc = Your sentries, HMG fire and landmines deal more damage.
+fs-perk-deadly-gear-level = +{ $value }% Equipment Damage
+
+fs-perk-ol-reliable-name = Ol' Reliable
+fs-perk-ol-reliable-desc = Shotguns deal more damage for each of your sentries still standing, up to 5.
+fs-perk-ol-reliable-level = +{ $value }% Shotgun Damage per Sentry
+
+fs-perk-style-points-name = Style Points
+fs-perk-style-points-desc = A gun left unfired for 5s builds up bonus damage. Firing it drains the bonus.
+fs-perk-style-points-level = Up to +{ $value }% Damage
+
+fs-perk-smoking-kills-name = Smoking Kills
+fs-perk-smoking-kills-desc = Deal more damage while a lit cigarette, cigar or pipe is in your mouth.
+fs-perk-smoking-kills-level = +{ $value }% Damage
+
+fs-perk-wiseguy-name = Wiseguy
+fs-perk-wiseguy-desc = Each wave you finish without going down raises your income. Going down resets it.
+fs-perk-wiseguy-level = +{ $value }% Money/Wave (Max { $value2 }%)
+
+fs-perk-looking-thin-name = Looking Thin
+fs-perk-looking-thin-desc = Move faster with no armour on. Light armour halves it, heavy armour removes it.
+fs-perk-looking-thin-level = +{ $value }% Speed
+
+fs-perk-pack-mule-name = Pack Mule
+fs-perk-pack-mule-desc = Slowdowns from armour, heavy guns, wounds and the like hit you less.
+fs-perk-pack-mule-level = -{ $value }% Speed Penalties
+
+fs-perk-aggravator-name = Aggravator
+fs-perk-aggravator-desc = Kills stack +1% damage and draw nearby zombies to you. Lose a stack every 5s.
+fs-perk-aggravator-level = +{ $value } Max Stacks
+
+fs-perk-stunning-strikes-name = Stunning Strikes
+fs-perk-stunning-strikes-desc = Riot shield hits can stun zombies for 1.2s. Specials: half as long, once per 10s.
+fs-perk-stunning-strikes-level = { $value }% Stun Chance
+
+fs-perk-bulwark-name = Bulwark
+fs-perk-bulwark-desc = Tougher riot shield. Blocking draws zombies to you, melee kills mend the shield.
+fs-perk-bulwark-level = +{ $value }% Shield Durability / +{ $value2 }% Mend per Kill
+
+fs-perk-beacon-of-light-name = Beacon of Light
+fs-perk-beacon-of-light-desc = While blocking with a riot shield, nearby allies stop bleeding and slowly heal.
+fs-perk-beacon-of-light-level = { $value } Tile Radius / +{ $value2 } HP/s
+
+fs-perk-medievalist-name = Medievalist
+fs-perk-medievalist-desc = No guns or armour. Big melee damage and toughness. Locks in at wave start.
+fs-perk-medievalist-level = +{ $value }% Melee Damage / +{ $value2 } Resistance
+
+fs-perk-slush-fund-name = Slush Fund
+fs-perk-slush-fund-desc = An extra share of what you earn goes into the Medical fund. Medical staff only.
+fs-perk-slush-fund-level = +{ $value }% of Income to Fund
+
+fs-perk-drunken-berserker-name = Drunken Berserker
+fs-perk-drunken-berserker-desc = Drunk: more melee damage and fire rate, but worse aim and frailer. No alcohol poisoning.
+fs-perk-drunken-berserker-level = +{ $value }% Melee Damage and Spread / +{ $value2 }% Fire Rate
+
+fs-perk-explosive-engineering-name = Explosive Engineering
+fs-perk-explosive-engineering-desc = Drunk: bigger blasts from your grenades and rockets, harder-hitting sentries.
+fs-perk-explosive-engineering-level = +{ $value }% Blast Radius / +{ $value2 }% Sentry Damage
+
+fs-perk-raging-alcoholic-name = Raging Alcoholic
+fs-perk-raging-alcoholic-desc = No alcohol poisoning. The drunker you are, the faster you heal.
+fs-perk-raging-alcoholic-level = Up to +{ $value } HP/s
+
+fs-perk-wolf-pack-name = Wolf Pack
+fs-perk-wolf-pack-desc = With a teammate within 6 tiles, reload faster and take less damage.
+fs-perk-wolf-pack-level = +{ $value }% Reload Speed / +{ $value2 } Resistance
+
+fs-starter-build-rifleman-name = Rifleman Line
+fs-starter-build-rifleman-desc = Hold a lane with any gun. More damage, more toughness, faster reloads.
+fs-starter-build-medic-name = Field Medic
+fs-starter-build-medic-desc = Keep the squad standing. Stronger heals and a body that can take a hit.
+fs-starter-build-fortifier-name = Fortifier
+fs-starter-build-fortifier-desc = Barricades and deployables. Build the wall, then hold it.
+fs-starter-build-banner = New here? Pick a starter build and you're ready to play.
+fs-starter-build-button = STARTER BUILDS
+fs-starter-build-window-title = Starter builds
+fs-starter-build-window-hint = Applying a build spends your perk points on its six perks, level 1 across the board first, and slots them. Perks you already own are kept.
+fs-starter-build-apply = APPLY
+fs-starter-build-cost = Uses {$spent} of your {$points} PP
+fs-starter-build-nothing = Nothing to buy: you already own this build at what your PP allows
+
+fs-title-perk-master-name = Perk Master
+fs-title-perk-master-desc = Took a perk to Gold mastery.
+fs-title-mastery-offense-name = Offense Ascendant
+fs-title-mastery-offense-desc = Gold mastery on every offense perk.
+fs-title-mastery-defense-name = Defense Ascendant
+fs-title-mastery-defense-desc = Gold mastery on every defense perk.
+fs-title-mastery-utility-name = Utility Ascendant
+fs-title-mastery-utility-desc = Gold mastery on every utility perk.
+fs-title-mastery-economy-name = Economy Ascendant
+fs-title-mastery-economy-desc = Gold mastery on every economy perk.
+fs-title-mastery-hybrid-name = Hybrid Ascendant
+fs-title-mastery-hybrid-desc = Gold mastery on every hybrid perk.
+
+fs-mastery-none = No mastery
+fs-mastery-bronze = Bronze
+fs-mastery-silver = Silver
+fs-mastery-gold = Gold
+fs-mastery-tier-up = {$perk} mastery reached {$tier}!
+fs-mastery-progress = Mastery: {$tier} · {$kills} / {$next} kills at level 4
+fs-mastery-progress-max = Mastery: {$tier} · {$kills} kills
+fs-mastery-hint = Kills while this perk is slotted at level 4 count toward its mastery.
+
+fs-archetype-tooltip = Slot {$archetype} perks of one category for an archetype bonus, {$keystone} for its keystone.
+fs-archetype-category-offense = OFFENSE
+fs-archetype-category-defense = DEFENSE
+fs-archetype-category-utility = UTILITY
+fs-archetype-category-economy = ECONOMY
+fs-archetype-category-hybrid = HYBRID
+fs-archetype-progress = {$category} {$count}/{$needed} for an archetype
+fs-archetype-line = {$name}: {$effect} · keystone at {$needed} ({$count}/{$needed})
+fs-archetype-keystone-line = {$name} KEYSTONE: {$effect}
+fs-archetype-slayer = Slayer
+fs-archetype-slayer-effect = +8% damage to the horde
+fs-archetype-slayer-keystone = +20% damage to the horde
+fs-archetype-bulwark = Bulwark
+fs-archetype-bulwark-effect = 8% less damage taken
+fs-archetype-bulwark-keystone = 20% less damage taken
+fs-archetype-operator = Operator
+fs-archetype-operator-effect = +6% move speed
+fs-archetype-operator-keystone = +15% move speed
+fs-archetype-tycoon = Tycoon
+fs-archetype-tycoon-effect = +12% kill credits
+fs-archetype-tycoon-keystone = +30% kill credits
+fs-archetype-specialist = Specialist
+fs-archetype-specialist-effect = +3% damage, speed and credits, 3% less damage taken
+fs-archetype-specialist-keystone = +8% damage and credits, +5% speed, 8% less damage taken
+
+fs-medievalist-no-guns = Your oath forbids firearms.
+fs-perk-locked = That perk is locked in until the round ends.
+fs-medievalist-no-armour = Your oath forbids armour.

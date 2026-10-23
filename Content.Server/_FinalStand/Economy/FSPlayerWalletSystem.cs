@@ -160,7 +160,9 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         return _cachedUsernames.TryGetValue(userId, out var cached) ? cached : "unknown";
     }
 
-    public void DistributeCredits(int amount)
+    public void DistributeCredits(int amount) => DistributeCredits(amount, _ => 1f);
+
+    public void DistributeCredits(int amount, Func<EntityUid, float> scale)
     {
         var count = 0;
         foreach (var session in _playerManager.Sessions)
@@ -169,7 +171,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
                 continue;
 
             var wallet = GetLoadedWallet(mindId, session.UserId);
-            wallet.Credits += amount;
+            wallet.Credits += (int) MathF.Round(amount * scale(mindId));
             MarkWalletDirty(mindId);
             count++;
         }
@@ -234,13 +236,16 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         MarkWalletDirty(mindId);
     }
 
-    public bool TryDeductCredits(EntityUid mindId, int amount)
+    // Pass spending: false for credits that move to another player rather than buying something.
+    public bool TryDeductCredits(EntityUid mindId, int amount, bool spending = true)
     {
         // A negative charge would quietly pay out; callers refund through AddCredits.
         if (amount < 0 || !TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < amount)
             return false;
         wallet.Credits -= amount;
         MarkWalletDirty(mindId);
+        if (spending && amount > 0)
+            RaiseSpent(mindId, amount);
         return true;
     }
 
@@ -256,7 +261,14 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
         wallet.Credits -= taken;
         MarkWalletDirty(mindId);
+        RaiseSpent(mindId, taken);
         return taken;
+    }
+
+    private void RaiseSpent(EntityUid mindId, int amount)
+    {
+        var ev = new FSCreditsSpentEvent(mindId, amount);
+        RaiseLocalEvent(ref ev);
     }
 
     public int GetCredits(EntityUid mindId)

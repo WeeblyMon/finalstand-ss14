@@ -299,6 +299,7 @@
     killCredits: 1500
   - type: FSMoneyOnHitCap
     maxMoneyPerPlayer: 1500
+    researchCapMultiplier: 6
   - type: FSDeathLoot
     drops:
     # Both listed: a child component merges field-wise with its parent, so the base's disk
