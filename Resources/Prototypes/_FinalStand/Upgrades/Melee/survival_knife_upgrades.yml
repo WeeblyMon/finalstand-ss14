@@ -32,11 +32,11 @@
       valuePerLevel: 0.5
     - id: knife-golden
       name: Golden Blade
-      description: Gilded blade pays out +25% money on each kill.
+      description: Gilded blade pays out +8% money on each kill.
       maxLevel: 1
       baseCost: 500
       type: MoneyGainPercent
-      valuePerLevel: 0.25
+      valuePerLevel: 0.08
     - id: knife-bloodthirster
       name: Blood Thirster
       description: Drains +10 blood from the target on every hit.
