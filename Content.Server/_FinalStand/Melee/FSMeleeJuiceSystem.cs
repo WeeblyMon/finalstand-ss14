@@ -31,6 +31,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Physics;
+using Content.Shared.Popups;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Components;
@@ -117,8 +118,13 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private readonly List<PendingAftershock> _aftershocks = new();
     private TimeSpan _nextShotRefresh;
+    private readonly Dictionary<EntityUid, TimeSpan> _whirlWarned = new();
+    private static readonly TimeSpan WhirlWarnInterval = TimeSpan.FromSeconds(3);
     private readonly Dictionary<(EntityUid User, EntityUid Target), (EntityUid Weapon, bool Heavy, bool Finisher)> _hitsThisTick = new();
     private readonly HashSet<Entity<MobStateComponent>> _nearby = new();
+    private readonly HashSet<Entity<MobStateComponent>> _burning = new();
+    private readonly HashSet<(EntityUid User, EntityUid Target)> _revDumps = new();
+    private readonly List<(EntityUid Target, float Percent)> _ripAndTear = new();
     private readonly List<EntityUid> _launched = new();
 
     public override void Initialize()
@@ -146,13 +152,20 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         Crits(user, weapon, targets, profile, damage);
         Opportunist(user, weapon, targets, damage);
 
-        // Rip and Tear: a big rev dump feeds the wielder and pays out on what it kills.
+        if (heavy && profile.Rev > 0)
+        {
+            foreach (var target in targets)
+                _revDumps.Add((user, target));
+        }
+
+        // Rip and Tear: a big rev dump feeds the wielder and pays out on what it kills; survivors lose the bonus next tick.
         if (heavy && profile.Rev >= RipAndTearStacks && Signature(weapon, FSMeleeSignature.RipAndTear) is var feed and > 0f && living > 0)
         {
             _damageable.HealEvenly(user, FixedPoint2.New(-feed * living));
             foreach (var target in targets)
             {
                 var bonus = EnsureComp<FSPendingKillBonusComponent>(target);
+                _ripAndTear.Add((target, bonus.MoneyPercent));
                 bonus.MoneyPercent = Math.Max(bonus.MoneyPercent, RipAndTearMoney);
             }
         }
@@ -284,11 +297,20 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             || !TryComp<GunComponent>(found.Uid, out var gun))
         {
             _popup.PopupEntity(Loc.GetString("fs-melee-no-shot-weapon"), user, user);
+
+            // Nothing fired, so the charge isn't spent.
+            if (TryComp<FSMeleeShotStateComponent>(weapon, out var unspent))
+            {
+                unspent.Charges = Math.Min(unspent.MaxCharges, unspent.Charges + 1);
+                RefreshShots((weapon, unspent), weapon.Comp, null);
+                Dirty(weapon, unspent);
+            }
+
             return;
         }
 
         if (TryComp<FSMeleeShotStateComponent>(weapon, out var shots))
-            SetMaxShots((weapon, shots), weapon.Comp, found.Uid);
+            RefreshShots((weapon, shots), weapon.Comp, found.Uid);
 
         // Broadside: three balls in a spread.
         var spread = Signature(weapon, FSMeleeSignature.Broadside) > 0f ? new[] { 0f, -BroadsideSpread, BroadsideSpread } : new[] { 0f };
@@ -315,13 +337,14 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         args.Cancelled = true;
     }
 
-    // The gun's magazine upgrades hold more shots.
-    private void SetMaxShots(Entity<FSMeleeShotStateComponent> shots, FSMeleeJuiceComponent juice, EntityUid? gun)
+    // Notes whether the holder still has the gun; its magazine upgrades hold more shots.
+    private void RefreshShots(Entity<FSMeleeShotStateComponent> shots, FSMeleeJuiceComponent juice, EntityUid? gun)
     {
         var max = gun == null ? juice.ShotCharges : juice.ShotCharges + (CompOrNull<FSWeaponUpgradeStateComponent>(gun)?.MagazineSizeBonus ?? 0);
-        if (shots.Comp.MaxCharges == max)
+        if (shots.Comp.MaxCharges == max && shots.Comp.Armed == (gun != null))
             return;
 
+        shots.Comp.Armed = gun != null;
         shots.Comp.MaxCharges = max;
         shots.Comp.Charges = Math.Min(shots.Comp.Charges, max);
         Dirty(shots);
@@ -352,9 +375,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private void Wildfire(EntityUid user, EntityUid source)
     {
         var center = Xform.GetMapCoordinates(source);
-        _nearby.Clear();
-        _lookup.GetEntitiesInRange(center, WildfireRadius, _nearby);
-        foreach (var mob in _nearby)
+        _burning.Clear();
+        _lookup.GetEntitiesInRange(center, WildfireRadius, _burning);
+        foreach (var mob in _burning)
         {
             if (mob.Owner != source && CanSpill(user, center, mob, WildfireRadius))
                 Ignite(user, mob);
@@ -368,12 +391,23 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         RaiseNetworkEvent(new FSMeleeBurstEvent(GetNetCoordinates(Xform.ToCoordinates(at)), effect), Filter.Pvs(at));
     }
 
+    // Says why the spin went back to normal, at most every few seconds while the heavy is held.
+    protected override void OnWhirlSpent(EntityUid user)
+    {
+        var now = Timing.CurTime;
+        if (_whirlWarned.TryGetValue(user, out var last) && now - last < WhirlWarnInterval)
+            return;
+
+        _whirlWarned[user] = now;
+        _popup.PopupEntity(Loc.GetString("fs-melee-whirl-spent"), user, user, PopupType.SmallCaution);
+    }
+
     protected override void OnWhirl(EntityUid user, float cost)
     {
         _damageable.ChangeDamage(user, new DamageSpecifier(_proto.Index(WallSlamType), cost), ignoreResistances: true, interruptsDoAfters: false);
         _color.RaiseEffect(Color.Red, [user], Filter.Pvs(user, entityManager: EntityManager));
         if (TryComp<ActorComponent>(user, out var actor))
-            RaiseNetworkEvent(new FSDamageNumberEvent { Target = GetNetEntity(user), Amount = cost }, actor.PlayerSession);
+            RaiseNetworkEvent(new FSDamageNumberEvent { Target = GetNetEntity(user), Amount = cost, Reveal = false }, actor.PlayerSession);
     }
 
     protected override void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage, bool lastBreath)
@@ -397,6 +431,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private void OnPrepStarted(WavePrepStartedEvent ev)
     {
         _aftershocks.Clear();
+        _whirlWarned.Clear();
 
         var query = EntityQueryEnumerator<FSMeleeBloodComponent>();
         while (query.MoveNext(out var uid, out var blood))
@@ -517,9 +552,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         {
             _hitsThisTick[(user, mob)] = (launched.Weapon, true, false);
             _killPipeline.MarkMeleeHit(user, mob);
-            _damageable.ChangeDamage(mob, damage, origin: user);
             if (crit)
                 _crit.MarkPendingCrit(user, mob);
+            _damageable.ChangeDamage(mob, damage, origin: user);
 
             if (bleed > 0)
             {
@@ -677,7 +712,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (!heavy || weapon.Comp.HeavyStyle != FSMeleeHeavyStyle.Slam || direction == Vector2.Zero || !TryComp<MeleeWeaponComponent>(weapon, out var melee))
             return null;
 
-        return Xform.GetMapCoordinates(user).Offset(Vector2.Normalize(direction) * melee.Range * SlamReach);
+        // Short of any wall in the way, so a slam can't land on, or stagger through to, its far side.
+        var dir = Vector2.Normalize(direction);
+        return Xform.GetMapCoordinates(user).Offset(dir * Math.Max(0f, ClearDistance(user, dir, melee.Range * SlamReach)));
     }
 
     private void Stagger(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, FSMeleeJuiceProfile profile, MapCoordinates center, DamageSpecifier damage, bool heavy, bool finisher)
@@ -685,10 +722,19 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         DamageSpecifier? shockwave = profile.StaggerDamage > 0f ? damage * profile.StaggerDamage : null;
         _nearby.Clear();
         _lookup.GetEntitiesInRange(center, profile.StaggerRadius, _nearby);
-        var staggered = 0;
+
+        // Gathered first: a kill below can start a Wildfire, which looks up mobs itself.
+        var struck = new List<Entity<MobStateComponent>>();
         foreach (var mob in _nearby)
         {
-            if (mob.Owner == user || targets.Contains(mob) || !CanSpill(user, center, mob, profile.StaggerRadius))
+            if (mob.Owner != user && !targets.Contains(mob) && CanSpill(user, center, mob, profile.StaggerRadius))
+                struck.Add(mob);
+        }
+
+        var staggered = 0;
+        foreach (var mob in struck)
+        {
+            if (TerminatingOrDeleted(mob))
                 continue;
 
             var push = Xform.GetWorldPosition(mob) - center.Position;
@@ -746,7 +792,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             Wildfire(user, args.Target);
 
         // Bloodthirsty: a kill off a rev dump makes the next grind hit crit.
-        if (hit.Heavy && Signature(hit.Weapon, FSMeleeSignature.Bloodthirsty) > 0f && TryComp<FSMeleeRevComponent>(hit.Weapon, out var rev) && !rev.CritReady)
+        if (_revDumps.Contains((user, args.Target)) && Signature(hit.Weapon, FSMeleeSignature.Bloodthirsty) > 0f && TryComp<FSMeleeRevComponent>(hit.Weapon, out var rev) && !rev.CritReady)
         {
             rev.CritReady = true;
             Dirty(hit.Weapon, rev);
@@ -761,6 +807,14 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     {
         base.Update(frameTime);
         _hitsThisTick.Clear();
+        _revDumps.Clear();
+        foreach (var (target, percent) in _ripAndTear)
+        {
+            if (!TerminatingOrDeleted(target) && TryComp<FSPendingKillBonusComponent>(target, out var bonus))
+                bonus.MoneyPercent = percent;
+        }
+
+        _ripAndTear.Clear();
 
         var now = Timing.CurTime;
         for (var i = _strikes.Count - 1; i >= 0; i--)
@@ -808,7 +862,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         {
             if (refresh && juice.ShotWeapon is { } gunProto
                 && _container.TryGetContainingContainer(uid, out var hand) && HasComp<HandsComponent>(hand.Owner))
-                SetMaxShots((uid, shots), juice, _search.FindFirst(hand.Owner, new HashSet<string> { gunProto.Id })?.Uid);
+                RefreshShots((uid, shots), juice, _search.FindFirst(hand.Owner, new HashSet<string> { gunProto.Id })?.Uid);
 
             if (shots.Charges >= shots.MaxCharges || now < shots.NextCharge)
                 continue;

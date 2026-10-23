@@ -83,7 +83,7 @@
       valuePerLevel: 1
     - id: esword-last-breath
       name: Last Breath
-      description: Sweeping through a zombie that's knocked down or sent flying finishes it outright.
+      description: Sweeping through a zombie that's knocked down or sent flying finishes it outright. Specials just take the hit.
       maxLevel: 1
       baseCost: 18000
       type: MeleeSignature

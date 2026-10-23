@@ -169,6 +169,10 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
                 return;
             }
 
+            // FINALSTAND: a heavy on cooldown isn't sent at all, rather than every frame the button is held
+            if (TryComp<FSMeleeJuiceComponent>(weaponUid, out var fsJuice) && !_fsJuice.HeavyReady(entity, (weaponUid, fsJuice)))
+                return;
+
             ClientHeavyAttack(entity, coordinates, weaponUid, weapon);
             return;
         }

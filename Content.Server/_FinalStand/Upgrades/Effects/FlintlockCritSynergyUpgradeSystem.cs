@@ -1,5 +1,6 @@
 // Pirate cross-family crit: kill with cutlass arms flintlock; kill with flintlock, or land a cutlass-fired shot, arms cutlass. Consumed on use, dropped weapons untag, 5s expiry.
 using Content.Server._FinalStand.Crit;
+using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Hands;
@@ -119,6 +120,10 @@ public sealed partial class FlintlockCritSynergyUpgradeSystem : EntitySystem
     private void OnMeleeHit(EntityUid weapon, FSCritReadyComponent _, MeleeHitEvent args)
     {
         if (!args.IsHit || args.HitEntities.Count == 0)
+            return;
+
+        // The cutlass's right click fires the flintlock instead of swinging, so it can't spend a swing's crit.
+        if (args.Direction != null && TryComp<FSMeleeJuiceComponent>(weapon, out var juice) && juice.HeavyStyle == FSMeleeHeavyStyle.Shot)
             return;
 
         args.BonusDamage += args.BaseDamage * (CritMultiplier - 1f);

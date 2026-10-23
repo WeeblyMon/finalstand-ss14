@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared.Damage;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Melee;
@@ -33,8 +34,9 @@ public sealed partial class FSMeleeComboComponent : Component
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMeleeRevComponent : Component
 {
-    // Not networked: the target can be deleted mid-grind.
+    // Not networked: the target can be deleted mid-grind. A target set on the tick being re-predicted doesn't count yet.
     public EntityUid? Target;
+    public TimeSpan TargetSince;
 
     [AutoNetworkedField]
     public int Stacks;
@@ -97,7 +99,15 @@ public sealed partial class FSMeleeSweepComponent : Component
     [AutoNetworkedField]
     public bool TempestUsed;
 
-    public readonly Dictionary<EntityUid, TimeSpan> Marked = new();
+    // When the last sweep's dash ends.
+    [AutoNetworkedField]
+    public TimeSpan Landed;
+
+    [AutoNetworkedField]
+    public TimeSpan NextSweep;
+
+    // Not networked, so a re-predicted sweep ignores marks made on the tick it's replaying.
+    public readonly Dictionary<EntityUid, (TimeSpan At, TimeSpan Until)> Marked = new();
 }
 
 // Shots a Shot heavy has ready and when the next comes back.
@@ -119,6 +129,10 @@ public sealed partial class FSMeleeShotStateComponent : Component
 
     [AutoNetworkedField]
     public Angle LastAim;
+
+    // Whether the holder carries the gun, so a heavy without one doesn't draw it.
+    [AutoNetworkedField]
+    public bool Armed = true;
 }
 
 // Carries the user at a set speed with friction off, so a dash travels rather than jumps.
@@ -130,6 +144,13 @@ public sealed partial class FSMeleeDashComponent : Component
 
     [AutoNetworkedField]
     public TimeSpan Until;
+
+    // A sweep's cut, dealt to each mob the dash reaches: its target in full, anything else in the way for less.
+    public EntityUid? Weapon;
+    public EntityUid? Primary;
+    public DamageSpecifier? Damage;
+    public FSMeleeJuiceProfile? Profile;
+    public readonly HashSet<EntityUid> Hit = new();
 }
 
 // Cuts the damage the user takes during a dash, or for as long as a weapon is winding up.
@@ -139,6 +160,6 @@ public sealed partial class FSMeleeGuardComponent : Component
     [AutoNetworkedField]
     public TimeSpan Until;
 
-    [AutoNetworkedField]
+    // Server only: the weapon may be sold or deleted while this still points at it.
     public EntityUid? Charging;
 }

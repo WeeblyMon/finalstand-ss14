@@ -79,10 +79,11 @@ public sealed partial class FSMeleeJuiceComponent : Component
 
     // A Sweep heavy dashes through the enemy nearest the cursor within this many tiles.
     [DataField]
-    public float SweepRange = 3.5f;
+    public float SweepRange = 2.5f;
 
+    // Seconds between sweeps; the weapon's other attacks aren't held up by it.
     [DataField]
-    public float SweepCooldown = 0.4f;
+    public float SweepCooldown = 1.5f;
 
     // Seconds before the same enemy can be swept through again.
     [DataField]
@@ -90,7 +91,7 @@ public sealed partial class FSMeleeJuiceComponent : Component
 
     // Each sweep within this many seconds of the last adds a stack of SweepStackBonus damage.
     [DataField]
-    public float SweepStackWindow = 3f;
+    public float SweepStackWindow = 4f;
 
     [DataField]
     public int SweepMaxStacks = 3;

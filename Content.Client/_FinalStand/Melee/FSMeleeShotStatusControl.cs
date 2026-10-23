@@ -48,11 +48,18 @@ public sealed partial class FSMeleeShotStatusControl : PollingItemStatusControl<
         var recharge = _entMan.TryGetComponent<FSMeleeJuiceComponent>(_parent, out var juice) ? juice.ShotRecharge : 0f;
         var left = shots.Charges < shots.MaxCharges ? (float) (shots.NextCharge - _timing.CurTime).TotalSeconds : 0f;
         var fill = recharge > 0f && left > 0f ? 1f - Math.Clamp(left / recharge, 0f, 1f) : 1f;
-        return new Data(shots.Charges, shots.MaxCharges, MathF.Round(fill, 2), (int) MathF.Ceiling(Math.Max(left, 0f) * 10f));
+        return new Data(shots.Armed, shots.Charges, shots.MaxCharges, MathF.Round(fill, 2), (int) MathF.Ceiling(Math.Max(left, 0f) * 10f));
     }
 
     protected override void Update(in Data data)
     {
+        if (!data.Armed)
+        {
+            _label.SetMarkup(Loc.GetString("fs-melee-shot-status-unarmed"));
+            _bar.Value = 0f;
+            return;
+        }
+
         var pips = new string('●', data.Charges) + new string('○', Math.Max(0, data.Max - data.Charges));
         var line = Loc.GetString("fs-melee-shot-status", ("color", data.Charges > 0 ? "#f0b040" : "red"), ("pips", pips));
         if (data.Tenths > 0)
@@ -62,5 +69,5 @@ public sealed partial class FSMeleeShotStatusControl : PollingItemStatusControl<
         _bar.Value = data.Fill;
     }
 
-    public record struct Data(int Charges, int Max, float Fill, int Tenths);
+    public record struct Data(bool Armed, int Charges, int Max, float Fill, int Tenths);
 }

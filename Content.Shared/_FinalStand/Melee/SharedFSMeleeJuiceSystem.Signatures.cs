@@ -32,7 +32,7 @@ public abstract partial class SharedFSMeleeJuiceSystem
             : 0f;
     }
 
-    private int RevCap(Entity<FSMeleeJuiceComponent> weapon)
+    public int RevCap(Entity<FSMeleeJuiceComponent> weapon)
     {
         return weapon.Comp.RevStacks + (int) Signature(weapon, FSMeleeSignature.Redline);
     }
@@ -84,14 +84,17 @@ public abstract partial class SharedFSMeleeJuiceSystem
     }
 
     // Spends one of the weapon's shots, or waits a moment if none are ready.
-    private bool TakeShot(Entity<FSMeleeJuiceComponent> weapon, Vector2 aim)
+    private bool TakeShot(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim)
     {
         if (!TryComp<MeleeWeaponComponent>(weapon, out var melee))
             return false;
 
         var now = Timing.CurTime;
         var shots = EnsureComp<FSMeleeShotStateComponent>(weapon);
-        var ready = shots.Charges > 0;
+        if (!shots.Armed)
+            _shotPopup.PopupClient(Loc.GetString("fs-melee-no-shot-weapon"), user, user);
+
+        var ready = shots.Charges > 0 && shots.Armed;
         if (ready)
         {
             if (shots.Charges >= shots.MaxCharges)
@@ -114,7 +117,7 @@ public abstract partial class SharedFSMeleeJuiceSystem
         if (Signature(weapon, FSMeleeSignature.Tempest) <= 0f
             || !TryComp<FSMeleeSweepComponent>(user, out var sweep)
             || sweep.TempestUsed
-            || Timing.CurTime - sweep.Last > TempestWindow
+            || Timing.CurTime > sweep.Landed + TempestWindow
             || TryComp<ItemToggleComponent>(weapon, out var toggle) && !toggle.Activated)
             return;
 

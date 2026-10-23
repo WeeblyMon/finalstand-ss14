@@ -5,12 +5,14 @@ using Content.Shared.Chemistry.Components;
 using Robust.Shared.Utility;
 using Content.Shared._FinalStand.Grenades;
 using Content.Client._FinalStand.Engineering;
+using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.RCD;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared.Mech.Components;
 using Content.Shared.Vehicle.Components;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Melee;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD.Components;
 using Content.Shared._FinalStand.MedicalOps;
@@ -48,6 +50,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
     [Dependency] private FSHMGSystem _hmg = default!;
     [Dependency] private FSToolCardSystem _toolCard = default!;
+    [Dependency] private Content.Client._FinalStand.Melee.FSMeleeJuiceSystem _meleeJuice = default!;
 
     private void UpdateWeapon(WaveHudOverlay overlay)
     {
@@ -61,7 +64,7 @@ public sealed partial class WaveHudSystem
         overlay.WeaponTakesMagazines = false;
         overlay.ItemDetail = null;
         overlay.Uber = null;
-        overlay.Shots = null;
+        overlay.Ability = null;
 
         if (_player.LocalEntity is not { } player)
             return;
@@ -100,7 +103,7 @@ public sealed partial class WaveHudSystem
         {
             overlay.ItemDetail = GetItemDetail(held);
             UpdateUberMeter(overlay, held);
-            UpdateShotMeter(overlay, held);
+            UpdateAbilityMeter(overlay, player, held);
             return;
         }
 
@@ -162,14 +165,41 @@ public sealed partial class WaveHudSystem
                 : Loc.GetString("fs-hud-hmg-no-crate", ("heat", heat));
     }
 
-    private void UpdateShotMeter(WaveHudOverlay overlay, EntityUid held)
+    private static readonly Color ShotColour = Color.FromHex("#F0B040");
+    private static readonly Color DashColour = Color.FromHex("#5CE1FF");
+    private static readonly Color RevColour = Color.FromHex("#FF6A3D");
+
+    // The melee weapon's own resource: the cutlass's shots, the sword's dash or the chainsaw's rev.
+    private void UpdateAbilityMeter(WaveHudOverlay overlay, EntityUid player, EntityUid held)
     {
-        if (!TryComp<FSMeleeShotStateComponent>(held, out var shots) || !TryComp<FSMeleeJuiceComponent>(held, out var juice))
+        if (!TryComp<FSMeleeJuiceComponent>(held, out var juice))
             return;
 
-        var left = shots.Charges < shots.MaxCharges ? Math.Max(0f, (float) (shots.NextCharge - _timing.CurTime).TotalSeconds) : 0f;
-        var refill = juice.ShotRecharge > 0f ? 1f - Math.Clamp(left / juice.ShotRecharge, 0f, 1f) : 1f;
-        overlay.Shots = new WaveHudOverlay.ShotMeter(shots.Charges, shots.MaxCharges, refill, left);
+        var now = _timing.CurTime;
+        if (TryComp<FSMeleeShotStateComponent>(held, out var shots))
+        {
+            var left = shots.Charges < shots.MaxCharges ? Math.Max(0f, (float) (shots.NextCharge - now).TotalSeconds) : 0f;
+            var refill = juice.ShotRecharge > 0f ? 1f - Math.Clamp(left / juice.ShotRecharge, 0f, 1f) : 1f;
+            overlay.Ability = shots.Armed
+                ? new WaveHudOverlay.AbilityMeter(Loc.GetString("fs-hud-shot-meter"), shots.Charges, shots.MaxCharges, refill, left, ShotColour)
+                : new WaveHudOverlay.AbilityMeter(Loc.GetString("fs-hud-shot-meter"), 0, shots.MaxCharges, 0f, 0f, FSPalette.Danger, Loc.GetString("fs-hud-shot-unarmed"));
+            if (HasComp<FSCritReadyComponent>(held))
+                overlay.ItemDetail = Loc.GetString("fs-hud-pirate-crit");
+        }
+        else if (juice.HeavyStyle == FSMeleeHeavyStyle.Sweep)
+        {
+            var left = TryComp<FSMeleeSweepComponent>(player, out var sweep) ? Math.Max(0f, (float) (sweep.NextSweep - now).TotalSeconds) : 0f;
+            var refill = juice.SweepCooldown > 0f ? 1f - Math.Clamp(left / juice.SweepCooldown, 0f, 1f) : 1f;
+            overlay.Ability = new WaveHudOverlay.AbilityMeter(Loc.GetString("fs-hud-dash-meter"), left > 0f ? 0 : 1, 1, refill, left, DashColour);
+        }
+        else if (juice.RevStep > 0f)
+        {
+            var rev = CompOrNull<FSMeleeRevComponent>(held);
+            var stacks = rev != null && now - rev.Last <= TimeSpan.FromSeconds(juice.RevDumpWindow) ? rev.Stacks : 0;
+            var cap = _meleeJuice.RevCap((held, juice));
+            var status = rev is { CritReady: true } ? Loc.GetString("fs-hud-rev-crit") : $"{stacks}/{cap}";
+            overlay.Ability = new WaveHudOverlay.AbilityMeter(Loc.GetString("fs-hud-rev-meter"), stacks, cap, 0f, 0f, RevColour, status);
+        }
     }
 
     private void UpdateUberMeter(WaveHudOverlay overlay, EntityUid held)

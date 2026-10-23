@@ -19,6 +19,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Physics;
+using Content.Shared.Popups;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Wieldable.Components;
@@ -48,6 +49,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     [Dependency] private SharedCombatModeSystem _combat = default!;
     [Dependency] private EntityLookupSystem _sweepLookup = default!;
     [Dependency] private SharedInteractionSystem _sweepReach = default!;
+    [Dependency] private SharedPopupSystem _shotPopup = default!;
 
     // Mob movement friction on a normal tile; a push of v travels about v / friction.
     protected const float MobFriction = 20f;
@@ -70,7 +72,12 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     private const float RevPitchStep = 0.05f;
     private const float WallMargin = 0.5f;
     private const float RevDumpForce = 0.15f;
-    private const float SweepPickRadius = 2f;
+    private const float SweepPickRadius = 1.25f;
+    private const float SweepThrough = 0.9f;
+    private const float SweepOverrun = 0.5f;
+    private const float SweepRecovery = 0.3f;
+    private const float SweepHitRadius = 0.75f;
+    private const float SweepPassDamage = 0.6f;
     private const float SweepRetry = 0.15f;
     private static readonly TimeSpan SweepPassTime = TimeSpan.FromSeconds(0.1);
     private static readonly TimeSpan SweepGuardTime = TimeSpan.FromSeconds(0.3);
@@ -85,6 +92,8 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     private const float WhirlHealthFloor = 0.85f;
 
     private readonly List<EntityUid> _expired = new();
+    private readonly HashSet<Entity<MobStateComponent>> _passing = new();
+    private readonly List<Entity<FSMeleeDashComponent, PhysicsComponent>> _dashing = new();
 
     public override void Initialize()
     {
@@ -101,6 +110,8 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         SubscribeLocalEvent<FSMeleeChargeComponent, HandDeselectedEvent>(OnChargeDeselected);
         SubscribeLocalEvent<FSMeleeSweepComponent, PreventCollideEvent>(OnSweepCollide);
         SubscribeLocalEvent<FSMeleeDashComponent, RefreshFrictionModifiersEvent>(OnDashFriction);
+        SubscribeLocalEvent<FSMeleeDashComponent, AttemptMobCollideEvent>(OnDashMobCollide);
+        SubscribeLocalEvent<FSMeleeDashComponent, AttemptMobTargetCollideEvent>(OnDashMobTargetCollide);
         SubscribeLocalEvent<FSMeleeGuardComponent, DamageModifyEvent>(OnGuardDamage);
     }
 
@@ -222,7 +233,16 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
     private void OnAttemptMelee(Entity<FSMeleeJuiceComponent> ent, ref AttemptMeleeEvent args)
     {
-        if (!args.IsHeavyAttack || !ent.Comp.HeavyRequiresWield)
+        if (!args.IsHeavyAttack)
+            return;
+
+        if (!HeavyReady(args.User, ent))
+        {
+            args.Cancelled = true;
+            return;
+        }
+
+        if (!ent.Comp.HeavyRequiresWield)
             return;
 
         if (TryComp<WieldableComponent>(ent, out var wield) && wield.Wielded)
@@ -235,15 +255,17 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     private void OnMeleeHit(Entity<FSMeleeJuiceComponent> ent, ref MeleeHitEvent args)
     {
         var heavy = args.Direction != null;
-        if (heavy && ent.Comp.HeavyStyle == FSMeleeHeavyStyle.Shot && !args.Handled)
+
+        // Shots and sweeps don't use the swing's arc, so a teammate standing in it mustn't stop them.
+        if (heavy && args.IsHit && ent.Comp.HeavyStyle == FSMeleeHeavyStyle.Shot)
         {
             args.Handled = true;
-            if (args.Direction is { } aim && aim != Vector2.Zero && TakeShot(ent, aim))
+            if (args.Direction is { } aim && aim != Vector2.Zero && TakeShot(ent, args.User, aim))
                 OnHeavyShot(ent, args.User, aim);
             return;
         }
 
-        if (heavy && ent.Comp.HeavyStyle == FSMeleeHeavyStyle.Sweep && !args.Handled)
+        if (heavy && args.IsHit && ent.Comp.HeavyStyle == FSMeleeHeavyStyle.Sweep)
         {
             args.Handled = true;
             if (args.Direction is { } cursor)
@@ -251,7 +273,14 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             return;
         }
 
-        if (args.Handled || !args.IsHit)
+        if (!args.IsHit)
+            return;
+
+        // Even a swing that only caught teammates keeps the heavy's rhythm, and Whirlwind's cost.
+        if (heavy)
+            Recover(args.User, ent);
+
+        if (args.Handled)
             return;
 
         var targets = new List<EntityUid>();
@@ -268,7 +297,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         if (heavy)
         {
-            Recover(args.User, ent);
             if (profile.MaxTargets > 0 && targets.Count > profile.MaxTargets)
                 KeepClosest(args, targets, profile.MaxTargets);
 
@@ -401,10 +429,13 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         var now = Timing.CurTime;
         var rev = EnsureComp<FSMeleeRevComponent>(weapon);
-        var same = rev.Target is { } last && targets.Contains(last) && now - rev.Last <= TimeSpan.FromSeconds(weapon.Comp.RevWindow);
+        var same = rev.Target is { } last && rev.TargetSince < now && targets.Contains(last) && now - rev.Last <= TimeSpan.FromSeconds(weapon.Comp.RevWindow);
         rev.Stacks = same ? Math.Min(rev.Stacks + 1, RevCap(weapon)) : 0;
         if (!same)
+        {
             rev.Target = targets[0];
+            rev.TargetSince = now;
+        }
 
         rev.Last = now;
         Dirty(weapon, rev);
@@ -479,63 +510,116 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         return threshold.Value.Float();
     }
 
-    // Sweeping Blade: dash through the enemy nearest the cursor, faster and harder the more sweeps are chained.
+    // Sweeping Blade: dash through the enemy nearest the cursor, cutting what the dash reaches, harder the more sweeps are chained.
     private void Sweep(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 cursor, MeleeHitEvent args)
     {
         if (TryComp<ItemToggleComponent>(weapon, out var toggle) && !toggle.Activated)
             return;
 
         var now = Timing.CurTime;
-        var profile = Profile(weapon, true);
         var reach = 1f + (TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades) ? upgrades.DashBonus : 0f);
         var range = weapon.Comp.SweepRange * reach;
 
         var sweep = EnsureComp<FSMeleeSweepComponent>(user);
-        foreach (var (marked, until) in sweep.Marked)
+        foreach (var (marked, mark) in sweep.Marked)
         {
-            if (until <= now)
+            if (mark.Until <= now)
                 sweep.Marked.Remove(marked);
         }
 
-        // Nothing to sweep through: no dash, and only a moment before trying again.
         var target = SweepTarget(user, sweep, Xform.GetMapCoordinates(user), cursor, range, now);
+        var offset = target is { } aimed ? Xform.GetWorldPosition(aimed) - Xform.GetWorldPosition(user) : Vector2.Zero;
+        var dir = offset == Vector2.Zero ? Vector2.Normalize(cursor) : Vector2.Normalize(offset);
+
+        // Ends just clear of the far side of the target instead of flying on into whatever's behind it.
+        var length = Math.Min(offset.Length() + SweepThrough, range + SweepOverrun);
+        var dashing = target == null ? TimeSpan.Zero : SweepDash(user, dir, length);
         if (TryComp<MeleeWeaponComponent>(weapon, out var melee))
         {
-            melee.NextAttack = now + TimeSpan.FromSeconds(target == null ? SweepRetry : weapon.Comp.SweepCooldown);
+            melee.NextAttack = now + TimeSpan.FromSeconds(dashing == TimeSpan.Zero ? SweepRetry : SweepRecovery);
             DirtyField(weapon, melee, nameof(MeleeWeaponComponent.NextAttack));
         }
 
-        if (target == null)
+        // Nothing to sweep through, or a wall right in the way: no dash, and only a moment before trying again.
+        if (target == null || dashing == TimeSpan.Zero)
             return;
 
-        var offset = Xform.GetWorldPosition(target.Value) - Xform.GetWorldPosition(user);
-        var dir = offset == Vector2.Zero ? Vector2.Normalize(cursor) : Vector2.Normalize(offset);
-        // Always the full range, so it carries through the target and both sides agree where it ends.
-        var dashing = SweepDash(user, dir, range);
         Guard(user, now + dashing + SweepGuardTime);
 
         var chained = now - sweep.Last <= TimeSpan.FromSeconds(weapon.Comp.SweepStackWindow) ? sweep.Stacks : 0;
         sweep.Stacks = Math.Min(chained + 1, weapon.Comp.SweepMaxStacks);
         sweep.Last = now;
-        sweep.Marked[target.Value] = now + TimeSpan.FromSeconds(weapon.Comp.SweepMarkTime);
+        sweep.Landed = now + dashing;
+        sweep.NextSweep = now + TimeSpan.FromSeconds(weapon.Comp.SweepCooldown);
+        sweep.Marked[target.Value] = (now, now + TimeSpan.FromSeconds(weapon.Comp.SweepMarkTime));
         sweep.PassUntil = now + dashing + SweepPassTime;
         sweep.TempestUsed = false;
         Dirty(user, sweep);
 
         // The dash already moves the camera; shaking, zooming or freezing it on top feels like lag.
-        profile = profile.Copy();
+        var profile = Profile(weapon, true).Copy();
         profile.DamageMultiplier *= reach * (1f + weapon.Comp.SweepStackBonus * chained);
         profile.Trauma = 0f;
         profile.Hitstop = 0f;
         profile.KillHitstopBonus = 0f;
         profile.KillZoom = 0f;
         profile.Crit = weapon.Comp.CritWhen == FSMeleeCritWhen.SweepChain && sweep.Stacks >= weapon.Comp.SweepMaxStacks;
-        profile.Execution = Signature(weapon, FSMeleeSignature.LastBreath) > 0f && Airborne(target.Value);
         args.BonusDamage += args.BaseDamage * (profile.DamageMultiplier - 1f);
-        var damage = args.BaseDamage + args.BonusDamage;
 
-        OnHit(weapon, user, new List<EntityUid> { target.Value }, dir, true, false, profile.Execution || WouldKill(target.Value, damage.GetTotal()), profile, args);
-        OnSweepHit(user, target.Value, damage, profile.Execution);
+        // The cut lands as the blade reaches each zombie, so a dash stopped by a wall cuts nothing past it.
+        if (!TryComp<FSMeleeDashComponent>(user, out var dash))
+            return;
+
+        dash.Weapon = weapon;
+        dash.Primary = target;
+        dash.Damage = args.BaseDamage + args.BonusDamage;
+        dash.Profile = profile;
+        dash.Hit.Clear();
+        SweepPass((user, dash));
+    }
+
+    // Cuts each mob the dashing body reaches, once per dash.
+    private void SweepPass(Entity<FSMeleeDashComponent> dash)
+    {
+        if (dash.Comp.Weapon is not { } weaponUid
+            || !TryComp<FSMeleeJuiceComponent>(weaponUid, out var juice)
+            || dash.Comp.Damage is not { } damage
+            || dash.Comp.Profile is not { } profile)
+            return;
+
+        var user = dash.Owner;
+        var dir = dash.Comp.Velocity == Vector2.Zero ? Vector2.UnitY : Vector2.Normalize(dash.Comp.Velocity);
+        _passing.Clear();
+        _sweepLookup.GetEntitiesInRange(Xform.GetMapCoordinates(user), SweepHitRadius, _passing);
+        foreach (var mob in _passing)
+        {
+            if (mob.Owner == user
+                || mob.Comp.CurrentState == MobState.Dead
+                || dash.Comp.Hit.Contains(mob)
+                || IsAlly(user, mob)
+                || !_sweepReach.InRangeUnobstructed(user, mob.Owner, SweepHitRadius + 0.5f))
+                continue;
+
+            dash.Comp.Hit.Add(mob);
+            var primary = mob.Owner == dash.Comp.Primary;
+            var cut = primary ? damage : damage * SweepPassDamage;
+            var hitProfile = profile.Copy();
+            hitProfile.Crit = primary && profile.Crit;
+            hitProfile.Execution = Signature(weaponUid, FSMeleeSignature.LastBreath) > 0f && Airborne(mob) && !HasComp<FSSpecialZombieComponent>(mob);
+
+            var targets = new List<EntityUid> { mob };
+            var hit = new MeleeHitEvent(targets, user, weaponUid, cut, dir);
+            OnHit((weaponUid, juice), user, targets, dir, true, false, hitProfile.Execution || WouldKill(mob, cut.GetTotal()), hitProfile, hit);
+            OnSweepHit(user, mob, cut, hitProfile.Execution);
+        }
+    }
+
+    // Whether the weapon's heavy can go now; a sweep on cooldown doesn't swing at all.
+    public bool HeavyReady(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
+    {
+        return weapon.Comp.HeavyStyle != FSMeleeHeavyStyle.Sweep
+            || !TryComp<FSMeleeSweepComponent>(user, out var sweep)
+            || Timing.CurTime >= sweep.NextSweep;
     }
 
     private bool WouldKill(EntityUid target, FixedPoint2 damage)
@@ -558,7 +642,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             if (mob.Owner == user
                 || mob.Comp.CurrentState == MobState.Dead
                 || IsAlly(user, mob)
-                || sweep.Marked.TryGetValue(mob, out var until) && until > now
+                || sweep.Marked.TryGetValue(mob, out var mark) && mark.Until > now && mark.At < now
                 || !_sweepReach.InRangeUnobstructed(user, mob.Owner, range + 0.5f))
                 continue;
 
@@ -598,12 +682,17 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         // Cyclone spins faster for the same health a second.
         var whirl = 1f / (1f + Signature(weapon, FSMeleeSignature.Cyclone));
-        if (CanWhirl(user, weapon, WhirlHealthCost * whirl))
+        if (WhirlwindOn(weapon))
         {
-            melee.NextAttack = Timing.CurTime + WhirlInterval * whirl;
-            DirtyField(weapon, melee, nameof(MeleeWeaponComponent.NextAttack));
-            OnWhirl(user, WhirlHealthCost * whirl);
-            return;
+            if (CanAffordWhirl(user, WhirlHealthCost * whirl))
+            {
+                melee.NextAttack = Timing.CurTime + WhirlInterval * whirl;
+                DirtyField(weapon, melee, nameof(MeleeWeaponComponent.NextAttack));
+                OnWhirl(user, WhirlHealthCost * whirl);
+                return;
+            }
+
+            OnWhirlSpent(user);
         }
 
         if (weapon.Comp.HeavyRecovery <= 0f)
@@ -622,19 +711,25 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     }
 
     // Whirlwind keeps a spin going for as long as the heavy is held, until the wielder is too hurt to pay for it.
-    private bool CanWhirl(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, float cost)
+    private bool WhirlwindOn(Entity<FSMeleeJuiceComponent> weapon)
     {
-        if (weapon.Comp.HeavyStyle != FSMeleeHeavyStyle.Spin
-            || !TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades)
-            || !upgrades.WhirlwindEnabled)
-            return false;
+        return weapon.Comp.HeavyStyle == FSMeleeHeavyStyle.Spin
+            && TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades)
+            && upgrades.WhirlwindEnabled;
+    }
 
+    private bool CanAffordWhirl(EntityUid user, float cost)
+    {
         if (!TryComp<DamageableComponent>(user, out var damageable)
             || !TryComp<MobThresholdsComponent>(user, out var thresholds)
             || !_thresholds.TryGetThresholdForState(user, MobState.Critical, out var critical, thresholds))
             return true;
 
         return damageable.TotalDamage + cost < critical.Value * WhirlHealthFloor;
+    }
+
+    protected virtual void OnWhirlSpent(EntityUid user)
+    {
     }
 
     protected virtual void OnWhirl(EntityUid user, float cost)
@@ -739,7 +834,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         return TimeSpan.FromSeconds(time);
     }
 
-    private float ClearDistance(EntityUid user, Vector2 dir, float distance)
+    protected float ClearDistance(EntityUid user, Vector2 dir, float distance)
     {
         var xform = Transform(user);
         var ray = new CollisionRay(Xform.GetWorldPosition(xform), dir, (int) CollisionGroup.Impassable);
@@ -760,22 +855,45 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         args.ModifyAcceleration(0f);
     }
 
-    // Ends finished dashes with a short skid. The client only runs its own, predicted body.
+    // Cuts what each dash reaches, then ends finished ones with a short skid. The client only runs its own, predicted body.
     private void UpdateDashes()
     {
         var now = Timing.CurTime;
+        _dashing.Clear();
         var dashes = EntityQueryEnumerator<FSMeleeDashComponent, PhysicsComponent>();
         while (dashes.MoveNext(out var uid, out var dash, out var body))
         {
-            if (dash.Velocity == Vector2.Zero || now < dash.Until || !_net.IsServer && !body.Predict)
+            if (dash.Velocity != Vector2.Zero && (_net.IsServer || body.Predict))
+                _dashing.Add((uid, dash, body));
+        }
+
+        foreach (var (uid, dash, body) in _dashing)
+        {
+            SweepPass((uid, dash));
+            if (now < dash.Until)
                 continue;
 
             var speed = Math.Min(body.LinearVelocity.Length(), DashExitSpeed);
             _physics.SetLinearVelocity(uid, Vector2.Normalize(dash.Velocity) * speed, body: body);
             dash.Velocity = Vector2.Zero;
+            dash.Weapon = null;
+            dash.Primary = null;
             Dirty(uid, dash);
             _movement.RefreshFrictionModifiers(uid);
         }
+    }
+
+    // Shoving through zombies would fight the dash and pull the client and server apart.
+    private void OnDashMobCollide(Entity<FSMeleeDashComponent> ent, ref AttemptMobCollideEvent args)
+    {
+        if (ent.Comp.Velocity != Vector2.Zero)
+            args.Cancelled = true;
+    }
+
+    private void OnDashMobTargetCollide(Entity<FSMeleeDashComponent> ent, ref AttemptMobTargetCollideEvent args)
+    {
+        if (ent.Comp.Velocity != Vector2.Zero)
+            args.Cancelled = true;
     }
 
     private void Guard(EntityUid user, TimeSpan until)

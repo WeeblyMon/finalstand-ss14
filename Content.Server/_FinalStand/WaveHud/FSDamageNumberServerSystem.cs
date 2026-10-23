@@ -44,6 +44,7 @@ public sealed class FSDamageNumberServerSystem : EntitySystem
             Target = GetNetEntity(uid),
             Amount = total,
             IsCrit = false,
+            Reveal = false,
         }, actor.PlayerSession);
     }
 
