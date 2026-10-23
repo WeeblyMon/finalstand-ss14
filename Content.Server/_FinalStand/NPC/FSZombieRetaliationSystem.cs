@@ -170,14 +170,17 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
             return false;
 
         var bb = htn.Blackboard;
-        if (bb.TryGetValue<EntityUid>(FSAIBlackboardKeys.LastAttacker, out var existing, EntityManager)
-            && existing != target && Exists(existing) && !_mobState.IsDead(existing))
+        var hasExisting = bb.TryGetValue<EntityUid>(FSAIBlackboardKeys.LastAttacker, out var existing, EntityManager);
+        if (hasExisting && existing != target && Exists(existing) && !_mobState.IsDead(existing))
             return false;
 
         bb.SetValue(FSAIBlackboardKeys.LastAttacker, target);
         bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, seconds);
         bb.SetValue(FSAIBlackboardKeys.AggroGraceUntil, _timing.CurTime + TimeSpan.FromSeconds(seconds));
-        _htn.Replan(htn);
+
+        // Taunting again only refreshes the timers, like another shot from the same attacker.
+        if (!hasExisting || existing != target)
+            _htn.Replan(htn);
         return true;
     }
 
