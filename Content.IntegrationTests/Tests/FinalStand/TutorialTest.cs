@@ -288,3 +288,38 @@ public sealed class TutorialCardTest : GameTest
         });
     }
 }
+
+[TestFixture]
+public sealed class TutorialCardDisconnectTest : GameTest
+{
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
+
+    [Test]
+    public async Task ADisconnectDropsTheQueuedCards()
+    {
+        var name = ServerSession!.Name;
+        var ui = Client.ResolveDependency<Robust.Client.UserInterface.IUserInterfaceManager>()
+            .GetUIController<Content.Client._FinalStand.Tutorial.FSTutorialUIController>();
+        await Client.WaitPost(() =>
+        {
+            ui.Reset();
+            ui.Enqueue(FSTutorialTip.Welcome);
+            ui.Enqueue(FSTutorialTip.PerkShop);
+        });
+
+        var net = Client.ResolveDependency<Robust.Shared.Network.IClientNetManager>();
+        await Client.WaitPost(() => net.ClientDisconnect("testing a disconnect"));
+        await Pair.RunTicksSync(10);
+
+        // The next card looks up its picture through SpriteSystem, which went down with the connection.
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(ui.Showing, Is.Null, "the cards go with the server that sent them");
+            Assert.DoesNotThrow(ui.Dismiss);
+        });
+
+        Client.SetConnectTarget(Server);
+        await Client.WaitPost(() => net.ClientConnect(null!, 0, name));
+        await Pair.RunTicksSync(30);
+    }
+}

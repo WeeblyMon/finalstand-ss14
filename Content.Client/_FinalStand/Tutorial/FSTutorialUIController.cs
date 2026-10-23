@@ -49,7 +49,12 @@ public sealed partial class FSTutorialUIController : UIController, IOnStateExite
 
     public void OnSystemLoaded(FSUiEventRelaySystem system) => system.TutorialTip += Enqueue;
 
-    public void OnSystemUnloaded(FSUiEventRelaySystem system) => system.TutorialTip -= Enqueue;
+    // Leaving a server takes the entity systems down with it, and the next queued card needs SpriteSystem.
+    public void OnSystemUnloaded(FSUiEventRelaySystem system)
+    {
+        system.TutorialTip -= Enqueue;
+        Reset();
+    }
 
     public void Enqueue(FSTutorialTip tip)
     {
