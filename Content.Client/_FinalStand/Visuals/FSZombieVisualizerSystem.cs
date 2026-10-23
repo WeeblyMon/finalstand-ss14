@@ -78,17 +78,19 @@ public sealed partial class FSZombieVisualizerSystem : EntitySystem
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
 
-        ShaderInstance? desired = null;
-        if (enabled)
+        if (!enabled)
         {
-            if (!_glows.TryGetValue(shaderId, out desired))
-            {
-                desired = _protoManager.Index<ShaderPrototype>(shaderId).Instance();
-                _glows[shaderId] = desired;
-            }
+            _sprite.RemovePostShader(sprite, FSPostShaders.ZombieGlow);
+            return;
         }
 
-        sprite.PostShader = desired;
+        if (!_glows.TryGetValue(shaderId, out var glow))
+        {
+            glow = _protoManager.Index<ShaderPrototype>(shaderId).Instance();
+            _glows[shaderId] = glow;
+        }
+
+        FSPostShaders.SetGlow(_sprite, (uid, sprite), FSPostShaders.ZombieGlow, glow);
     }
 
     private void OnDevastatorStateHandled(EntityUid uid, FSDevastatorComponent comp, AfterAutoHandleStateEvent args)

@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Visuals;
 using Content.Shared._FinalStand.Mobs;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -8,6 +9,7 @@ namespace Content.Client._FinalStand.Mobs;
 public sealed partial class FSRevenantMarkVisualsSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     private const string MarkShader = "FSRevenantMarkGlow";
 
@@ -26,12 +28,12 @@ public sealed partial class FSRevenantMarkVisualsSystem : EntitySystem
             return;
 
         _shader ??= _proto.Index<ShaderPrototype>(MarkShader).Instance();
-        sprite.PostShader = _shader;
+        FSPostShaders.SetGlow(_sprite, (ent, sprite), FSPostShaders.RevenantMark, _shader);
     }
 
     private void OnShutdown(Entity<FSRevenantMarkedComponent> ent, ref ComponentShutdown args)
     {
         if (TryComp<SpriteComponent>(ent, out var sprite))
-            sprite.PostShader = null;
+            _sprite.RemovePostShader(sprite, FSPostShaders.RevenantMark);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Content.Shared._FinalStand.Economy;
+﻿using Content.Client._FinalStand.Visuals;
+using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Departments;
@@ -143,7 +144,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
                 continue;
 
             _lastGlowState[uid] = state;
-            ApplyOutline(sprite, state);
+            ApplyOutline((uid, sprite), state);
             ApplyLockOverlay(uid, sprite, state == ShopGlowState.Locked);
         }
     }
@@ -433,7 +434,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
         }
     }
 
-    private void ApplyOutline(SpriteComponent sprite, ShopGlowState state)
+    private void ApplyOutline(Entity<SpriteComponent> sprite, ShopGlowState state)
     {
         if (!_glowShaders.TryGetValue(state, out var shader))
         {
@@ -448,7 +449,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
             _glowShaders[state] = shader;
         }
 
-        sprite.PostShader = shader;
+        FSPostShaders.SetOutline(_sprite, sprite, FSPostShaders.ShopGlow, shader);
     }
 
     private void ClearAllShaders()
@@ -456,7 +457,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
         var query = EntityQueryEnumerator<FSShopWeaponComponent, SpriteComponent>();
         while (query.MoveNext(out _, out _, out var sprite))
         {
-            sprite.PostShader = null;
+            _sprite.RemovePostShader(sprite, FSPostShaders.ShopGlow);
         }
         _lastGlowState.Clear();
     }
