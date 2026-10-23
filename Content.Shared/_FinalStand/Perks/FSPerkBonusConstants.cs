@@ -110,6 +110,22 @@ public static class FSPerkBonusConstants
     public const float WolfPackResistPerLevel = 0.05f;
     public const float WolfPackRadius = 6f;
 
+    // Archetype (FSArchetypeRules.ArchetypeCount of one category slotted) and keystone (KeystoneCount) multipliers.
+    public const float ArchetypeSlayerDamage = 1.08f;
+    public const float KeystoneSlayerDamage = 1.2f;
+    public const float ArchetypeBulwarkDamageTaken = 0.92f;
+    public const float KeystoneBulwarkDamageTaken = 0.8f;
+    public const float ArchetypeOperatorSpeed = 1.06f;
+    public const float KeystoneOperatorSpeed = 1.15f;
+    public const float ArchetypeTycoonCredits = 1.12f;
+    public const float KeystoneTycoonCredits = 1.3f;
+    public const float ArchetypeSpecialistBonus = 1.03f; // damage and credits
+    public const float ArchetypeSpecialistDamageTaken = 0.97f;
+    public const float ArchetypeSpecialistSpeed = 1.02f;
+    public const float KeystoneSpecialistBonus = 1.08f;  // damage and credits
+    public const float KeystoneSpecialistDamageTaken = 0.92f;
+    public const float KeystoneSpecialistSpeed = 1.05f;
+
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
     public static readonly float[] AdrenalineSeconds = [2.1f, 2.8f, 3.5f, 4.2f];

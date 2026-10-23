@@ -70,4 +70,30 @@ public sealed class FSArchetypeRulesTest
 
         Assert.That(FSArchetypeRules.Bonus(default), Is.EqualTo(FSArchetypeBonus.None));
     }
+
+    // The effect line quotes the bonus it pays, as whole percentages.
+    [TestCase(PerkCategory.Red, FSArchetypeTier.Archetype, "damage", "8")]
+    [TestCase(PerkCategory.Red, FSArchetypeTier.Keystone, "damage", "20")]
+    [TestCase(PerkCategory.Blue, FSArchetypeTier.Archetype, "resist", "8")]
+    [TestCase(PerkCategory.Blue, FSArchetypeTier.Keystone, "resist", "20")]
+    [TestCase(PerkCategory.Green, FSArchetypeTier.Archetype, "speed", "6")]
+    [TestCase(PerkCategory.Green, FSArchetypeTier.Keystone, "speed", "15")]
+    [TestCase(PerkCategory.Yellow, FSArchetypeTier.Archetype, "credits", "12")]
+    [TestCase(PerkCategory.Yellow, FSArchetypeTier.Keystone, "credits", "30")]
+    [TestCase(PerkCategory.Purple, FSArchetypeTier.Archetype, "damage", "3")]
+    [TestCase(PerkCategory.Purple, FSArchetypeTier.Archetype, "speed", "2")]
+    [TestCase(PerkCategory.Purple, FSArchetypeTier.Archetype, "resist", "3")]
+    [TestCase(PerkCategory.Purple, FSArchetypeTier.Keystone, "damage", "8")]
+    [TestCase(PerkCategory.Purple, FSArchetypeTier.Keystone, "speed", "5")]
+    [TestCase(PerkCategory.Purple, FSArchetypeTier.Keystone, "resist", "8")]
+    public void EffectArgsQuoteTheBonus(PerkCategory category, FSArchetypeTier tier, string arg, string expected)
+    {
+        var args = FSArchetypeRules.EffectArgs(FSArchetypeRules.Bonus(new FSArchetype(category, tier, 5)))
+            .ToDictionary(a => a.Item1, a => a.Item2);
+        Assert.That(args[arg], Is.EqualTo(expected));
+
+        // Specialist text says "damage and credits" off the one number.
+        if (category == PerkCategory.Purple)
+            Assert.That(args["credits"], Is.EqualTo(args["damage"]));
+    }
 }

@@ -15,7 +15,7 @@ public sealed partial class PerkShopWindow
         if (!archetype.Active)
         {
             ArchetypeLabel.Text = archetype.Count > 0
-                ? Loc.GetString("fs-archetype-progress", ("category", Loc.GetString(FSArchetypeRules.CategoryLocId(archetype.Category))),
+                ? Loc.GetString("fs-archetype-progress", ("category", Loc.GetString(CatLabel[archetype.Category])),
                     ("count", archetype.Count), ("needed", FSArchetypeRules.ArchetypeCount))
                 : string.Empty;
             ArchetypeLabel.FontColorOverride = FSUiPalette.TextMuted;
@@ -23,7 +23,8 @@ public sealed partial class PerkShopWindow
         }
 
         var name = Loc.GetString(FSArchetypeRules.NameLocId(archetype.Category));
-        var effect = Loc.GetString(FSArchetypeRules.EffectLocId(archetype));
+        var effect = Loc.GetString(FSArchetypeRules.EffectLocId(archetype.Category),
+            FSArchetypeRules.EffectArgs(FSArchetypeRules.Bonus(archetype)));
         ArchetypeLabel.Text = archetype.Tier == FSArchetypeTier.Keystone
             ? Loc.GetString("fs-archetype-keystone-line", ("name", name), ("effect", effect))
             : Loc.GetString("fs-archetype-line", ("name", name), ("effect", effect),
