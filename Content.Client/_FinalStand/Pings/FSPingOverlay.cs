@@ -55,8 +55,12 @@ public sealed partial class FSPingOverlay : Overlay
         _look = new FSPingLook(_cache);
     }
 
+    // Where the right column's objectives and tasks end, so other panels can stack below them.
+    public float ColumnBottom { get; private set; } = -1f;
+
     protected override void Draw(in OverlayDrawArgs args)
     {
+        ColumnBottom = -1f;
         if (args.ViewportControl == null || _player.LocalEntity is not { } local)
             return;
 
@@ -89,7 +93,7 @@ public sealed partial class FSPingOverlay : Overlay
 
         var (x, width, top) = Column(bounds);
         top = DrawObjectives(handle, x, width, top);
-        DrawTasks(handle, x, width, me, top);
+        ColumnBottom = DrawTasks(handle, x, width, me, top);
         DrawBossFlash(handle, bounds, now);
         DrawMuted(handle, now);
     }
@@ -273,11 +277,11 @@ public sealed partial class FSPingOverlay : Overlay
         };
     }
 
-    private void DrawTasks(DrawingHandleScreen handle, float x, float width, MapCoordinates me, float top)
+    private float DrawTasks(DrawingHandleScreen handle, float x, float width, MapCoordinates me, float top)
     {
         var tasks = _pings!.Tasks;
         if (tasks.Count == 0)
-            return;
+            return top;
 
         var title = _look.Font(9);
         var row = _look.Font(9);
@@ -317,6 +321,8 @@ public sealed partial class FSPingOverlay : Overlay
 
         if (tasks.Count > PanelRows)
             handle.DrawString(sub, new Vector2(x + 10f, y), Loc.GetString("fs-ping-task-more", ("count", tasks.Count - PanelRows)), FSPingLook.InfoColor.WithAlpha(0.7f));
+
+        return top + height + 8f;
     }
 
     private MapCoordinates? TaskWorld(FSTaskEntry task)

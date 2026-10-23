@@ -8,6 +8,9 @@ public sealed class FSDamageNumberEvent : EntityEventArgs
     public NetEntity Target;
     public float Amount;
     public bool IsCrit;
+
+    // Shows the target's health bar too; off for players, who already have one.
+    public bool Reveal = true;
 }
 
 [Serializable, NetSerializable]

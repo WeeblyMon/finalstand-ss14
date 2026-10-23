@@ -4,7 +4,7 @@
   id: FSWeaponShopChainsaw
   parent: FSWeaponShopBase
   name: Chainsaw
-  description: A very large chainsaw. Requires fuel and a steady hand.
+  description: A very large chainsaw. Requires a steady hand.
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponChainsaw
@@ -22,13 +22,6 @@
       baseCost: 17000
       type: AttackSpeed
       valuePerLevel: 0.25
-    - id: chainsaw-lucky-chains
-      name: Lucky Chains
-      description: +5% critical hit chance.
-      maxLevel: 1
-      baseCost: 11000
-      type: CritChance
-      valuePerLevel: 0.05
     - id: chainsaw-steel-chains
       name: Steel Chains
       description: Hardened links add +75% damage per level.
@@ -43,20 +36,30 @@
       baseCost: 22000
       type: LifeSteal
       valuePerLevel: 0.5
-    - id: chainsaw-fuel-efficiency
-      name: Fuel Efficiency
-      description: Reduces fuel taken per swing by 0.25 per level.
-      maxLevel: 2
-      baseCost: 9000
-      type: FuelEfficiency
-      valuePerLevel: 0.25
-    - id: chainsaw-fuel-capacity
-      name: Fuel Capacity
-      description: Tank holds +25% more fuel per level.
-      maxLevel: 2
-      baseCost: 17000
-      type: FuelCapacity
-      valuePerLevel: 0.25
+    - id: chainsaw-rip-and-tear
+      name: Rip and Tear
+      description: A right click spending 5 or more rev heals you 3 health per zombie it hits, and those kills pay 50% more.
+      maxLevel: 1
+      baseCost: 18000
+      type: MeleeSignature
+      signature: RipAndTear
+      valuePerLevel: 3
+    - id: chainsaw-redline
+      name: Redline
+      description: Rev builds up to 10 instead of 6.
+      maxLevel: 1
+      baseCost: 16000
+      type: MeleeSignature
+      signature: Redline
+      valuePerLevel: 4
+    - id: chainsaw-bloodthirsty
+      name: Bloodthirsty
+      description: A kill from a right-click rev dump makes your next grind hit a guaranteed crit.
+      maxLevel: 1
+      baseCost: 14000
+      type: MeleeSignature
+      signature: Bloodthirsty
+      valuePerLevel: 1
     - id: chainsaw-protective-saw
       name: Protective Saw
       description: While wielded, take 20% less damage.

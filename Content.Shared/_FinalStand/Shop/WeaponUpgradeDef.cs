@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Robust.Shared.Prototypes;
 
@@ -114,6 +115,18 @@ public enum WeaponUpgradeType : byte
     Multishot,
 
     ConvertWeapon,
+
+    // Extra kill money as a fraction of the kill's payout.
+    MoneyGainPercent,
+
+    // Melee heavy dash length and damage, as a fraction.
+    DashPower,
+    // Holding the heavy attack keeps a spin going at a health cost.
+    Whirlwind,
+    // Health restored per target a light attack hits.
+    StabLifeSteal,
+    // Turns on the upgrade's Signature, at ValuePerLevel a level.
+    MeleeSignature,
 }
 
 [DataDefinition]
@@ -129,6 +142,11 @@ public sealed partial class WeaponUpgradeDef
     [DataField] public EntProtoId? SpawnProtoId;
     [DataField] public int SpawnCountPerLevel = 1;
     [DataField] public bool IsStub = false;
+
+    // Given free at its first level when the weapon is bought.
+    [DataField] public bool Starter;
+
+    [DataField] public FSMeleeSignature? Signature;
 
     [DataField] public string? RequiresUpgrade;
 

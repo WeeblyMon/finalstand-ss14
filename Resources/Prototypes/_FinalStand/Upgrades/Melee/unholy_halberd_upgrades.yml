@@ -1,0 +1,74 @@
+# ── Unholy Halberd Shop ──────────────────────────────────────────────────────
+# Reach weapon. Long thrust on a click, a wielded 360° spin on a heavy swing.
+
+- type: entity
+  id: FSWeaponShopUnholyHalberd
+  parent: FSWeaponShopBase
+  name: Unholy Halberd
+  description: A poleaxe that keeps the horde at arm's length. Wield it to spin.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSWeaponUnholyHalberd
+    price: 5000
+    category: Melee Polearm
+    statDamage: 35
+    statFireRate: 70
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: halberd-honed
+      name: Honed Edge
+      description: +90% damage per level.
+      maxLevel: 3
+      baseCost: 4000
+      type: Damage
+      valuePerLevel: 0.9
+    - id: halberd-balanced
+      name: Balanced Haft
+      description: Attack speed +15% per level.
+      maxLevel: 5
+      baseCost: 5000
+      type: AttackSpeed
+      valuePerLevel: 0.15
+    - id: halberd-impaler
+      name: Impaler
+      description: +10% crit chance per level.
+      maxLevel: 3
+      baseCost: 4000
+      type: CritChance
+      valuePerLevel: 0.1
+    - id: halberd-whirlwind
+      name: Whirlwind
+      description: Hold right click to keep spinning, at 4 health a spin. Stops before it would put you down.
+      maxLevel: 1
+      baseCost: 9000
+      type: Whirlwind
+      valuePerLevel: 1
+    - id: halberd-cyclone
+      name: Cyclone
+      description: Whirlwind spins 30% faster per level, at the same health a second.
+      maxLevel: 4
+      baseCost: 7000
+      type: MeleeSignature
+      signature: Cyclone
+      valuePerLevel: 0.3
+      requiresUpgrade: halberd-whirlwind
+    - id: halberd-brace
+      name: Brace
+      description: Thrusts from a standing start drive through two zombies behind and knock back twice as hard.
+      maxLevel: 1
+      baseCost: 9000
+      type: MeleeSignature
+      signature: Brace
+      valuePerLevel: 1
+    - id: halberd-sanguine-thrust
+      name: Sanguine Thrust
+      description: Each thrust that lands restores 2 health per level.
+      maxLevel: 3
+      baseCost: 5000
+      type: StabLifeSteal
+      valuePerLevel: 2
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/cult_halberd.rsi
+    state: icon
+    scale: 1,1

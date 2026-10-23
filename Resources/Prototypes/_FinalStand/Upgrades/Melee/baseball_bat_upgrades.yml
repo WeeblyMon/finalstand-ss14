@@ -25,11 +25,35 @@
       valuePerLevel: 0.80
     - id: bat-lucille
       name: Lucille
-      description: Enemies hit bleed, slowing them and dealing damage over time. +150 bleed per level.
+      description: Enemies hit, and anything a launched body crashes into, bleed for damage over time. +150 bleed per level.
       maxLevel: 3
       baseCost: 1000
       type: Bleed
       valuePerLevel: 1.5
+    - id: bat-grand-slam
+      name: Grand Slam
+      description: A fully charged swing launches twice as far, and its crashes hit for the swing's full damage.
+      maxLevel: 1
+      baseCost: 6000
+      type: MeleeSignature
+      signature: GrandSlam
+      valuePerLevel: 1
+    - id: bat-ricochet
+      name: Ricochet
+      description: Launched bodies bounce off walls still flying, and can bowl over the same zombies again.
+      maxLevel: 1
+      baseCost: 5000
+      type: MeleeSignature
+      signature: Ricochet
+      valuePerLevel: 1
+    - id: bat-running-start
+      name: Running Start
+      description: Winding up while sprinting starts the charge half full.
+      maxLevel: 1
+      baseCost: 3000
+      type: MeleeSignature
+      signature: RunningStart
+      valuePerLevel: 1
     - id: bat-concussion
       name: Concussion
       description: All attacks stun enemies briefly. +2s stun.

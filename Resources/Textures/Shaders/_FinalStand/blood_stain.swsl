@@ -1,0 +1,15 @@
+// Clumps of blood fixed to the sprite's texels, drawn over a copy of the layer.
+uniform highp float amount;
+
+highp float hash(highp vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+void fragment() {
+    highp vec4 color = zTexture(UV);
+    highp vec2 texel = floor(UV / TEXTURE_PIXEL_SIZE);
+    highp float speck = hash(texel);
+    highp float stain = step(1.0 - amount, hash(floor(texel / 3.0)) * 0.7 + speck * 0.3);
+    highp vec3 blood = vec3(0.42, 0.02, 0.02) * (0.75 + 0.25 * speck);
+    COLOR = vec4(blood, color.a * stain * 0.9);
+}

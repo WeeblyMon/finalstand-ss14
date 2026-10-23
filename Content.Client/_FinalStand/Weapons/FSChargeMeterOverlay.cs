@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Weapons;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
@@ -50,17 +51,28 @@ public sealed partial class FSChargeMeterOverlay : Overlay
         var query = _entMan.EntityQueryEnumerator<FSChargeShotComponent, TransformComponent>();
         while (query.MoveNext(out _, out var charge, out var xform))
         {
-            if (xform.MapID != args.MapId || charge.Charge <= 0.005f)
-                continue;
-
-            var screenPos = Vector2.Transform(_xform.GetWorldPosition(xform), matrix);
-
-            if (screenPos.X < bounds.Left - CullMargin || screenPos.X > bounds.Right + CullMargin ||
-                screenPos.Y < bounds.Top - CullMargin || screenPos.Y > bounds.Bottom + CullMargin)
-                continue;
-
-            DrawMeter(handle, screenPos, Math.Clamp(charge.Charge, 0f, 1f));
+            if (xform.MapID == args.MapId && charge.Charge > 0.005f)
+                TryDraw(handle, matrix, bounds, xform, charge.Charge);
         }
+
+        var now = _timing.CurTime;
+        var melee = _entMan.EntityQueryEnumerator<FSMeleeChargeComponent, TransformComponent>();
+        while (melee.MoveNext(out _, out var charge, out var xform))
+        {
+            if (xform.MapID == args.MapId && charge.ChargeStart != null)
+                TryDraw(handle, matrix, bounds, xform, charge.ChargeAt(now));
+        }
+    }
+
+    private void TryDraw(DrawingHandleScreen handle, Matrix3x2 matrix, UIBox2i bounds, TransformComponent xform, float charge)
+    {
+        var screenPos = Vector2.Transform(_xform!.GetWorldPosition(xform), matrix);
+
+        if (screenPos.X < bounds.Left - CullMargin || screenPos.X > bounds.Right + CullMargin ||
+            screenPos.Y < bounds.Top - CullMargin || screenPos.Y > bounds.Bottom + CullMargin)
+            return;
+
+        DrawMeter(handle, screenPos, Math.Clamp(charge, 0f, 1f));
     }
 
     private void DrawMeter(DrawingHandleScreen handle, Vector2 screenPos, float charge)
