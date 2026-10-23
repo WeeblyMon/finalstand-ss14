@@ -68,4 +68,44 @@ public sealed class StallBreachTest : GameTest
                 Assert.That(picked, "a boxed-in zombie never picked anything to break");
         });
     }
+
+    // With no wander to give it a path through a wall, every wall scores low. It still has to pick one in the end.
+    [Test]
+    public async Task ZombieWithNoPathStillBreaksOut()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var mapSystem = entMan.System<SharedMapSystem>();
+        var htn = entMan.System<HTNSystem>();
+        var map = await Pair.CreateTestMap();
+
+        EntityUid zombie = default;
+        await server.WaitPost(() =>
+        {
+            for (var x = -3; x <= 3; x++)
+            {
+                for (var y = -3; y <= 3; y++)
+                    mapSystem.SetTile(map.Grid, new Vector2i(x, y), map.Tile.Tile);
+            }
+
+            for (var x = -1; x <= 1; x++)
+            {
+                for (var y = -1; y <= 1; y++)
+                {
+                    if (x != 0 || y != 0)
+                        entMan.SpawnEntity(Wall, new EntityCoordinates(map.Grid, new Vector2(x + 0.5f, y + 0.5f)));
+                }
+            }
+
+            zombie = entMan.SpawnEntity(Zombie, new EntityCoordinates(map.Grid, new Vector2(0.5f, 0.5f)));
+            entMan.EnsureComponent<WaveSpawnedTagComponent>(zombie);
+            htn.SetHTNEnabled((zombie, entMan.GetComponent<HTNComponent>(zombie)), false);
+        });
+
+        await server.WaitRunTicks(300);
+
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.GetComponent<HTNComponent>(zombie).Blackboard.ContainsKey(FSAIBlackboardKeys.BreachTarget),
+                "a zombie shut in with no path never picked a wall"));
+    }
 }

@@ -224,9 +224,12 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         if (best == EntityUid.Invalid)
             (best, score) = BestInRange(epicenter, 6f, zombie, baseDamage, zombieWorldPos, mapId, state, curTime, mazeTargetPos);
 
+        // Stalled with nothing to chase, the bar drops the longer nothing clears it, and in the end the best there is
+        // will do: without a path through it an intact wall scores under 0.005, so a zombie shut in by solid walls
+        // only got out if a wander happened to path through one.
         var minScore = isMazeMode
             ? MazeMinScore
-            : (failCount >= 5 ? 0.005f : 0.01f);
+            : failCount >= TakeAnythingAfterFails ? 0f : failCount >= 5 ? 0.005f : 0.01f;
 
         if (best == EntityUid.Invalid || score < minScore)
             return null;
@@ -242,6 +245,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     }
 
     public const float MazeMinScore = 0.015f;
+    private const int TakeAnythingAfterFails = 8;
 
     public static void PruneExpiredBlacklist(FSBreachStateComponent state, TimeSpan curTime)
     {
