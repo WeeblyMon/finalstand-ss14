@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Perks;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
@@ -37,7 +38,7 @@ public sealed partial class FSStylePointsSystem : EntitySystem
             RecordShot(mindId, proto, _timing.CurTime);
     }
 
-    public void RecordShot(EntityUid mindId, string proto, TimeSpan now)
+    public void RecordShot(EntityUid mindId, EntProtoId proto, TimeSpan now)
     {
         var style = EnsureComp<FSStylePointsComponent>(mindId);
         if (!style.Guns.TryGetValue(proto, out var state))
@@ -63,11 +64,6 @@ public sealed partial class FSStylePointsSystem : EntitySystem
         return resting <= 0f ? charge : MathF.Min(1f, charge + resting / FSPerkBonusConstants.StylePointsRampSeconds);
     }
 
-    private string? ProtoOf(EntityUid gun) => MetaData(gun).EntityPrototype?.ID;
-}
-
-[RegisterComponent]
-public sealed partial class FSStylePointsComponent : Component
-{
-    public Dictionary<string, (float Charge, TimeSpan LastShot)> Guns = new();
+    private EntProtoId? ProtoOf(EntityUid gun)
+        => MetaData(gun).EntityPrototype is { } proto ? new EntProtoId(proto.ID) : (EntProtoId?) null;
 }

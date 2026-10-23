@@ -1,7 +1,6 @@
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Perks;
-using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 
@@ -77,12 +76,4 @@ public sealed partial class FSWiseguySystem : EntitySystem
         _wallet.AddCredits(ent, paid);
         _earnings.RecordCredits(ent, "Wiseguy", paid);
     }
-}
-
-[RegisterComponent]
-public sealed partial class FSWiseguyComponent : Component
-{
-    public int Streak;
-    public bool DownedThisWave;
-    public float Remainder;
 }

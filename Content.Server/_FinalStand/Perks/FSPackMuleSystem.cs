@@ -56,9 +56,3 @@ public sealed partial class FSPackMuleSystem : EntitySystem
         return (1f - (1f - modifier) * (1f - easing)) / modifier;
     }
 }
-
-[RegisterComponent]
-public sealed partial class FSPackMuleComponent : Component
-{
-    public int Level;
-}

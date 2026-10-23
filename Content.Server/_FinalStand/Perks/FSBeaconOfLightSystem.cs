@@ -28,6 +28,8 @@ public sealed partial class FSBeaconOfLightSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
 
     private static readonly Color LightColor = Color.FromHex("#FFE9A8");
+    private const float LightRadiusPadding = 1f;
+    private const float LightEnergy = 1.5f;
     private static readonly TimeSpan PulseInterval = TimeSpan.FromSeconds(1);
     private TimeSpan _nextPulse;
 
@@ -112,8 +114,8 @@ public sealed partial class FSBeaconOfLightSystem : EntitySystem
             return;
 
         _lights.SetColor(shield, LightColor, light);
-        _lights.SetRadius(shield, radius + 1f, light);
-        _lights.SetEnergy(shield, 1.5f, light);
+        _lights.SetRadius(shield, radius + LightRadiusPadding, light);
+        _lights.SetEnergy(shield, LightEnergy, light);
     }
 
     private int LevelOf(EntityUid user)

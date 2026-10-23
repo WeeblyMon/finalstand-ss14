@@ -9,7 +9,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Perks;
 
-// Player-side crit bonuses (Ravage, Critical Plus, Rifleman), read by every crit roll.
+// Player-side crit bonuses (Ravage, Critical Plus, Rifleman, Concealed Carry), read by every crit roll.
 public sealed partial class FSPerkCritSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
@@ -60,7 +60,9 @@ public sealed partial class FSPerkCritSystem : EntitySystem
             return 0f;
 
         var weight = _item.GetSizePrototype(item.Size).Weight;
-        return weight >= HugeWeight ? 0f : weight >= LargeWeight ? 0.5f : 1f;
+        return weight >= FSWeaponClassifierSystem.HugeWeight ? 0f
+            : weight >= FSWeaponClassifierSystem.LargeWeight ? FSPerkBonusConstants.ConcealedCarryLargeGunFactor
+            : 1f;
     }
 
     public float GetCritMultiplierBonus(EntityUid user, EntityUid weapon)
@@ -74,9 +76,6 @@ public sealed partial class FSPerkCritSystem : EntitySystem
 
         return bonus;
     }
-
-    private const int LargeWeight = 8;
-    private const int HugeWeight = 16;
 
     public static float CombineChance(float a, float b) => MathF.Min(1f - (1f - a) * (1f - b), 1f);
 

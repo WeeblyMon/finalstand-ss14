@@ -27,7 +27,8 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private SharedItemSystem _item = default!;
 
-    private const int LargeWeight = 8;
+    public const int LargeWeight = 8;
+    public const int HugeWeight = 16;
 
     private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
     private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";

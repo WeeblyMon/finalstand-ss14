@@ -11,6 +11,7 @@ public sealed partial class FSBulwarkSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSAggravatorSystem _aggravator = default!;
+    [Dependency] private FSRiotShieldSystem _riotShield = default!;
     [Dependency] private IGameTiming _timing = default!;
 
     private static readonly TimeSpan TauntInterval = TimeSpan.FromSeconds(1);
@@ -50,14 +51,10 @@ public sealed partial class FSBulwarkSystem : EntitySystem
         var level = ev.Perks.GetSlottedLevel("Bulwark");
         if (level <= 0 || !ev.WasMeleeKill
             || !TryComp<FSRiotShieldUserComponent>(ev.Killer, out var marker)
-            || !TryComp<FSRiotShieldComponent>(marker.Shield, out var shield)
-            || shield.IsBroken)
+            || !TryComp<FSRiotShieldComponent>(marker.Shield, out var shield))
             return;
 
-        var max = shield.BaseDurability * shield.DurabilityMultiplier;
-        shield.CurrentDurability = MathF.Min(max,
-            shield.CurrentDurability + max * level * FSPerkBonusConstants.BulwarkRepairPerKillPerLevel);
-        Dirty(marker.Shield, shield);
+        _riotShield.Mend((marker.Shield, shield), level * FSPerkBonusConstants.BulwarkRepairPerKillPerLevel);
     }
 
     private int LevelOf(EntityUid? wielder)

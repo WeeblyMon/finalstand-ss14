@@ -66,9 +66,3 @@ public sealed partial class FSStunningStrikesSystem : EntitySystem
         return _stun.TryForceStun(zombie, TimeSpan.FromSeconds(seconds), visualized: true);
     }
 }
-
-[RegisterComponent]
-public sealed partial class FSStunningStrikesCooldownComponent : Component
-{
-    public TimeSpan NextAllowed;
-}

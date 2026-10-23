@@ -19,13 +19,12 @@ public sealed partial class FSLoneWolfSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
 
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(0.5);
+    private static readonly TimeSpan RegenInterval = TimeSpan.FromSeconds(1);
     private TimeSpan _nextCheck;
     private TimeSpan _nextRegen;
     private readonly HashSet<EntityUid> _alone = [];
     private readonly HashSet<EntityUid> _wasAlone = [];
     private readonly HashSet<Entity<MindContainerComponent>> _nearby = [];
-
-    public bool IsAlone(EntityUid body) => _alone.Contains(body);
 
     public float GetMultiplier(EntityUid body, FSPerkLevelsComponent perks)
     {
@@ -46,7 +45,7 @@ public sealed partial class FSLoneWolfSystem : EntitySystem
 
         if (now < _nextRegen)
             return;
-        _nextRegen = now + TimeSpan.FromSeconds(1);
+        _nextRegen = now + RegenInterval;
 
         foreach (var body in _alone)
         {

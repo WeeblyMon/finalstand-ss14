@@ -17,6 +17,7 @@ using Content.Shared.Inventory.Events;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Projectiles;
@@ -50,6 +51,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
+    private static readonly ProtoId<DamageTypePrototype> Blunt = "Blunt";
+    private static readonly ProtoId<DamageTypePrototype> Slash = "Slash";
+    private static readonly ProtoId<DamageTypePrototype> Piercing = "Piercing";
 
     public override void Initialize()
     {
@@ -168,9 +172,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
             return 1f;
 
         var coefficients = armor.Modifiers.Coefficients;
-        var average = (coefficients.GetValueOrDefault("Blunt", 1f)
-                       + coefficients.GetValueOrDefault("Slash", 1f)
-                       + coefficients.GetValueOrDefault("Piercing", 1f)) / 3f;
+        var average = (coefficients.GetValueOrDefault(Blunt.Id, 1f)
+                       + coefficients.GetValueOrDefault(Slash.Id, 1f)
+                       + coefficients.GetValueOrDefault(Piercing.Id, 1f)) / 3f;
         return Math.Clamp((average - FSPerkBonusConstants.LookingThinNoBonusArmor)
                           / (1f - FSPerkBonusConstants.LookingThinNoBonusArmor), 0f, 1f);
     }

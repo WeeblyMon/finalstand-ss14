@@ -33,9 +33,6 @@ public sealed partial class FSPerkLockSystem : EntitySystem
     public bool IsLocked(EntityUid mindId, string perkId)
         => TryComp<FSPerkLockComponent>(mindId, out var locks) && locks.Locked.Contains(perkId);
 
-    public bool AnyLocked(EntityUid mindId)
-        => TryComp<FSPerkLockComponent>(mindId, out var locks) && locks.Locked.Count > 0;
-
     public bool KeepsLocked(EntityUid mindId, IReadOnlyCollection<string> slots)
     {
         if (!TryComp<FSPerkLockComponent>(mindId, out var locks))
@@ -49,10 +46,4 @@ public sealed partial class FSPerkLockSystem : EntitySystem
 
         return true;
     }
-}
-
-[RegisterComponent]
-public sealed partial class FSPerkLockComponent : Component
-{
-    public HashSet<string> Locked = new();
 }

@@ -63,6 +63,7 @@ public static class FSPerkBonusConstants
     public const float ScavengerHeal = 15f;
     public const int ScavengerCredits = 150;
     public const float ConcealedCarryPerLevel = 0.04f;
+    public const float ConcealedCarryLargeGunFactor = 0.5f;
     public const float GunslingerDamagePerLevel = 0.06f;
     public const float GunslingerFireRatePerLevel = 0.10f;
     public const float LoneWolfDamagePerLevel = 0.03f;

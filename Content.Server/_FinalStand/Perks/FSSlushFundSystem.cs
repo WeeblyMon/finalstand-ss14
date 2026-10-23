@@ -35,9 +35,3 @@ public sealed partial class FSSlushFundSystem : EntitySystem
         _medicalFund.GrantMedicalFunds(paid, "slush-fund", mindId);
     }
 }
-
-[RegisterComponent]
-public sealed partial class FSSlushFundComponent : Component
-{
-    public float Remainder;
-}

@@ -16,8 +16,6 @@ public sealed partial class FSWolfPackSystem : EntitySystem
     private readonly HashSet<EntityUid> _packed = [];
     private readonly HashSet<EntityUid> _wasPacked = [];
 
-    public bool IsWithPack(EntityUid mindId) => _packed.Contains(mindId);
-
     public float GetResist(EntityUid mindId, FSPerkLevelsComponent perks)
     {
         var level = perks.GetSlottedLevel("WolfPack");

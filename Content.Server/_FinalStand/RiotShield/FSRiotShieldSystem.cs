@@ -105,4 +105,15 @@ public sealed partial class FSRiotShieldSystem : EntitySystem
         comp.IsBroken = false;
         Dirty(uid, comp);
     }
+
+    // Bulwark: a melee kill mends part of the shield. A broken shield stays broken until prep.
+    public void Mend(Entity<FSRiotShieldComponent> shield, float fraction)
+    {
+        if (shield.Comp.IsBroken)
+            return;
+
+        var max = shield.Comp.BaseDurability * shield.Comp.DurabilityMultiplier;
+        shield.Comp.CurrentDurability = MathF.Min(max, shield.Comp.CurrentDurability + max * fraction);
+        Dirty(shield);
+    }
 }

@@ -16,8 +16,6 @@ public sealed partial class FSBunkeredDownSystem : EntitySystem
     private readonly HashSet<EntityUid> _bunkered = [];
     private readonly HashSet<EntityUid> _wasBunkered = [];
 
-    public bool IsBunkered(EntityUid mindId) => _bunkered.Contains(mindId);
-
     public float GetDamageMultiplier(EntityUid mindId, FSPerkLevelsComponent perks)
     {
         var level = perks.GetSlottedLevel("BunkeredDown");

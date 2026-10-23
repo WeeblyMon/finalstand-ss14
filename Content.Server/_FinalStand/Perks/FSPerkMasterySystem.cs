@@ -4,11 +4,13 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.Perks;
+using Content.Shared._FinalStand.Titles;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Robust.Server.Player;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Perks;
 
@@ -20,7 +22,7 @@ public sealed partial class FSPerkMasterySystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IChatManager _chat = default!;
 
-    public const string PerkMasterTitle = "FSTitlePerkMaster";
+    public static readonly ProtoId<FSTitlePrototype> PerkMasterTitle = "FSTitlePerkMaster";
 
     private readonly Dictionary<NetUserId, Dictionary<string, int>> _cache = new();
     private readonly HashSet<(NetUserId User, string Perk)> _dirty = new();
