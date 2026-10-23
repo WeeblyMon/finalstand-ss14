@@ -291,9 +291,10 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         if (!TryInt(shell, args, 0, out var level) || !TryTarget(shell, args, 1, out var session, out var mindId))
             return;
 
-        if (!EntityManager.TryGetComponent<FSPlayerLevelComponent>(mindId, out var lvl))
+        // Saving an unloaded level would write its default prestige over the player's row.
+        if (!EntityManager.TryGetComponent<FSPlayerLevelComponent>(mindId, out var lvl) || !lvl.Loaded)
         {
-            shell.WriteError("No level data on that player.");
+            shell.WriteError("No loaded level data on that player.");
             return;
         }
 
