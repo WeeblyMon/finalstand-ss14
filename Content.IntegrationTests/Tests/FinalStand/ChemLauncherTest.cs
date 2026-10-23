@@ -43,7 +43,8 @@ public sealed class ChemLauncherTest : GameTest
         {
             var shared = entMan.System<FSChemLauncherSharedSystem>();
             var (uid, launcher) = SpawnLauncher(entMan, map.GridCoords);
-            Assert.That(shared.TryGetActive(launcher, out var formula), Is.True, "the launcher spawns with nothing loaded");
+            Assert.That(shared.TryGetActive(launcher, out var active), Is.True, "the launcher spawns with nothing loaded");
+            var formula = active!;
 
             var full = launcher.Reserve;
             var ammo = Shoot(entMan, uid, map.GridCoords);
@@ -51,7 +52,7 @@ public sealed class ChemLauncherTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(ammo, Has.Count.EqualTo(1));
-                Assert.That(launcher.Reserve, Is.EqualTo(full - formula!.Cost).Within(0.01f));
+                Assert.That(launcher.Reserve, Is.EqualTo(full - formula.Cost).Within(0.01f));
                 Assert.That(entMan.TryGetComponent<FSChemCanisterComponent>(ammo[0].Entity, out var canister), Is.True,
                     "the shot is not a canister, so it lands without a cloud");
                 Assert.That(canister!.Formula.Id, Is.EqualTo(formula.ID));
