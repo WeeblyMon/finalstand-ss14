@@ -395,6 +395,8 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponRayGun
     price: 75000
+    purchasable: false
+    requiresHeldWeapon: true
     starterAmmoProtoId: FSRayGunCell
     starterAmmoCount: 3
     category: Splash-Damage Wonder Weapon
