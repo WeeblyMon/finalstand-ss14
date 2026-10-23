@@ -1,0 +1,25 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-3.0",
+    "copyright": "Created for FinalStand",
+    "size": {
+        "x": 96,
+        "y": 96
+    },
+    "states": [
+        {
+            "name": "chainsaw",
+            "delays": [
+                [
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035
+                ]
+            ]
+        }
+    ]
+}

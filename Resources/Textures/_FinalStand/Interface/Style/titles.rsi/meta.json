@@ -1,0 +1,32 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-3.0",
+    "copyright": "Created for FinalStand, lettering set in Kaushan Script (SIL OFL 1.1)",
+    "size": {
+        "x": 384,
+        "y": 80
+    },
+    "states": [
+        {
+            "name": "d"
+        },
+        {
+            "name": "c"
+        },
+        {
+            "name": "b"
+        },
+        {
+            "name": "a"
+        },
+        {
+            "name": "s"
+        },
+        {
+            "name": "ss"
+        },
+        {
+            "name": "sss"
+        }
+    ]
+}

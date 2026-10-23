@@ -442,7 +442,7 @@ public sealed partial class WeaponShopWindow
             or WeaponUpgradeType.CritVsBurning or WeaponUpgradeType.FlintlockCritSynergy or WeaponUpgradeType.PointBlankCrit
             or WeaponUpgradeType.BounceCrit => "crit",
         WeaponUpgradeType.SetOnFire or WeaponUpgradeType.GrenadeBurnDuration or WeaponUpgradeType.WhileBurningBuff => "fire",
-        WeaponUpgradeType.MoneyGainBonus or WeaponUpgradeType.MoneyPerHit => "money",
+        WeaponUpgradeType.MoneyGainBonus or WeaponUpgradeType.MoneyGainPercent or WeaponUpgradeType.MoneyPerHit => "money",
         WeaponUpgradeType.LifeSteal or WeaponUpgradeType.ShieldVampire or WeaponUpgradeType.StaminaSteal => "heart",
         WeaponUpgradeType.Slowing or WeaponUpgradeType.GrenadeBaitDuration => "slow",
         WeaponUpgradeType.BeamChaining or WeaponUpgradeType.BounceCount or WeaponUpgradeType.BounceRetention => "chain",
@@ -451,7 +451,9 @@ public sealed partial class WeaponShopWindow
         WeaponUpgradeType.MovementSpeed or WeaponUpgradeType.AttackSpeed or WeaponUpgradeType.ReloadSpeed
             or WeaponUpgradeType.SpeedLoader or WeaponUpgradeType.BattleTrance => "speed",
         WeaponUpgradeType.Bleed => "bleed",
-        WeaponUpgradeType.DualWieldEnergySword => "melee",
+        WeaponUpgradeType.DualWieldEnergySword or WeaponUpgradeType.Whirlwind or WeaponUpgradeType.MeleeSignature => "melee",
+        WeaponUpgradeType.DashPower => "speed",
+        WeaponUpgradeType.StabLifeSteal => "heart",
         WeaponUpgradeType.DeployableCapacity => "deployable",
         _ => "upgrade",
     };

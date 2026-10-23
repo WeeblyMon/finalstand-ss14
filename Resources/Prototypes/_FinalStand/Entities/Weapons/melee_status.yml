@@ -1,0 +1,5 @@
+- type: entity
+  parent: StatusEffectSlowdown
+  id: FSMeleeSearSlowdown
+  categories: [ HideSpawnMenu ]
+  name: seared

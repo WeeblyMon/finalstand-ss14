@@ -26,10 +26,11 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
         if (ev.State is not { } state)
             return;
 
-        if (state.MoneyGainBonusPerKill > 0)
+        if (state.MoneyGainBonusPerKill > 0 || state.MoneyGainPercentPerKill > 0f)
         {
             var bonus = EnsureComp<FSPendingKillBonusComponent>(ev.Target);
             bonus.MoneyBonus = state.MoneyGainBonusPerKill;
+            bonus.MoneyPercent = state.MoneyGainPercentPerKill;
         }
     }
 

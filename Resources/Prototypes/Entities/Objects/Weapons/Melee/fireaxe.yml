@@ -4,6 +4,134 @@
   id: FireAxe
   description: Truly, the weapon of a madman. Who would think to fight fire with an axe?
   components:
+  - type: FSMeleeCharge # FINALSTAND
+    maxChargeTime: 1.4
+    minDamage: 0.8
+    maxDamage: 2.4
+    minForce: 0.5
+    maxForce: 1.4
+    chargeSound:
+      path: /Audio/_FinalStand/Melee/charge_axe.ogg
+      params:
+        volume: -4
+    fullSound:
+      path: /Audio/_FinalStand/Melee/charge_full.ogg
+      params:
+        volume: -2
+        pitch: 0.85
+    fullLandSound:
+      path: /Audio/_FinalStand/Melee/slam_full.ogg
+      params:
+        volume: 3
+  - type: FSMeleeBlood # FINALSTAND
+  - type: FSMeleeJuice # FINALSTAND
+    heavyStyle: Slam
+    critWhen: FullCharge
+    igniteOnFullCharge: true
+    heavyRecovery: 1.2
+    light:
+      anticipation: 0.12
+      hitstop: 0.09
+      reach: 1.2
+      trauma: 0.55
+      shakeMode: Radial
+      knockback: 15
+      knockbackDuration: 0.3
+      flinchDuration: 0.4
+      flinchSpeed: 0.15
+      hitEffect: FSMeleeHitHeavySlash
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeBlood
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: gib
+      trailColor: "#b02020cc"
+      trailWidth: 0.12
+      trailDuration: 0.18
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: 2
+      slashEffect: FSMeleeSlashWarriorCleave
+      slashColor: "#ffffff"
+      slashScale: 0.95
+      slashTravel: 0.35
+    heavy:
+      anticipation: 0.08
+      hitstop: 0.12
+      killHitstopBonus: 0.04
+      reach: 1.15
+      trauma: 0.75
+      shakeMode: Radial
+      knockback: 12
+      knockbackDuration: 0.3
+      flinchDuration: 1.1
+      flinchSpeed: 0.15
+      staggerRadius: 1.8
+      staggerDamage: 0.6
+      hitEffect: FSMeleeHitShatter
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeShards
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: gib
+      impactSound:
+        path: /Audio/_FinalStand/Melee/slam_thud.ogg
+        params:
+          volume: 2
+          pitch: 0.75
+      trailColor: "#b02020cc"
+      trailWidth: 0.14
+      trailDuration: 0.2
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: 2
+      slashEffect: FSMeleeSlamShockwave
+      slashOffset: 1.5
+      slashTravel: 0
+      slashGrow: 1.15
+      killZoom: 0.06
+    comboHits: 2
+    comboReadySound:
+      path: /Audio/Items/unsheath.ogg
+      params:
+        volume: -6
+    finisher:
+      anticipation: 0.2
+      hitstop: 0.12
+      reach: 1.2
+      trauma: 0.8
+      shakeMode: Radial
+      knockback: 15
+      knockbackDuration: 0.3
+      flinchDuration: 1.5
+      flinchSpeed: 0.15
+      hitEffect: FSMeleeHitShatter
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeBlood
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: gib
+      trailColor: "#b02020cc"
+      trailWidth: 0.12
+      trailDuration: 0.18
+      damageMultiplier: 1.4
+      staggerRadius: 1.6
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: 3
+      slashEffect: FSMeleeSlashWarriorBurst
+      slashColor: "#ffffff"
+      slashScale: 1.1
+      slashGrow: 1.35
+      slashOffset: 0.9
+      impactSound:
+        collection: FSMeleeBoneBreak
+        params:
+          volume: 3
+          pitch: 0.85
   - type: Tag
     tags:
     - FireAxe
@@ -13,6 +141,14 @@
     sprite: Objects/Weapons/Melee/fireaxe.rsi
     state: icon
   - type: MeleeWeapon
+    range: 2.0 # FINALSTAND: reach zombie claws
+    soundSwing: # FINALSTAND
+      collection: FSMeleeSwishHeavy
+      params:
+        volume: -2
+        pitch: 0.8
+        variation: 0.04
+    animation: FSWeaponArcSwing # FINALSTAND: light attacks swing
     wideAnimationRotation: 135
     swingLeft: true
     attackRate: 0.75
@@ -52,8 +188,7 @@
     delay: 1
   - type: StealTarget
     stealGroup: FireAxe
-  - type: IgniteOnMeleeHit
-    fireStacks: -4
+  # FINALSTAND: no extinguishing IgniteOnMeleeHit, full-charge slams set zombies alight
   - type: Crit
     baseCritChance: 0.05
 

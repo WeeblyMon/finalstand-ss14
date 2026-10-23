@@ -20,6 +20,11 @@ public sealed partial class WaveHudOverlay
 
     public readonly record struct UberMeter(float Charge, bool Active, float SecondsLeft, Color Color, string Key);
 
+    public AbilityMeter? Ability;
+
+    // A weapon's own resource: stored shots, a dash cooldown or rev, one segment each.
+    public readonly record struct AbilityMeter(string Label, int Charges, int Max, float Refill, float SecondsLeft, Color Colour, string? Status = null);
+
     private const int UberSegments = 10;
     private const float UberSegmentH = 7f;
     private static readonly Color UberGold = Color.FromHex("#FFD86B");
@@ -74,7 +79,8 @@ public sealed partial class WaveHudOverlay
                        + (hasAmmo ? 4f + valueH : 0f)
                        + (hasDetail ? 4f + labelH : 0f)
                        + (WeaponTakesMagazines ? 5f + hintH : 0f)
-                       + (Uber != null ? 6f + labelH + 3f + UberSegmentH * _hudScale + 5f + hintH : 0f);
+                       + (Uber != null ? 6f + labelH + 3f + UberSegmentH * _hudScale + 5f + hintH : 0f)
+                       + (Ability != null ? 6f + labelH + 3f + UberSegmentH * _hudScale : 0f);
         var panelH = MathF.Max(contentH + panelPad * 2f, panelMinH);
 
         var x = rightEdge - panelW;
@@ -121,6 +127,9 @@ public sealed partial class WaveHudOverlay
         if (Uber is { } uber)
             ty = DrawUberMeter(screen, uber, textX, innerRight, ty, labelH, hintH, hintPadX, hintPadY);
 
+        if (Ability is { } ability)
+            ty = DrawAbilityMeter(screen, ability, textX, innerRight, ty, labelH);
+
         if (!WeaponTakesMagazines)
             return y;
 
@@ -135,6 +144,40 @@ public sealed partial class WaveHudOverlay
         screen.DrawString(_labelFont!, new Vector2(chip.Left + hintPadX, ty + hintPadY), hint, hintColor);
 
         return y;
+    }
+
+    // A segment per charge, the next one filling as it comes back.
+    private float DrawAbilityMeter(DrawingHandleScreen screen, AbilityMeter meter, float left, float right, float ty, float labelH)
+    {
+        ty += 6f;
+        screen.DrawString(_labelFont!, new Vector2(left, ty), meter.Label, WeaponText);
+
+        var ready = meter.Charges > 0 || meter.SecondsLeft <= 0f;
+        var status = meter.Status
+            ?? (!ready ? $"{MathF.Ceiling(meter.SecondsLeft * 10f) / 10f:0.0}s" : meter.Max == 1 ? Loc.GetString("fs-hud-ability-ready") : $"{meter.Charges}/{meter.Max}");
+        var statusW = screen.GetDimensions(_labelFont!, status, 1f).X;
+        screen.DrawString(_labelFont!, new Vector2(right - statusW, ty), status, ready ? meter.Colour : AmmoLow);
+        ty += labelH + 3f;
+
+        var segH = UberSegmentH * _hudScale;
+        var gap = 3f * _hudScale;
+        var count = Math.Max(1, meter.Max);
+        var segW = (right - left - gap * (count - 1)) / count;
+        for (var i = 0; i < count; i++)
+        {
+            var x0 = left + i * (segW + gap);
+            screen.DrawRect(new UIBox2(x0, ty, x0 + segW, ty + segH), FSPalette.BarTrack);
+
+            var part = i < meter.Charges ? 1f : i == meter.Charges ? meter.Refill : 0f;
+            if (part <= 0f)
+                continue;
+
+            var colour = i < meter.Charges ? meter.Colour : meter.Colour.WithAlpha(0.45f);
+            screen.DrawRect(new UIBox2(x0, ty, x0 + segW * part, ty + segH), colour);
+            screen.DrawRect(new UIBox2(x0, ty, x0 + segW * part, ty + 1f), FSPalette.BarSheen);
+        }
+
+        return ty + segH;
     }
 
     private float DrawUberMeter(DrawingHandleScreen screen, UberMeter uber, float left, float right, float ty,

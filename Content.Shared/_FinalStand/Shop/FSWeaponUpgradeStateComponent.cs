@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Melee;
 using Content.Shared.FixedPoint;
 using Robust.Shared.GameStates;
 
@@ -14,6 +15,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 
     [DataField] public int ExplosiveShotLevel = 0;
     [DataField] public int MoneyGainBonusPerKill = 0;
+    [DataField] public float MoneyGainPercentPerKill = 0f;
     [DataField] public int MoneyPerHitBonus = 0;
     [DataField] public bool SlowingEnabled = false;
     [DataField] public int BeamChainTargets = 0;
@@ -86,4 +88,10 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public int OverloadRoundLevel = 0;
     [DataField, AutoNetworkedField] public int HomingLevel = 0;
     [DataField] public int MultishotLevel = 0;
+
+    [DataField, AutoNetworkedField] public float DashBonus = 0f;
+    [DataField, AutoNetworkedField] public bool WhirlwindEnabled = false;
+    [DataField] public float StabHeal = 0f;
+
+    [DataField, AutoNetworkedField] public Dictionary<FSMeleeSignature, float> Signatures = new();
 }

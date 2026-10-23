@@ -140,10 +140,11 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 }
             }
 
-            if (state.MoneyGainBonusPerKill > 0)
+            if (state.MoneyGainBonusPerKill > 0 || state.MoneyGainPercentPerKill > 0f)
             {
                 var bonus = EnsureComp<FSPendingKillBonusComponent>(target);
                 bonus.MoneyBonus = state.MoneyGainBonusPerKill;
+                bonus.MoneyPercent = state.MoneyGainPercentPerKill;
             }
 
             if (state.MoneyPerHitBonus > 0 && HasComp<WaveSpawnedTagComponent>(target) && !_undying.IsActive(user) && _mind.TryGetMind(user, out var mindId, out _))

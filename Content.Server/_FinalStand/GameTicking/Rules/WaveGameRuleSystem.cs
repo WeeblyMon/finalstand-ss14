@@ -11,6 +11,7 @@ using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
 using Content.Server.RoundEnd;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Light.Components;
 using Content.Shared.GameTicking.Components;
@@ -22,6 +23,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Content.Server.Light.EntitySystems;
 using Content.Server.Power.Components;
+using Content.Server._FinalStand.Melee;
 using Content.Server._FinalStand.Onboarding;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Titles;
@@ -62,6 +64,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private FSOnboardingSystem _onboarding = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
     [Dependency] private FSArchetypeSystem _archetypes = default!;
+    [Dependency] private FSStyleSystem _style = default!;
     [Dependency] private FSRoundPresenceSystem _presence = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
@@ -605,7 +608,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
         {
             killerMind = mindId;
-            _wallet.GiveCredits(mindId, (int) (killCredits * _archetypes.Bonus(mindId).Credits
+            var weaponBonus = TryComp<FSPendingKillBonusComponent>(ent.Owner, out var pending) ? 1f + pending.MoneyPercent : 1f;
+            _wallet.GiveCredits(mindId, (int) (killCredits * weaponBonus * _style.KillMoneyMultiplier(args.Origin.Value, ent.Owner) * _archetypes.Bonus(mindId).Credits
                 * _titleBuffs.ForMind(mindId).KillCredits));
 
             if (IsSecurityRole(mindId))

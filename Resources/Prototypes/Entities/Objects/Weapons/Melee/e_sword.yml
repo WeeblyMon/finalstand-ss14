@@ -3,6 +3,100 @@
   parent: BaseItem
   abstract: true
   components:
+  - type: FSMeleeJuice # FINALSTAND
+    # Right click is a sweeping blade: dash through the zombie nearest the cursor, harder each time it's chained.
+    heavyStyle: Sweep
+    critWhen: SweepChain
+    light:
+      anticipation: 0.04
+      hitstop: 0.045
+      reach: 1.05
+      trauma: 0.2
+      knockback: 5
+      lunge: 0.4
+      flinchDuration: 0.15
+      flinchSpeed: 0.5
+      hitStatus: FSMeleeSearSlowdown
+      hitStatusDuration: 1.2
+      hitStatusSpeed: 0.5
+      hitEffect: FSMeleeHitEnergyCross
+      hitEmitter: FSMeleeEnergyHit
+      killEmitter: FSMeleeShockRing
+      killSound:
+        collection: sparks
+      trailColor: "#5ce1ffdd"
+      trailWidth: 0.07
+      trailDuration: 0.16
+      slashEffect: FSMeleeStabEnergy
+      slashScale: 0.5
+      slashOffset: 0.9
+      slashTravel: 0.3
+      slashGrow: 1.1
+    heavy:
+      anticipation: 0.03
+      hitstop: 0.05
+      reach: 1.1
+      trauma: 0.3
+      flinchDuration: 0.4
+      flinchSpeed: 0.4
+      damageMultiplier: 1.2
+      hitStatus: FSMeleeSearSlowdown
+      hitStatusDuration: 1.5
+      hitStatusSpeed: 0.5
+      hitEffect: FSMeleeHitEnergy
+      hitEmitter: FSMeleeEnergyHit
+      killEmitter: FSMeleeShockRing
+      killSound:
+        collection: sparks
+      impactSound:
+        collection: sparks
+        params:
+          volume: 2
+      trailColor: "#5ce1ffff"
+      trailWidth: 0.1
+      trailDuration: 0.3
+      slashEffect: FSMeleeSlashWarriorArcTinted
+      slashColor: "#7ff0ff"
+      slashScale: 1.1
+      slashOffset: 0.45
+      slashTravel: 0.8
+      slashGrow: 1.25
+    comboHits: 2
+    comboReadySound:
+      path: /Audio/Weapons/ebladeon.ogg
+      params:
+        volume: -8
+        pitch: 1.3
+    finisher:
+      anticipation: 0.04
+      hitstop: 0.06
+      reach: 1.05
+      trauma: 0.3
+      knockback: 5
+      lunge: 0.8
+      flinchDuration: 1.15
+      flinchSpeed: 0.5
+      hitStatus: FSMeleeSearSlowdown
+      hitStatusDuration: 2.5
+      hitStatusSpeed: 0.5
+      hitEffect: FSMeleeHitEnergyCross
+      hitEmitter: FSMeleeEnergyHit
+      killEmitter: FSMeleeShockRing
+      killSound:
+        collection: sparks
+      trailColor: "#5ce1ffdd"
+      trailWidth: 0.07
+      trailDuration: 0.16
+      damageMultiplier: 1.4
+      slashEffect: FSMeleeStabEnergy
+      slashScale: 0.6
+      slashOffset: 1.1
+      slashTravel: 0.35
+      slashGrow: 1.1
+      impactSound:
+        collection: sparks
+        params:
+          volume: 2
   - type: EnergySword
   - type: ItemToggle
     soundActivate:
@@ -79,6 +173,11 @@
   id: EnergySword
   description: A very loud & dangerous sword with a beam made of pure, concentrated plasma. Cuts through unarmored targets like butter.
   components:
+  - type: EnergySword # FINALSTAND: always blue
+    colorOptions:
+    - "#1E90FF"
+  - type: MeleeWeapon # FINALSTAND: reach zombie claws
+    range: 1.8
   - type: Sprite
     sprite: Objects/Weapons/Melee/e_sword.rsi
     layers:

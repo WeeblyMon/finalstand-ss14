@@ -35,7 +35,7 @@ public sealed partial class CCVars
         CVarDef.Create("control.nested_storage", true, CVar.REPLICATED | CVar.SERVER);
 
     public static readonly CVarDef<bool> ControlHoldToAttackMelee =
-        CVarDef.Create("control.hold_to_attack_melee", false, CVar.CLIENTONLY | CVar.ARCHIVE);
+        CVarDef.Create("control.hold_to_attack_melee", true, CVar.CLIENTONLY | CVar.ARCHIVE); // FINALSTAND: hold to keep swinging
 
     public static readonly CVarDef<bool> ControlHoldToAttackRanged =
         CVarDef.Create("control.hold_to_attack_ranged", false, CVar.CLIENTONLY | CVar.ARCHIVE);

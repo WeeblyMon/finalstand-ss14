@@ -1,0 +1,39 @@
+- files: ["swish_heavy1.ogg", "swish_heavy2.ogg", "swish_heavy3.ogg", "swish_light1.ogg", "swish_light2.ogg", "swish_light3.ogg"]
+  license: "CC0-1.0"
+  copyright: "Swishes Sound Pack by artisticdude, trimmed, normalized and converted to mono"
+  source: "https://opengameart.org/content/swishes-sound-pack"
+
+- files: ["blunt_hit1.ogg", "blunt_hit2.ogg", "blunt_hit3.ogg", "blunt_hit4.ogg"]
+  license: "CC0-1.0"
+  copyright: "37 hits/punches by Independent.nu, trimmed, normalized and converted to mono"
+  source: "https://opengameart.org/content/37-hitspunches"
+
+- files: ["bone_break1.ogg", "bone_break2.ogg", "bone_break3.ogg", "bone_break4.ogg"]
+  license: "CC0-1.0"
+  copyright: "Deep Bone Crack/Break SFX by Zane Little Music, trimmed, normalized and converted to mono"
+  source: "https://opengameart.org/content/deep-bone-crackbreak-sfx"
+
+- files: ["slam_thud.ogg"]
+  license: "CC-BY-SA-3.0"
+  copyright: "explosionsmallfar.ogg from vgstation at c5edbfd7179288080f081e2b8ac2496b7e4455db, trimmed and converted to mono"
+  source: "https://github.com/vgstation-coders/vgstation13/tree/c5edbfd7179288080f081e2b8ac2496b7e4455db/sound/effects"
+
+- files: ["charge_bat.ogg", "charge_axe.ogg"]
+  license: "CC0-1.0"
+  copyright: "Anime Charge Sound by TheLittleCrow, trimmed, sped up, normalized and converted to mono"
+  source: "https://freesound.org/people/TheLittleCrow/sounds/676451/"
+
+- files: ["charge_full.ogg"]
+  license: "CC0-1.0"
+  copyright: "4 Metal Dings/Rings by StarNinjas, normalized and converted to mono"
+  source: "https://opengameart.org/content/4-metal-dingsrings"
+
+- files: ["crowd_cheer.ogg"]
+  license: "CC-BY-4.0"
+  copyright: "Free Crowd Cheering Sounds by Gregor Quendel, trimmed, faded, normalized and converted to mono"
+  source: "https://opengameart.org/content/free-crowd-cheering-sounds"
+
+- files: ["slam_full.ogg"]
+  license: "CC0-1.0"
+  copyright: "Dinosaur falls to the ground by Breviceps layered with Huge Explosion Part 2 - Impact by bevibeldesign (https://freesound.org/people/bevibeldesign/sounds/366088/), trimmed, filtered, normalized and converted to mono"
+  source: "https://freesound.org/people/Breviceps/sounds/457531/"

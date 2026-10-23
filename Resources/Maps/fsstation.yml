@@ -35720,6 +35720,14 @@ entities:
     - type: Transform
       parent: 1
       pos: 18.5,14.5
+- proto: FSWeaponShopUnholyHalberd
+  entities:
+  - uid: 11115
+    components:
+    - type: Transform
+      parent: 1
+      rot: -1.5707963267948966 rad
+      pos: 15.5,19.5
 - proto: FSWeaponShopViper
   entities:
   - uid: 10479

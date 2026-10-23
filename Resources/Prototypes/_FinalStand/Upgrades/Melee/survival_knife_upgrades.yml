@@ -32,18 +32,42 @@
       valuePerLevel: 0.5
     - id: knife-golden
       name: Golden Blade
-      description: Gilded blade pays out +25% money on each kill.
+      description: Gilded blade pays out +8% money on each kill.
       maxLevel: 1
       baseCost: 500
-      type: MoneyGainBonus
-      valuePerLevel: 0.25
+      type: MoneyGainPercent
+      valuePerLevel: 0.08
     - id: knife-bloodthirster
       name: Blood Thirster
-      description: Drains +10 blood from the target on every hit.
+      description: Each hit heals you for 85% of its base damage per level.
       maxLevel: 2
       baseCost: 3000
       type: LifeSteal
-      valuePerLevel: 5
+      valuePerLevel: 0.85
+    - id: knife-coup-de-grace
+      name: Coup de Grâce
+      description: An execution readies your next swing instantly, so executions chain.
+      maxLevel: 1
+      baseCost: 3500
+      type: MeleeSignature
+      signature: CoupDeGrace
+      valuePerLevel: 1
+    - id: knife-hemorrhage
+      name: Hemorrhage
+      description: Bleeding zombies can be executed without being staggered first.
+      maxLevel: 1
+      baseCost: 3000
+      type: MeleeSignature
+      signature: Hemorrhage
+      valuePerLevel: 1
+    - id: knife-opportunist
+      name: Opportunist
+      description: +50% damage to zombies attacking someone else.
+      maxLevel: 1
+      baseCost: 2500
+      type: MeleeSignature
+      signature: Opportunist
+      valuePerLevel: 0.5
   - type: Sprite
     sprite: Objects/Weapons/Melee/survival_knife.rsi
     state: icon
