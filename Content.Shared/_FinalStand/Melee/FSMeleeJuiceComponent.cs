@@ -64,6 +64,31 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public bool SprintAttack = true;
 
+    // A Sweep heavy dashes through the enemy nearest the cursor within this many tiles.
+    [DataField]
+    public float SweepRange = 3.5f;
+
+    // Tiles carried past the enemy.
+    [DataField]
+    public float SweepOvershoot = 1.2f;
+
+    [DataField]
+    public float SweepCooldown = 0.4f;
+
+    // Seconds before the same enemy can be swept through again.
+    [DataField]
+    public float SweepMarkTime = 5f;
+
+    // Each sweep within this many seconds of the last adds a stack of SweepStackBonus damage.
+    [DataField]
+    public float SweepStackWindow = 3f;
+
+    [DataField]
+    public int SweepMaxStacks = 3;
+
+    [DataField]
+    public float SweepStackBonus = 0.25f;
+
     // A Shot heavy fires this gun from the attacker's inventory, loading it with ShotAmmo.
     [DataField]
     public EntProtoId? ShotWeapon;
@@ -283,6 +308,7 @@ public enum FSMeleeHeavyStyle : byte
     Spin,
     Slam,
     Shot,
+    Sweep,
 }
 
 public enum FSMeleeShakeMode : byte

@@ -68,7 +68,7 @@
       valuePerLevel: 1
     - id: esword-plasma-dash
       name: Plasma Dash
-      description: "The heavy attack's dash goes 25% further and hits 25% harder per level."
+      description: "Sweeping Blade reaches 25% further and hits 25% harder per level."
       maxLevel: 3
       baseCost: 10000
       type: DashPower

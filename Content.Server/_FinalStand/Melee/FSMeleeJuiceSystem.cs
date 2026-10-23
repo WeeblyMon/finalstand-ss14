@@ -185,6 +185,12 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         _damageable.ChangeDamage(user, new DamageSpecifier(_proto.Index(WallSlamType), WhirlHealthCost), ignoreResistances: true, interruptsDoAfters: false);
     }
 
+    protected override void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage)
+    {
+        _killPipeline.MarkMeleeHit(user, target);
+        _damageable.ChangeDamage(target, damage, origin: user);
+    }
+
     protected override void OnSprintAttack(EntityUid user)
     {
         _stamina.TakeStaminaDamage(user, SprintStamina, visual: false, silent: true);

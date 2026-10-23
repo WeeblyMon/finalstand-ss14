@@ -7,7 +7,9 @@ using Content.Shared.ActionBlocker;
 using Content.Shared.CombatMode;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
+using Content.Shared.FixedPoint;
 using Content.Shared.Hands;
+using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
@@ -20,9 +22,11 @@ using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Wieldable.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
 
@@ -40,6 +44,8 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     [Dependency] private ActionBlockerSystem _blocker = default!;
     [Dependency] private SharedAudioSystem _chargeAudio = default!;
     [Dependency] private SharedCombatModeSystem _combat = default!;
+    [Dependency] private EntityLookupSystem _sweepLookup = default!;
+    [Dependency] private SharedInteractionSystem _sweepReach = default!;
 
     // Mob movement friction on a normal tile; a push of v travels about v / friction.
     protected const float MobFriction = 20f;
@@ -63,6 +69,9 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     private const float RevPitchStep = 0.05f;
     private const float WallMargin = 0.5f;
     private const float RevDumpForce = 0.15f;
+    private const float SweepPickRadius = 2f;
+    private const float SweepRetry = 0.15f;
+    private static readonly TimeSpan SweepPassTime = TimeSpan.FromSeconds(0.25);
     private const float RevDumpTrauma = 0.08f;
     private static readonly TimeSpan WhirlInterval = TimeSpan.FromSeconds(0.45);
     public const float WhirlHealthCost = 4f;
@@ -83,6 +92,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         SubscribeLocalEvent<FSMeleeChargeComponent, AttemptMeleeEvent>(OnChargeAttempt);
         SubscribeLocalEvent<FSMeleeChargeComponent, GotUnequippedHandEvent>(OnChargeUnequipped);
         SubscribeLocalEvent<FSMeleeChargeComponent, HandDeselectedEvent>(OnChargeDeselected);
+        SubscribeLocalEvent<FSMeleeSweepComponent, PreventCollideEvent>(OnSweepCollide);
     }
 
     // Heavy profiles grow with the charge behind them.
@@ -204,6 +214,14 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             return;
         }
 
+        if (heavy && ent.Comp.HeavyStyle == FSMeleeHeavyStyle.Sweep && !args.Handled)
+        {
+            args.Handled = true;
+            if (args.Direction is { } cursor)
+                Sweep(ent, args.User, cursor, args);
+            return;
+        }
+
         if (args.Handled || !args.IsHit)
             return;
 
@@ -253,20 +271,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             Lunge(args.User, ent, Xform.GetWorldPosition(targets[0]) - userPos, profile.Lunge);
 
         var damage = (args.BaseDamage + args.BonusDamage).GetTotal();
-        var lethal = false;
-        foreach (var target in targets)
-        {
-            if (!TryComp<DamageableComponent>(target, out var damageable)
-                || !TryComp<MobThresholdsComponent>(target, out var thresholds)
-                || !_thresholds.TryGetThresholdForState(target, MobState.Dead, out var threshold, thresholds))
-                continue;
-
-            if (damageable.TotalDamage + damage >= threshold)
-            {
-                lethal = true;
-                break;
-            }
-        }
+        var lethal = targets.Exists(t => WouldKill(t, damage));
 
         OnHit(ent, args.User, targets, direction, heavy, finisher, lethal || profile.Execution, profile, args);
     }
@@ -421,6 +426,101 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         return (float) (damageable.TotalDamage / threshold.Value);
     }
 
+    // Sweeping Blade: dash through the enemy nearest the cursor, faster and harder the more sweeps are chained.
+    private void Sweep(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 cursor, MeleeHitEvent args)
+    {
+        if (TryComp<ItemToggleComponent>(weapon, out var toggle) && !toggle.Activated)
+            return;
+
+        var now = Timing.CurTime;
+        var profile = Profile(weapon, true);
+        var reach = 1f + (TryComp<FSWeaponUpgradeStateComponent>(weapon, out var upgrades) ? upgrades.DashBonus : 0f);
+        var range = weapon.Comp.SweepRange * reach;
+
+        var sweep = EnsureComp<FSMeleeSweepComponent>(user);
+        foreach (var (marked, until) in sweep.Marked)
+        {
+            if (until <= now)
+                sweep.Marked.Remove(marked);
+        }
+
+        // Nothing to sweep through: no dash, and only a moment before trying again.
+        var target = SweepTarget(user, sweep, Xform.GetMapCoordinates(user), cursor, range, now);
+        if (TryComp<MeleeWeaponComponent>(weapon, out var melee))
+        {
+            melee.NextAttack = now + TimeSpan.FromSeconds(target == null ? SweepRetry : weapon.Comp.SweepCooldown);
+            DirtyField(weapon, melee, nameof(MeleeWeaponComponent.NextAttack));
+        }
+
+        if (target == null)
+            return;
+
+        var chained = now - sweep.Last <= TimeSpan.FromSeconds(weapon.Comp.SweepStackWindow) ? sweep.Stacks : 0;
+        sweep.Stacks = Math.Min(chained + 1, weapon.Comp.SweepMaxStacks);
+        sweep.Last = now;
+        sweep.Marked[target.Value] = now + TimeSpan.FromSeconds(weapon.Comp.SweepMarkTime);
+        sweep.PassUntil = now + SweepPassTime;
+        Dirty(user, sweep);
+
+        var offset = Xform.GetWorldPosition(target.Value) - Xform.GetWorldPosition(user);
+        var dir = offset == Vector2.Zero ? Vector2.Normalize(cursor) : Vector2.Normalize(offset);
+        Dash(user, dir, offset.Length() + weapon.Comp.SweepOvershoot * reach);
+
+        profile = profile.Copy();
+        profile.DamageMultiplier *= reach * (1f + weapon.Comp.SweepStackBonus * chained);
+        profile.Trauma = Math.Min(1f, profile.Trauma + 0.08f * chained);
+        args.BonusDamage += args.BaseDamage * (profile.DamageMultiplier - 1f);
+        var damage = args.BaseDamage + args.BonusDamage;
+
+        OnHit(weapon, user, new List<EntityUid> { target.Value }, dir, true, false, WouldKill(target.Value, damage.GetTotal()), profile, args);
+        OnSweepHit(user, target.Value, damage);
+    }
+
+    private bool WouldKill(EntityUid target, FixedPoint2 damage)
+    {
+        return TryComp<DamageableComponent>(target, out var damageable)
+            && TryComp<MobThresholdsComponent>(target, out var thresholds)
+            && _thresholds.TryGetThresholdForState(target, MobState.Dead, out var threshold, thresholds)
+            && damageable.TotalDamage + damage >= threshold;
+    }
+
+    private EntityUid? SweepTarget(EntityUid user, FSMeleeSweepComponent sweep, MapCoordinates from, Vector2 cursor, float range, TimeSpan now)
+    {
+        var aim = from.Position + cursor;
+        EntityUid? best = null;
+        var bestDistance = SweepPickRadius;
+        var mobs = new HashSet<Entity<MobStateComponent>>();
+        _sweepLookup.GetEntitiesInRange(from, range, mobs);
+        foreach (var mob in mobs)
+        {
+            if (mob.Owner == user
+                || mob.Comp.CurrentState == MobState.Dead
+                || IsAlly(user, mob)
+                || sweep.Marked.TryGetValue(mob, out var until) && until > now
+                || !_sweepReach.InRangeUnobstructed(user, mob.Owner, range + 0.5f))
+                continue;
+
+            var distance = (Xform.GetWorldPosition(mob) - aim).Length();
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                best = mob;
+            }
+        }
+
+        return best;
+    }
+
+    protected virtual void OnSweepHit(EntityUid user, EntityUid target, DamageSpecifier damage)
+    {
+    }
+
+    private void OnSweepCollide(Entity<FSMeleeSweepComponent> ent, ref PreventCollideEvent args)
+    {
+        if (Timing.CurTime < ent.Comp.PassUntil && HasComp<MobStateComponent>(args.OtherEntity))
+            args.Cancelled = true;
+    }
+
     // Players can't damage teammates or the console, but knockback and flinch would still land on them.
     public bool IsAlly(EntityUid user, EntityUid target)
     {
@@ -543,10 +643,17 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             || !TryComp<PhysicsComponent>(user, out var body))
             return;
 
-        // Stop short of the target instead of walking into it, and of any wall, which a long dash could skip through.
-        distance = Math.Min(distance, toTarget.Length() - 0.8f);
+        // Stop short of the target instead of walking into it.
+        Dash(user, Vector2.Normalize(toTarget), Math.Min(distance, toTarget.Length() - 0.8f), body);
+    }
+
+    // Pushes the user about distance tiles along dir, stopping short of any wall a long dash could skip through.
+    private void Dash(EntityUid user, Vector2 dir, float distance, PhysicsComponent? body = null)
+    {
+        if (!Resolve(user, ref body, false))
+            return;
+
         var xform = Transform(user);
-        var dir = Vector2.Normalize(toTarget);
         var ray = new CollisionRay(Xform.GetWorldPosition(xform), dir, (int) CollisionGroup.Impassable);
         foreach (var hit in _physics.IntersectRay(xform.MapID, ray, distance + WallMargin, user, returnOnFirstHit: true))
         {

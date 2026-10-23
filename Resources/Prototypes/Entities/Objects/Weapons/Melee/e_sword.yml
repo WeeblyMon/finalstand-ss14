@@ -4,7 +4,8 @@
   abstract: true
   components:
   - type: FSMeleeJuice # FINALSTAND
-    heavyRecovery: 1.2
+    # Right click is a sweeping blade: dash through the zombie nearest the cursor, harder each time it's chained.
+    heavyStyle: Sweep
     light:
       anticipation: 0.04
       hitstop: 0.045
@@ -35,12 +36,8 @@
       hitstop: 0.05
       reach: 1.1
       trauma: 0.3
-      knockback: 6
-      flinchDuration: 0.3
+      flinchDuration: 0.4
       flinchSpeed: 0.4
-      dash: 4
-      pierce: 3
-      pierceRange: 2
       damageMultiplier: 1.2
       hitStatus: FSMeleeSearSlowdown
       hitStatusDuration: 1.5

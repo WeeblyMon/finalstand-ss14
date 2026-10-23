@@ -73,3 +73,20 @@ public sealed partial class FSMeleeBloodComponent : Component
         }
     }
 }
+
+// The sweeper's chain: stacks built by sweeping in quick succession, and who they've passed through lately.
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSMeleeSweepComponent : Component
+{
+    [AutoNetworkedField]
+    public int Stacks;
+
+    [AutoNetworkedField]
+    public TimeSpan Last;
+
+    // Mobs don't block the sweeper until then, so the dash carries through its target.
+    [AutoNetworkedField]
+    public TimeSpan PassUntil;
+
+    public readonly Dictionary<EntityUid, TimeSpan> Marked = new();
+}
