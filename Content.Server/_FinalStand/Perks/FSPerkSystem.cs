@@ -332,7 +332,7 @@ public sealed partial class FSPerkSystem : EntitySystem
 
     private void OnApplyStarterBuild(FSApplyStarterBuildMessage msg, EntitySessionEventArgs args)
     {
-        if (msg.BuildId is null)
+        if (msg.BuildId.Id is null)
             return;
 
         ApplyStarterBuild(args.SenderSession, msg.BuildId);

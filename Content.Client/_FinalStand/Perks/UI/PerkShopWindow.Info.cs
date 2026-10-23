@@ -66,7 +66,7 @@ public sealed partial class PerkShopWindow
                     : Loc.GetString("fs-mastery-progress-max", ("tier", Loc.GetString(FSPerkMastery.TierLocId(tier))),
                         ("kills", masteryKills.ToString("N0"))),
                 FontOverride = _fontSmallBold,
-                FontColorOverride = tier == FSMasteryTier.None ? FSUiPalette.TextMuted : FSPerkMastery.TierColor(tier),
+                FontColorOverride = tier == FSMasteryTier.None ? FSUiPalette.TextMuted : FSPerkPalette.Mastery[tier],
                 ToolTip = Loc.GetString("fs-mastery-hint"),
                 Margin = new Thickness(0, 6, 0, 0),
             });

@@ -75,11 +75,11 @@ public sealed class PerkMasteryTest : GameTest
 
             mastery.AddKills(user, "StoppingPower", FSPerkMastery.Thresholds[^1]);
             Assert.That(titles.GetOwned(user).Select(t => t.Id), Does.Contain(FSPerkMasterySystem.PerkMasterTitle));
-            Assert.That(titles.GetOwned(user).Select(t => t.Id), Does.Not.Contain(FSPerkMastery.CategoryTitle(category)));
+            Assert.That(titles.GetOwned(user).Select(t => t.Id), Does.Not.Contain(FSPerkMastery.CategoryTitle(category).Id));
 
             foreach (var perk in categoryPerks)
                 mastery.AddKills(user, perk, FSPerkMastery.Thresholds[^1]);
-            Assert.That(titles.GetOwned(user).Select(t => t.Id), Does.Contain(FSPerkMastery.CategoryTitle(category)),
+            Assert.That(titles.GetOwned(user).Select(t => t.Id), Does.Contain(FSPerkMastery.CategoryTitle(category).Id),
                 "Gold on the whole category earns the category title");
 
             mastery.Flush();

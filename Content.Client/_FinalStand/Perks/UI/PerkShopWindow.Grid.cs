@@ -272,7 +272,7 @@ public sealed partial class PerkShopWindow
             {
                 Text = Loc.GetString(FSPerkMastery.TierLocId(mastery)).ToUpperInvariant(),
                 FontOverride = _fontSmallBold,
-                FontColorOverride = FSPerkMastery.TierColor(mastery),
+                FontColorOverride = FSPerkPalette.Mastery[mastery],
                 HorizontalAlignment = HAlignment.Center,
                 Margin = new Thickness(0, 0, 0, 6),
             });

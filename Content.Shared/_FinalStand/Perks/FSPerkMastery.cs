@@ -1,3 +1,6 @@
+using Content.Shared._FinalStand.Titles;
+using Robust.Shared.Prototypes;
+
 namespace Content.Shared._FinalStand.Perks;
 
 public enum FSMasteryTier : byte
@@ -41,13 +44,12 @@ public static class FSPerkMastery
         _ => "fs-mastery-none",
     };
 
-    public static Color TierColor(FSMasteryTier tier) => tier switch
+    public static ProtoId<FSTitlePrototype> CategoryTitle(PerkCategory category) => category switch
     {
-        FSMasteryTier.Bronze => Color.FromHex("#CD7F32"),
-        FSMasteryTier.Silver => Color.FromHex("#C0C0C0"),
-        FSMasteryTier.Gold => Color.FromHex("#FFD700"),
-        _ => Color.Gray,
+        PerkCategory.Red => "FSTitleMasteryRed",
+        PerkCategory.Blue => "FSTitleMasteryBlue",
+        PerkCategory.Green => "FSTitleMasteryGreen",
+        PerkCategory.Yellow => "FSTitleMasteryYellow",
+        _ => "FSTitleMasteryPurple",
     };
-
-    public static string CategoryTitle(PerkCategory category) => $"FSTitleMastery{category}";
 }
