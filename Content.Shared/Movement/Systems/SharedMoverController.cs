@@ -189,6 +189,7 @@ public abstract partial class SharedMoverController : VirtualController
             || PullableQuery.TryGetComponent(uid, out var pullable) && pullable.BeingPulled)
         {
             UsedMobMovement[uid] = false;
+            mover.WishDir = Vector2.Zero; // FINALSTAND: a conveyor kept adding the last walk to a stunned or pulled mob
             return;
         }
 
@@ -218,6 +219,7 @@ public abstract partial class SharedMoverController : VirtualController
             if (!weightless)
             {
                 UsedMobMovement[uid] = false;
+                mover.WishDir = Vector2.Zero; // FINALSTAND
                 return;
             }
             inAirHelpless = true;
