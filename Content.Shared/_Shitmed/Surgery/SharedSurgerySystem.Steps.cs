@@ -146,7 +146,7 @@ public abstract partial class SharedSurgerySystem
                     continue;
 
                 args.Invalid = StepInvalidReason.Armor;
-                args.Popup = Loc.GetString("surgery-ui-window-steps-error-armor");
+                args.Popup = Loc.GetString("fs-surgery-refused-clothing");
                 return;
             }
         }
@@ -165,7 +165,7 @@ public abstract partial class SharedSurgerySystem
             args.Invalid = StepInvalidReason.MissingTool;
 
             if (reg.Component is ISurgeryToolComponent required)
-                args.Popup = $"You need {required.ToolName} to perform this step!";
+                args.Popup = Loc.GetString("fs-surgery-refused-tool", ("tool", required.ToolName));
             else
                 Log.Error($"Surgery step {ToPrettyString(ent)} wants bad component {reg.Component} which isn't a ISurgeryTool");
 
@@ -238,7 +238,7 @@ public abstract partial class SharedSurgerySystem
         if (!TryComp<OrganCavityComponent>(args.Part, out var cavity))
             return;
 
-        var activeHandEntity = _hands.EnumerateHeld(args.User).FirstOrDefault();
+        var activeHandEntity = _hands.GetActiveItem(args.User) ?? default;
         if (activeHandEntity != default
             && !HasComp<OrganComponent>(activeHandEntity)
             && ent.Comp.Action == "Insert"
@@ -511,9 +511,12 @@ public abstract partial class SharedSurgerySystem
         switch (ent.Comp.TraumaType)
         {
             case TraumaType.OrganDamage:
-                foreach (var organ in _lookup.GetBodyOrgans(args.Body))
+                foreach (var organ in _lookup.EnumerateChildOrgans(args.Part).Select(child => child.Owner).Prepend(args.Part))
                 {
-                    if (!TryComp<OrganIntegrityComponent>(organ.Owner, out var integrity))
+                    if (healAmount <= 0)
+                        break;
+
+                    if (!TryComp<OrganIntegrityComponent>(organ, out var integrity))
                         continue;
 
                     foreach (var modifier in integrity.IntegrityModifiers)
@@ -523,7 +526,7 @@ public abstract partial class SharedSurgerySystem
                         {
                             healAmount -= modifier.Value;
                             _trauma.TryRemoveOrganDamageModifier(
-                                organ.Owner,
+                                organ,
                                 modifier.Key.Item2,
                                 modifier.Key.Item1,
                                 integrity);
@@ -531,11 +534,12 @@ public abstract partial class SharedSurgerySystem
                         else
                         {
                             _trauma.TryChangeOrganDamageModifier(
-                                organ.Owner,
+                                organ,
                                 -healAmount,
                                 modifier.Key.Item2,
                                 modifier.Key.Item1,
                                 integrity);
+                            healAmount = 0;
                             break;
                         }
                     }
@@ -577,18 +581,22 @@ public abstract partial class SharedSurgerySystem
             if (!TryComp<BleedInflicterComponent>(woundEnt, out var bleeds))
                 continue;
 
+            if (healAmount <= 0)
+                break;
+
             if (bleeds.Scaling > healAmount)
             {
                 bleeds.Scaling -= healAmount;
+                healAmount = 0;
             }
             else
             {
+                healAmount -= bleeds.Scaling;
+
                 bleeds.BleedingAmountRaw = 0;
                 bleeds.Scaling = 0;
 
                 bleeds.IsBleeding = false;
-
-                healAmount -= bleeds.Scaling;
             }
 
             Dirty(woundEnt, bleeds);
@@ -656,17 +664,20 @@ public abstract partial class SharedSurgerySystem
             return;
 
         var user = args.Actor;
-        if (GetEntity(args.Entity) is {} body &&
-            GetEntity(args.Part) is {} targetPart)
-        {
-                if (!TryDoSurgeryStep(body, targetPart, user, args.Surgery, args.Step, out var reason)
-                && reason != StepInvalidReason.None)
-            {
-                Log.Info(
-                    $"Surgery step refused: {args.Step} of {args.Surgery} on {ToPrettyString(targetPart)} " +
-                    $"(body {ToPrettyString(body)}, user {ToPrettyString(user)}) - {reason}");
-            }
-        }
+        var body = GetEntity(args.Entity);
+        var targetPart = GetEntity(args.Part);
+        if (!body.IsValid() || !targetPart.IsValid())
+            return;
+
+        if (TryDoSurgeryStep(body, targetPart, user, args.Surgery, args.Step, out var reason, out var popup)
+            || reason == StepInvalidReason.None)
+            return;
+
+        Log.Debug($"Surgery step refused: {args.Step} of {args.Surgery} on {ToPrettyString(targetPart)} " +
+                  $"(body {ToPrettyString(body)}, user {ToPrettyString(user)}) - {reason}");
+
+        if (_net.IsServer && (reason != StepInvalidReason.SurgeryInvalid || IsLaidOut(body)))
+            _popup.PopupEntity(DescribeRefusal(reason, args.Step, popup), user, user, PopupType.SmallCaution);
     }
     #endregion
 
@@ -821,11 +832,16 @@ public abstract partial class SharedSurgerySystem
     }
 
     private bool TryDoSurgeryStep(EntityUid body, EntityUid targetPart, EntityUid user, EntProtoId surgeryId, EntProtoId stepId)
-=> TryDoSurgeryStep(body, targetPart, user, surgeryId, stepId, out _);
+=> TryDoSurgeryStep(body, targetPart, user, surgeryId, stepId, out _, out _);
 
     public bool TryDoSurgeryStep(EntityUid body, EntityUid targetPart, EntityUid user, EntProtoId surgeryId, EntProtoId stepId, out StepInvalidReason error)
+        => TryDoSurgeryStep(body, targetPart, user, surgeryId, stepId, out error, out _);
+
+    public bool TryDoSurgeryStep(EntityUid body, EntityUid targetPart, EntityUid user, EntProtoId surgeryId, EntProtoId stepId,
+        out StepInvalidReason error, out string? popup)
     {
         error = StepInvalidReason.None;
+        popup = null;
         if (!IsSurgeryValid(body, targetPart, surgeryId, stepId, user, out var surgery, out var part, out var step))
         {
             error = StepInvalidReason.SurgeryInvalid;
@@ -844,7 +860,7 @@ public abstract partial class SharedSurgerySystem
             return false;
         }
 
-        if (!TryFindStepTool(user, body, part, step, out var tool, out _, out error, out var data))
+        if (!TryFindStepTool(user, body, part, step, out var tool, out popup, out error, out var data))
             return false;
 
         var toolComp = _toolQuery.CompOrNull(tool);
@@ -867,7 +883,7 @@ public abstract partial class SharedSurgerySystem
         var ev = new SurgeryDoAfterEvent(surgeryId, stepId, toolUsed);
         var duration = GetSurgeryDuration(step, user, body, speed);
 
-        var stepKey = stepId.Id;
+        var stepKey = ProgressKey(part, stepId);
         if (TryComp<FSSurgeryProgressComponent>(body, out var progress) && progress.Started.Contains(stepKey))
         {
             duration *= ResumeDiscount;
@@ -882,7 +898,8 @@ public abstract partial class SharedSurgerySystem
         var doAfter = new DoAfterArgs(EntityManager, user, TimeSpan.FromSeconds(duration), ev, body, part)
         {
             BreakOnMove = true,
-            CancelDuplicate = true,
+            CancelDuplicate = false,
+            BlockDuplicate = true,
             DuplicateCondition = DuplicateConditions.SameEvent,
             NeedHand = true,
             BreakOnHandChange = true,
@@ -892,12 +909,6 @@ public abstract partial class SharedSurgerySystem
 
         if (!_doAfter.TryStartDoAfter(doAfter))
         {
-            var hasDoAfter = HasComp<DoAfterComponent>(user);
-            var active = CompOrNull<DoAfterComponent>(user)?.DoAfters.Values
-                .Count(d => !d.Cancelled && !d.Completed) ?? 0;
-            Log.Warning(
-                $"DoAfter refused for {ToPrettyString(user)}: hasDoAfterComp={hasDoAfter}, active={active}");
-
             error = StepInvalidReason.DoAfterFailed;
             return false;
         }
@@ -1107,12 +1118,31 @@ public abstract partial class SharedSurgerySystem
 
     private const float ResumeDiscount = 0.45f;
 
-    public void ClearStepProgress(EntityUid body, string stepKey)
+    private string ProgressKey(EntityUid part, string step) => $"{GetNetEntity(part).Id}/{step}";
+
+    public void ClearStepProgress(EntityUid body, EntityUid part, string step)
     {
-        if (!TryComp<FSSurgeryProgressComponent>(body, out var progress) || !progress.Started.Remove(stepKey))
+        if (!TryComp<FSSurgeryProgressComponent>(body, out var progress) || !progress.Started.Remove(ProgressKey(part, step)))
             return;
 
         Dirty(body, progress);
+    }
+
+    public string DescribeRefusal(StepInvalidReason reason, EntProtoId step, string? popup)
+    {
+        return reason switch
+        {
+            StepInvalidReason.MissingTool or StepInvalidReason.Armor when popup != null => popup,
+            StepInvalidReason.MissingTool => Loc.GetString("fs-surgery-refused-tool",
+                ("tool", GetSingleton(step) is { } stepEnt ? string.Join(", ", GetStepToolNames(stepEnt)) : "?")),
+            StepInvalidReason.Armor => Loc.GetString("fs-surgery-refused-clothing"),
+            StepInvalidReason.NeedsOperatingTable => Loc.GetString("fs-surgery-refused-table"),
+            StepInvalidReason.MissingPreviousSteps => Loc.GetString("fs-surgery-refused-previous"),
+            StepInvalidReason.StepCompleted => Loc.GetString("fs-surgery-refused-done"),
+            StepInvalidReason.DoAfterFailed => Loc.GetString("fs-surgery-refused-busy"),
+            StepInvalidReason.ToolInvalid => popup ?? Loc.GetString("fs-surgery-refused-tool-unusable"),
+            _ => Loc.GetString("fs-surgery-refused-invalid"),
+        };
     }
 
     private IEnumerable<EntityUid> EnumerateReachableTools(EntityUid user)
@@ -1131,7 +1161,7 @@ public abstract partial class SharedSurgerySystem
         var nearby = new HashSet<EntityUid>();
         _entityLookup.GetEntitiesInRange(Transform(user).Coordinates, ToolReachRange, nearby);
 
-        foreach (var candidate in nearby)
+        foreach (var candidate in nearby.OrderBy(uid => GetNetEntity(uid).Id))
         {
             if (HasComp<Content.Shared.Item.ItemComponent>(candidate) && !_containers.IsEntityInContainer(candidate))
                 yield return candidate;
@@ -1156,6 +1186,17 @@ public abstract partial class SharedSurgerySystem
     public float GetStepDuration(EntityUid step)
     {
         return TryComp<SurgeryStepComponent>(step, out var comp) ? comp.Duration : 0f;
+    }
+
+    public float GetEffectiveStepDuration(EntityUid user, EntityUid body, EntityUid part, EntProtoId stepId, EntityUid step)
+    {
+        var speed = TryFindStepTool(user, body, part, step, out _, out _, out _, out var data) ? data?.Speed ?? 1f : 1f;
+        var duration = GetSurgeryDuration(step, user, body, speed);
+
+        if (TryComp<FSSurgeryProgressComponent>(body, out var progress) && progress.Started.Contains(ProgressKey(part, stepId)))
+            duration *= ResumeDiscount;
+
+        return duration;
     }
 
     private bool IsStepComplete(EntityUid body, EntityUid part, EntProtoId step, EntityUid surgery)

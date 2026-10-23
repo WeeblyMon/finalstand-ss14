@@ -18,10 +18,15 @@ the surgeon could never see the limb, the operation and the steps at the same ti
     <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True">
 
         <!-- Zone A: breadcrumb. Replaces the three tab buttons, one of which was secretly a Back button. -->
-        <BoxContainer Name="Breadcrumb" Access="Public"
-                      Orientation="Horizontal"
-                      HorizontalExpand="True"
-                      Margin="8 8 8 6" />
+        <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="8 8 8 6">
+            <BoxContainer Name="Breadcrumb" Access="Public"
+                          Orientation="Horizontal"
+                          HorizontalExpand="True" />
+            <Button Name="GuideButton" Access="Public"
+                    Text="{Loc 'surgery-ui-guide-button'}"
+                    ToolTip="{Loc 'surgery-ui-guide-button-tooltip'}"
+                    StyleClasses="ButtonSquare" />
+        </BoxContainer>
         <cc:HSeparator />
 
         <BoxContainer Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True" Margin="8 8 8 0">

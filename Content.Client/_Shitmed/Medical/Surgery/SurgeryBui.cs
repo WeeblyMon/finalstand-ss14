@@ -5,12 +5,14 @@ using Content.Shared._FinalStand.Medical;
 using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
 using Content.Client.Administration.UI.CustomControls;
+using Content.Client.Guidebook;
 using Content.Client.Stylesheets;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared.Body.Components;
 using Content.Shared.Body;
 using Content.Shared.DoAfter;
+using Content.Shared.Guidebook;
 using Robust.Shared.Timing;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
@@ -36,6 +38,9 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private static readonly Color OperationAvailableColor = new(0.72f, 0.72f, 0.72f);
     private static readonly Color OperationOutOfFocusColor = new(0.45f, 0.45f, 0.45f);
     private static readonly Color OperationUnavailableColor = new(0.32f, 0.32f, 0.36f);
+    private static readonly Color ReasonColor = Color.FromHex("#D9A93A");
+    private static readonly TimeSpan AutoRefreshInterval = TimeSpan.FromSeconds(0.25);
+    private static readonly ProtoId<GuideEntryPrototype> SurgeryGuide = "Surgery";
 
     private readonly Dictionary<NetEntity, List<EntProtoId>> _unavailable = new();
 
@@ -49,7 +54,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
     };
 
     private readonly Dictionary<SurgeryFocus, Button> _filterButtons = new();
-    private readonly HashSet<EntityUid> _neededAccess = new();
     private SurgeryOperationClassifier? _classifier;
     private SurgeryFocus _focus = SurgeryFocus.All;
 
@@ -68,6 +72,11 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private string? _surgeriesKey;
     private string? _crumbKey;
     private (NetEntity Part, EntProtoId Surgery)? _stepsKey;
+
+    private bool _showUnavailable;
+    private string? _followUpHint;
+    private bool _stepRunning;
+    private TimeSpan _nextAutoRefresh;
 
     public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey) => _system = _entities.System<SurgerySystem>();
 
@@ -104,7 +113,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.Title = Loc.GetString("surgery-ui-window-title");
 
             _guidance = new SurgeryGuidancePresenter(_entities, _system, _window);
-            _dollPresenter = new SurgeryDollPresenter(_entities, _window, OnPartPressed);
+            _dollPresenter = new SurgeryDollPresenter(_entities, _window, OnPartPressed, OnMissingPartPressed);
             _classifier = new SurgeryOperationClassifier(_entities, IoCManager.Resolve<IPrototypeManager>());
             BuildFilters();
 
@@ -115,6 +124,8 @@ public sealed partial class SurgeryBui : BoundUserInterface
             };
 
             _window.OnFrameUpdate += UpdateStepProgress;
+            _window.GuideButton.OnPressed += _ =>
+                _entities.System<GuidebookSystem>().OpenHelp(new List<ProtoId<GuideEntryPrototype>> { SurgeryGuide });
 
             foreach (var panel in new[] { _window.BodyPanel, _window.OperationsPanel, _window.ProcedurePanel })
             {
@@ -197,9 +208,9 @@ public sealed partial class SurgeryBui : BoundUserInterface
                     && _system.GetSingleton(selected.Proto) is { } surgery
                     && _entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
                 {
-                    OnSurgeryPressed((surgery, surgeryComp), netEntity, selected.Proto);
+                    OnSurgeryPressed((surgery, surgeryComp), netEntity, selected.Proto, keepHint: true);
                 }
-                else
+                else if (oldSurgery == null || !TrySelectFollowUp(netEntity, state.Choices[netEntity]))
                 {
                     ClearSurgerySelection();
                     OnPartPressed(netEntity, state.Choices[netEntity]);
@@ -218,9 +229,73 @@ public sealed partial class SurgeryBui : BoundUserInterface
         }
     }
 
+    private bool TrySelectFollowUp(NetEntity netPart, List<EntProtoId> choices)
+    {
+        if (_player.LocalEntity is not { } user || _classifier == null)
+            return false;
+
+        var part = _entities.GetEntity(netPart);
+        (Entity<SurgeryComponent> Surgery, EntProtoId Id, bool Closing, int Urgency)? best = null;
+
+        foreach (var id in choices)
+        {
+            var role = _classifier.RoleOf(id.Id);
+            if (role is not (SurgeryRole.Goal or SurgeryRole.Closing)
+                || _system.GetSingleton(id) is not { } surgery
+                || !_entities.TryGetComponent(surgery, out SurgeryComponent? comp)
+                || _system.GetNextStep(Owner, part, surgery, user) == null)
+                continue;
+
+            var urgency = _classifier.UrgencyOf(surgery, id.Id);
+            if (best == null || urgency < best.Value.Urgency)
+                best = ((surgery, comp), id, role == SurgeryRole.Closing, urgency);
+        }
+
+        if (best is not { } pick)
+            return false;
+
+        _followUpHint = pick.Closing ? "surgery-ui-guidance-close-up" : "surgery-ui-guidance-next-goal";
+        OnSurgeryPressed(pick.Surgery, netPart, pick.Id, keepHint: true);
+        return true;
+    }
+
+    private bool TryReturnToGoal()
+    {
+        if (_previousSurgeries.Count == 0
+            || !_entities.TryGetNetEntity(_part, out var netPart)
+            || State is not SurgeryBuiState state
+            || !state.Choices.TryGetValue(netPart.Value, out var choices))
+            return false;
+
+        var goalId = _previousSurgeries[^1];
+        _previousSurgeries.RemoveAt(_previousSurgeries.Count - 1);
+
+        if (!choices.Contains(goalId)
+            || _system.GetSingleton(goalId) is not { } goal
+            || !_entities.TryGetComponent(goal, out SurgeryComponent? comp))
+        {
+            _previousSurgeries.Clear();
+            return false;
+        }
+
+        OnSurgeryPressed((goal, comp), netPart.Value, goalId);
+        return true;
+    }
+
+    private void OnMissingPartPressed(NetEntity parent, List<EntProtoId> parentSurgeries, EntProtoId attach)
+    {
+        OnPartPressed(parent, parentSurgeries);
+
+        if (parentSurgeries.Contains(attach)
+            && _system.GetSingleton(attach) is { } surgery
+            && _entities.TryGetComponent(surgery, out SurgeryComponent? comp))
+            OnSurgeryPressed((surgery, comp), parent, attach);
+    }
+
     private void ClearSurgerySelection()
     {
         _surgery = null;
+        _followUpHint = null;
         _previousSurgeries.Clear();
 
         if (_stepsKey == null)
@@ -264,10 +339,13 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _window.Steps.AddChild(stepButton);
     }
 
-    private void OnSurgeryPressed(Entity<SurgeryComponent> surgery, NetEntity netPart, EntProtoId surgeryId)
+    private void OnSurgeryPressed(Entity<SurgeryComponent> surgery, NetEntity netPart, EntProtoId surgeryId, bool keepHint = false)
     {
         if (_window == null)
             return;
+
+        if (!keepHint)
+            _followUpHint = null;
 
         _part = _entities.GetEntity(netPart);
         _isBody = _entities.HasComponent<BodyComponent>(_part);
@@ -316,6 +394,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
         if (_part != part)
         {
             _surgery = null;
+            _followUpHint = null;
             _previousSurgeries.Clear();
 
             if (_stepsKey != null)
@@ -341,7 +420,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         var unavailableIds = _unavailable.GetValueOrDefault(netPart) ?? new List<EntProtoId>();
 
-        var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}|{string.Join(',', unavailableIds)}";
+        var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}|{string.Join(',', unavailableIds)}|{_showUnavailable}";
         if (_surgeriesKey == key)
             return;
 
@@ -375,8 +454,37 @@ public sealed partial class SurgeryBui : BoundUserInterface
             return string.Compare(a.Name, b.Name, StringComparison.Ordinal);
         });
 
+        var unavailableCount = surgeries.Count(op => op.Unavailable);
+        var toggleAdded = false;
+
         foreach (var surgery in surgeries)
         {
+            if (surgery.Unavailable)
+            {
+                if (!toggleAdded)
+                {
+                    toggleAdded = true;
+                    var toggle = new Button
+                    {
+                        Text = Loc.GetString(_showUnavailable ? "surgery-ui-hide-unavailable" : "surgery-ui-show-unavailable",
+                            ("count", unavailableCount)),
+                        StyleClasses = { "ButtonSquare" },
+                        HorizontalExpand = true,
+                        Margin = new Thickness(0, 6, 0, 2),
+                    };
+                    toggle.OnPressed += _ =>
+                    {
+                        _showUnavailable = !_showUnavailable;
+                        RebuildOperations(netPart, surgeryIds);
+                        RefreshUI();
+                    };
+                    _window.Surgeries.AddChild(toggle);
+                }
+
+                if (!_showUnavailable)
+                    continue;
+            }
+
             var surgeryButton = new SurgeryOperationButton
             {
                 Surgery = surgery.Ent.Owner,
@@ -387,9 +495,14 @@ public sealed partial class SurgeryBui : BoundUserInterface
             surgeryButton.Set(surgery.Name, null);
 
             if (surgery.Unavailable)
+            {
                 surgeryButton.Button.Disabled = true;
+                surgeryButton.ToolTip = Loc.GetString("surgery-ui-unavailable-tooltip");
+            }
             else
+            {
                 surgeryButton.Button.OnPressed += _ => OnSurgeryPressed(surgery.Ent, netPart, surgery.Id);
+            }
 
             _window.Surgeries.AddChild(surgeryButton);
         }
@@ -427,6 +540,9 @@ public sealed partial class SurgeryBui : BoundUserInterface
         }
 
         var next = _system.GetNextStep(Owner, _part.Value, _surgery.Value.Ent, user);
+        if (next == null && !_stepRunning && TryReturnToGoal())
+            return;
+
         SurgeryStepButton? nextButton = null;
         var i = 0;
         foreach (var child in _window.Steps.Children)
@@ -448,7 +564,19 @@ public sealed partial class SurgeryBui : BoundUserInterface
             else if (i < next.Value.Step)
                 status = StepStatus.Complete;
 
-            stepButton.Button.Disabled = status != StepStatus.Next;
+            string? reason = null;
+            if (status == StepStatus.Next)
+            {
+                var can = _system.CanPerformStepWithAvailable(user, Owner, _part.Value, stepButton.Step, out var popup, out var invalid);
+                if (!can)
+                    reason = _system.DescribeRefusal(invalid, stepButton.StepId, popup);
+
+                stepButton.Button.Disabled = !can || _stepRunning;
+            }
+            else
+            {
+                stepButton.Button.Disabled = true;
+            }
 
             var stepName = new FormattedMessage();
             stepName.AddText(status switch
@@ -459,11 +587,21 @@ public sealed partial class SurgeryBui : BoundUserInterface
             });
             stepName.AddText(_entities.GetComponent<MetaDataComponent>(stepButton.Step).EntityName);
 
-            var duration = _system.GetStepDuration(stepButton.Step);
+            var duration = status == StepStatus.Complete || status == StepStatus.Next && _stepRunning
+                ? 0f
+                : _system.GetEffectiveStepDuration(user, Owner, _part.Value, stepButton.StepId, stepButton.Step);
             if (duration > 0f)
             {
                 stepName.PushColor(MutedColor);
                 stepName.AddText($"   {duration:0.#}s");
+                stepName.Pop();
+            }
+
+            if (reason != null)
+            {
+                stepName.PushNewline();
+                stepName.PushColor(ReasonColor);
+                stepName.AddText("    " + reason);
                 stepName.Pop();
             }
 
@@ -475,12 +613,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
             };
 
             if (status == StepStatus.Next)
-            {
                 nextButton ??= stepButton;
-                stepButton.ToolTip = _system.CanPerformStepWithAvailable(user, Owner, _part.Value, stepButton.Step, out var popup)
-                    ? null
-                    : popup;
-            }
 
             var texture = _entities.GetComponentOrNull<SpriteComponent>(stepButton.Step)?.Icon?.Default;
             stepButton.Set(stepName, texture);
@@ -491,12 +624,8 @@ public sealed partial class SurgeryBui : BoundUserInterface
             ? next.Value.Surgery.Owner
             : (EntityUid?) null;
 
-        var unnecessaryAccess = _classifier != null
-                                && _classifier.IsAccess(_surgery.Value.Proto.Id)
-                                && !_neededAccess.Contains(_surgery.Value.Ent);
-
         _guidance.Show(nextButton, next != null, user, Owner, _part.Value,
-            _surgery.Value.Ent, blockedBy, unnecessaryAccess);
+            _surgery.Value.Ent, blockedBy, _followUpHint, _stepRunning);
 
         _dollPresenter?.Refresh(selectedNet);
     }
@@ -506,11 +635,30 @@ public sealed partial class SurgeryBui : BoundUserInterface
         if (_window == null)
             return;
 
+        var running = DrawStepProgress();
+        var now = _timing.RealTime;
+
+        if (running != _stepRunning || now >= _nextAutoRefresh)
+        {
+            if (running && !_stepRunning)
+                _followUpHint = null;
+
+            _stepRunning = running;
+            _nextAutoRefresh = now + AutoRefreshInterval;
+            RefreshUI();
+        }
+    }
+
+    private bool DrawStepProgress()
+    {
+        if (_window == null)
+            return false;
+
         if (_player.LocalEntity is not { } user
             || !_entities.TryGetComponent(user, out DoAfterComponent? doAfters))
         {
             _window.StepProgress.Visible = false;
-            return;
+            return false;
         }
 
         var now = _timing.CurTime;
@@ -525,10 +673,11 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             _window.StepProgress.Visible = true;
             _window.StepProgress.Value = Math.Clamp((float)((now - doAfter.StartTime).TotalSeconds / length), 0f, 1f);
-            return;
+            return true;
         }
 
         _window.StepProgress.Visible = false;
+        return false;
     }
 
     private void BuildFilters()
@@ -593,7 +742,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         SurgeryOperationButton? recommended = null;
         var bestUrgency = int.MaxValue;
-        _neededAccess.Clear();
 
         var states = new List<(SurgeryOperationButton Op, bool Complete, bool Blocked, bool InFocus)>();
 
@@ -618,11 +766,9 @@ public sealed partial class SurgeryBui : BoundUserInterface
             if (complete || !inFocus)
                 continue;
 
-            if (_classifier.IsAccess(op.SurgeryId.Id))
+            var role = _classifier.RoleOf(op.SurgeryId.Id);
+            if (role is SurgeryRole.Access or SurgeryRole.Elective)
                 continue;
-
-            if (blocked)
-                _neededAccess.Add(next!.Value.Surgery.Owner);
 
             var urgency = _classifier.UrgencyOf(op.Surgery, op.SurgeryId.Id);
             if (urgency >= bestUrgency)
@@ -684,11 +830,12 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         if (_entities.TryGetComponent(_part, out MetaDataComponent? partMeta) &&
             _entities.TryGetComponent(_surgery?.Ent, out MetaDataComponent? surgeryMeta))
-            _window.Title = $"Surgery - {partMeta.EntityName}, {surgeryMeta.EntityName}";
+            _window.Title = Loc.GetString("surgery-ui-window-title-operation",
+                ("part", partMeta.EntityName), ("operation", surgeryMeta.EntityName));
         else if (partMeta != null)
-            _window.Title = $"Surgery - {partMeta.EntityName}";
+            _window.Title = Loc.GetString("surgery-ui-window-title-part", ("part", partMeta.EntityName));
         else
-            _window.Title = "Surgery";
+            _window.Title = Loc.GetString("surgery-ui-window-title");
     }
 
     private void BuildBreadcrumb()

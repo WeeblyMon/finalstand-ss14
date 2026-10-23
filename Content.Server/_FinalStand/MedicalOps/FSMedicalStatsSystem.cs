@@ -36,6 +36,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
+    [Dependency] private FSSurgeryGuideSystem _surgeryGuide = default!;
 
     private const float DrFullBudget = 60f;
     private const float DrHalfBudget = 150f;
@@ -227,6 +228,9 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private void OnSurgeryCompleted(ref FSSurgeryCompletedEvent args)
     {
         if (args.Surgeon == args.Patient || !TryGetPlayerMind(args.Surgeon, out var surgeonMind))
+            return;
+
+        if (!_surgeryGuide.IsGoal(MetaData(args.Surgery).EntityPrototype?.ID))
             return;
 
         var wave = _waveRule.GetWaveNumber();

@@ -35,10 +35,7 @@ public sealed class SurgeryGuidancePresenter
 
     public void ShowSelectPrompt(EntityUid? user = null)
     {
-        if (WarnUnsterile(user))
-            return;
-
-        Set(null, Loc.GetString("surgery-ui-guidance-select"));
+        Set(null, WithSterility(Loc.GetString("surgery-ui-guidance-select"), user));
     }
 
     public void ShowCannotOperate()
@@ -48,12 +45,9 @@ public sealed class SurgeryGuidancePresenter
 
     public void ShowChooseOperation(string? recommended, string? focusFilter = null, EntityUid? user = null)
     {
-        if (WarnUnsterile(user))
-            return;
-
         if (recommended != null)
         {
-            Set(null, Loc.GetString("surgery-ui-guidance-start-with", ("operation", recommended)), ReadyColor);
+            Set(null, WithSterility(Loc.GetString("surgery-ui-guidance-start-with", ("operation", recommended)), user), ReadyColor);
             return;
         }
 
@@ -66,13 +60,12 @@ public sealed class SurgeryGuidancePresenter
         Set(null, Loc.GetString("surgery-ui-guidance-nothing-to-do"), ReadyColor);
     }
 
-    private bool WarnUnsterile(EntityUid? user)
+    private string WithSterility(string text, EntityUid? user)
     {
         if (user is not { } uid || IsSterile(uid))
-            return false;
+            return text;
 
-        Set(null, Loc.GetString("surgery-ui-guidance-unsterile-idle"), WarningColor);
-        return true;
+        return text + "\n" + Loc.GetString("surgery-ui-guidance-unsterile-note");
     }
 
     public void Show(
@@ -83,13 +76,14 @@ public sealed class SurgeryGuidancePresenter
         EntityUid part,
         EntityUid? goal = null,
         EntityUid? blockedBy = null,
-        bool unnecessaryAccess = false)
+        string? readyHint = null,
+        bool stepRunning = false)
     {
         NextStep = next;
 
-        if (unnecessaryAccess && goal is { } invasive)
+        if (stepRunning)
         {
-            Set(null, Loc.GetString("surgery-ui-guidance-not-needed", ("operation", NameOf(invasive))), WarningColor);
+            Set(null, Loc.GetString("surgery-ui-guidance-working"), NeutralColor);
             return;
         }
 
@@ -119,13 +113,9 @@ public sealed class SurgeryGuidancePresenter
         {
             _window.PerformButton.Disabled = false;
 
-            if (!IsSterile(user))
-            {
-                Set(texture, Loc.GetString("surgery-ui-guidance-unsterile", ("step", stepName)), WarningColor);
-                return;
-            }
+            var ready = Loc.GetString(readyHint ?? "surgery-ui-guidance-ready", ("step", stepName));
 
-            Set(texture, Loc.GetString("surgery-ui-guidance-ready", ("step", stepName)), ReadyColor);
+            Set(texture, WithSterility(ready, user), IsSterile(user) ? ReadyColor : WarningColor);
             return;
         }
 
@@ -179,7 +169,7 @@ public sealed class SurgeryGuidancePresenter
 
         _window.GuidanceLabel.SetMessage(msg);
         _window.GuidanceIcon.Texture = icon;
-        _window.GuidanceIcon.Visible = icon != null;
+        _window.GuidanceIcon.Visible = icon != null && _window.GuidanceVisible;
 
         _window.GuidancePanel.PanelOverride = new StyleBoxFlat
         {

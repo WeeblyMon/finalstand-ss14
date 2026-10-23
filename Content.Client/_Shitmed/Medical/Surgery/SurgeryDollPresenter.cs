@@ -23,18 +23,37 @@ public sealed class SurgeryDollPresenter
 
     private const float UnselectedDim = 0.72f;
 
+    private static readonly Dictionary<TargetBodyPart, (TargetBodyPart Parent, EntProtoId Attach)> Reattach = new()
+    {
+        [TargetBodyPart.Head] = (TargetBodyPart.Chest, "SurgeryAttachHead"),
+        [TargetBodyPart.Groin] = (TargetBodyPart.Chest, "SurgeryAttachGroin"),
+        [TargetBodyPart.LeftArm] = (TargetBodyPart.Chest, "SurgeryAttachLeftArm"),
+        [TargetBodyPart.RightArm] = (TargetBodyPart.Chest, "SurgeryAttachRightArm"),
+        [TargetBodyPart.LeftLeg] = (TargetBodyPart.Groin, "SurgeryAttachLeftLeg"),
+        [TargetBodyPart.RightLeg] = (TargetBodyPart.Groin, "SurgeryAttachRightLeg"),
+        [TargetBodyPart.LeftHand] = (TargetBodyPart.LeftArm, "SurgeryAttachLeftHand"),
+        [TargetBodyPart.RightHand] = (TargetBodyPart.RightArm, "SurgeryAttachRightHand"),
+        [TargetBodyPart.LeftFoot] = (TargetBodyPart.LeftLeg, "SurgeryAttachLeftFoot"),
+        [TargetBodyPart.RightFoot] = (TargetBodyPart.RightLeg, "SurgeryAttachRightFoot"),
+    };
+
     private readonly IEntityManager _entities;
     private readonly SurgeryWindow _window;
     private readonly Action<NetEntity, List<EntProtoId>> _onPartPressed;
+    private readonly Action<NetEntity, List<EntProtoId>, EntProtoId> _onMissingPressed;
     private readonly Dictionary<TargetBodyPart, (NetEntity Net, EntityUid Part, List<EntProtoId> Surgeries)> _targets = new();
 
     private SurgeryDollControl? _doll;
 
-    public SurgeryDollPresenter(IEntityManager entities, SurgeryWindow window, Action<NetEntity, List<EntProtoId>> onPartPressed)
+    public SurgeryDollPresenter(IEntityManager entities,
+        SurgeryWindow window,
+        Action<NetEntity, List<EntProtoId>> onPartPressed,
+        Action<NetEntity, List<EntProtoId>, EntProtoId> onMissingPressed)
     {
         _entities = entities;
         _window = window;
         _onPartPressed = onPartPressed;
+        _onMissingPressed = onMissingPressed;
     }
 
     public void Clear()
@@ -68,8 +87,12 @@ public sealed class SurgeryDollPresenter
         {
             if (!_targets.TryGetValue(target, out var entry))
             {
-                button.Disabled = true;
+                var reattachable = Reattach.TryGetValue(target, out var reattach) && _targets.ContainsKey(reattach.Parent);
+                button.Disabled = !reattachable;
                 button.Modulate = AbsentColor;
+                button.ToolTip = reattachable
+                    ? Loc.GetString("surgery-ui-limb-missing", ("part", PartName(reattach.Parent)))
+                    : null;
                 continue;
             }
 
@@ -78,6 +101,13 @@ public sealed class SurgeryDollPresenter
             button.Modulate = selected == entry.Net ? colour : Dim(colour, UnselectedDim);
             button.ToolTip = DescribeLimb(entry.Part);
         }
+    }
+
+    private string PartName(TargetBodyPart target)
+    {
+        return _targets.TryGetValue(target, out var entry)
+            ? _entities.GetComponent<MetaDataComponent>(entry.Part).EntityName
+            : target.ToString();
     }
 
     private string DescribeLimb(EntityUid part)
@@ -97,7 +127,7 @@ public sealed class SurgeryDollPresenter
         };
 
         if (woundable.Bleeds > 0)
-            lines.Add(Loc.GetString("surgery-ui-limb-bleeding", ("rate", woundable.Bleeds.Float())));
+            lines.Add(Loc.GetString("surgery-ui-limb-bleeding", ("rate", Math.Round(woundable.Bleeds.Double(), 1))));
 
         var trauma = _entities.System<TraumaSystem>();
 
@@ -154,7 +184,13 @@ public sealed class SurgeryDollPresenter
             button.OnPressed += _ =>
             {
                 if (_targets.TryGetValue(slot, out var entry))
+                {
                     _onPartPressed(entry.Net, entry.Surgeries);
+                    return;
+                }
+
+                if (Reattach.TryGetValue(slot, out var reattach) && _targets.TryGetValue(reattach.Parent, out var parent))
+                    _onMissingPressed(parent.Net, parent.Surgeries, reattach.Attach);
             };
         }
 

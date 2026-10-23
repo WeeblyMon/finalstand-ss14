@@ -162,7 +162,8 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             return;
         }
 
-        ClearStepProgress(ent, args.Step);
+        if (args.Target is { } progressPart)
+            ClearStepProgress(ent, progressPart, args.Step);
 
         var tool = EntityUid.Invalid;
         if (args.Handled
@@ -171,21 +172,27 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             || !PreviousStepsComplete(ent, part, surgery, args.Step, args.User)
             || !TryFindStepTool(args.User, ent, part, step, out tool, out _, out _, out _))
         {
-            Log.Warning($"{ToPrettyString(args.User)} tried to start invalid surgery.");
+            if (!args.Handled && _net.IsServer)
+                _popup.PopupEntity(Loc.GetString("fs-surgery-refused-changed"), args.User, args.User, PopupType.SmallCaution);
+
             return;
         }
 
         var complete = IsStepComplete(ent, part, args.Step, surgery);
-        args.Repeat = HasComp<SurgeryRepeatableStepComponent>(step) && !complete;
 
         var ev = new SurgeryStepEvent(args.User, ent, part, tool, surgery, step, complete);
         RaiseLocalEvent(step, ref ev);
         RaiseLocalEvent(args.User, ref ev);
 
-        if (_net.IsServer && GetNextStep(ent, part, surgery, args.User) == null)
+        var conditionsHold = SurgeryConditionsHold(ent, part, surgery);
+        args.Repeat = HasComp<SurgeryRepeatableStepComponent>(step)
+            && conditionsHold
+            && !IsStepComplete(ent, part, args.Step, surgery);
+
+        if (_net.IsServer && (!conditionsHold || GetNextStep(ent, part, surgery, args.User) == null))
         {
             var doneEv = new FSSurgeryCompletedEvent(args.User, ent, part, surgery);
-            RaiseLocalEvent(ent, ref doneEv);
+            RaiseLocalEvent(ent, ref doneEv, broadcast: true);
         }
 
         if (args.ToolUsed)
@@ -346,8 +353,11 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
     private void OnPartRemovedConditionValid(Entity<SurgeryPartRemovedConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (_lookup.HasOrganOfCategory(args.Body, ent.Comp.Category))
-            args.Cancelled = true;
+        foreach (var organ in _lookup.EnumerateOrgansOfCategory(args.Body, ent.Comp.Category))
+        {
+            if (!HasComp<BodyPartReattachedComponent>(organ.Owner))
+                args.Cancelled = true;
+        }
     }
 
     private void OnPartPresentConditionValid(Entity<SurgeryPartPresentConditionComponent> ent, ref SurgeryValidEvent args)
@@ -438,6 +448,13 @@ private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent,
         return true;
     }
 
+    public bool SurgeryConditionsHold(EntityUid body, EntityUid part, EntityUid surgery)
+    {
+        var ev = new SurgeryValidEvent(body, part);
+        RaiseLocalEvent(surgery, ref ev);
+        return !ev.Cancelled;
+    }
+
     public EntityUid? GetSingleton(EntProtoId surgeryOrStep)
     {
         if (!_prototypes.HasIndex(surgeryOrStep))
@@ -454,21 +471,26 @@ private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent,
 
     public bool IsLyingDown(EntityUid entity, EntityUid user)
     {
+        if (IsLaidOut(entity))
+            return true;
+
+        _popup.PopupClient(Loc.GetString("surgery-error-laying"), user, user);
+        return false;
+    }
+
+    public bool IsLaidOut(EntityUid entity)
+    {
         if (_standing.IsDown(entity))
             return true;
 
         if (!TryComp<BuckleComponent>(entity, out var buckle))
             return true;
 
-        if (TryComp<StrapComponent>(buckle.BuckledTo, out var strap))
-        {
-            var rotation = strap.Rotation;
-            if (rotation.GetCardinalDir() is Direction.West or Direction.East)
-                return true;
-        }
+        if (!TryComp<StrapComponent>(buckle.BuckledTo, out var strap))
+            return false;
 
-        _popup.PopupClient(Loc.GetString("surgery-error-laying"), user, user);
-        return false;
+        var rotation = strap.Rotation;
+        return rotation.GetCardinalDir() is Direction.West or Direction.East;
     }
 
     protected virtual void RefreshUI(EntityUid body)
