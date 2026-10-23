@@ -7,7 +7,7 @@ using Robust.Client.GameObjects;
 namespace Content.Client._FinalStand.Melee;
 
 // Draws a weapon's kills as blood over its sprite, on the floor and in hand.
-public sealed class FSMeleeBloodSystem : EntitySystem
+public sealed partial class FSMeleeBloodSystem : EntitySystem
 {
     [Dependency] private SharedItemSystem _item = default!;
     [Dependency] private SpriteSystem _sprite = default!;

@@ -15,7 +15,7 @@ using DrawDepthTag = Content.Shared.DrawDepth.DrawDepth;
 namespace Content.Client._FinalStand.Melee;
 
 // Leaves fading copies and a streak behind a dashing body, and eases the camera after your own dash instead of snapping it.
-public sealed class FSMeleeDashVisualsSystem : EntitySystem
+public sealed partial class FSMeleeDashVisualsSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;

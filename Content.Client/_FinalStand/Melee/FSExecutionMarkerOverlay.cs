@@ -10,7 +10,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._FinalStand.Melee;
 
 // Pulsing mark over zombies the local player can execute with their next melee hit.
-public sealed class FSExecutionMarkerOverlay : Overlay
+public sealed partial class FSExecutionMarkerOverlay : Overlay
 {
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IGameTiming _timing = default!;

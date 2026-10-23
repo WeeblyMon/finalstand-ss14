@@ -18,7 +18,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._FinalStand.Melee;
 
 // A Shot heavy puts its weapon away and draws the gun at the target for the shot, flashing at the muzzle.
-public sealed class FSMeleeShotVisualsSystem : EntitySystem
+public sealed partial class FSMeleeShotVisualsSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
