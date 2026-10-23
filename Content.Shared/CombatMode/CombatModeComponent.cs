@@ -33,8 +33,9 @@ namespace Content.Shared.CombatMode
 
         #endregion
 
+        // FINALSTAND: nullable, for mobs nobody toggles by hand (wave enemies). Each action is a networked entity.
         [DataField("combatToggleAction", customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))]
-        public string CombatToggleAction = "ActionCombatModeToggle";
+        public string? CombatToggleAction = "ActionCombatModeToggle";
 
         [DataField, AutoNetworkedField]
         public EntityUid? CombatToggleActionEntity;

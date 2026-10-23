@@ -83,6 +83,10 @@
     stunTime: 0.3
     decay: 45
   - type: WaveSpawnedTag
+  # Nobody toggles a wave enemy's combat mode by hand, and the action would be another networked entity per mob.
+  - type: CombatMode
+    combatToggleAction: null
+  - type: FSCoarseFacing
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
   - type: ConveyorImmune
@@ -428,6 +432,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: CombatMode
+    combatToggleAction: null
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
   - type: Fixtures
@@ -458,6 +464,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: CombatMode
+    combatToggleAction: null
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
 
@@ -477,6 +485,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: CombatMode
+    combatToggleAction: null
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
 
@@ -496,6 +506,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: CombatMode
+    combatToggleAction: null
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
 
@@ -515,6 +527,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: CombatMode
+    combatToggleAction: null
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
 
@@ -534,6 +548,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: CombatMode
+    combatToggleAction: null
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
 
@@ -553,6 +569,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: CombatMode
+    combatToggleAction: null
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
 
@@ -573,5 +591,7 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: CombatMode
+    combatToggleAction: null
   - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
