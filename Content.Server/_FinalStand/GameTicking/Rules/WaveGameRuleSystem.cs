@@ -661,6 +661,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return TryGetActiveRule(out _, out var comp) ? comp.WaveNumber : 0;
     }
 
+    public int GetEnemyTotal()
+    {
+        return TryGetActiveRule(out _, out var comp) ? comp.EnemyTotalThisWave : 0;
+    }
+
     // Adds an enemy to the running wave at a random lane. The wave doesn't clear until it's dead.
     public EntityUid? SpawnExtraEnemy(EntProtoId proto)
     {

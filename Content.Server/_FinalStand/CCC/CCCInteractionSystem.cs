@@ -33,9 +33,12 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     private static readonly TimeSpan BroadcastCooldown = TimeSpan.FromSeconds(5);
 
     // The CCC can be hit many times a second; an open console only needs to see that twice a second.
+    // The enemy estimate is checked on the same beat: the difficulty vote and round modifiers move it in prep
+    // without raising anything.
     private static readonly TimeSpan DamageCheckInterval = TimeSpan.FromSeconds(0.5);
     private TimeSpan _nextDamageCheck;
     private readonly Dictionary<EntityUid, int> _shownDamage = new();
+    private int _shownEstimate = -1;
     private readonly HashSet<EntityUid> _openActors = new();
     private readonly Dictionary<EntityUid, TimeSpan> _lastBroadcastTime = new();
     private Predicate<EntityUid> _actorGone = default!;
@@ -66,6 +69,12 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             return;
 
         _nextDamageCheck = _timing.CurTime + DamageCheckInterval;
+        if (_waveRule.GetEnemyTotal() != _shownEstimate)
+        {
+            PushCCCState();
+            return;
+        }
+
         var query = EntityQueryEnumerator<FinalStandCCCComponent, DamageableComponent>();
         while (query.MoveNext(out var uid, out _, out var damageable))
         {
@@ -165,6 +174,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             ? GetDamage((cccUid, dmgComp))
             : 0;
         _shownDamage[cccUid] = cccDmg;
+        _shownEstimate = wave.TotalEnemies;
 
         var cccMax = TryComp<FinalStandCCCComponent>(cccUid, out var ccc) ? (int) ccc.MaxHealth : 0;
 

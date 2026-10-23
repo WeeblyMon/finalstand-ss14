@@ -8,6 +8,7 @@ using Content.Server._FinalStand.Records;
 using Content.Server._FinalStand.Titles;
 using Content.Server.GameTicking;
 using Content.Server.Voting.Managers;
+using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.CCVar;
@@ -33,6 +34,49 @@ public sealed class DifficultyTest : GameTest
             Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(Server.ResolveDependency<IVoteManager>().ActiveVotes
                 .Any(v => v.Title == Loc.GetString("fs-difficulty-vote-title")), Is.False);
+        });
+    }
+
+    [Test]
+    public async Task AnOpenConsoleFollowsTheDifficultyVote()
+    {
+        var map = await Pair.CreateTestMap();
+        var ccc = EntityUid.Invalid;
+        var nightmareTotal = 0;
+        await Server.WaitAssertion(() =>
+        {
+            var waveRule = SEntMan.System<WaveGameRuleSystem>();
+            var minds = SEntMan.System<SharedMindSystem>();
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Normal), Is.True);
+
+            var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            var mindId = minds.CreateMind(ServerSession!.UserId, "Captain");
+            minds.TransferTo(mindId, body, mind: SEntMan.GetComponent<MindComponent>(mindId));
+            ccc = SEntMan.SpawnEntity("FinalStandCCC", map.GridCoords);
+            SEntMan.System<SharedUserInterfaceSystem>().OpenUi(ccc, CCCUiKey.Key, body);
+        });
+        await Pair.RunTicksSync(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            var waveRule = SEntMan.System<WaveGameRuleSystem>();
+            var ui = SEntMan.System<SharedUserInterfaceSystem>();
+            Assert.That(ui.TryGetUiState<CCCBoundUserInterfaceState>(ccc, CCCUiKey.Key, out var shown), Is.True);
+            Assert.That(shown!.EstimatedEnemyCount, Is.EqualTo(waveRule.GetEnemyTotal()), "test precondition");
+
+            Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Nightmare), Is.True);
+            nightmareTotal = waveRule.GetEnemyTotal();
+            Assert.That(nightmareTotal, Is.GreaterThan(shown.EstimatedEnemyCount), "test precondition");
+        });
+        await Pair.RunTicksSync(30);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.System<SharedUserInterfaceSystem>()
+                    .TryGetUiState<CCCBoundUserInterfaceState>(ccc, CCCUiKey.Key, out var shown), Is.True);
+            Assert.That(shown!.EstimatedEnemyCount, Is.EqualTo(nightmareTotal),
+                "the console shows what the vote picked without being reopened");
         });
     }
 
