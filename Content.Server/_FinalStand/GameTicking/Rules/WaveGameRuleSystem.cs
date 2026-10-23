@@ -550,7 +550,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private static bool IsBossWave(int wave) => wave % 5 == 0;
 
     // TODO(finalstand): tune reward scaling tiers
-    private static float GetWaveKillMultiplier(int wave)
+    public static float GetWaveKillMultiplier(int wave)
     {
         if (wave <= 5) return 1.00f;
         if (wave <= 10) return 1.50f;

@@ -1,25 +1,20 @@
-
-using System;
 using System.Linq;
-using Content.Shared._FinalStand.Medical;
-using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
-using Content.Client.Administration.UI.CustomControls;
 using Content.Client.Guidebook;
-using Content.Client.Stylesheets;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Medical.Surgery;
-using Content.Shared._Shitmed.Medical.Surgery.Conditions;
-using Content.Shared.Body.Components;
 using Content.Shared.Body;
 using Content.Shared.DoAfter;
 using Content.Shared.Guidebook;
-using Robust.Shared.Timing;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Client._Shitmed.Medical.Surgery;
@@ -32,61 +27,61 @@ public sealed partial class SurgeryBui : BoundUserInterface
     [Dependency] private IGameTiming _timing = default!;
 
     private static readonly Color MutedColor = Color.FromHex("#7F8891");
-    private static readonly Color StepCompleteColor = new(0.55f, 0.55f, 0.55f);
-    private static readonly Color StepLockedColor = new(0.40f, 0.40f, 0.40f);
-    private static readonly Color OperationNextColor = Color.FromHex("#8FE0B0");
-    private static readonly Color OperationAvailableColor = new(0.72f, 0.72f, 0.72f);
-    private static readonly Color OperationOutOfFocusColor = new(0.45f, 0.45f, 0.45f);
-    private static readonly Color OperationUnavailableColor = new(0.32f, 0.32f, 0.36f);
+    private static readonly Color HeaderColor = Color.FromHex("#C9B28A");
+    private static readonly Color DoneColor = Color.FromHex("#6E9E7E");
+    private static readonly Color NextColor = Color.FromHex("#8FE0B0");
+    private static readonly Color ReadyColor = Color.FromHex("#C8CDD3");
+    private static readonly Color WaitingColor = Color.FromHex("#6B7078");
     private static readonly Color ReasonColor = Color.FromHex("#D9A93A");
+    private static readonly Color PanelColor = Color.FromHex("#1B1E23");
+    private static readonly Color PanelBorderColor = Color.FromHex("#2E333B");
     private static readonly TimeSpan AutoRefreshInterval = TimeSpan.FromSeconds(0.25);
+    private static readonly TimeSpan PendingTimeout = TimeSpan.FromSeconds(1);
     private static readonly ProtoId<GuideEntryPrototype> SurgeryGuide = "Surgery";
 
-    private readonly Dictionary<NetEntity, List<EntProtoId>> _unavailable = new();
-
-    private static readonly (SurgeryFocus Focus, string Loc)[] Filters =
-    {
-        (SurgeryFocus.All, "surgery-ui-filter-all"),
-        (SurgeryFocus.Bleeding, "surgery-ui-filter-bleeding"),
-        (SurgeryFocus.Wounds, "surgery-ui-filter-wounds"),
-        (SurgeryFocus.Bones, "surgery-ui-filter-bones"),
-        (SurgeryFocus.Organs, "surgery-ui-filter-organs"),
-    };
-
-    private readonly Dictionary<SurgeryFocus, Button> _filterButtons = new();
-    private SurgeryOperationClassifier? _classifier;
-    private SurgeryFocus _focus = SurgeryFocus.All;
-
     private readonly SurgerySystem _system;
+    private readonly FSSurgeryPlanSystem _plans;
+    private readonly FSSurgeryGuideSystem _guide;
+
     [ViewVariables]
     private SurgeryWindow? _window;
     private SurgeryGuidancePresenter? _guidance;
-    private SurgeryDollPresenter? _dollPresenter;
+    private SurgeryDollPresenter? _doll;
 
+    private SurgeryBuiState? _state;
     private EntityUid? _part;
-    private bool _isBody;
-    private (EntityUid Ent, EntProtoId Proto)? _surgery;
-    private readonly List<EntProtoId> _previousSurgeries = new();
-
+    private EntProtoId? _procedure;
+    private bool _showOthers;
+    private bool _pickedFirstPart;
     private string? _partsKey;
-    private string? _surgeriesKey;
     private string? _crumbKey;
-    private (NetEntity Part, EntProtoId Surgery)? _stepsKey;
 
-    private bool _showUnavailable;
-    private string? _followUpHint;
+    private readonly Dictionary<EntityUid, List<EntProtoId>> _seen = new();
+    private readonly Dictionary<string, Control> _rows = new();
+    private string? _layoutKey;
+
+    private FSSurgeryPlanRow? _next;
     private bool _stepRunning;
+    private EntProtoId? _runningStep;
+    private TimeSpan _pendingUntil;
+    private EntityUid? _pendingStep;
+    private TimeSpan _doAllPendingUntil;
     private TimeSpan _nextAutoRefresh;
+    private bool _syncingDoAll;
 
-    public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey) => _system = _entities.System<SurgerySystem>();
+    public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey)
+    {
+        _system = _entities.System<SurgerySystem>();
+        _plans = _entities.System<FSSurgeryPlanSystem>();
+        _guide = _entities.System<FSSurgeryGuideSystem>();
+    }
+
+    private bool IsPending => _timing.RealTime < _pendingUntil;
 
     protected override void ReceiveMessage(BoundUserInterfaceMessage message)
     {
-        if (_window is null
-            || message is not SurgeryBuiRefreshMessage)
-            return;
-
-        RefreshUI();
+        if (message is SurgeryBuiRefreshMessage)
+            Refresh();
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -94,7 +89,28 @@ public sealed partial class SurgeryBui : BoundUserInterface
         if (state is not SurgeryBuiState s)
             return;
 
-        Update(s);
+        _state = s;
+
+        var window = EnsureWindow();
+        if (!window.IsOpen)
+            window.OpenCentered();
+
+        RebuildParts(s);
+
+        if (_part is { } part
+            && (!_entities.TryGetNetEntity(part, out var netPart) || !s.Choices.ContainsKey(netPart.Value)))
+        {
+            _part = null;
+            _procedure = null;
+        }
+
+        if (!_pickedFirstPart)
+        {
+            _pickedFirstPart = true;
+            _part = MostUrgentPart(s);
+        }
+
+        Refresh();
     }
 
     protected override void Dispose(bool disposing)
@@ -104,549 +120,563 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window?.Dispose();
     }
 
-    private void Update(SurgeryBuiState state)
+    private SurgeryWindow EnsureWindow()
     {
-        if (_window == null)
+        if (_window != null)
+            return _window;
+
+        _window = new SurgeryWindow();
+        _window.OnClose += Close;
+        _window.Title = Loc.GetString("surgery-ui-window-title");
+
+        _guidance = new SurgeryGuidancePresenter(_entities, _window);
+        _doll = new SurgeryDollPresenter(_entities, _window, OnPartPressed, OnMissingPartPressed);
+
+        _window.PerformButton.OnPressed += _ =>
         {
-            _window = new SurgeryWindow();
-            _window.OnClose += Close;
-            _window.Title = Loc.GetString("surgery-ui-window-title");
+            if (_next is { } next)
+                Perform(next.Surgery, next.Step, next.StepEnt);
+        };
 
-            _guidance = new SurgeryGuidancePresenter(_entities, _system, _window);
-            _dollPresenter = new SurgeryDollPresenter(_entities, _window, OnPartPressed, OnMissingPartPressed);
-            _classifier = new SurgeryOperationClassifier(_entities, IoCManager.Resolve<IPrototypeManager>());
-            BuildFilters();
+        _window.DoAllButton.OnToggled += args => OnDoAllToggled(args.Pressed);
 
-            _window.PerformButton.OnPressed += _ =>
+        _window.BackButton.OnPressed += _ =>
+        {
+            _procedure = null;
+            Refresh();
+        };
+
+        _window.GuideButton.OnPressed += _ =>
+            _entities.System<GuidebookSystem>().OpenHelp(new List<ProtoId<GuideEntryPrototype>> { SurgeryGuide });
+
+        _window.OnFrameUpdate += OnFrameUpdate;
+
+        foreach (var panel in new[] { _window.BodyPanel, _window.PlanPanel })
+        {
+            panel.PanelOverride = new StyleBoxFlat
             {
-                if (_guidance?.NextStep is { } next)
-                    SendPredictedMessage(new SurgeryStepChosenBuiMsg(next.NetPart, next.SurgeryId, next.StepId, _isBody));
+                BackgroundColor = PanelColor,
+                BorderColor = PanelBorderColor,
+                BorderThickness = new Thickness(1),
             };
-
-            _window.OnFrameUpdate += UpdateStepProgress;
-            _window.GuideButton.OnPressed += _ =>
-                _entities.System<GuidebookSystem>().OpenHelp(new List<ProtoId<GuideEntryPrototype>> { SurgeryGuide });
-
-            foreach (var panel in new[] { _window.BodyPanel, _window.OperationsPanel, _window.ProcedurePanel })
-            {
-                panel.PanelOverride = new StyleBoxFlat
-                {
-                    BackgroundColor = Color.FromHex("#1B1E23"),
-                    BorderColor = Color.FromHex("#2E333B"),
-                    BorderThickness = new Thickness(1),
-                };
-            }
         }
 
-        if (!_window.IsOpen)
-            _window.OpenCentered();
-
-        _unavailable.Clear();
-        foreach (var (part, ids) in state.Unavailable)
-            _unavailable[part] = ids;
-
-        var oldSurgery = _surgery;
-        var oldPart = _part;
-
-        var options = new List<(NetEntity netEntity, EntityUid entity, string Name, ProtoId<OrganCategoryPrototype>? Category)>();
-        foreach (var choice in state.Choices.Keys)
-            if (_entities.TryGetEntity(choice, out var ent))
-            {
-                if (_entities.TryGetComponent(ent, out OrganComponent? part))
-                    options.Add((choice, ent.Value, _entities.GetComponent<MetaDataComponent>(ent.Value).EntityName, part.Category));
-                else if (_entities.TryGetComponent(ent, out BodyComponent? body))
-                    options.Add((choice, ent.Value, _entities.GetComponent<MetaDataComponent>(ent.Value).EntityName, null));
-            }
-
-        options.Sort((a, b) =>
-        {
-            int GetScore(ProtoId<OrganCategoryPrototype>? category)
-            {
-                var index = category is { } id ? Array.IndexOf(OrganCategories.Body, id) : -1;
-                return index < 0 ? int.MaxValue : index;
-            }
-
-            return GetScore(a.Category) - GetScore(b.Category);
-        });
-
-        var partsKey = string.Join(';',
-            options.Select(o => $"{o.netEntity.Id}:{string.Join(',', state.Choices[o.netEntity])}"));
-        if (partsKey != _partsKey)
-        {
-            _partsKey = partsKey;
-            _window.Parts.DisposeAllChildren();
-            _dollPresenter!.Clear();
-
-            foreach (var (netEntity, entity, partName, category) in options)
-            {
-                var surgeries = state.Choices[netEntity];
-                if (_dollPresenter.TryAdd(category, netEntity, entity, surgeries))
-                    continue;
-
-                var partButton = new ChoiceControl();
-
-                partButton.Set(partName, null);
-                partButton.Button.OnPressed += _ => OnPartPressed(netEntity, surgeries);
-
-                _window.Parts.AddChild(partButton);
-            }
-        }
-
-        var restored = false;
-        if (oldPart != null)
-        {
-            foreach (var (netEntity, entity, _, _) in options)
-            {
-                if (entity != oldPart)
-                    continue;
-
-                RebuildOperations(netEntity, state.Choices[netEntity]);
-
-                // A finished operation stops being a valid choice; drop its dead steps.
-                if (oldSurgery is { } selected
-                    && state.Choices[netEntity].Contains(selected.Proto)
-                    && _system.GetSingleton(selected.Proto) is { } surgery
-                    && _entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
-                {
-                    OnSurgeryPressed((surgery, surgeryComp), netEntity, selected.Proto, keepHint: true);
-                }
-                else if (oldSurgery == null || !TrySelectFollowUp(netEntity, state.Choices[netEntity]))
-                {
-                    ClearSurgerySelection();
-                    OnPartPressed(netEntity, state.Choices[netEntity]);
-                }
-
-                restored = true;
-                break;
-            }
-        }
-
-        if (!restored)
-        {
-            ClearSelection();
-            UpdateHeader();
-            RefreshUI();
-        }
+        return _window;
     }
 
-    private bool TrySelectFollowUp(NetEntity netPart, List<EntProtoId> choices)
+    private void RebuildParts(SurgeryBuiState state)
     {
-        if (_player.LocalEntity is not { } user || _classifier == null)
-            return false;
+        if (_window == null || _doll == null)
+            return;
 
-        var part = _entities.GetEntity(netPart);
-        (Entity<SurgeryComponent> Surgery, EntProtoId Id, bool Closing, int Urgency)? best = null;
-
-        foreach (var id in choices)
+        var options = new List<(NetEntity Net, EntityUid Ent, string Name, ProtoId<OrganCategoryPrototype>? Category)>();
+        foreach (var net in state.Choices.Keys)
         {
-            var role = _classifier.RoleOf(id.Id);
-            if (role is not (SurgeryRole.Goal or SurgeryRole.Closing)
-                || _system.GetSingleton(id) is not { } surgery
-                || !_entities.TryGetComponent(surgery, out SurgeryComponent? comp)
-                || _system.GetNextStep(Owner, part, surgery, user) == null)
+            if (!_entities.TryGetEntity(net, out var ent))
                 continue;
 
-            var urgency = _classifier.UrgencyOf(surgery, id.Id);
-            if (best == null || urgency < best.Value.Urgency)
-                best = ((surgery, comp), id, role == SurgeryRole.Closing, urgency);
+            var category = _entities.GetComponentOrNull<OrganComponent>(ent)?.Category;
+            options.Add((net, ent.Value, _entities.GetComponent<MetaDataComponent>(ent.Value).EntityName, category));
         }
 
-        if (best is not { } pick)
-            return false;
+        options.Sort((a, b) => Rank(a.Category).CompareTo(Rank(b.Category)));
 
-        _followUpHint = pick.Closing ? "surgery-ui-guidance-close-up" : "surgery-ui-guidance-next-goal";
-        OnSurgeryPressed(pick.Surgery, netPart, pick.Id, keepHint: true);
-        return true;
+        var key = string.Join(';', options.Select(o => $"{o.Net.Id}:{string.Join(',', state.Choices[o.Net])}"));
+        if (key == _partsKey)
+            return;
+
+        _partsKey = key;
+        _window.Parts.DisposeAllChildren();
+        _doll.Clear();
+
+        foreach (var (net, ent, name, category) in options)
+        {
+            var surgeries = state.Choices[net];
+            if (_doll.TryAdd(category, net, ent, surgeries))
+                continue;
+
+            var button = new ChoiceControl();
+            button.Set(name, null);
+            button.Button.OnPressed += _ => OnPartPressed(net, surgeries);
+            _window.Parts.AddChild(button);
+        }
     }
 
-    private bool TryReturnToGoal()
+    private static int Rank(ProtoId<OrganCategoryPrototype>? category)
     {
-        if (_previousSurgeries.Count == 0
-            || !_entities.TryGetNetEntity(_part, out var netPart)
-            || State is not SurgeryBuiState state
-            || !state.Choices.TryGetValue(netPart.Value, out var choices))
-            return false;
+        var index = category is { } id ? Array.IndexOf(OrganCategories.Body, id) : -1;
+        return index < 0 ? int.MaxValue : index;
+    }
 
-        var goalId = _previousSurgeries[^1];
-        _previousSurgeries.RemoveAt(_previousSurgeries.Count - 1);
+    private EntityUid? MostUrgentPart(SurgeryBuiState state)
+    {
+        EntityUid? best = null;
+        var bestRank = int.MaxValue;
 
-        if (!choices.Contains(goalId)
-            || _system.GetSingleton(goalId) is not { } goal
-            || !_entities.TryGetComponent(goal, out SurgeryComponent? comp))
+        foreach (var net in state.Choices.Keys)
         {
-            _previousSurgeries.Clear();
-            return false;
+            if (!_entities.TryGetEntity(net, out var part))
+                continue;
+
+            foreach (var group in _plans.BuildPlan(Owner, part.Value).Groups)
+            {
+                if (group.Kind != FSPlanGroupKind.Problem
+                    || !_guide.TryGetGoalOrder(group.Surgery.Id, out var rank)
+                    || rank >= bestRank)
+                    continue;
+
+                bestRank = rank;
+                best = part;
+            }
         }
 
-        OnSurgeryPressed((goal, comp), netPart.Value, goalId);
-        return true;
+        return best;
+    }
+
+    private void OnPartPressed(NetEntity netPart, List<EntProtoId> surgeries)
+    {
+        var part = _entities.GetEntity(netPart);
+        if (_part != part)
+        {
+            _part = part;
+            _procedure = null;
+            _showOthers = false;
+        }
+
+        Refresh();
     }
 
     private void OnMissingPartPressed(NetEntity parent, List<EntProtoId> parentSurgeries, EntProtoId attach)
     {
         OnPartPressed(parent, parentSurgeries);
-
-        if (parentSurgeries.Contains(attach)
-            && _system.GetSingleton(attach) is { } surgery
-            && _entities.TryGetComponent(surgery, out SurgeryComponent? comp))
-            OnSurgeryPressed((surgery, comp), parent, attach);
     }
 
-    private void ClearSurgerySelection()
-    {
-        _surgery = null;
-        _followUpHint = null;
-        _previousSurgeries.Clear();
-
-        if (_stepsKey == null)
-            return;
-
-        _stepsKey = null;
-        _window?.Steps.DisposeAllChildren();
-    }
-
-    private void ClearSelection()
-    {
-        _part = null;
-        _isBody = false;
-        _surgery = null;
-        _previousSurgeries.Clear();
-
-        if (_stepsKey == null)
-            return;
-
-        _stepsKey = null;
-        _window?.Steps.DisposeAllChildren();
-    }
-
-    private void AddStep(EntProtoId stepId, NetEntity netPart, EntProtoId surgeryId)
-    {
-        if (_window == null
-            || _system.GetSingleton(stepId) is not { } step)
-            return;
-
-        var stepName = new FormattedMessage();
-        stepName.AddText(_entities.GetComponent<MetaDataComponent>(step).EntityName);
-        var stepButton = new SurgeryStepButton
-        {
-            Step = step,
-            StepId = stepId,
-            NetPart = netPart,
-            SurgeryId = surgeryId,
-        };
-        stepButton.Button.OnPressed += _ => SendPredictedMessage(new SurgeryStepChosenBuiMsg(netPart, surgeryId, stepId, _isBody));
-
-        _window.Steps.AddChild(stepButton);
-    }
-
-    private void OnSurgeryPressed(Entity<SurgeryComponent> surgery, NetEntity netPart, EntProtoId surgeryId, bool keepHint = false)
-    {
-        if (_window == null)
-            return;
-
-        if (!keepHint)
-            _followUpHint = null;
-
-        _part = _entities.GetEntity(netPart);
-        _isBody = _entities.HasComponent<BodyComponent>(_part);
-        _surgery = (surgery, surgeryId);
-
-        if (_stepsKey != (netPart, surgeryId))
-        {
-            _stepsKey = (netPart, surgeryId);
-            _window.Steps.DisposeAllChildren();
-
-            if (surgery.Comp.Requirement is { } requirementId && _system.GetSingleton(requirementId) is { } requirement)
-            {
-                var label = new ChoiceControl();
-                label.Button.OnPressed += _ =>
-                {
-                    _previousSurgeries.Add(surgeryId);
-
-                    if (_entities.TryGetComponent(requirement, out SurgeryComponent? requirementComp))
-                        OnSurgeryPressed((requirement, requirementComp), netPart, requirementId);
-                };
-
-                var msg = new FormattedMessage();
-                var surgeryName = _entities.GetComponent<MetaDataComponent>(requirement).EntityName;
-                msg.AddMarkup($"[bold]{Loc.GetString("surgery-ui-window-require")}: {surgeryName}[/bold]");
-                label.Set(msg, null);
-
-                _window.Steps.AddChild(label);
-                _window.Steps.AddChild(new HSeparator { Margin = new Thickness(0, 0, 0, 1) });
-            }
-
-            foreach (var stepId in surgery.Comp.Steps)
-                AddStep(stepId, netPart, surgeryId);
-        }
-
-        UpdateHeader();
-        RefreshUI();
-    }
-
-    private void OnPartPressed(NetEntity netPart, List<EntProtoId> surgeryIds)
-    {
-        if (_window == null)
-            return;
-
-        var part = _entities.GetEntity(netPart);
-
-        if (_part != part)
-        {
-            _surgery = null;
-            _followUpHint = null;
-            _previousSurgeries.Clear();
-
-            if (_stepsKey != null)
-            {
-                _stepsKey = null;
-                _window.Steps.DisposeAllChildren();
-            }
-        }
-
-        _part = part;
-        _isBody = _entities.HasComponent<BodyComponent>(part);
-
-        RebuildOperations(netPart, surgeryIds);
-
-        UpdateHeader();
-        RefreshUI();
-    }
-
-    private void RebuildOperations(NetEntity netPart, List<EntProtoId> surgeryIds)
-    {
-        if (_window == null)
-            return;
-
-        var unavailableIds = _unavailable.GetValueOrDefault(netPart) ?? new List<EntProtoId>();
-
-        var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}|{string.Join(',', unavailableIds)}|{_showUnavailable}";
-        if (_surgeriesKey == key)
-            return;
-
-        _surgeriesKey = key;
-        _window.Surgeries.DisposeAllChildren();
-
-        var surgeries = new List<(Entity<SurgeryComponent> Ent, EntProtoId Id, string Name, bool Unavailable)>();
-        foreach (var (surgeryId, unavailable) in surgeryIds.Select(id => (id, false))
-                     .Concat(unavailableIds.Select(id => (id, true))))
-        {
-            if (_system.GetSingleton(surgeryId) is not { } surgery ||
-                !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
-            {
-                continue;
-            }
-
-            var name = _entities.GetComponent<MetaDataComponent>(surgery).EntityName;
-            surgeries.Add(((surgery, surgeryComp), surgeryId, name, unavailable));
-        }
-
-        surgeries.Sort((a, b) =>
-        {
-            // Unavailable operations sink below everything the doctor can actually start.
-            if (a.Unavailable != b.Unavailable)
-                return a.Unavailable ? 1 : -1;
-
-            var priority = a.Ent.Comp.Priority.CompareTo(b.Ent.Comp.Priority);
-            if (priority != 0)
-                return priority;
-
-            return string.Compare(a.Name, b.Name, StringComparison.Ordinal);
-        });
-
-        var unavailableCount = surgeries.Count(op => op.Unavailable);
-        var toggleAdded = false;
-
-        foreach (var surgery in surgeries)
-        {
-            if (surgery.Unavailable)
-            {
-                if (!toggleAdded)
-                {
-                    toggleAdded = true;
-                    var toggle = new Button
-                    {
-                        Text = Loc.GetString(_showUnavailable ? "surgery-ui-hide-unavailable" : "surgery-ui-show-unavailable",
-                            ("count", unavailableCount)),
-                        StyleClasses = { "ButtonSquare" },
-                        HorizontalExpand = true,
-                        Margin = new Thickness(0, 6, 0, 2),
-                    };
-                    toggle.OnPressed += _ =>
-                    {
-                        _showUnavailable = !_showUnavailable;
-                        RebuildOperations(netPart, surgeryIds);
-                        RefreshUI();
-                    };
-                    _window.Surgeries.AddChild(toggle);
-                }
-
-                if (!_showUnavailable)
-                    continue;
-            }
-
-            var surgeryButton = new SurgeryOperationButton
-            {
-                Surgery = surgery.Ent.Owner,
-                SurgeryId = surgery.Id,
-                OperationName = surgery.Name,
-                Unavailable = surgery.Unavailable,
-            };
-            surgeryButton.Set(surgery.Name, null);
-
-            if (surgery.Unavailable)
-            {
-                surgeryButton.Button.Disabled = true;
-                surgeryButton.ToolTip = Loc.GetString("surgery-ui-unavailable-tooltip");
-            }
-            else
-            {
-                surgeryButton.Button.OnPressed += _ => OnSurgeryPressed(surgery.Ent, netPart, surgery.Id);
-            }
-
-            _window.Surgeries.AddChild(surgeryButton);
-        }
-    }
-
-    private void RefreshUI()
+    private void Refresh()
     {
         if (_window == null || _guidance == null || !_window.IsOpen)
             return;
 
         _guidance.Reset();
+        _next = null;
 
-        if (_part == null)
-        {
-            _guidance.ShowSelectPrompt(_player.LocalEntity);
-            return;
-        }
+        _doll?.Refresh(_entities.TryGetNetEntity(_part, out var selectedNet) ? selectedNet : null);
+        UpdateTitle();
+        BuildBreadcrumb();
 
-        if (!_entities.TryGetComponent(_player.LocalEntity, out SurgeryTargetComponent? surgeryComp)
-            || !surgeryComp.CanOperate
-            || _player.LocalEntity is not { } user)
+        if (_player.LocalEntity is not { } user
+            || !_entities.TryGetComponent(user, out SurgeryTargetComponent? surgeon)
+            || !surgeon.CanOperate)
         {
+            ShowPlan(null, null, null);
             _guidance.ShowCannotOperate();
+            SyncDoAll(null, false);
             return;
         }
 
-        var recommended = RefreshOperations(user);
-        var selectedNet = _entities.TryGetNetEntity(_part, out var part) ? part : null;
-
-        if (!_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
+        if (_part is not { } part || !_entities.EntityExists(part))
         {
-            _guidance.ShowChooseOperation(recommended, ActiveFocusName(), user);
-            _dollPresenter?.Refresh(selectedNet);
+            ShowPlan(null, null, user);
+            _guidance.ShowSelectPrompt(user);
+            SyncDoAll(null, false);
             return;
         }
 
-        var next = _system.GetNextStep(Owner, _part.Value, _surgery.Value.Ent, user);
-        if (next == null && !_stepRunning && TryReturnToGoal())
-            return;
+        var plan = _procedure is { } procedure
+            ? _plans.BuildProcedure(Owner, part, procedure)
+            : _plans.BuildPlan(Owner, part);
 
-        SurgeryStepButton? nextButton = null;
-        var i = 0;
-        foreach (var child in _window.Steps.Children)
-        {
-            if (child is not SurgeryStepButton stepButton)
-                continue;
+        if (_procedure == null)
+            Remember(part, plan);
 
-            var status = StepStatus.Incomplete;
-            if (next == null)
-                status = StepStatus.Complete;
-            else if (next.Value.Step < 0 && i > -next.Value.Step - 1)
-                status = StepStatus.Complete;
-            else if (next.Value.Step < 0 && i <= -next.Value.Step - 1)
-                status = StepStatus.Next;
-            else if (next.Value.Surgery.Owner != _surgery.Value.Ent)
-                status = StepStatus.Incomplete;
-            else if (next.Value.Step == i)
-                status = StepStatus.Next;
-            else if (i < next.Value.Step)
-                status = StepStatus.Complete;
-
-            string? reason = null;
-            if (status == StepStatus.Next)
-            {
-                var can = _system.CanPerformStepWithAvailable(user, Owner, _part.Value, stepButton.Step, out var popup, out var invalid);
-                if (!can)
-                    reason = _system.DescribeRefusal(invalid, stepButton.StepId, popup);
-
-                stepButton.Button.Disabled = !can || _stepRunning;
-            }
-            else
-            {
-                stepButton.Button.Disabled = true;
-            }
-
-            var stepName = new FormattedMessage();
-            stepName.AddText(status switch
-            {
-                StepStatus.Complete => "✓  ",
-                StepStatus.Next => "▶  ",
-                _ => "·  ",
-            });
-            stepName.AddText(_entities.GetComponent<MetaDataComponent>(stepButton.Step).EntityName);
-
-            var duration = status == StepStatus.Complete || status == StepStatus.Next && _stepRunning
-                ? 0f
-                : _system.GetEffectiveStepDuration(user, Owner, _part.Value, stepButton.StepId, stepButton.Step);
-            if (duration > 0f)
-            {
-                stepName.PushColor(MutedColor);
-                stepName.AddText($"   {duration:0.#}s");
-                stepName.Pop();
-            }
-
-            if (reason != null)
-            {
-                stepName.PushNewline();
-                stepName.PushColor(ReasonColor);
-                stepName.AddText("    " + reason);
-                stepName.Pop();
-            }
-
-            stepButton.Button.Modulate = status switch
-            {
-                StepStatus.Complete => StepCompleteColor,
-                StepStatus.Next => Color.White,
-                _ => StepLockedColor,
-            };
-
-            if (status == StepStatus.Next)
-                nextButton ??= stepButton;
-
-            var texture = _entities.GetComponentOrNull<SpriteComponent>(stepButton.Step)?.Icon?.Default;
-            stepButton.Set(stepName, texture);
-            i++;
-        }
-
-        var blockedBy = next != null && next.Value.Surgery.Owner != _surgery.Value.Ent
-            ? next.Value.Surgery.Owner
-            : (EntityUid?) null;
-
-        _guidance.Show(nextButton, next != null, user, Owner, _part.Value,
-            _surgery.Value.Ent, blockedBy, _followUpHint, _stepRunning);
-
-        _dollPresenter?.Refresh(selectedNet);
+        ShowPlan(part, plan, user);
+        ShowGuidance(user, part, plan);
+        SyncDoAll(part, _procedure == null && plan.Next != null);
     }
 
-    private void UpdateStepProgress()
+    private void Remember(EntityUid part, FSSurgeryPlan plan)
+    {
+        if (!_seen.TryGetValue(part, out var seen))
+            _seen[part] = seen = new List<EntProtoId>();
+
+        foreach (var group in plan.Groups)
+        {
+            if (group.Kind == FSPlanGroupKind.Problem && !seen.Contains(group.Surgery))
+                seen.Add(group.Surgery);
+        }
+    }
+
+    private List<EntProtoId> FixedGoals(EntityUid part, FSSurgeryPlan plan)
+    {
+        var fixedGoals = new List<EntProtoId>();
+        if (_procedure != null || !_seen.TryGetValue(part, out var seen))
+            return fixedGoals;
+
+        foreach (var goal in _guide.Goals)
+        {
+            if (seen.Contains(goal) && !plan.Groups.Any(g => g.Kind == FSPlanGroupKind.Problem && g.Surgery == goal))
+                fixedGoals.Add(goal);
+        }
+
+        return fixedGoals;
+    }
+
+    private void ShowPlan(EntityUid? part, FSSurgeryPlan? plan, EntityUid? user)
     {
         if (_window == null)
             return;
 
+        _window.BackButton.Visible = _procedure != null;
+        UpdatePlanHeader(part, plan);
+
+        var keys = new List<string>();
+        var order = new List<Control>();
+
+        if (part is { } p && plan != null && user is { } u)
+        {
+            var fixedGoals = FixedGoals(p, plan);
+            var fixedShown = false;
+
+            foreach (var group in plan.Groups)
+            {
+                if (group.Kind == FSPlanGroupKind.Closing && !fixedShown)
+                {
+                    AddFixed(fixedGoals, keys, order);
+                    fixedShown = true;
+                }
+
+                AddGroupHeader(group, keys, order);
+                foreach (var row in group.Rows)
+                    AddStepRow(p, u, row, keys, order);
+            }
+
+            if (!fixedShown)
+                AddFixed(fixedGoals, keys, order);
+
+            if (_procedure == null)
+                AddOthers(p, keys, order);
+        }
+
+        var layoutKey = string.Join('|', keys);
+        if (layoutKey == _layoutKey)
+            return;
+
+        _layoutKey = layoutKey;
+        _window.Plan.RemoveAllChildren();
+
+        foreach (var control in order)
+            _window.Plan.AddChild(control);
+
+        foreach (var stale in _rows.Keys.Except(keys).ToList())
+        {
+            _rows[stale].Dispose();
+            _rows.Remove(stale);
+        }
+    }
+
+    private T Cached<T>(string key, List<string> keys, List<Control> order, Func<T> create) where T : Control
+    {
+        if (!_rows.TryGetValue(key, out var control) || control is not T typed)
+        {
+            control?.Dispose();
+            typed = create();
+            _rows[key] = typed;
+        }
+
+        keys.Add(key);
+        order.Add(typed);
+        return typed;
+    }
+
+    private void AddGroupHeader(FSSurgeryPlanGroup group, List<string> keys, List<Control> order)
+    {
+        var label = Cached("h:" + group.Kind + ":" + group.Surgery.Id, keys, order,
+            () => new RichTextLabel { Margin = new Thickness(0, 8, 0, 2) });
+
+        var name = Name(group.SurgeryEnt);
+        var text = group.Kind switch
+        {
+            FSPlanGroupKind.Opening => Loc.GetString("surgery-ui-plan-open", ("operation", name)),
+            FSPlanGroupKind.Closing => Loc.GetString("surgery-ui-plan-close", ("operation", name)),
+            _ => name,
+        };
+
+        var msg = new FormattedMessage();
+        msg.PushColor(group.Done ? DoneColor : HeaderColor);
+        msg.AddText(group.Done ? "✓ " + text : text);
+        msg.Pop();
+
+        if (!group.Done && group.Blocker is { } blocker)
+        {
+            msg.PushNewline();
+            msg.PushColor(ReasonColor);
+            msg.AddText(Loc.GetString("surgery-ui-plan-waiting", ("reason", Loc.GetString(blocker))));
+            msg.Pop();
+        }
+
+        label.SetMessage(msg);
+    }
+
+    private void AddFixed(List<EntProtoId> fixedGoals, List<string> keys, List<Control> order)
+    {
+        foreach (var goal in fixedGoals)
+        {
+            if (_system.GetSingleton(goal) is not { } surgery)
+                continue;
+
+            var label = Cached("f:" + goal.Id, keys, order, () => new RichTextLabel { Margin = new Thickness(0, 8, 0, 2) });
+
+            var msg = new FormattedMessage();
+            msg.PushColor(DoneColor);
+            msg.AddText("✓ " + Loc.GetString("surgery-ui-plan-fixed", ("operation", Name(surgery))));
+            msg.Pop();
+            label.SetMessage(msg);
+        }
+    }
+
+    private void AddStepRow(EntityUid part, EntityUid user, FSSurgeryPlanRow row, List<string> keys, List<Control> order)
+    {
+        var button = Cached("s:" + row.Surgery.Id + "/" + row.Step.Id, keys, order, () =>
+        {
+            var created = new SurgeryStepButton { Margin = new Thickness(14, 0, 0, 1) };
+            created.Button.OnPressed += _ => Perform(created.SurgeryId, created.StepId, created.Step);
+            return created;
+        });
+
+        button.Step = row.StepEnt;
+        button.StepId = row.Step;
+        button.SurgeryId = row.Surgery;
+
+        var running = _stepRunning && _runningStep == row.Step;
+        var (glyph, colour) = row.State switch
+        {
+            FSPlanRowState.Done => ("✓ ", DoneColor),
+            FSPlanRowState.Next => ("▶ ", NextColor),
+            FSPlanRowState.Ready => ("• ", ReadyColor),
+            _ => ("· ", WaitingColor),
+        };
+
+        var msg = new FormattedMessage();
+        msg.PushColor(running ? NextColor : colour);
+        msg.AddText(glyph + Name(row.StepEnt));
+        msg.Pop();
+
+        var enabled = false;
+        string? reason = null;
+
+        if (running)
+        {
+            msg.PushColor(MutedColor);
+            msg.AddText("   " + Loc.GetString("surgery-ui-step-running"));
+            msg.Pop();
+        }
+        else if (row.State is FSPlanRowState.Next or FSPlanRowState.Ready)
+        {
+            var found = _system.TryFindStepTool(user, Owner, part, row.StepEnt, out var tool, out var popup, out var invalid, out _);
+
+            msg.PushColor(MutedColor);
+            msg.AddText("   " + Details(user, part, row, found ? tool : null));
+            msg.Pop();
+
+            if (!found)
+                reason = _system.DescribeRefusal(invalid, row.Step, popup);
+
+            enabled = found && !_stepRunning && !IsPending;
+        }
+
+        if (reason != null)
+        {
+            msg.PushNewline();
+            msg.PushColor(ReasonColor);
+            msg.AddText("    " + reason);
+            msg.Pop();
+        }
+
+        button.Set(msg, row.State == FSPlanRowState.Done ? null : Icon(row.StepEnt));
+        button.Button.Disabled = !enabled;
+    }
+
+    private void AddOthers(EntityUid part, List<string> keys, List<Control> order)
+    {
+        var electives = Electives(part);
+        if (electives.Count == 0)
+            return;
+
+        var toggle = Cached("others", keys, order, () =>
+        {
+            var created = new Button
+            {
+                StyleClasses = { "ButtonSquare" },
+                HorizontalExpand = true,
+                Margin = new Thickness(0, 14, 0, 2),
+                ToolTip = Loc.GetString("surgery-ui-plan-other-tooltip"),
+            };
+            created.OnPressed += _ =>
+            {
+                _showOthers = !_showOthers;
+                Refresh();
+            };
+            return created;
+        });
+
+        toggle.Text = _showOthers
+            ? Loc.GetString("surgery-ui-plan-other-hide")
+            : Loc.GetString("surgery-ui-plan-other", ("count", electives.Count));
+
+        if (!_showOthers)
+            return;
+
+        foreach (var (id, surgery) in electives)
+        {
+            var choice = Cached("o:" + id.Id, keys, order, () =>
+            {
+                var created = new ChoiceControl { Margin = new Thickness(14, 0, 0, 1) };
+                created.Button.OnPressed += _ =>
+                {
+                    _procedure = id;
+                    _showOthers = false;
+                    Refresh();
+                };
+                return created;
+            });
+
+            choice.Set(Name(surgery), null);
+        }
+    }
+
+    private List<(EntProtoId Id, EntityUid Surgery)> Electives(EntityUid part)
+    {
+        var electives = new List<(EntProtoId, EntityUid)>();
+        if (_state == null
+            || !_entities.TryGetNetEntity(part, out var net)
+            || !_state.Choices.TryGetValue(net.Value, out var choices))
+            return electives;
+
+        foreach (var id in _guide.Electives)
+        {
+            if (choices.Contains(id) && _system.GetSingleton(id) is { } surgery)
+                electives.Add((id, surgery));
+        }
+
+        return electives;
+    }
+
+    private string Details(EntityUid user, EntityUid part, FSSurgeryPlanRow row, EntityUid? tool)
+    {
+        var seconds = Math.Round(_system.GetEffectiveStepDuration(user, Owner, part, row.Step, row.StepEnt), 1);
+
+        if (tool is not { } found)
+        {
+            var names = _system.GetStepToolNames(row.StepEnt);
+            return names.Count == 0
+                ? Loc.GetString("surgery-ui-step-details-time", ("seconds", seconds))
+                : Loc.GetString("surgery-ui-step-details-needs", ("tool", string.Join(", ", names)), ("seconds", seconds));
+        }
+
+        if (found == user)
+            return Loc.GetString("surgery-ui-step-details-time", ("seconds", seconds));
+
+        return Loc.GetString("surgery-ui-step-details",
+            ("tool", Name(found)),
+            ("where", Loc.GetString(_system.DescribeToolPlace(user, found))),
+            ("seconds", seconds));
+    }
+
+    private void ShowGuidance(EntityUid user, EntityUid part, FSSurgeryPlan plan)
+    {
+        if (_guidance == null)
+            return;
+
+        if (_stepRunning)
+        {
+            _guidance.ShowWorking();
+            return;
+        }
+
+        if (IsPending && _pendingStep is { } pending)
+        {
+            _guidance.ShowStarting(pending);
+            return;
+        }
+
+        if (plan.Next is { } next)
+        {
+            _next = next;
+
+            if (_system.TryFindStepTool(user, Owner, part, next.StepEnt, out var tool, out var popup, out var reason, out _))
+                _guidance.ShowNext(next.StepEnt, Details(user, part, next, tool), user);
+            else
+                _guidance.ShowBlocked(next.StepEnt, _system.DescribeRefusal(reason, next.Step, popup));
+
+            return;
+        }
+
+        foreach (var group in plan.Groups)
+        {
+            if (group.Kind == FSPlanGroupKind.Problem && !group.Done && group.Blocker is { } blocker)
+            {
+                _guidance.ShowWaiting(Name(group.SurgeryEnt), Loc.GetString(blocker));
+                return;
+            }
+        }
+
+        _guidance.ShowNothing(FixedGoals(part, plan).Count > 0);
+    }
+
+    private void Perform(EntProtoId surgery, EntProtoId step, EntityUid stepEnt)
+    {
+        if (_part is not { } part || !_entities.TryGetNetEntity(part, out var net))
+            return;
+
+        SendPredictedMessage(new SurgeryStepChosenBuiMsg(net.Value, surgery, step, false));
+        _pendingUntil = _timing.RealTime + PendingTimeout;
+        _pendingStep = stepEnt;
+        Refresh();
+    }
+
+    private void OnDoAllToggled(bool pressed)
+    {
+        if (_syncingDoAll || _part is not { } part || !_entities.TryGetNetEntity(part, out var net))
+            return;
+
+        _doAllPendingUntil = _timing.RealTime + PendingTimeout;
+        SendMessage(new FSSurgeryAutoMessage(net.Value, pressed));
+    }
+
+    private void SyncDoAll(EntityUid? part, bool available)
+    {
+        if (_window == null)
+            return;
+
+        var on = part != null
+                 && _player.LocalEntity is { } user
+                 && _entities.TryGetComponent(user, out FSSurgeryAutoComponent? auto)
+                 && auto.Patient == Owner
+                 && auto.Part == part;
+
+        if (_timing.RealTime >= _doAllPendingUntil)
+        {
+            _syncingDoAll = true;
+            _window.DoAllButton.Pressed = on;
+            _syncingDoAll = false;
+        }
+
+        _window.DoAllButton.Disabled = !_window.DoAllButton.Pressed && !available;
+    }
+
+    private void OnFrameUpdate()
+    {
         var running = DrawStepProgress();
         var now = _timing.RealTime;
 
-        if (running != _stepRunning || now >= _nextAutoRefresh)
-        {
-            if (running && !_stepRunning)
-                _followUpHint = null;
+        if (running == _stepRunning && now < _nextAutoRefresh)
+            return;
 
-            _stepRunning = running;
-            _nextAutoRefresh = now + AutoRefreshInterval;
-            RefreshUI();
-        }
+        if (running)
+            _pendingUntil = TimeSpan.Zero;
+
+        _stepRunning = running;
+        _nextAutoRefresh = now + AutoRefreshInterval;
+        Refresh();
     }
 
     private bool DrawStepProgress()
@@ -658,13 +688,14 @@ public sealed partial class SurgeryBui : BoundUserInterface
             || !_entities.TryGetComponent(user, out DoAfterComponent? doAfters))
         {
             _window.StepProgress.Visible = false;
+            _runningStep = null;
             return false;
         }
 
         var now = _timing.CurTime;
         foreach (var doAfter in doAfters.DoAfters.Values)
         {
-            if (doAfter.Cancelled || doAfter.Completed || doAfter.Args.Event is not SurgeryDoAfterEvent)
+            if (doAfter.Cancelled || doAfter.Completed || doAfter.Args.Event is not SurgeryDoAfterEvent surgeryEvent)
                 continue;
 
             var length = doAfter.Args.Delay.TotalSeconds;
@@ -672,170 +703,58 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 continue;
 
             _window.StepProgress.Visible = true;
-            _window.StepProgress.Value = Math.Clamp((float)((now - doAfter.StartTime).TotalSeconds / length), 0f, 1f);
+            _window.StepProgress.Value = Math.Clamp((float) ((now - doAfter.StartTime).TotalSeconds / length), 0f, 1f);
+            _runningStep = surgeryEvent.Step;
             return true;
         }
 
         _window.StepProgress.Visible = false;
+        _runningStep = null;
         return false;
     }
 
-    private void BuildFilters()
+    private void UpdatePlanHeader(EntityUid? part, FSSurgeryPlan? plan)
     {
         if (_window == null)
             return;
 
-        for (var i = 0; i < Filters.Length; i++)
+        var msg = new FormattedMessage();
+        msg.PushColor(MutedColor);
+
+        if (part is not { } p || plan == null)
         {
-            var (focus, loc) = Filters[i];
-
-            var style = i == 0
-                ? StyleClass.ButtonOpenRight
-                : i == Filters.Length - 1
-                    ? StyleClass.ButtonOpenLeft
-                    : StyleClass.ButtonOpenBoth;
-
-            var button = new Button
-            {
-                Text = Loc.GetString(loc),
-                StyleClasses = { style },
-                ToggleMode = true,
-                Pressed = focus == _focus,
-                HorizontalExpand = true,
-            };
-
-            button.OnPressed += _ => SetFocus(focus);
-
-            _filterButtons[focus] = button;
-            _window.OperationFilters.AddChild(button);
+            msg.AddText(Loc.GetString("surgery-ui-column-plan"));
         }
-    }
-
-    private string? ActiveFocusName()
-    {
-        if (_focus == SurgeryFocus.All)
-            return null;
-
-        foreach (var (focus, loc) in Filters)
+        else if (_procedure is { } procedure && _system.GetSingleton(procedure) is { } surgery)
         {
-            if (focus == _focus)
-                return Loc.GetString(loc);
+            msg.AddText(Loc.GetString("surgery-ui-plan-procedure", ("part", Name(p)), ("operation", Name(surgery))));
         }
-
-        return null;
-    }
-
-    private void SetFocus(SurgeryFocus focus)
-    {
-        _focus = focus;
-
-        foreach (var (candidate, button) in _filterButtons)
-            button.Pressed = candidate == focus;
-
-        RefreshUI();
-    }
-
-    private string? RefreshOperations(EntityUid user)
-    {
-        if (_window == null || _part == null || _classifier == null)
-            return null;
-
-        SurgeryOperationButton? recommended = null;
-        var bestUrgency = int.MaxValue;
-
-        var states = new List<(SurgeryOperationButton Op, bool Complete, bool Blocked, bool InFocus)>();
-
-        foreach (var child in _window.Surgeries.Children)
-        {
-            if (child is not SurgeryOperationButton op)
-                continue;
-
-            if (op.Unavailable)
-            {
-                states.Add((op, false, false, false));
-                continue;
-            }
-
-            var next = _system.GetNextStep(Owner, _part.Value, op.Surgery, user);
-            var complete = next == null;
-            var blocked = !complete && next!.Value.Surgery.Owner != op.Surgery;
-            var inFocus = _classifier.Matches(op.Surgery, _focus);
-
-            states.Add((op, complete, blocked, inFocus));
-
-            if (complete || !inFocus)
-                continue;
-
-            var role = _classifier.RoleOf(op.SurgeryId.Id);
-            if (role is SurgeryRole.Access or SurgeryRole.Elective)
-                continue;
-
-            var urgency = _classifier.UrgencyOf(op.Surgery, op.SurgeryId.Id);
-            if (urgency >= bestUrgency)
-                continue;
-
-            bestUrgency = urgency;
-            recommended = op;
-        }
-
-        foreach (var (op, complete, blocked, inFocus) in states)
-        {
-            string glyph;
-            Color colour;
-
-            if (op.Unavailable)
-            {
-                glyph = "✕  ";
-                colour = OperationUnavailableColor;
-            }
-            else if (complete)
-            {
-                glyph = "✓  ";
-                colour = StepCompleteColor;
-            }
-            else if (blocked)
-            {
-                glyph = "·  ";
-                colour = StepLockedColor;
-            }
-            else if (op == recommended)
-            {
-                glyph = "▶  ";
-                colour = OperationNextColor;
-            }
-            else
-            {
-                glyph = "•  ";
-                colour = inFocus ? OperationAvailableColor : OperationOutOfFocusColor;
-            }
-
-            var msg = new FormattedMessage();
-            msg.AddText(glyph);
-            msg.AddText(op.OperationName);
-
-            op.Set(msg, null);
-            op.Button.Modulate = colour;
-        }
-
-        return recommended?.OperationName;
-    }
-
-    private void UpdateHeader()
-    {
-        if (_window == null)
-            return;
-
-        BuildBreadcrumb();
-        _dollPresenter?.Refresh(_entities.TryGetNetEntity(_part, out var netPart) ? netPart : null);
-
-        if (_entities.TryGetComponent(_part, out MetaDataComponent? partMeta) &&
-            _entities.TryGetComponent(_surgery?.Ent, out MetaDataComponent? surgeryMeta))
-            _window.Title = Loc.GetString("surgery-ui-window-title-operation",
-                ("part", partMeta.EntityName), ("operation", surgeryMeta.EntityName));
-        else if (partMeta != null)
-            _window.Title = Loc.GetString("surgery-ui-window-title-part", ("part", partMeta.EntityName));
         else
+        {
+            var problems = plan.Groups.Count(g => g.Kind == FSPlanGroupKind.Problem);
+            msg.AddText(Loc.GetString(plan.IsOpen ? "surgery-ui-plan-header-open" : "surgery-ui-plan-header",
+                ("part", Name(p)),
+                ("problems", problems)));
+        }
+
+        msg.Pop();
+        _window.PlanHeader.SetMessage(msg);
+    }
+
+    private void UpdateTitle()
+    {
+        if (_window == null)
+            return;
+
+        if (_part is not { } part || !_entities.EntityExists(part))
+        {
             _window.Title = Loc.GetString("surgery-ui-window-title");
+            return;
+        }
+
+        _window.Title = _procedure is { } procedure && _system.GetSingleton(procedure) is { } surgery
+            ? Loc.GetString("surgery-ui-window-title-operation", ("part", Name(part)), ("operation", Name(surgery)))
+            : Loc.GetString("surgery-ui-window-title-part", ("part", Name(part)));
     }
 
     private void BuildBreadcrumb()
@@ -843,7 +762,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
         if (_window == null)
             return;
 
-        var key = $"{_part?.Id};{_surgery?.Proto.Id};{string.Join(',', _previousSurgeries)}";
+        var key = $"{_part?.Id};{_procedure?.Id}";
         if (key == _crumbKey)
             return;
 
@@ -852,55 +771,22 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         AddCrumb(Loc.GetString("surgery-ui-crumb-patient"), _part != null, () =>
         {
-            ClearSelection();
-            UpdateHeader();
-            RefreshUI();
+            _part = null;
+            _procedure = null;
+            Refresh();
         });
 
-        if (_part == null)
+        if (_part is not { } part || !_entities.EntityExists(part))
             return;
 
-        var partName = _entities.GetComponent<MetaDataComponent>(_part.Value).EntityName;
-        AddCrumb(partName, _surgery != null, () =>
+        AddCrumb(Name(part), _procedure != null, () =>
         {
-            if (!_entities.TryGetNetEntity(_part, out var netPart)
-                || State is not SurgeryBuiState s
-                || !s.Choices.TryGetValue(netPart.Value, out var surgeries))
-                return;
-
-            _surgery = null;
-            _previousSurgeries.Clear();
-
-            if (_stepsKey != null)
-            {
-                _stepsKey = null;
-                _window.Steps.DisposeAllChildren();
-            }
-
-            OnPartPressed(netPart.Value, surgeries);
+            _procedure = null;
+            Refresh();
         });
 
-        for (var i = 0; i < _previousSurgeries.Count; i++)
-        {
-            var index = i;
-            var protoId = _previousSurgeries[i];
-            if (_system.GetSingleton(protoId) is not { } ent)
-                continue;
-
-            var name = _entities.GetComponent<MetaDataComponent>(ent).EntityName;
-            AddCrumb(name, true, () =>
-            {
-                if (!_entities.TryGetNetEntity(_part, out var netPart)
-                    || !_entities.TryGetComponent(ent, out SurgeryComponent? comp))
-                    return;
-
-                _previousSurgeries.RemoveRange(index, _previousSurgeries.Count - index);
-                OnSurgeryPressed((ent, comp), netPart.Value, protoId);
-            });
-        }
-
-        if (_surgery is { } current)
-            AddCrumb(_entities.GetComponent<MetaDataComponent>(current.Ent).EntityName, false, null);
+        if (_procedure is { } procedure && _system.GetSingleton(procedure) is { } surgery)
+            AddCrumb(Name(surgery), false, null);
     }
 
     private void AddCrumb(string text, bool navigable, Action? onPressed)
@@ -937,10 +823,13 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _window.Breadcrumb.AddChild(button);
     }
 
-    private enum StepStatus
+    private string Name(EntityUid uid)
     {
-        Next,
-        Complete,
-        Incomplete
+        return _entities.GetComponent<MetaDataComponent>(uid).EntityName;
+    }
+
+    private Texture? Icon(EntityUid step)
+    {
+        return _entities.GetComponentOrNull<SpriteComponent>(step)?.Icon?.Default;
     }
 }

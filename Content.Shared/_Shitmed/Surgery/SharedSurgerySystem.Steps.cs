@@ -1060,6 +1060,12 @@ public abstract partial class SharedSurgerySystem
         return false;
     }
 
+    public bool ToolFitsStep(EntityUid user, EntityUid body, EntityUid part, EntityUid step, EntityUid tool)
+    {
+        return CanPerformStep(user, body, part, step, tool, false, out _, out var reason, out _)
+               || reason != StepInvalidReason.MissingTool;
+    }
+
     private bool CanPerformStep(EntityUid user, EntityUid body, EntityUid part, EntityUid step, EntityUid tool, bool doPopup)
     {
         return CanPerformStep(user, body, part, step, tool, doPopup, out _, out _, out _);
@@ -1126,6 +1132,20 @@ public abstract partial class SharedSurgerySystem
             return;
 
         Dirty(body, progress);
+    }
+
+    public LocId DescribeToolPlace(EntityUid user, EntityUid tool)
+    {
+        if (tool == user)
+            return "fs-surgery-tool-bare-hands";
+
+        if (_hands.IsHolding(user, tool))
+            return "fs-surgery-tool-in-hand";
+
+        if (_containers.TryGetOuterContainer(tool, Transform(tool), out var container) && container.Owner == user)
+            return "fs-surgery-tool-on-you";
+
+        return "fs-surgery-tool-nearby";
     }
 
     public string DescribeRefusal(StepInvalidReason reason, EntProtoId step, string? popup)
@@ -1199,7 +1219,7 @@ public abstract partial class SharedSurgerySystem
         return duration;
     }
 
-    private bool IsStepComplete(EntityUid body, EntityUid part, EntProtoId step, EntityUid surgery)
+    public bool IsStepComplete(EntityUid body, EntityUid part, EntProtoId step, EntityUid surgery)
     {
         if (GetSingleton(step) is not { } stepEnt)
             return false;

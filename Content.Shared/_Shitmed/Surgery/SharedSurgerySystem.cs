@@ -10,6 +10,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Steps;
 using Content.Shared._Shitmed.Medical.Surgery.Steps.Parts;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
+using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Surgery;
 using Content.Shared.Buckle.Components;
@@ -220,13 +221,24 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
     private void OnWoundedValid(Entity<SurgeryWoundedConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!TryComp(args.Organ, out WoundableComponent? partWoundable)
-            || _wounds.GetWoundableSeverityPoint(
-                args.Organ,
-                partWoundable,
-                ent.Comp.DamageGroup,
-                healable: true) <= 0)
+        if (!TryComp(args.Organ, out WoundableComponent? partWoundable))
+        {
             args.Cancelled = true;
+            return;
+        }
+
+        if (_wounds.GetWoundableSeverityPoint(args.Organ, partWoundable, ent.Comp.DamageGroup, healable: true) > 0)
+            return;
+
+        if (_wounds.GetWoundableSeverityPoint(args.Organ, partWoundable, ent.Comp.DamageGroup) > 0)
+        {
+            if (args.IgnoreBlockers)
+                return;
+
+            args.Blocker ??= "fs-surgery-tend-wounds-blocked";
+        }
+
+        args.Cancelled = true;
     }
 
     private void OnBodyComponentConditionValid(Entity<SurgeryBodyComponentConditionComponent> ent, ref SurgeryValidEvent args)
@@ -372,8 +384,20 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         if (args.Cancelled)
             return;
 
-        if (_trauma.HasWoundableTrauma(args.Organ, ent.Comp.TraumaType) == ent.Comp.Inverted)
-            args.Cancelled = true;
+        if (_trauma.HasWoundableTrauma(args.Organ, ent.Comp.TraumaType) != ent.Comp.Inverted)
+            return;
+
+        if (ent.Comp.Inverted)
+        {
+            if (args.IgnoreBlockers)
+                return;
+
+            args.Blocker ??= ent.Comp.TraumaType == TraumaType.Dismemberment
+                ? "fs-surgery-wait-stump"
+                : "fs-surgery-wait-trauma";
+        }
+
+        args.Cancelled = true;
     }
 
     private void OnBleedsPresentConditionValid(Entity<SurgeryBleedsPresentConditionComponent> ent, ref SurgeryValidEvent args)
@@ -384,9 +408,18 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             return;
         }
 
-        if (ent.Comp.Inverted == woundable.Bleeds > 0
-            && !HasComp<BleedersClampedComponent>(args.Organ))
-            args.Cancelled = true;
+        if (ent.Comp.Inverted != woundable.Bleeds > 0 || HasComp<BleedersClampedComponent>(args.Organ))
+            return;
+
+        if (ent.Comp.Inverted)
+        {
+            if (args.IgnoreBlockers)
+                return;
+
+            args.Blocker ??= "fs-surgery-wait-bleeding";
+        }
+
+        args.Cancelled = true;
     }
 
 private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent, ref SurgeryValidEvent args)

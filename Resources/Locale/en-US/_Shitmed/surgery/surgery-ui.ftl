@@ -25,23 +25,47 @@ surgery-part-damage-evaded = {$user} narrowly evaded!
 
 # FINALSTAND: single-screen layout.
 surgery-ui-column-body = BODY
-surgery-ui-column-operations = OPERATIONS
-surgery-ui-column-procedure = PROCEDURE
+surgery-ui-column-plan = PLAN
 surgery-ui-crumb-patient = Patient
 surgery-ui-perform = Perform
+surgery-ui-do-all = Do all
+surgery-ui-do-all-tooltip = Keep going: start each next step by itself while the tools are within reach. Moving away or a missing tool stops it.
+
+surgery-ui-plan-header = {$part}: {$problems ->
+    [0] nothing to fix
+    [one] 1 problem
+   *[other] {$problems} problems
+}
+surgery-ui-plan-header-open = {$part}: {$problems ->
+    [0] open, nothing left to fix
+    [one] open, 1 problem
+   *[other] open, {$problems} problems
+}
+surgery-ui-plan-procedure = {$part}: {$operation}
+surgery-ui-plan-back = Back to plan
+surgery-ui-plan-open = Open up: {$operation}
+surgery-ui-plan-close = Close up: {$operation}
+surgery-ui-plan-fixed = {$operation}: fixed
+surgery-ui-plan-waiting = Waiting: {$reason}
+surgery-ui-plan-other = Other procedures ({$count})
+surgery-ui-plan-other-hide = Hide other procedures
+surgery-ui-plan-other-tooltip = Amputation, transplants and implants. None of these treat an injury.
+surgery-ui-step-running = in progress...
+surgery-ui-step-details = {$tool} ({$where}) · {$seconds}s
+surgery-ui-step-details-needs = needs {$tool} · {$seconds}s
+surgery-ui-step-details-time = {$seconds}s
 
 # FINALSTAND: the persistent guidance bar.
-surgery-ui-guidance-select = Select a body part, then an operation.
-surgery-ui-guidance-start-with = START WITH: {$operation}
-surgery-ui-guidance-nothing-to-do = Nothing left to do on this part.
-surgery-ui-guidance-nothing-in-focus = No {$focus} work on this part.
-
-surgery-ui-filter-all = All
-surgery-ui-filter-bleeding = Bleeding
-surgery-ui-filter-wounds = Wounds
-surgery-ui-filter-bones = Bones
-surgery-ui-filter-organs = Organs
-
+surgery-ui-guidance-toggle = Hints
+surgery-ui-guidance-select = Select a body part on the doll.
+surgery-ui-guidance-cannot-operate = You cannot operate right now.
+surgery-ui-guidance-next = NEXT: {$step} · {$details}
+surgery-ui-guidance-blocked = NEXT: {$step} · {$reason}
+surgery-ui-guidance-starting = Starting {$step}...
+surgery-ui-guidance-working = Working... wait for this step to finish.
+surgery-ui-guidance-waiting = {$problem} is waiting. {$reason}
+surgery-ui-guidance-all-fixed = Everything on this part is fixed and closed.
+surgery-ui-guidance-nothing-to-do = Nothing to fix on this part.
 surgery-ui-guidance-unsterile-note = (No gloves and mask: each step gives the patient a dose of toxin.)
 
 surgery-ui-limb-condition = Condition: {$condition}
@@ -50,6 +74,7 @@ surgery-ui-limb-bleeding = Bleeding ({$rate})
 surgery-ui-limb-bone = Broken bone
 surgery-ui-limb-organ = Organ damage
 surgery-ui-limb-dismembered = Dismembered
+surgery-ui-limb-missing = Missing. Click to reattach it from the {$part}.
 
 surgery-ui-severity-healthy = Healthy
 surgery-ui-severity-minor = Minor
@@ -58,23 +83,3 @@ surgery-ui-severity-severe = Severe
 surgery-ui-severity-critical = Critical
 surgery-ui-severity-mangled = Mangled
 surgery-ui-severity-severed = Severed
-surgery-ui-guidance-cannot-operate = You cannot operate right now.
-surgery-ui-guidance-complete = Operation complete.
-surgery-ui-guidance-prerequisite = Finish the required operation above first.
-surgery-ui-guidance-ready = NEXT: {$step} — ready
-surgery-ui-guidance-blocked = NEXT: {$step} — {$reason}
-surgery-ui-guidance-blocked-generic = you can't do this yet
-surgery-ui-guidance-need-tool = needs {$tool} — none within reach
-surgery-ui-guidance-need-table = move them onto an operating table
-surgery-ui-guidance-armor = their clothing is in the way, take it off first
-surgery-ui-guidance-skills = you lack the surgical training
-surgery-ui-guidance-previous = finish the earlier steps first
-surgery-ui-guidance-goal-first = GOAL: {$goal} — first you must finish {$requirement}
-surgery-ui-guidance-toggle = Hints
-surgery-ui-guidance-close-up = Repair done. Close up next: {$step}
-surgery-ui-guidance-next-goal = Repair done. Next problem on this part: {$step}
-surgery-ui-guidance-working = Working... wait for this step to finish.
-surgery-ui-show-unavailable = Show {$count} unavailable
-surgery-ui-hide-unavailable = Hide unavailable
-surgery-ui-unavailable-tooltip = Not possible on this part right now. Either it isn't needed, or something else has to be fixed first.
-surgery-ui-limb-missing = Missing. Click to reattach it from the {$part}.

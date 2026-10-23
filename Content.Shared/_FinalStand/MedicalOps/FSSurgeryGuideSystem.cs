@@ -20,7 +20,17 @@ public sealed partial class FSSurgeryGuideSystem : EntitySystem
     private readonly HashSet<string> _closing = new();
     private readonly HashSet<string> _electives = new();
 
+    private readonly List<EntProtoId> _goalList = new();
+    private readonly List<EntProtoId> _closingList = new();
+    private readonly List<EntProtoId> _electiveList = new();
+
     public bool HasGuide { get; private set; }
+
+    public IReadOnlyList<EntProtoId> Goals => _goalList;
+
+    public IReadOnlyList<EntProtoId> Closing => _closingList;
+
+    public IReadOnlyList<EntProtoId> Electives => _electiveList;
 
     public override void Initialize()
     {
@@ -41,23 +51,35 @@ public sealed partial class FSSurgeryGuideSystem : EntitySystem
         _access.Clear();
         _closing.Clear();
         _electives.Clear();
+        _goalList.Clear();
+        _closingList.Clear();
+        _electiveList.Clear();
         HasGuide = false;
 
         foreach (var guide in _prototypes.EnumeratePrototypes<FSSurgeryGuidePrototype>())
         {
             HasGuide = true;
 
-            for (var i = 0; i < guide.Goals.Count; i++)
-                _goalOrder.TryAdd(guide.Goals[i].Id, i);
+            foreach (var id in guide.Goals)
+            {
+                if (_goalOrder.TryAdd(id.Id, _goalList.Count))
+                    _goalList.Add(id);
+            }
 
             foreach (var id in guide.Access)
                 _access.Add(id.Id);
 
             foreach (var id in guide.Closing)
-                _closing.Add(id.Id);
+            {
+                if (_closing.Add(id.Id))
+                    _closingList.Add(id);
+            }
 
             foreach (var id in guide.Electives)
-                _electives.Add(id.Id);
+            {
+                if (_electives.Add(id.Id))
+                    _electiveList.Add(id);
+            }
         }
     }
 

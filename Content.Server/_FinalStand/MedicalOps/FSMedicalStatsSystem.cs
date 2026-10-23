@@ -248,13 +248,15 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             _surgeriesPaid[key] = (wave, 1);
         }
 
+        var credits = (int) MathF.Round(SurgeryCredits * WaveGameRuleSystem.GetWaveKillMultiplier(wave));
+
         Award(surgeonMind, "surgery",
             points: SurgeryPoints,
-            credits: SurgeryCredits,
+            credits: credits,
             fund: SurgeryFund);
 
         _adminLogger.Add(LogType.Healed, LogImpact.Medium,
-            $"{ToPrettyString(surgeonMind):surgeon} completed surgery on {ToPrettyString(args.Patient):patient} for {SurgeryCredits} credits");
+            $"{ToPrettyString(surgeonMind):surgeon} completed surgery on {ToPrettyString(args.Patient):patient} for {credits} credits");
     }
 
     private void OnTopicalApplied(EntityUid uid, FSMedicalPatientComponent comp, ref FSTopicalAppliedEvent args)
