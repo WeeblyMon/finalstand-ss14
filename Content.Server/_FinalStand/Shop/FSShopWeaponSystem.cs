@@ -75,7 +75,8 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
     private void OnExamined(EntityUid uid, FSShopWeaponComponent comp, ExaminedEvent args)
     {
-        args.PushMarkup(Loc.GetString("shop-weapon-examine-price", ("price", comp.Price)));
+        if (comp.Purchasable)
+            args.PushMarkup(Loc.GetString("shop-weapon-examine-price", ("price", comp.Price)));
     }
 
     // Research and department locks. Every entry point checks this, not just the UI open.
@@ -163,7 +164,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         if (comp.WeaponProtoId == null)
             return;
 
-        if (!TryAccess(uid, comp, player))
+        if (!TryAccess(uid, comp, player) || !comp.Purchasable)
             return;
 
         var owned = new List<CarriedItem>();

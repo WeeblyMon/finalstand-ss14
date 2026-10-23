@@ -25,6 +25,9 @@ public sealed partial class FSShopWeaponComponent : Component
     public bool SinglePurchase;
 
     [DataField]
+    public bool Purchasable = true;
+
+    [DataField]
     public List<EntProtoId> WeaponProtoIdAliases = [];
 
     [DataField]
