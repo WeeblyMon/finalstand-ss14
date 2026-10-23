@@ -134,6 +134,8 @@ public sealed partial class FSPerkSystem : EntitySystem
             for (var i = 0; i < perks.Loadouts.Length; i++)
                 perks.Loadouts[i] = new FSPerkLoadout();
             perks.Invalidate();
+            // A locked-in perk is gone with the build, and a lock on it would refuse every build after.
+            RemComp<FSPerkLockComponent>(mindId);
 
             SendStateToClient(mindId, perks);
             if (mind.CurrentEntity is { } body)
