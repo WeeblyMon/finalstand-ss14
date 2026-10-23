@@ -20,6 +20,10 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public FSMeleeHeavyStyle HeavyStyle = FSMeleeHeavyStyle.Swing;
 
+    // How to use the weapon's tricks, shown on examine and in its shop.
+    [DataField]
+    public LocId? Hint;
+
     // Seconds at the weapon's base attack rate before anything else can be swung after a heavy attack.
     [DataField]
     public float HeavyRecovery;

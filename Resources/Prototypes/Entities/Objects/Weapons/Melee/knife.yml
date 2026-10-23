@@ -112,6 +112,7 @@
   components:
   - type: FSMeleeBlood # FINALSTAND
   - type: FSMeleeJuice # FINALSTAND
+    hint: fs-melee-hint-knife
     heavyRecovery: 1.1
     critWhen: Wounded
     executionHealth: 0.35
