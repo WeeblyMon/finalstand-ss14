@@ -110,7 +110,26 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return false;
         }
 
+        if (comp.RequiresHeldWeapon && !HoldsShopWeapon(player, comp))
+        {
+            if (!silent)
+                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-held"), uid, player);
+            return false;
+        }
+
         return true;
+    }
+
+    private bool HoldsShopWeapon(EntityUid player, FSShopWeaponComponent comp)
+    {
+        var protos = ShopProtoIds(comp);
+        foreach (var held in _hands.EnumerateHeld(player))
+        {
+            if (MetaData(held).EntityPrototype?.ID is { } id && protos.Contains(id))
+                return true;
+        }
+
+        return false;
     }
 
     private bool IsResearched(string nodeId) =>
