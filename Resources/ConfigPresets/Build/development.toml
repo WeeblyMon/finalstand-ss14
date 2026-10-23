@@ -17,7 +17,8 @@ role_time = 0.5
 quick_lottery = true
 
 [movement]
-mob_pushing = true
+# FINALSTAND: off, as in release. Pushing collides through the fire-spread fixture, which FS mobs don't get.
+mob_pushing = false
 
 [physics]
 # Makes mapping annoying
