@@ -46,7 +46,8 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnEnemyDied);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<WavePrepSkippedEvent>(OnPrepSkipped);
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+        // After leveling: the catch-up is earned money, and the scoreboard only counts it once the mind has a level.
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete, after: [typeof(FSLevelingSystem)]);
     }
 
     private bool TryGetRewards(out FSWaveRewardsComponent rewards)
