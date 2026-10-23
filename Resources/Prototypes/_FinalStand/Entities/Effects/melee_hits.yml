@@ -83,6 +83,17 @@
 
 - type: entity
   parent: FSMeleeEffectBase
+  id: FSMeleeSpinCutlass
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.3
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/whirl.rsi
+    state: cutlass
+
+- type: entity
+  parent: FSMeleeEffectBase
   id: FSMeleeHitCross
   categories: [ HideSpawnMenu ]
   components:

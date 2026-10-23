@@ -1,0 +1,26 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-3.0",
+    "copyright": "Created for FinalStand",
+    "size": {
+        "x": 128,
+        "y": 128
+    },
+    "states": [
+        {
+            "name": "cutlass",
+            "delays": [
+                [
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035
+                ]
+            ]
+        }
+    ]
+}

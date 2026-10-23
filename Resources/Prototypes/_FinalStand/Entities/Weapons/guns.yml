@@ -786,7 +786,7 @@
       killEmitter: FSMeleeBlood
       killSound:
         collection: FSMeleeFleshSquish
-      swingEffect: FSMeleeSpinRing
+      swingEffect: FSMeleeSpinCutlass
       trailColor: "#9ec3ffcc"
       trailWidth: 0.07
       trailDuration: 0.18
