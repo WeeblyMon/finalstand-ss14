@@ -106,6 +106,22 @@ public sealed partial class FSPlayerUpgradesSystem
                     break;
                 }
 
+            case WeaponUpgradeType.DashPower:
+                {
+                    state.DashBonus += def.ValuePerLevel;
+                    break;
+                }
+            case WeaponUpgradeType.Whirlwind:
+                {
+                    state.WhirlwindEnabled = true;
+                    break;
+                }
+            case WeaponUpgradeType.StabLifeSteal:
+                {
+                    state.StabHeal += def.ValuePerLevel;
+                    break;
+                }
+
             default:
                 return false;
         }

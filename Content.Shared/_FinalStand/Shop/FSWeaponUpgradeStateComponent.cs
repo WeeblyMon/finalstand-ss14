@@ -87,4 +87,8 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public int OverloadRoundLevel = 0;
     [DataField, AutoNetworkedField] public int HomingLevel = 0;
     [DataField] public int MultishotLevel = 0;
+
+    [DataField, AutoNetworkedField] public float DashBonus = 0f;
+    [DataField, AutoNetworkedField] public bool WhirlwindEnabled = false;
+    [DataField] public float StabHeal = 0f;
 }

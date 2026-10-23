@@ -202,6 +202,17 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         TryGiveItemToPlayer(player, weapon);
 
+        var starters = false;
+        foreach (var def in comp.Upgrades)
+        {
+            if (!def.Starter)
+                continue;
+
+            EnsureComp<FSWeaponUpgradeStateComponent>(weapon).Levels[def.Id] = 1;
+            _upgrades.ApplySingleUpgrade(weapon, player, def, 1);
+            starters = true;
+        }
+
         if (comp.StarterAmmoProtoId != null)
         {
             var coords = Transform(player).Coordinates.Offset(new System.Numerics.Vector2(0.5f, 0.5f));
@@ -214,7 +225,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         var (buyAcc, buyNextAcc) = ComputeAccuracy(player, comp);
-        SendWeaponLevels(mindId, new Dictionary<string, int>(), ComputeWeaponTitle(player, comp), buyAcc, buyNextAcc);
+        SendWeaponLevels(mindId, starters ? CollectShopLevels(player, comp) : new Dictionary<string, int>(), ComputeWeaponTitle(player, comp), buyAcc, buyNextAcc);
     }
 
     private void OnUpgradeMessage(EntityUid uid, FSShopWeaponComponent comp, FSShopUpgradeMessage args)
