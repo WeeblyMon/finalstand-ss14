@@ -7,6 +7,7 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Doors.Components;
 using Content.Shared.Item;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Movement.Components;
 using Content.Shared.NPC;
 using Content.Shared.Weapons.Melee;
 using Robust.Shared.Physics;
@@ -35,6 +36,13 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
 
     private readonly Dictionary<EntityUid, float> _blockedFor = new();
     private readonly List<EntityUid> _stale = new();
+    private EntityQuery<InputMoverComponent> _moverQuery;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        _moverQuery = GetEntityQuery<InputMoverComponent>();
+    }
 
     public override void Update(float frameTime)
     {
@@ -44,12 +52,15 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
         var elapsed = frameTime * TickBuckets;
 
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, NPCSteeringComponent, PhysicsComponent>();
-        while (query.MoveNext(out var uid, out _, out _, out var steering, out var body))
+        while (query.MoveNext(out var uid, out _, out _, out _, out var body))
         {
-            if (FSTickBucket.Of(uid, TickBuckets) != bucket)
+            if (FSTickBucket.Of(uid, TickBuckets) != bucket || !_moverQuery.TryComp(uid, out var mover))
                 continue;
 
-            var wantsToMove = steering.LastSteerDirection.LengthSquared() > 0.01f;
+            // What steering is asking for now. Its last heading outlives a stop on arrival or in a queue, which read
+            // as pushing against whatever happened to be in front.
+            var heading = mover.CurTickSprintMovement;
+            var wantsToMove = heading.LengthSquared() > 0.01f;
             if (!wantsToMove || body.LinearVelocity.LengthSquared() > StalledSpeedSquared)
             {
                 _blockedFor.Remove(uid);
@@ -61,7 +72,7 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
             if (blocked < BlockedSeconds)
                 continue;
 
-            if (TryFindObstacle(uid, steering.LastSteerDirection, out var obstacle))
+            if (TryFindObstacle(uid, heading, out var obstacle))
                 Smash(uid, obstacle);
         }
 
@@ -136,8 +147,14 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
         if (!TryComp<CombatModeComponent>(uid, out var combat))
             return;
 
-        _combat.SetInCombatMode(uid, true, combat);
+        // Left as it was found: switching it off ended any melee plan the zombie was in the middle of.
+        var wasInCombat = combat.IsInCombatMode;
+        if (!wasInCombat)
+            _combat.SetInCombatMode(uid, true, combat);
+
         _melee.AttemptLightAttack(uid, weaponUid, weapon, obstacle);
-        _combat.SetInCombatMode(uid, false, combat);
+
+        if (!wasInCombat)
+            _combat.SetInCombatMode(uid, false, combat);
     }
 }

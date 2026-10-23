@@ -210,9 +210,15 @@ public sealed partial class NPCSteeringSystem
                 if (target == null)
                     return SteeringObstacleStatus.Failed;
 
-                _combat.SetInCombatMode(uid, true, combatMode);
+                // FINALSTAND: left as it was found; switching it off ended any melee plan the NPC was in.
+                var wasInCombat = combatMode.IsInCombatMode;
+                if (!wasInCombat)
+                    _combat.SetInCombatMode(uid, true, combatMode);
+
                 _melee.AttemptLightAttack(uid, uid, meleeWeapon, target.Value);
-                _combat.SetInCombatMode(uid, false, combatMode);
+
+                if (!wasInCombat)
+                    _combat.SetInCombatMode(uid, false, combatMode);
 
                 if (obstacleEnts.Count == 0)
                     return SteeringObstacleStatus.Completed;
