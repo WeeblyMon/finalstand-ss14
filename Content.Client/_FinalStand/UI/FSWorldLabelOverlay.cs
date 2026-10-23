@@ -77,7 +77,11 @@ public abstract partial class FSWorldLabelOverlay<TMarker> : Overlay where TMark
             if (!ShouldDraw(uid, marker, xform))
                 continue;
 
-            var screenPos = Vector2.Transform(_xform.GetWorldPosition(xform) + WorldOffset, matrix);
+            var world = _xform.GetWorldPosition(xform);
+            if (WorldOffset != Vector2.Zero)
+                world += _xform.GetWorldRotation(xform).RotateVec(WorldOffset);
+
+            var screenPos = Vector2.Transform(world, matrix);
 
             if (screenPos.X < bounds.Left - CullMargin || screenPos.X > bounds.Right + CullMargin ||
                 screenPos.Y < bounds.Top - CullMargin || screenPos.Y > bounds.Bottom + CullMargin)
