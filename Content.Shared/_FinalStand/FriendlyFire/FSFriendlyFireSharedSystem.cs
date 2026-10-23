@@ -19,7 +19,15 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
         SubscribeLocalEvent<FSPlayerDamageImmuneComponent, BeforeDamageChangedEvent>(OnBeforeStructureDamage);
         SubscribeLocalEvent<FSFriendlyFireComponent, AttackAttemptEvent>(OnAttackAttempt);
         SubscribeLocalEvent<FSFriendlyFireComponent, PreventCollideEvent>(OnPlayerPreventCollide);
+        SubscribeLocalEvent<FSAllyProjectileComponent, PreventCollideEvent>(OnAllyProjectilePreventCollide);
         SubscribeLocalEvent<MeleeWeaponComponent, MeleeHitEvent>(OnMeleeHit);
+    }
+
+    // Support darts fly through the horde to reach the crewmate behind it.
+    private void OnAllyProjectilePreventCollide(EntityUid uid, FSAllyProjectileComponent _, ref PreventCollideEvent args)
+    {
+        if (HasComp<MobStateComponent>(args.OtherEntity) && !HasComp<FSFriendlyFireComponent>(args.OtherEntity))
+            args.Cancelled = true;
     }
 
     private void OnBeforeDamage(EntityUid uid, FSFriendlyFireComponent _, ref BeforeDamageChangedEvent args)

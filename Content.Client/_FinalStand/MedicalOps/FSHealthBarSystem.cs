@@ -1,4 +1,5 @@
 using Content.Client.Overlays;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Overlays;
@@ -23,6 +24,8 @@ public sealed partial class FSHealthBarSystem : EntitySystem
     private TimeSpan _nextRefresh;
 
     public const string ChemSourcePrefix = FSApplyCombatBuff.SourcePrefix;
+
+    private const float BuffStripSeconds = 20f;
 
     public override void Initialize()
     {
@@ -85,6 +88,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
         RefreshChemBuffed(overlay);
     }
 
+    // Only timed chems count, so the wave tonic doesn't hide who needs a dose.
     private void RefreshChemBuffed(EntityHealthBarOverlay overlay)
     {
         overlay.ChemBuffed.Clear();
@@ -95,20 +99,28 @@ public sealed partial class FSHealthBarSystem : EntitySystem
 
         while (query.MoveNext(out var uid, out var bonus))
         {
-            var buffed = false;
+            var left = 0f;
 
             foreach (var (source, buff) in bonus.Active)
             {
-                if (!source.StartsWith(ChemSourcePrefix) || buff.IsExpired(now))
+                if (!source.StartsWith(ChemSourcePrefix) || buff.EndTime is not { } end || end <= now)
                     continue;
 
-                buffed = true;
-                break;
+                left = MathF.Max(left, (float) (end - now).TotalSeconds);
             }
 
-            if (buffed)
-                overlay.ChemBuffed.Add(uid);
-            else if (_isChemist)
+            if (left > 0f)
+                overlay.ChemBuffed[uid] = Math.Clamp(left / BuffStripSeconds, 0f, 1f);
+        }
+
+        if (!_isChemist)
+            return;
+
+        var local = _playerManager.LocalEntity;
+        var crew = EntityQueryEnumerator<FSFriendlyFireComponent>();
+        while (crew.MoveNext(out var uid, out _))
+        {
+            if (uid != local && !overlay.ChemBuffed.ContainsKey(uid))
                 overlay.ChemUnbuffed.Add(uid);
         }
     }

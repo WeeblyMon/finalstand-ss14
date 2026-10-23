@@ -1,0 +1,223 @@
+- type: entity
+  parent: BaseItem
+  id: FSChemLauncher
+  name: chem launcher
+  description: Lobs canisters of field chemistry. Support clouds dose the crew, hostile clouds eat the horde, and every kill nearby tops the reserve back up. Z swaps formula.
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Launchers/china_lake.rsi
+    layers:
+    - state: icon
+      color: "#a8e6c0"
+  - type: Item
+    size: Large
+    shape:
+    - 0,0,3,1
+  - type: Clothing
+    sprite: Objects/Weapons/Guns/Launchers/china_lake.rsi
+    quickEquip: false
+    slots:
+    - back
+    - suitStorage
+  - type: Gun
+    fireRate: 1.25
+    projectileSpeed: 14
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/grenade_launcher.ogg
+    soundEmpty:
+      path: /Audio/Weapons/Guns/Empty/empty.ogg
+    clumsyProof: true
+  - type: FSChemLauncher
+    slots:
+    - FSFormulaCombatStim
+    - FSFormulaMendingMist
+    - FSFormulaCorrosive
+  - type: AmmoCounter
+  - type: Appearance
+
+- type: latheRecipe
+  id: FSChemLauncher
+  result: FSChemLauncher
+  completetime: 8
+  materials:
+    Steel: 800
+    Plastic: 300
+    Glass: 200
+
+- type: entity
+  parent: BaseItem
+  id: FSChemCanisterBase
+  abstract: true
+  name: chem canister
+  description: A pressurised canister that bursts into a cloud where it lands.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+  - type: Item
+    size: Tiny
+  - type: TimedDespawn
+    lifetime: 4
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterCombatStim
+  suffix: Combat Stim
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#4FBF7A"
+  - type: FSChemCanister
+    formula: FSFormulaCombatStim
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterMendingMist
+  suffix: Mending Mist
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#C05A6E"
+  - type: FSChemCanister
+    formula: FSFormulaMendingMist
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterCorrosive
+  suffix: Corrosive
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#B5D33A"
+  - type: FSChemCanister
+    formula: FSFormulaCorrosive
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterWeakening
+  suffix: Weakening Agent
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#9B59B6"
+  - type: FSChemCanister
+    formula: FSFormulaWeakening
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterSolvent
+  suffix: Solvent
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#C9762E"
+  - type: FSChemCanister
+    formula: FSFormulaSolvent
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterEtchant
+  suffix: Etchant
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#7FA9D8"
+  - type: FSChemCanister
+    formula: FSFormulaEtchant
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterAdrenalSurge
+  suffix: Adrenal Surge
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#F0813C"
+  - type: FSChemCanister
+    formula: FSFormulaAdrenalSurge
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterBattleAnalgesic
+  suffix: Battle Analgesic
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#7FC4DE"
+  - type: FSChemCanister
+    formula: FSFormulaBattleAnalgesic
+
+- type: entity
+  parent: FSChemCanisterBase
+  id: FSChemCanisterBindingAgent
+  suffix: Binding Agent
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    layers:
+    - state: chemg
+      color: "#C8B98A"
+  - type: FSChemCanister
+    formula: FSFormulaBindingAgent
+
+- type: entity
+  id: FSChemZone
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSChemZone
+  - type: TimedDespawn
+    lifetime: 6
+
+- type: entity
+  id: FSChemCloud
+  name: chemical cloud
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Effects
+    noRot: true
+    sprite: Effects/chemsmoke.rsi
+    state: chemsmoke
+    color: "#FFFFFF73"
+  - type: Appearance
+  - type: SmokeVisuals
+  - type: TimedDespawn
+    lifetime: 6
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  parent: BaseItem
+  id: FSTonicCauldron
+  name: wave tonic urn
+  description: The chemist's tonic, brewed during prep. Take a cup before the wave starts - it lasts until the wave ends.
+  components:
+  - type: Sprite
+    sprite: Objects/Consumable/Drinks/vacuumflask.rsi
+    state: icon
+  - type: Item
+    size: Normal
+    sprite: Objects/Consumable/Drinks/vacuumflask.rsi
+  - type: FSTonicCauldron

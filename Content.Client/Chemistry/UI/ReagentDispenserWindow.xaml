@@ -62,9 +62,6 @@
                     <LineEdit Name="FilterEdit"
                               HorizontalExpand="True"
                               PlaceHolder="{Loc 'reagent-dispenser-window-filter-placeholder'}" />
-                    <Button Name="TargetChipButton"
-                            Visible="False"
-                            Margin="3 0 0 0" />
                 </BoxContainer>
                 <ScrollContainer HScrollEnabled="False"
                                  HorizontalExpand="True"
@@ -115,13 +112,9 @@
                            StyleClasses="LabelSubText"
                            VerticalAlignment="Center" />
                     <Control HorizontalExpand="True" />
-                    <Button Name="FieldKitTabButton"
-                            Text="{Loc 'reagent-dispenser-window-recipes-field-kit'}"
-                            StyleClasses="OpenRight"
-                            ToggleMode="True" />
                     <Button Name="BasicsTabButton"
                             Text="{Loc 'reagent-dispenser-window-recipes-basics'}"
-                            StyleClasses="OpenBoth"
+                            StyleClasses="OpenRight"
                             ToggleMode="True" />
                     <Button Name="CanMakeTabButton"
                             Text="{Loc 'reagent-dispenser-window-recipes-can-make'}"

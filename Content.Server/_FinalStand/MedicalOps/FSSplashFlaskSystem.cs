@@ -1,5 +1,5 @@
+using System.Linq;
 using Content.Server.Fluids.EntitySystems;
-using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
@@ -8,7 +8,6 @@ using Content.Shared.Coordinates.Helpers;
 using Content.Shared.Maps;
 using Content.Shared.Popups;
 using Content.Shared.Throwing;
-using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
@@ -16,6 +15,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
+// Field potions in a flask land as a chem zone; anything else a doctor pours in still clouds as ordinary smoke.
 public sealed partial class FSSplashFlaskSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
@@ -23,19 +23,17 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TurfSystem _turf = default!;
-    [Dependency] private EntityLookupSystem _lookup = default!;
-    [Dependency] private FSChemCreditSystem _credit = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
-    [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private FSChemZoneSystem _zones = default!;
 
-    private static readonly SoundSpecifier BurstSound =
-        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/flask_burst.ogg");
+    private static readonly EntProtoId SmokeProto = "FSSplashCloud";
+    private const float SmokeDuration = 10f;
+    private const int SmokeSpread = 6;
 
     private static readonly SoundSpecifier EmptySound =
         new SoundPathSpecifier("/Audio/Effects/Fluids/slosh.ogg");
-
-    private readonly HashSet<Entity<FSFriendlyFireComponent>> _crewBuffer = new();
 
     public override void Initialize()
     {
@@ -55,53 +53,36 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
         }
 
         var mapCoords = _xform.GetMapCoordinates(ent);
-
         if (!_map.TryFindGridAt(mapCoords, out var gridUid, out var grid)
-            || !_map.TryGetTileRef(gridUid, grid, Transform(ent).Coordinates, out var tileRef)
-            || _turf.IsSpace(tileRef))
-        {
+            || !_map.TryGetTileRef(gridUid, grid, mapCoords.Position, out var tile)
+            || _turf.IsSpace(tile))
             return;
-        }
 
         var payload = _solutions.SplitSolution(soln.Value, solution.Volume);
-        var coords = _map.MapToGrid(gridUid, mapCoords);
-        var cloud = Spawn(ent.Comp.CloudProto, coords.SnapToGrid());
+        var potions = payload.Contents
+            .Select(quantity => new ProtoId<ReagentPrototype>(quantity.Reagent.Prototype))
+            .Where(reagent => _zones.KindOf(reagent) != null)
+            .Distinct()
+            .ToList();
 
-        _smoke.StartSmoke(cloud, payload, ent.Comp.Duration, ent.Comp.SpreadAmount);
-        _audio.PlayPvs(BurstSound, coords);
-
-        if (args.User is { } thrower && AppliesCombatBuff(payload))
+        if (potions.Count > 0)
         {
-            _crewBuffer.Clear();
-            _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
+            var label = potions.Count == 1 && _prototypes.TryIndex(potions[0], out var reagent) ? reagent.LocalizedName : null;
+            _zones.SpawnZone(mapCoords, potions, args.User, null, false, label);
 
-            foreach (var crew in _crewBuffer)
-                _credit.RegisterDelivery(crew, thrower, FSMedicalPayoutRates.SplashClaimBudget);
+            foreach (var potion in potions)
+                payload.RemoveReagent(potion.Id, payload.GetTotalPrototypeQuantity(potion.Id));
         }
+
+        if (payload.Volume > 0)
+            Smoke(_map.MapToGrid(gridUid, mapCoords), payload);
 
         QueueDel(ent);
     }
 
-    private bool AppliesCombatBuff(Solution payload)
+    private void Smoke(EntityCoordinates coords, Solution payload)
     {
-        foreach (var quantity in payload.Contents)
-        {
-            if (!_prototypes.TryIndex(quantity.Reagent.Prototype, out ReagentPrototype? reagent))
-                continue;
-
-            if (reagent.ReactiveEffects == null)
-                continue;
-
-            foreach (var (_, reactive) in reagent.ReactiveEffects)
-            {
-                foreach (var effect in reactive.Effects)
-                {
-                    if (effect is FSApplyCombatBuff)
-                        return true;
-                }
-            }
-        }
-
-        return false;
+        var cloud = Spawn(SmokeProto, coords.SnapToGrid());
+        _smoke.StartSmoke(cloud, payload, SmokeDuration, SmokeSpread);
     }
 }

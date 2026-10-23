@@ -18,7 +18,8 @@ public sealed partial class WaveHudOverlay
     public string? ItemDetail;
     public UberMeter? Uber;
 
-    public readonly record struct UberMeter(float Charge, bool Active, float SecondsLeft, Color Color, string Key);
+    public readonly record struct UberMeter(float Charge, bool Active, float SecondsLeft, Color Color, string Key,
+        string Title = "ÜBERCHARGE", string Verb = "deploy Über", string ActiveHint = "ÜBER ACTIVE", string? ActiveStatus = null);
 
     public AbilityMeter? Ability;
 
@@ -189,9 +190,9 @@ public sealed partial class WaveHudOverlay
         var colour = ready ? Color.InterpolateBetween(UberGold, Color.White, flash * 0.6f) : uber.Color;
 
         ty += 6f;
-        screen.DrawString(_labelFont!, new Vector2(left, ty), "ÜBERCHARGE", ready ? colour : WeaponText);
+        screen.DrawString(_labelFont!, new Vector2(left, ty), uber.Title, ready ? colour : WeaponText);
 
-        var status = uber.Active ? $"{uber.SecondsLeft:0.0}s" : ready ? "READY" : $"{uber.Charge:0}%";
+        var status = uber.Active ? uber.ActiveStatus ?? $"{uber.SecondsLeft:0.0}s" : ready ? "READY" : $"{uber.Charge:0}%";
         var statusW = screen.GetDimensions(_labelFont!, status, 1f).X;
         screen.DrawString(_labelFont!, new Vector2(right - statusW, ty), status, uber.Active || ready ? colour : AmmoFull);
         ty += labelH + 3f;
@@ -217,7 +218,7 @@ public sealed partial class WaveHudOverlay
 
         ty += segH + 5f;
 
-        var hint = uber.Active ? "ÜBER ACTIVE" : $"[{uber.Key}] deploy Über";
+        var hint = uber.Active ? uber.ActiveHint : $"[{uber.Key}] {uber.Verb}";
         var hintColor = ready ? colour : HintDim;
         var chipW = screen.GetDimensions(_labelFont!, hint, 1f).X + hintPadX * 2f;
         var chip = new UIBox2(right - chipW, ty, right, ty + hintH);

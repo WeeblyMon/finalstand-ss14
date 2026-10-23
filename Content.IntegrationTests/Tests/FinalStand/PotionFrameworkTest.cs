@@ -11,6 +11,7 @@ using Content.Shared.Fluids.Components;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Melee;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
@@ -79,7 +80,7 @@ public sealed class PotionFrameworkTest : GameTest
     }
 
     [Test]
-    public async Task TheFlaskCloudsWithoutAnySmokePrecursor()
+    public async Task APotionFlaskLandsAsAChemZone()
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
@@ -87,19 +88,12 @@ public sealed class PotionFrameworkTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var solutions = entMan.System<SharedSolutionContainerSystem>();
+            var before = entMan.EntityQuery<FSChemZoneComponent>().Count();
 
-            var flask = entMan.SpawnEntity(FlaskProto, map.GridCoords);
-            Assert.That(solutions.TryGetSolution(flask, "flask", out var soln, out _), Is.True);
+            Land(entMan, map.GridCoords, "FSCorrosive", 30);
 
-            solutions.TryAddReagent(soln!.Value, "FSCorrosive", 30);
-
-            var ev = new LandEvent(null, false);
-            entMan.EventBus.RaiseLocalEvent(flask, ref ev);
-
-            var clouds = entMan.EntityQuery<SmokeComponent>().Count();
-            Assert.That(clouds, Is.GreaterThan(0),
-                "the whole point of a bespoke vessel is that any potion clouds, precursor or not");
+            Assert.That(entMan.EntityQuery<FSChemZoneComponent>().Count(), Is.EqualTo(before + 1),
+                "a thrown potion must land as the same zone the launcher makes, not as smoke");
         });
     }
 
@@ -112,24 +106,51 @@ public sealed class PotionFrameworkTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var solutions = entMan.System<SharedSolutionContainerSystem>();
-
-            var before = entMan.EntityQuery<SmokeComponent>().Count();
+            var before = entMan.EntityQuery<FSChemZoneComponent>().Count();
 
             foreach (var reagent in new[] { "FSCorrosive", "FSCombatStim" })
-            {
-                var flask = entMan.SpawnEntity(FlaskProto, map.GridCoords);
-                Assert.That(solutions.TryGetSolution(flask, "flask", out var soln, out _), Is.True,
-                    $"{reagent} must load into the same vessel");
+                Land(entMan, map.GridCoords, reagent, 20);
 
-                solutions.TryAddReagent(soln!.Value, reagent, 20);
-
-                var ev = new LandEvent(null, false);
-                entMan.EventBus.RaiseLocalEvent(flask, ref ev);
-            }
-
-            Assert.That(entMan.EntityQuery<SmokeComponent>().Count(), Is.EqualTo(before + 2),
+            Assert.That(entMan.EntityQuery<FSChemZoneComponent>().Count(), Is.EqualTo(before + 2),
                 "one vessel, two different payloads, two clouds - that is the framework");
         });
+    }
+
+    [Test]
+    public async Task OrdinaryMedicineInAFlaskStillSmokes()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var smoke = entMan.EntityQuery<SmokeComponent>().Count();
+            var zones = entMan.EntityQuery<FSChemZoneComponent>().Count();
+
+            Land(entMan, map.GridCoords, "Bicaridine", 30);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(entMan.EntityQuery<SmokeComponent>().Count(), Is.GreaterThan(smoke),
+                    "a doctor's flask of bicaridine must still cloud");
+                Assert.That(entMan.EntityQuery<FSChemZoneComponent>().Count(), Is.EqualTo(zones),
+                    "only field potions make a chem zone");
+            });
+        });
+    }
+
+    private static void Land(IEntityManager entMan, EntityCoordinates coords, string reagent, int amount)
+    {
+        var solutions = entMan.System<SharedSolutionContainerSystem>();
+
+        var flask = entMan.SpawnEntity(FlaskProto, coords);
+        Assert.That(solutions.TryGetSolution(flask, "flask", out var soln, out _), Is.True,
+            $"{reagent} must load into the flask");
+
+        solutions.TryAddReagent(soln!.Value, reagent, amount);
+
+        var ev = new LandEvent(null, false);
+        entMan.EventBus.RaiseLocalEvent(flask, ref ev);
     }
 }

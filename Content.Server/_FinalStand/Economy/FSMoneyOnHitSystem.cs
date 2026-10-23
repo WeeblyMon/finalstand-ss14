@@ -55,6 +55,11 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
         _flatHit = (args.Target, ent.Comp.Amount);
     }
 
+    // For damage that comes from neither a projectile nor the held item, like a chemist's cloud.
+    public void SetFlatHit(EntityUid target, int amount) => _flatHit = (target, amount);
+
+    public void ClearFlatHit() => _flatHit = null;
+
     private void OnDamageChanged(EntityUid uid, FSMoneyOnHitCapComponent cap, DamageChangedEvent args)
     {
         var fromDeployable = _deployableHitTarget == uid;

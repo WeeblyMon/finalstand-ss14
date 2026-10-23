@@ -1,0 +1,96 @@
+- type: fsChemFormula
+  id: FSFormulaCombatStim
+  name: fs-formula-combat-stim
+  purpose: fs-formula-combat-stim-purpose
+  reagent: FSCombatStim
+  canister: FSChemCanisterCombatStim
+  kind: Support
+  cost: 20
+  priority: 0
+
+- type: fsChemFormula
+  id: FSFormulaMendingMist
+  name: fs-formula-mending-mist
+  purpose: fs-formula-mending-mist-purpose
+  reagent: FSMendingMist
+  canister: FSChemCanisterMendingMist
+  kind: Support
+  cost: 20
+  priority: 1
+
+- type: fsChemFormula
+  id: FSFormulaCorrosive
+  name: fs-formula-corrosive
+  purpose: fs-formula-corrosive-purpose
+  reagent: FSCorrosive
+  canister: FSChemCanisterCorrosive
+  kind: Hostile
+  cost: 15
+  priority: 2
+
+- type: fsChemFormula
+  id: FSFormulaWeakening
+  name: fs-formula-weakening
+  purpose: fs-formula-weakening-purpose
+  reagent: FSWeakeningAgent
+  canister: FSChemCanisterWeakening
+  kind: Hostile
+  cost: 15
+  debuff: true
+  priority: 3
+
+- type: fsChemFormula
+  id: FSFormulaSolvent
+  name: fs-formula-solvent
+  purpose: fs-formula-solvent-purpose
+  reagent: FSSolvent
+  canister: FSChemCanisterSolvent
+  kind: Hostile
+  cost: 25
+  debuff: true
+  priority: 4
+
+- type: fsChemFormula
+  id: FSFormulaEtchant
+  name: fs-formula-etchant
+  purpose: fs-formula-etchant-purpose
+  reagent: FSEtchant
+  canister: FSChemCanisterEtchant
+  kind: Support
+  cost: 20
+  research: FSMedicalEtchingChemistry
+  priority: 5
+
+- type: fsChemFormula
+  id: FSFormulaAdrenalSurge
+  name: fs-formula-adrenal-surge
+  purpose: fs-formula-adrenal-surge-purpose
+  reagent: FSAdrenalSurge
+  canister: FSChemCanisterAdrenalSurge
+  kind: Support
+  cost: 20
+  research: FSMedicalAdrenalChemistry
+  priority: 6
+
+- type: fsChemFormula
+  id: FSFormulaBattleAnalgesic
+  name: fs-formula-battle-analgesic
+  purpose: fs-formula-battle-analgesic-purpose
+  reagent: FSBattleAnalgesic
+  canister: FSChemCanisterBattleAnalgesic
+  kind: Support
+  cost: 15
+  research: FSMedicalAnalgesicChemistry
+  priority: 7
+
+- type: fsChemFormula
+  id: FSFormulaBindingAgent
+  name: fs-formula-binding-agent
+  purpose: fs-formula-binding-agent-purpose
+  reagent: FSBindingAgent
+  canister: FSChemCanisterBindingAgent
+  kind: Hostile
+  cost: 20
+  debuff: true
+  research: FSMedicalBindingAgent
+  priority: 8

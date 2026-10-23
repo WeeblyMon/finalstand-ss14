@@ -2,7 +2,7 @@
   id: FSFieldKitStation
   parent: BaseMachinePowered
   name: field kit station
-  description: The chemist's bench. Empty your satchel into its tissue tank, pick a potion and it brews the batch straight into your jug. Packages flasks, magazines, bottles and pills too.
+  description: The chemist's bench. Load formulas into your chem launcher and brew the wave tonic, or dispense into a jug and press bottles and pills for the doctors.
   placement:
     mode: SnapgridCenter
   components:
@@ -83,26 +83,11 @@
         whitelist:
           components:
           - FitsInDispenser
-        blacklist:
-          components:
-          - FSHarvestSatchel
-        ejectOnBreak: true
-      magazine:
-        name: fs-field-kit-slot-magazine
-        whitelist:
-          tags:
-          - FSSyringeMagazine
         ejectOnBreak: true
   - type: ContainerContainer
     containers:
       jug: !type:ContainerSlot
-      magazine: !type:ContainerSlot
       storagebase: !type:Container
-      flaskRack: !type:Container
-  - type: SolutionContainerManager
-    solutions:
-      tank:
-        maxVol: 500
   - type: EntityTableContainerFill
     containers:
       storagebase: !type:AllSelector

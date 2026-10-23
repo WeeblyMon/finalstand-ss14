@@ -15,7 +15,7 @@ public sealed partial class FSHarmHostilesSystem : EntityEffectSystem<MobStateCo
         if (HasComp<FSFriendlyFireComponent>(entity))
             return;
 
-        _damageable.TryChangeDamage(entity.Owner, args.Effect.Damage, true);
+        _damageable.TryChangeDamage(entity.Owner, args.Effect.Damage * args.Scale, true, origin: args.User);
     }
 }
 

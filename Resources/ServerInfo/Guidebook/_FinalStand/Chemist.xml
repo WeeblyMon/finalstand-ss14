@@ -1,75 +1,63 @@
 <Document>
 # Chemist
 
-You are the department's supply line. Nobody else can make what you make, and the line cannot hold without it.
+You fight with chemistry. Your launcher lobs clouds that make the squad stronger and the horde weaker, and the fighting itself keeps it loaded.
 
-Your loop is three steps: [bold]harvest[/bold], [bold]brew[/bold], [bold]deliver[/bold]. All three happen during the wave, not between them.
-
-## 1. Harvest
+## The chem launcher
 
 <Box>
-<GuideEntityEmbed Entity="FSHarvestSatchel"/>
+<GuideEntityEmbed Entity="FSChemLauncher"/>
 </Box>
 
-Your satchel renders tissue from wave enemies that die near you. You do not click anything - stand where the fighting is and it fills on its own.
+You start with it in hand. Click to lob a canister - it lands where you aim, or bursts early on the first mob it hits on the side it is meant for, and leaves a cloud for a few seconds.
 
-There is a ceiling per wave. The gauge on the left of your HUD shows how close you are; when it turns amber you have taken everything this wave will give you, and your time is better spent delivering than standing in the line.
+- [bold]Support[/bold] formulas only touch crew. Stand your squad in the cloud, or put it at their feet.
+- [bold]Hostile[/bold] formulas only touch zombies. They never hurt crew or player structures.
 
-Tissue is the base ingredient for every field potion. No tissue, no potions - which is why the loop starts at the front and not at the bench.
+The launcher carries three formulas at once. Press [bold]Z[/bold] with it in hand to pick which one fires next. Every shot spends reserve; the gauge on the left of your HUD shows how much is left.
 
-## 2. Brew
+## Keeping it loaded
+
+You never walk back to refill. Every wave enemy that dies near you, to anyone's gun, tops up the reserve - tougher enemies give more. The reserve also fills to the brim when prep starts, so every wave begins loaded.
+
+## Formulas
+
+Ready from the start:
+
+- [bold]Combat Stim[/bold] - crew hit harder, swing and shoot faster, and move quicker for 20 seconds.
+- [bold]Mending Mist[/bold] - stops bleeding and heals crew while they stand in it.
+- [bold]Corrosive[/bold] - burns every zombie in the cloud. The damage and the kills count as yours.
+- [bold]Weakening Agent[/bold] - zombies take 25% more damage from everyone for a while.
+- [bold]Solvent[/bold] - strips armoured zombies' plating for good.
+
+The CMO can research [bold]Etchant[/bold], [bold]Adrenal Surge[/bold], [bold]Battle Analgesic[/bold] and [bold]Binding Agent[/bold] on the medical console. They show up at the bench as soon as they are bought - nothing to print.
+
+Buffs last 20 seconds and refresh every time a cloud touches someone, so keep the clouds coming. Your health-bar view marks crew with a buff and how long it has left, and flags the ones without one.
+
+## Catalyst
+
+Buffing crewmates, damaging zombies and assisting kills fills your catalyst meter. When it is full, press the Über key (Alt+E by default) to arm it: your next canister makes a bigger cloud that lasts longer, and hostile and mending clouds hit harder. Research picks what a catalysed cloud does on top - [bold]Chain Reaction[/bold] makes hostile clouds burst and spread to dying zombies, [bold]Panacea[/bold] makes support clouds heal hard.
+
+## The field kit station
 
 <Box>
 <GuideEntityEmbed Entity="FSFieldKitStation"/>
+<GuideEntityEmbed Entity="FSTonicCauldron"/>
 </Box>
 
-Brewing happens at the [bold]field kit station[/bold]. Use your satchel on it, or press Dump, and the tissue goes into its tank. The tank stays in the machine and every chemist on shift brews from it.
+The [bold]Loadout[/bold] tab sets which formulas your launcher carries. Pick a slot, then a formula. You can change it any time, but you never have to come back mid-wave.
 
-Put a jug in, pick a batch size (a flask, a magazine or the whole jug), and press Brew on a potion. The station measures both parts and puts the finished potion in the jug.
+During prep, brew a [bold]wave tonic[/bold] there. Carry the urn to where the squad gathers; each crewmate drinks once for a small bonus that lasts the whole wave.
 
-Every field potion is [bold]2 tissue + one reagent from the station's stock[/bold]. No sub-recipes, no heating step.
-
-- [bold]Combat Stim[/bold] - tissue + sugar. Hits harder, swings and shoots faster, moves quicker.
-- [bold]Corrosive[/bold] - tissue + sulfur. Leaves caustic damage on the ground.
-- [bold]Solvent[/bold] - tissue + fluorine. Stops armoured and giant zombies regrowing their plating.
-- [bold]Weakening Agent[/bold] - tissue + mercury. Everything in the cloud takes 25% more damage from every source.
-
-Two more, [bold]Etchant[/bold] and [bold]Coagulant Mist[/bold], need precursors the CMO unlocks on the medical research console. Print the precursor bottle at the lathe and load it into the station.
-
-The station's Raw Dispense tab is a full chemical dispenser for anything else a doctor asks for.
-
-## 3. Deliver
-
-<Box>
-<GuideEntityEmbed Entity="LauncherSyringe"/>
-<GuideEntityEmbed Entity="FSSplashFlask"/>
-</Box>
-
-[bold]The syringe gun[/bold] shoots teammates, not zombies. It cannot hurt crew. Magazines hold 200 darts at 1u each, so a single magazine covers most of a wave - fill one at the syringe filler and carry spares.
-
-Darts cannot overdose anyone. The gun trims each dose to whatever the target can still safely take, so you can hold fire on a wounded ally without poisoning them.
-
-[bold]Splash flasks[/bold] are thrown and burst into a cloud. Buff clouds land on everyone inside, so throwing one into a group is worth far more than four separate darts. Anti-zombie clouds never harm crew or player structures.
+The [bold]Pharmacy[/bold] tab is a dispenser for doctors: dispense into a jug, then press labelled bottles or pills.
 
 ## Getting paid
 
-You earn when your work produces a result, not when you make something:
+- Your clouds' damage earns hit money like any gun, and their kills are yours.
+- A zombie you weakened, stripped or burned that someone else kills pays you an assist.
+- A crewmate you buffed scoring a kill pays you a cut.
+- Crewmates drinking your tonic pay you.
+- A doctor using your pills or bottles pays you a share.
 
-- A teammate you buffed getting a kill pays you a cut.
-- A doctor healing someone with a chem you produced pays you a cut.
-
-Buffing yourself in a corner earns nothing. Being where the squad is earns everything.
-
-## The two machines
-
-<Box>
-<GuideEntityEmbed Entity="FSMedicalDispenser"/>
-<GuideEntityEmbed Entity="FSSyringeFiller"/>
-</Box>
-
-[bold]ChemDrobe[/bold] - empty flasks, magazines and syringes. Vessels are free; contents are your job.
-
-[bold]Field kit station[/bold] - its Package tab loads a magazine straight from the jug and fills the empty flasks you have racked on it. Bottles and pills for doctors are there too.
-
-[bold]Syringe filler[/bold] - insert a container and a magazine and it decants one into the other on its own. Handy for a jug brewed somewhere else.
+Dosing yourself pays nothing. Being where the squad is pays everything.
 </Document>

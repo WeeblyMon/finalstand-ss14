@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Linq;
 using Content.Server._FinalStand.Research;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.MedicalOps;
@@ -7,6 +8,7 @@ using Content.Shared.Medical;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
 using Content.Shared.Timing;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -16,6 +18,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     [Dependency] private UseDelaySystem _useDelay = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private FSMediGunVariantSystem _variants = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     public const string ExtendedOptics = "FSMedicalExtendedOptics";
     public const string HaemostaticBeam = "FSMedicalHaemostaticBeam";
@@ -45,12 +48,20 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     public const string RecoveryUplink = "FSMedicalRecoveryUplink";
     public const string SterileField = "FSMedicalSterileField";
 
+    public const string PressurisedCanisters = "FSMedicalPressurisedCanisters";
     public const string VolatileSuspension = "FSMedicalVolatileSuspension";
     public const string StabilisedAerosol = "FSMedicalStabilisedAerosol";
+    public const string EtchingChemistry = "FSMedicalEtchingChemistry";
+    public const string BindingAgent = "FSMedicalBindingAgent";
+    public const string AdrenalChemistry = "FSMedicalAdrenalChemistry";
+    public const string AnalgesicChemistry = "FSMedicalAnalgesicChemistry";
+    public const string ChainReaction = "FSMedicalChainReaction";
+    public const string Panacea = "FSMedicalPanacea";
 
     public const string LongRangeCollectors = "FSMedicalLongRangeCollectors";
     public const string WideSpectrumRendering = "FSMedicalWideSpectrumRendering";
     public const string CryoStowage = "FSMedicalCryoStowage";
+    public const string FormulaRack = "FSMedicalFormulaRack";
     public const string HighFlowManifold = "FSMedicalHighFlowManifold";
 
     public const string StandingOrders = "FSMedicalStandingOrders";
@@ -67,8 +78,9 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         CellEfficiency2, CapacitorBank, RapidRecharge, BoneKnitter, LimbMender, SplitBeamTuning, BackfeederNanites,
         RefinedEmitters, UberCycling, PerfectedEmitters, PolishedEmitters, UltraCycling, EfficientCycling,
         AutoclaveKit, ReinforcedCanvas, BoneWelder, RecoveryUplink, SterileField,
-        VolatileSuspension, StabilisedAerosol,
-        LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
+        PressurisedCanisters, VolatileSuspension, StabilisedAerosol,
+        EtchingChemistry, BindingAgent, AdrenalChemistry, AnalgesicChemistry, ChainReaction, Panacea,
+        LongRangeCollectors, WideSpectrumRendering, CryoStowage, FormulaRack, HighFlowManifold,
         StandingOrders, RapidMobilisation, ExtendedProtocol, TriageDoctrine, MassCasualtyReadiness,
         DepartmentDividend,
     ];
@@ -82,8 +94,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnNodeCompleted);
 
         SubscribeLocalEvent<FSMediGunComponent, MapInitEvent>(OnMediGunInit);
-        SubscribeLocalEvent<FSHarvestSatchelComponent, MapInitEvent>(OnSatchelInit);
-        SubscribeLocalEvent<FSSplashFlaskComponent, MapInitEvent>(OnFlaskInit);
+        SubscribeLocalEvent<FSChemLauncherComponent, MapInitEvent>(OnLauncherInit);
         SubscribeLocalEvent<FSBoneStaplerComponent, MapInitEvent>(OnStaplerInit);
         SubscribeLocalEvent<FSFieldHospitalComponent, MapInitEvent>(OnFieldHospitalInit);
         SubscribeLocalEvent<FSEmergencyDefibComponent, MapInitEvent>(OnDefibInit);
@@ -109,13 +120,9 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         while (guns.MoveNext(out var uid, out var gun))
             ApplyMediGun((uid, gun));
 
-        var satchels = EntityQueryEnumerator<FSHarvestSatchelComponent>();
-        while (satchels.MoveNext(out var uid, out var satchel))
-            ApplySatchel((uid, satchel));
-
-        var flasks = EntityQueryEnumerator<FSSplashFlaskComponent>();
-        while (flasks.MoveNext(out var uid, out var flask))
-            ApplyFlask((uid, flask));
+        var launchers = EntityQueryEnumerator<FSChemLauncherComponent>();
+        while (launchers.MoveNext(out var uid, out var launcher))
+            ApplyLauncher((uid, launcher));
 
         var staplers = EntityQueryEnumerator<FSBoneStaplerComponent>();
         while (staplers.MoveNext(out var uid, out var stapler))
@@ -139,8 +146,6 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         ApplyMediGun(ent);
         _variants.QueueIfOutdated(ent);
     }
-    private void OnSatchelInit(Entity<FSHarvestSatchelComponent> ent, ref MapInitEvent args) => ApplySatchel(ent);
-    private void OnFlaskInit(Entity<FSSplashFlaskComponent> ent, ref MapInitEvent args) => ApplyFlask(ent);
     private void OnStaplerInit(Entity<FSBoneStaplerComponent> ent, ref MapInitEvent args) => ApplyStapler(ent);
     private void OnFieldHospitalInit(Entity<FSFieldHospitalComponent> ent, ref MapInitEvent args) => ApplyFieldHospital(ent);
     private void OnDefibInit(Entity<FSEmergencyDefibComponent> ent, ref MapInitEvent args) => ApplyDefib(ent);
@@ -212,31 +217,42 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         _battery.RefreshChargeRate(ent.Owner);
     }
 
-    private void ApplySatchel(Entity<FSHarvestSatchelComponent> ent)
+    private void OnLauncherInit(Entity<FSChemLauncherComponent> ent, ref MapInitEvent args)
+    {
+        ApplyLauncher(ent);
+        ent.Comp.Reserve = ent.Comp.MaxReserve;
+        Dirty(ent);
+    }
+
+    private void ApplyLauncher(Entity<FSChemLauncherComponent> ent)
     {
         var c = ent.Comp;
-        c.BaseRange ??= c.Range;
-        c.BasePerKill ??= c.PerKill;
-        c.BasePerWaveCap ??= c.PerWaveCap;
+        c.BaseMaxReserve ??= c.MaxReserve;
+        c.BaseHarvestRange ??= c.HarvestRange;
+        c.BaseHarvestScale ??= c.HarvestScale;
+        c.BaseSlotCount ??= c.SlotCount;
 
-        c.Range = c.BaseRange.Value + (Unlocked(LongRangeCollectors) ? 4f : 0f);
-        c.PerKill = c.BasePerKill.Value + (Unlocked(WideSpectrumRendering) ? 2f : 0f);
-        c.PerWaveCap = c.BasePerWaveCap.Value * (Unlocked(CryoStowage) ? 1.5f : 1f);
+        c.MaxReserve = c.BaseMaxReserve.Value * (Unlocked(CryoStowage) ? 1.5f : 1f);
+        c.HarvestRange = c.BaseHarvestRange.Value + (Unlocked(LongRangeCollectors) ? 4f : 0f);
+        c.HarvestScale = c.BaseHarvestScale.Value * (Unlocked(WideSpectrumRendering) ? 1.4f : 1f);
+        c.SlotCount = c.BaseSlotCount.Value + (Unlocked(FormulaRack) ? 1 : 0);
+        c.Reserve = MathF.Min(c.Reserve, c.MaxReserve);
+
+        c.Known.Clear();
+        foreach (var formula in _prototypes.EnumeratePrototypes<FSChemFormulaPrototype>().OrderBy(f => f.Priority))
+        {
+            if (formula.Research is not { } node || Unlocked(node.Id))
+                c.Known.Add(formula.ID);
+        }
 
         Dirty(ent);
     }
 
-    private void ApplyFlask(Entity<FSSplashFlaskComponent> ent)
-    {
-        var c = ent.Comp;
-        c.BaseSpreadAmount ??= c.SpreadAmount;
-        c.BaseDuration ??= c.Duration;
+    public float ZoneRadius(float baseRadius)
+        => (baseRadius + (Unlocked(PressurisedCanisters) ? 1f : 0f)) * (Unlocked(VolatileSuspension) ? 1.5f : 1f);
 
-        c.SpreadAmount = c.BaseSpreadAmount.Value + (Unlocked(VolatileSuspension) ? 3 : 0);
-        c.Duration = c.BaseDuration.Value * (Unlocked(StabilisedAerosol) ? 1.8f : 1f);
-
-        Dirty(ent);
-    }
+    public float ZoneLifetime(float baseLifetime)
+        => baseLifetime * (Unlocked(StabilisedAerosol) ? 1.8f : 1f);
 
     private void ApplyStapler(Entity<FSBoneStaplerComponent> ent)
     {

@@ -20,9 +20,11 @@ public sealed class AllyProjectileTest : GameTest
     private const string SyringeLauncherProto = "LauncherSyringe";
     private const string SyringePackProto = "FSSyringePack";
     private const string ChemistGearProto = "ChemistGear";
+    private const string ChemLauncherProto = "FSChemLauncher";
 
     private const string HumanProto = "MobHuman";
     private const string BulletProto = "BulletRifle";
+    private const string ZombieProto = "FSZombieNormal";
 
     [Test]
     public async Task OrdinaryProjectilesPassThroughTeammates()
@@ -127,7 +129,7 @@ public sealed class AllyProjectileTest : GameTest
     }
 
     [Test]
-    public async Task TheChemistSpawnsWithTheKit()
+    public async Task TheChemistSpawnsWithTheLauncher()
     {
         var server = Pair.Server;
         var protos = server.ResolveDependency<Robust.Shared.Prototypes.IPrototypeManager>();
@@ -136,11 +138,35 @@ public sealed class AllyProjectileTest : GameTest
         {
             var gear = protos.Index<Content.Shared.Roles.StartingGearPrototype>(ChemistGearProto);
 
-            Assert.That(gear.Storage.TryGetValue("back", out var back), Is.True,
-                "the chemist must not have to go find their core tool");
-            Assert.That(back, Does.Contain("LauncherSyringe"));
-            Assert.That(back!.FindAll(id => id.Id.StartsWith("FSSyringePack")), Has.Count.EqualTo(4),
-                "the chemist carries four prefilled magazines");
+            Assert.Multiple(() =>
+            {
+                Assert.That(gear.Inhand.Select(id => id.Id), Does.Contain(ChemLauncherProto),
+                    "the chemist must not have to go find their core tool");
+                Assert.That(gear.Storage.Values.SelectMany(items => items).Select(id => id.Id), Does.Not.Contain(SyringeLauncherProto),
+                    "the launcher replaced the syringe gun in the kit");
+            });
+        });
+    }
+
+    [Test]
+    public async Task MarkedProjectilesPassThroughZombies()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var shooter = entMan.SpawnEntity(HumanProto, map.GridCoords);
+            entMan.EnsureComponent<FSFriendlyFireComponent>(shooter);
+            var zombie = entMan.SpawnEntity(ZombieProto, map.GridCoords);
+
+            var dart = entMan.SpawnEntity(BulletProto, map.GridCoords);
+            entMan.GetComponent<ProjectileComponent>(dart).Shooter = shooter;
+            entMan.EnsureComponent<FSAllyProjectileComponent>(dart);
+
+            Assert.That(Collides(entMan, dart, zombie), Is.False,
+                "a support dart that sticks in the zombie in front is wasted on the horde");
         });
     }
 

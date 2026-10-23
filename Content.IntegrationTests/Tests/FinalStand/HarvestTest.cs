@@ -1,7 +1,8 @@
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.Spawners;
+using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Robust.Shared.GameObjects;
@@ -13,10 +14,11 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 public sealed class HarvestTest : GameTest
 {
     private const string EnemyProto = "FSZombieNormal";
-    private const string SatchelProto = "FSHarvestSatchel";
+    private const string ToughEnemyProto = "FSZombieArmoured";
+    private const string LauncherProto = "FSChemLauncher";
 
     [Test]
-    public async Task EnemiesDyingNearbyFillTheSatchel()
+    public async Task EnemiesDyingNearbyRefillTheReserve()
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
@@ -24,19 +26,18 @@ public sealed class HarvestTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var satchel = SpawnCarriedSatchel(entMan, map.GridCoords, out _);
+            var launcher = SpawnCarriedLauncher(entMan, map.GridCoords);
+            launcher.Reserve = 0f;
 
-            Assert.That(Biomass(entMan, satchel), Is.EqualTo(0f), "starts empty");
+            KillEnemyAt(entMan, map.GridCoords, EnemyProto, 1);
 
-            KillEnemyAt(entMan, map.GridCoords, 3);
-
-            Assert.That(Biomass(entMan, satchel), Is.GreaterThan(0f),
-                "no corpses, no potions - the loop starts here");
+            Assert.That(launcher.Reserve, Is.GreaterThan(0f),
+                "kills are the only mid-wave refill, so a chemist at the front must never run dry");
         });
     }
 
     [Test]
-    public async Task ADroppedSatchelHarvestsNothing()
+    public async Task TougherEnemiesRefillMore()
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
@@ -44,17 +45,22 @@ public sealed class HarvestTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var satchel = entMan.SpawnEntity(SatchelProto, map.GridCoords);
+            var launcher = SpawnCarriedLauncher(entMan, map.GridCoords);
 
-            KillEnemyAt(entMan, map.GridCoords, 5);
+            launcher.Reserve = 0f;
+            KillEnemyAt(entMan, map.GridCoords, EnemyProto, 1);
+            var normal = launcher.Reserve;
 
-            Assert.That(Biomass(entMan, satchel), Is.EqualTo(0f),
-                "leaving a bag in the corridor must not farm the wave risk-free");
+            launcher.Reserve = 0f;
+            KillEnemyAt(entMan, map.GridCoords, ToughEnemyProto, 1);
+
+            Assert.That(launcher.Reserve, Is.GreaterThan(normal),
+                "refill follows the enemy's kill value, so an armoured kill must give more than a shambler");
         });
     }
 
     [Test]
-    public async Task HarvestStopsAtThePerWaveCap()
+    public async Task ADroppedLauncherRefillsNothing()
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
@@ -62,13 +68,14 @@ public sealed class HarvestTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var satchel = SpawnCarriedSatchel(entMan, map.GridCoords, out _);
-            var comp = entMan.GetComponent<FSHarvestSatchelComponent>(satchel);
+            var uid = entMan.SpawnEntity(LauncherProto, map.GridCoords);
+            var launcher = entMan.GetComponent<FSChemLauncherComponent>(uid);
+            launcher.Reserve = 0f;
 
-            KillEnemyAt(entMan, map.GridCoords, 200);
+            KillEnemyAt(entMan, map.GridCoords, EnemyProto, 5);
 
-            Assert.That(Biomass(entMan, satchel), Is.EqualTo(comp.PerWaveCap).Within(0.01f),
-                "the cap is what breaks the kills -> potions -> kills flywheel, so it is not tuning");
+            Assert.That(launcher.Reserve, Is.EqualTo(0f),
+                "a launcher left in the corridor must not fill up risk-free");
         });
     }
 
@@ -81,42 +88,71 @@ public sealed class HarvestTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var satchel = SpawnCarriedSatchel(entMan, map.GridCoords, out _);
-            var comp = entMan.GetComponent<FSHarvestSatchelComponent>(satchel);
+            var launcher = SpawnCarriedLauncher(entMan, map.GridCoords);
+            launcher.Reserve = 0f;
 
-            var far = map.GridCoords.Offset(new System.Numerics.Vector2(comp.Range * 4f, 0f));
-            KillEnemyAt(entMan, far, 5);
+            var far = map.GridCoords.Offset(new System.Numerics.Vector2(launcher.HarvestRange * 4f, 0f));
+            KillEnemyAt(entMan, far, EnemyProto, 5);
 
-            Assert.That(Biomass(entMan, satchel), Is.EqualTo(0f),
-                "harvest must reward being where the fight is, not hiding in the lab");
+            Assert.That(launcher.Reserve, Is.EqualTo(0f),
+                "refill must reward being where the fight is, not hiding in the lab");
         });
     }
 
-    private static EntityUid SpawnCarriedSatchel(IEntityManager entMan, EntityCoordinates coords, out EntityUid carrier)
+    [Test]
+    public async Task TheReserveNeverOverfills()
     {
-        carrier = entMan.SpawnEntity("MobHuman", coords);
-        entMan.EnsureComponent<Content.Shared._FinalStand.FriendlyFire.FSFriendlyFireComponent>(carrier);
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
 
-        var satchel = entMan.SpawnEntity(SatchelProto, coords);
-        entMan.GetComponent<TransformComponent>(satchel).AttachParent(carrier);
+        await server.WaitAssertion(() =>
+        {
+            var launcher = SpawnCarriedLauncher(entMan, map.GridCoords);
+            launcher.Reserve = 0f;
 
-        return satchel;
+            KillEnemyAt(entMan, map.GridCoords, EnemyProto, 100);
+
+            Assert.That(launcher.Reserve, Is.EqualTo(launcher.MaxReserve).Within(0.01f));
+        });
     }
 
-    private static float Biomass(IEntityManager entMan, EntityUid satchel)
+    [Test]
+    public async Task PrepFillsTheReserve()
     {
-        var solutions = entMan.System<SharedSolutionContainerSystem>();
-        if (!solutions.TryGetSolution(satchel, "satchel", out _, out var solution))
-            return 0f;
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
 
-        return solution.GetTotalPrototypeQuantity("FSBiomass").Float();
+        await server.WaitAssertion(() =>
+        {
+            var uid = entMan.SpawnEntity(LauncherProto, map.GridCoords);
+            var launcher = entMan.GetComponent<FSChemLauncherComponent>(uid);
+            launcher.Reserve = 0f;
+
+            entMan.EventBus.RaiseEvent(EventSource.Local, new WavePrepStartedEvent());
+
+            Assert.That(launcher.Reserve, Is.EqualTo(launcher.MaxReserve).Within(0.01f),
+                "every wave has to start loaded, or the chemist walks back to the bench");
+        });
     }
 
-    private static void KillEnemyAt(IEntityManager entMan, EntityCoordinates coords, int count)
+    private static FSChemLauncherComponent SpawnCarriedLauncher(IEntityManager entMan, EntityCoordinates coords)
+    {
+        var carrier = entMan.SpawnEntity("MobHuman", coords);
+        entMan.EnsureComponent<FSFriendlyFireComponent>(carrier);
+
+        var launcher = entMan.SpawnEntity(LauncherProto, coords);
+        entMan.GetComponent<TransformComponent>(launcher).AttachParent(carrier);
+
+        return entMan.GetComponent<FSChemLauncherComponent>(launcher);
+    }
+
+    private static void KillEnemyAt(IEntityManager entMan, EntityCoordinates coords, string proto, int count)
     {
         for (var i = 0; i < count; i++)
         {
-            var enemy = entMan.SpawnEntity(EnemyProto, coords);
+            var enemy = entMan.SpawnEntity(proto, coords);
             entMan.EnsureComponent<WaveSpawnedTagComponent>(enemy);
 
             var state = entMan.GetComponent<MobStateComponent>(enemy);

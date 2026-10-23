@@ -185,35 +185,23 @@ public sealed partial class WaveHudSystem : EntitySystem
     private void UpdateHarvestStatus(WaveHudOverlay overlay)
     {
         overlay.HarvestStatus = null;
-        overlay.HarvestCapped = false;
-        overlay.HarvestStock = 0f;
-        overlay.HarvestAccrued = 0f;
-        overlay.HarvestCap = 0f;
+        overlay.HarvestFull = false;
+        overlay.HarvestRatio = 0f;
 
         if (_player.LocalEntity is not { } player)
             return;
 
-        var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
-        while (query.MoveNext(out var uid, out var satchel))
+        var query = EntityQueryEnumerator<FSChemLauncherComponent>();
+        while (query.MoveNext(out var uid, out var launcher))
         {
-            if (!IsCarriedBy(uid, player))
+            if (!IsCarriedBy(uid, player) || launcher.MaxReserve <= 0f)
                 continue;
 
-            var stock = 0f;
-            if (_solutions.TryGetSolution(uid, satchel.Solution, out _, out var solution))
-                stock = solution.GetTotalPrototypeQuantity(satchel.Reagent).Float();
-
-            overlay.HarvestCapped = satchel.AccruedThisWave >= satchel.PerWaveCap;
-            overlay.HarvestStock = stock;
-            overlay.HarvestAccrued = satchel.AccruedThisWave;
-            overlay.HarvestCap = satchel.PerWaveCap;
-
-            overlay.HarvestStatus = overlay.HarvestCapped
-                ? Loc.GetString("fs-harvest-status-capped", ("stock", (int) stock))
-                : Loc.GetString("fs-harvest-status",
-                    ("stock", (int) stock),
-                    ("wave", (int) satchel.AccruedThisWave),
-                    ("cap", (int) satchel.PerWaveCap));
+            overlay.HarvestFull = launcher.Reserve >= launcher.MaxReserve;
+            overlay.HarvestRatio = launcher.Reserve / launcher.MaxReserve;
+            overlay.HarvestStatus = Loc.GetString(overlay.HarvestFull ? "fs-harvest-status-full" : "fs-harvest-status",
+                ("reserve", (int) launcher.Reserve),
+                ("max", (int) launcher.MaxReserve));
 
             return;
         }

@@ -1,7 +1,9 @@
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
+using Content.Shared.Damage.Systems;
 using Content.Shared.EntityEffects;
+using Content.Shared.FixedPoint;
 using Robust.Shared.GameStates;
 using Robust.Shared.Timing;
 
@@ -41,6 +43,22 @@ public sealed partial class FSStaunchBleeding : EntityEffectBase<FSStaunchBleedi
 {
     [DataField]
     public float Amount = 3f;
+}
+
+public sealed partial class FSMendAlliesSystem : EntityEffectSystem<FSFriendlyFireComponent, FSMendAllies>
+{
+    [Dependency] private DamageableSystem _damageable = default!;
+
+    protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSMendAllies> args)
+    {
+        _damageable.HealDistributed(entity.Owner, FixedPoint2.New(-args.Effect.Amount * args.Scale), origin: args.User);
+    }
+}
+
+public sealed partial class FSMendAllies : EntityEffectBase<FSMendAllies>
+{
+    [DataField]
+    public float Amount = 2f;
 }
 
 public sealed partial class FSApplyArmorPiercingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSApplyArmorPiercing>
