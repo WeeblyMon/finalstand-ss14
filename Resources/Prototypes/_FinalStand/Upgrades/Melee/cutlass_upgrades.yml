@@ -77,59 +77,58 @@
       valuePerLevel: 5
       spawnProtoId: WeaponPistolFlintlock
       spawnCountPerLevel: 1
-    # ── Flintlock upgrades (applied to the Flintlock that comes with the cutlass) ─────
-    # Recovered from the removed FSWeaponShopFlintlock (commit 34e27bcbd9).
-    - id: flintlock-extra-load
-      name: Extra Load
-      description: Holds 1 more round per level, in the Flintlock and as a stored shot on the cutlass's right click.
-      maxLevel: 5
-      baseCost: 100
-      type: MagazineSize
+    # ── Flintlock: the cutlass's right-click shot ─────
+    # Spare Pistols and Powder Horn live on the cutlass; the rest go on the flintlock it fires through.
+    - id: flintlock-spare-pistols
+      name: Spare Pistols
+      description: Carry another loaded pistol. The right click holds 1 more shot per level.
+      maxLevel: 3
+      baseCost: 4000
+      type: MeleeSignature
+      signature: SparePistols
       valuePerLevel: 1
       requiresUpgrade: cutlass-pirate
-      targetWeaponProtoId: WeaponPistolFlintlock
-    - id: flintlock-ball-and-powder
-      name: Ball & Powder
-      description: Spawns a .45 ammo box per purchase per level. Each box holds 12 rounds and is refilled by the wave ammo resupply.
-      maxLevel: 5
-      baseCost: 100
-      type: SpawnItem
-      spawnProtoId: MagazineBoxMagnum
-      spawnCountPerLevel: 1
+    - id: flintlock-powder-horn
+      name: Powder Horn
+      description: Spent shots come back 0.4s faster per level.
+      maxLevel: 3
+      baseCost: 4000
+      type: MeleeSignature
+      signature: PowderHorn
+      valuePerLevel: 0.4
       requiresUpgrade: cutlass-pirate
-      targetWeaponProtoId: WeaponPistolFlintlock
-    - id: flintlock-steady-hand
-      name: Steady Hand
-      description: Reduces the Flintlock's max spread by 0.5° per level for that one perfect shot.
-      maxLevel: 5
-      baseCost: 100
-      type: Accuracy
-      valuePerLevel: 0.5
+    - id: flintlock-through-and-through
+      name: Through and Through
+      description: The flintlock ball punches through 1 more zombie per level, keeping half its damage each time.
+      maxLevel: 2
+      baseCost: 5000
+      type: Pierce
+      valuePerLevel: 1
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-heavier-load
       name: Heavier Load
-      description: Higher-grain ball ammunition increases Flintlock damage by 25% per level.
+      description: Heavier balls make the flintlock shot hit 50% harder per level.
       maxLevel: 3
-      baseCost: 250
+      baseCost: 3500
       type: Damage
-      valuePerLevel: 0.25
+      valuePerLevel: 0.5
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-explosive-shot
       name: Explosive Shot
-      description: Flintlock bullets detonate on impact. AoE damage scales with gun damage × level.
+      description: The flintlock ball bursts on impact, hurting the zombies around it. A bigger burst each level.
       maxLevel: 3
-      baseCost: 150
+      baseCost: 5000
       type: ExplosiveShot
       valuePerLevel: 1
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-payday
-      name: Payday (Flintlock)
-      description: +50 bonus credits per kill with the Flintlock per level.
-      maxLevel: 4
-      baseCost: 100
+      name: Payday
+      description: +50 credits per level for each kill the flintlock makes.
+      maxLevel: 3
+      baseCost: 2500
       type: MoneyGainBonus
       valuePerLevel: 50
       requiresUpgrade: cutlass-pirate

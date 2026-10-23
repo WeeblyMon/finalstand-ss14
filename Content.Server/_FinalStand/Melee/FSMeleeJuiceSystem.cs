@@ -337,10 +337,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         args.Cancelled = true;
     }
 
-    // Notes whether the holder still has the gun; its magazine upgrades hold more shots.
+    // Notes whether the holder still has the gun, and how many shots the weapon holds.
     private void RefreshShots(Entity<FSMeleeShotStateComponent> shots, FSMeleeJuiceComponent juice, EntityUid? gun)
     {
-        var max = gun == null ? juice.ShotCharges : juice.ShotCharges + (CompOrNull<FSWeaponUpgradeStateComponent>(gun)?.MagazineSizeBonus ?? 0);
+        var max = MaxShots((shots, juice));
         if (shots.Comp.MaxCharges == max && shots.Comp.Armed == (gun != null))
             return;
 
@@ -868,7 +868,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                 continue;
 
             shots.Charges++;
-            shots.NextCharge = now + TimeSpan.FromSeconds(juice.ShotRecharge);
+            shots.NextCharge = now + TimeSpan.FromSeconds(ShotRecharge((uid, juice)));
             Dirty(uid, shots);
         }
     }

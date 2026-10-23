@@ -351,7 +351,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     // Rev, sprint and execution only change the copy this one swing uses.
     private FSMeleeJuiceProfile Embellish(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, FSMeleeJuiceProfile profile, bool heavy, MeleeHitEvent args)
     {
-        var rev = heavy ? SpendRev(weapon) : Rev(weapon, targets);
+        var rev = heavy ? SpendRev(weapon) : Rev(weapon);
         var sprint = !heavy && SprintAttack(user, weapon);
         var execution = targets.Exists(t => CanExecute(t, weapon));
         var crit = SwingCrits(weapon, profile, heavy, rev);
@@ -421,22 +421,16 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         };
     }
 
-    // Grinding the same target keeps the rev climbing; switching targets or pausing drops it.
-    private int Rev(Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets)
+    // Every hit in a row climbs the rev, whichever zombie it bites; a pause starts it over.
+    private int Rev(Entity<FSMeleeJuiceComponent> weapon)
     {
         if (weapon.Comp.RevStep <= 0f)
             return 0;
 
         var now = Timing.CurTime;
         var rev = EnsureComp<FSMeleeRevComponent>(weapon);
-        var same = rev.Target is { } last && rev.TargetSince < now && targets.Contains(last) && now - rev.Last <= TimeSpan.FromSeconds(weapon.Comp.RevWindow);
-        rev.Stacks = same ? Math.Min(rev.Stacks + 1, RevCap(weapon)) : 0;
-        if (!same)
-        {
-            rev.Target = targets[0];
-            rev.TargetSince = now;
-        }
-
+        var climbing = now - rev.Last <= TimeSpan.FromSeconds(weapon.Comp.RevWindow);
+        rev.Stacks = climbing ? Math.Min(rev.Stacks + 1, RevCap(weapon)) : 1;
         rev.Last = now;
         Dirty(weapon, rev);
         return rev.Stacks;
@@ -450,7 +444,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         var stacks = Timing.CurTime - rev.Last <= TimeSpan.FromSeconds(weapon.Comp.RevDumpWindow) ? rev.Stacks : 0;
         rev.Stacks = 0;
-        rev.Target = null;
         Dirty(weapon, rev);
         return stacks;
     }

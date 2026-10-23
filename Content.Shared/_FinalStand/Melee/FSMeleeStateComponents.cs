@@ -30,14 +30,10 @@ public sealed partial class FSMeleeComboComponent : Component
     public TimeSpan NextSprintAttack;
 }
 
-// Rev built up by grinding one target.
+// Rev built up by hits in a row.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMeleeRevComponent : Component
 {
-    // Not networked: the target can be deleted mid-grind. A target set on the tick being re-predicted doesn't count yet.
-    public EntityUid? Target;
-    public TimeSpan TargetSince;
-
     [AutoNetworkedField]
     public int Stacks;
 

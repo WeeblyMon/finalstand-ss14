@@ -179,7 +179,8 @@ public sealed partial class WaveHudSystem
         if (TryComp<FSMeleeShotStateComponent>(held, out var shots))
         {
             var left = shots.Charges < shots.MaxCharges ? Math.Max(0f, (float) (shots.NextCharge - now).TotalSeconds) : 0f;
-            var refill = juice.ShotRecharge > 0f ? 1f - Math.Clamp(left / juice.ShotRecharge, 0f, 1f) : 1f;
+            var recharge = _meleeJuice.ShotRecharge((held, juice));
+            var refill = recharge > 0f ? 1f - Math.Clamp(left / recharge, 0f, 1f) : 1f;
             overlay.Ability = shots.Armed
                 ? new WaveHudOverlay.AbilityMeter(Loc.GetString("fs-hud-shot-meter"), shots.Charges, shots.MaxCharges, refill, left, ShotColour)
                 : new WaveHudOverlay.AbilityMeter(Loc.GetString("fs-hud-shot-meter"), 0, shots.MaxCharges, 0f, 0f, FSPalette.Danger, Loc.GetString("fs-hud-shot-unarmed"));

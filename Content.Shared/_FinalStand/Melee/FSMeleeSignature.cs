@@ -25,6 +25,8 @@ public enum FSMeleeSignature : byte
     // Cutlass
     QuickReload,
     Broadside,
+    SparePistols,
+    PowderHorn,
 
     // Chainsaw
     RipAndTear,

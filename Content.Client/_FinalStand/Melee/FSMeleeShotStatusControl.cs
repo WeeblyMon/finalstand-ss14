@@ -45,7 +45,9 @@ public sealed partial class FSMeleeShotStatusControl : PollingItemStatusControl<
     protected override Data PollData()
     {
         var shots = _parent.Comp;
-        var recharge = _entMan.TryGetComponent<FSMeleeJuiceComponent>(_parent, out var juice) ? juice.ShotRecharge : 0f;
+        var recharge = _entMan.TryGetComponent<FSMeleeJuiceComponent>(_parent, out var juice)
+            ? _entMan.System<FSMeleeJuiceSystem>().ShotRecharge((_parent.Owner, juice))
+            : 0f;
         var left = shots.Charges < shots.MaxCharges ? (float) (shots.NextCharge - _timing.CurTime).TotalSeconds : 0f;
         var fill = recharge > 0f && left > 0f ? 1f - Math.Clamp(left / recharge, 0f, 1f) : 1f;
         return new Data(shots.Armed, shots.Charges, shots.MaxCharges, MathF.Round(fill, 2), (int) MathF.Ceiling(Math.Max(left, 0f) * 10f));

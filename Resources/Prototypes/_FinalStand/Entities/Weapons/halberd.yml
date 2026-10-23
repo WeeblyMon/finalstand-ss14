@@ -100,7 +100,7 @@
   - type: MeleeWeapon
     range: 2
     angle: 360
-    attackRate: 0.9
+    attackRate: 1.8
     animation: WeaponArcThrust
     wideAnimation: WeaponArcSlash
     soundSwing:

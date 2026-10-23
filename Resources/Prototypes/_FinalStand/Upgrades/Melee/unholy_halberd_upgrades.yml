@@ -12,7 +12,7 @@
     price: 5000
     category: Melee Polearm
     statDamage: 35
-    statFireRate: 35
+    statFireRate: 70
     statAccuracy: 0
     statCapacity: 0
     upgrades:
@@ -26,7 +26,7 @@
     - id: halberd-balanced
       name: Balanced Haft
       description: Attack speed +15% per level.
-      maxLevel: 3
+      maxLevel: 5
       baseCost: 5000
       type: AttackSpeed
       valuePerLevel: 0.15
@@ -47,7 +47,7 @@
     - id: halberd-cyclone
       name: Cyclone
       description: Whirlwind spins 30% faster per level, at the same health a second.
-      maxLevel: 2
+      maxLevel: 4
       baseCost: 7000
       type: MeleeSignature
       signature: Cyclone

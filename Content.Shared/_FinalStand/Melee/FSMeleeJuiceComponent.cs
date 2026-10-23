@@ -39,16 +39,16 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public SoundSpecifier? ComboReadySound;
 
-    // Each hit in a row on the same target adds this much damage, up to RevStacks, and raises the hit sound's pitch.
+    // Each hit in a row adds this much damage, up to RevStacks, and raises the hit sound's pitch.
     [DataField]
     public float RevStep;
 
     [DataField]
     public int RevStacks = 6;
 
-    // Seconds between hits before the rev drops.
+    // Seconds between hits before the rev drops, long enough to forgive a missed swing.
     [DataField]
-    public float RevWindow = 0.4f;
+    public float RevWindow = 0.75f;
 
     // A heavy spends the built-up rev for this much extra damage per stack.
     [DataField]

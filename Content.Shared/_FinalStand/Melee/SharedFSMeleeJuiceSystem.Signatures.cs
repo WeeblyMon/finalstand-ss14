@@ -21,6 +21,7 @@ public abstract partial class SharedFSMeleeJuiceSystem
     private const float BraceStill = 0.3f;
     private const float WoundedCrit = 0.5f;
     private const float ShotRetry = 0.15f;
+    private const float MinShotRecharge = 0.5f;
     private const float TempestRadius = 1.6f;
     private static readonly TimeSpan TempestWindow = TimeSpan.FromSeconds(0.6);
 
@@ -35,6 +36,18 @@ public abstract partial class SharedFSMeleeJuiceSystem
     public int RevCap(Entity<FSMeleeJuiceComponent> weapon)
     {
         return weapon.Comp.RevStacks + (int) Signature(weapon, FSMeleeSignature.Redline);
+    }
+
+    // Spare Pistols: more shots held at once.
+    public int MaxShots(Entity<FSMeleeJuiceComponent> weapon)
+    {
+        return weapon.Comp.ShotCharges + (int) Signature(weapon, FSMeleeSignature.SparePistols);
+    }
+
+    // Powder Horn: seconds for a spent shot to come back.
+    public float ShotRecharge(Entity<FSMeleeJuiceComponent> weapon)
+    {
+        return Math.Max(MinShotRecharge, weapon.Comp.ShotRecharge - Signature(weapon, FSMeleeSignature.PowderHorn));
     }
 
     // Crits that hold for the whole swing; the per-target ones are TargetCrits.
@@ -98,7 +111,7 @@ public abstract partial class SharedFSMeleeJuiceSystem
         if (ready)
         {
             if (shots.Charges >= shots.MaxCharges)
-                shots.NextCharge = now + TimeSpan.FromSeconds(weapon.Comp.ShotRecharge);
+                shots.NextCharge = now + TimeSpan.FromSeconds(ShotRecharge(weapon));
 
             shots.Charges--;
             shots.LastShot = now;
