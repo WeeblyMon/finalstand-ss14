@@ -4,7 +4,7 @@
   id: FSWeaponShopChainsaw
   parent: FSWeaponShopBase
   name: Chainsaw
-  description: A very large chainsaw. Requires fuel and a steady hand.
+  description: A very large chainsaw. Requires a steady hand.
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponChainsaw
@@ -43,20 +43,6 @@
       baseCost: 22000
       type: LifeSteal
       valuePerLevel: 0.5
-    - id: chainsaw-fuel-efficiency
-      name: Fuel Efficiency
-      description: Reduces fuel taken per swing by 0.25 per level.
-      maxLevel: 2
-      baseCost: 9000
-      type: FuelEfficiency
-      valuePerLevel: 0.25
-    - id: chainsaw-fuel-capacity
-      name: Fuel Capacity
-      description: Tank holds +25% more fuel per level.
-      maxLevel: 2
-      baseCost: 17000
-      type: FuelCapacity
-      valuePerLevel: 0.25
     - id: chainsaw-protective-saw
       name: Protective Saw
       description: While wielded, take 20% less damage.
