@@ -9,7 +9,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._FinalStand.Melee;
 
 // Sparks drawn in toward a winding-up weapon while a glow builds around its holder.
-public sealed class FSMeleeChargeOverlay : Overlay
+public sealed partial class FSMeleeChargeOverlay : Overlay
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IEntityManager _entities = default!;

@@ -6,7 +6,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._FinalStand.Melee;
 
 // A few frames of stark black and white on the hits that deserve it.
-public sealed class FSImpactFrameOverlay : Overlay
+public sealed partial class FSImpactFrameOverlay : Overlay
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;

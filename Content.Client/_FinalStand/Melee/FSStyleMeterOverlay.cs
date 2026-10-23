@@ -13,7 +13,7 @@ using Robust.Shared.Utility;
 namespace Content.Client._FinalStand.Melee;
 
 // Devil May Cry style rank meter under the wave panel: a tilted rank letter that pops in, its title, a draining bar and a hit counter.
-public sealed class FSStyleMeterOverlay : Overlay
+public sealed partial class FSStyleMeterOverlay : Overlay
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IEntityManager _entities = default!;
