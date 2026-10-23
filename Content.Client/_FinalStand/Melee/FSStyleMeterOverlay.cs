@@ -51,6 +51,8 @@ public sealed class FSStyleMeterOverlay : Overlay
     private readonly Texture?[] _titles = new Texture?[States.Length];
     private Font? _font;
     private int _fontSize;
+    private Font? _moneyFont;
+    private int _moneyFontSize;
     private float _alpha;
     private float _lastFrame;
     private int _shownRank;
@@ -129,6 +131,22 @@ public sealed class FSStyleMeterOverlay : Overlay
         }
 
         DrawBar(handle, old, new Vector2(left + 8f * s, top + 112f * s), width - 12f * s, s, color);
+        DrawMoney(handle, left + width - 4f * s, top + 122f * s, s, color);
+    }
+
+    // What the rank adds to melee kill money, under the bar.
+    private void DrawMoney(DrawingHandleScreen handle, float right, float y, float s, Color color)
+    {
+        var size = Math.Max(8, (int) MathF.Round(11f * s));
+        if (_moneyFont == null || _moneyFontSize != size)
+        {
+            _moneyFont = new VectorFont(_resources.GetResource<FontResource>(FontPath), size);
+            _moneyFontSize = size;
+        }
+
+        var text = Loc.GetString("fs-style-kill-money", ("percent", MathF.Round(_shownRank * FSStyleComponent.KillMoneyPerRank * 100f)));
+        var textWidth = handle.GetDimensions(_moneyFont, text, 1f).X;
+        handle.DrawString(_moneyFont, new Vector2(right - textWidth, y), text, 1f, color.WithAlpha(_alpha), new TextOutline(1.5f * s, Color.Black.WithAlpha(0.8f * _alpha)));
     }
 
     // Under the wave panel and anything stacked below it, matching its width.

@@ -39,6 +39,9 @@ public sealed partial class FSStyleComponent : Component
 
     public const float MaxScore = 1400f;
     public const int MaxRank = 7;
+
+    // Extra money a melee kill pays for each rank held.
+    public const float KillMoneyPerRank = 0.01f;
     public static readonly TimeSpan Grace = TimeSpan.FromSeconds(1.2);
     public static readonly TimeSpan HitChainWindow = TimeSpan.FromSeconds(2.5);
 

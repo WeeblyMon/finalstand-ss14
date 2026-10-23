@@ -7,3 +7,4 @@ ui-options-fs-style-meter-tooltip = Show the D to SSS style rank that climbs as 
 fs-melee-shot-status = Flintlock [color={$color}]{$pips}[/color]
 fs-melee-shot-status-next = · {$seconds}s
 fs-hud-shot-meter = FLINTLOCK
+fs-style-kill-money = +{$percent}% KILL $

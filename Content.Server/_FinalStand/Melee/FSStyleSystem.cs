@@ -28,8 +28,6 @@ public sealed partial class FSStyleSystem : EntitySystem
     private const float MultiKill = 20f;
     private const float SwitchBonus = 1.3f;
 
-    public const float KillMoneyPerRank = 0.01f;
-
     public const float StrikePoints = 5f;
     public const float PiercePoints = 10f;
     public const float StaggerPoints = 4f;
@@ -108,7 +106,7 @@ public sealed partial class FSStyleSystem : EntitySystem
     // A melee kill pays a little more for each style rank the killer holds.
     public float KillMoneyMultiplier(EntityUid killer, EntityUid target)
     {
-        return _killPipeline.IsMeleeKill(killer, target) ? 1f + KillMoneyPerRank * Rank(killer) : 1f;
+        return _killPipeline.IsMeleeKill(killer, target) ? 1f + FSStyleComponent.KillMoneyPerRank * Rank(killer) : 1f;
     }
 
     public float ShowstopperMultiplier(EntityUid user, FSPerkLevelsComponent perks)
