@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 10/18/2026 20:40:10
-  entityCount: 11099
+  entityCount: 11100
 maps:
 - 259
 grids:
@@ -35692,6 +35692,13 @@ entities:
     - type: Transform
       parent: 1
       pos: 16.5,15.5
+- proto: FSWeaponShopRayGun
+  entities:
+  - uid: 11116
+    components:
+    - type: Transform
+      parent: 1
+      pos: 18.5,15.5
 - proto: FSWeaponShopRiotShield
   entities:
   - uid: 10958
