@@ -4,54 +4,61 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 <Document>
 # Surgery
-Your usual weekly activity. By performing surgical operations on your patients, you can heal wounds, remove or add body parts, organs, and more.
+Field medicine keeps people fighting. Surgery finishes the job. The medigun and bone stapler only patch a casualty up part of the way. A doctor at a table fixes what they leave behind.
 
-## The Basics
-To start surgery your patient needs to be laying down, and ideally sedated.
+## When someone needs surgery
+- A [color=#a4885c]broken bone[/color]. A broken arm makes shots and swings fumble, and a broken leg slows the patient down.
+- A [color=#a4885c]severed limb[/color] that needs to go back on.
+- [color=#a4885c]Organ damage[/color], which stops the part healing.
+- Deep [color=#a4885c]bleeding[/color] or wounds that bandages can't close.
 
-If they are not sedated, they will be in a lot of pain, which decreases their mood, and will make surgical wounds worse.
+## Starting
+1. Get the patient lying down. An operating table or a field hospital is best.
+
+2. Hold any surgical tool, right-click the patient and pick [color=#a4885c]Start surgery[/color].
+
+3. Click a body part on the doll. Hurt parts are coloured, and missing parts lead to their reattach operation.
+
+4. The bar at the bottom names what to do next. Press [color=#a4885c]Perform[/color], or click the step marked with ▶.
+
+You don't need the tool in your hand. Tools in your hands, your bag or on the floor next to you are found automatically. When a step can't start, the reason is written under it. When a repair finishes, the window moves on to the next problem on that part, and to closing it up once nothing is left.
 
 <Box>
-<GuideEntityEmbed Entity="NitrousOxideTank" Caption="nitrous oxide"/>
-<GuideEntityEmbed Entity="ClothingMaskBreathMedical" Caption="any breathing tool"/>
+<GuideEntityEmbed Entity="OperatingTable" Caption="operating table"/>
+<GuideEntityEmbed Entity="FSFieldHospitalItem" Caption="field hospital"/>
 </Box>
 
-You also need to wear protective gear such as a mask and gloves to prevent harming the patient due to contamination.
-
-<Box>
-<GuideEntityEmbed Entity="ClothingMaskSterile" Caption="any mask"/>
-<GuideEntityEmbed Entity="ClothingHandsGlovesNitrile" Caption="any gloves"/>
-</Box>
-
-## Getting Started
-
-To engage in surgery, you'll need a set of surgical tools.
-
+## Tools
 <Box>
 <GuideEntityEmbed Entity="Scalpel" Caption="scalpel"/>
 <GuideEntityEmbed Entity="Retractor" Caption="retractor"/>
 <GuideEntityEmbed Entity="Hemostat" Caption="hemostat"/>
-<GuideEntityEmbed Entity="Drill" Caption="drill"/>
+<GuideEntityEmbed Entity="Saw" Caption="saw"/>
 </Box>
 <Box>
-<GuideEntityEmbed Entity="Saw" Caption="saw"/>
 <GuideEntityEmbed Entity="Cautery" Caption="cautery"/>
 <GuideEntityEmbed Entity="BoneGel" Caption="bone gel"/>
+<GuideEntityEmbed Entity="MedicalStitches" Caption="stitches"/>
 </Box>
 
-Once you've got tools in hand, interact with your patient to begin surgery. You'll be able to choose which part you want to operate on.
+Surgery crates and duffels hold a full set. The medical techfab prints every tool, including bone gel and stitches. In a pinch, any sharp item works as a slow scalpel or saw.
 
-## Ghetto Surgery
+## Doing it safely
+- Wear [color=#a4885c]gloves and a mask[/color]. Without them, every step gives the patient a dose of toxin.
+- Medical staff operate four times faster and can work through clothing. Anyone else has to take off the clothing covering the part first.
+- A sleeping patient feels far less pain. Nitrous oxide works well.
 
-Certain non-surgical tools can be used in a pinch, use the scalpel examine icon to see how good or bad something is.
 <Box>
-<GuideEntityEmbed Entity="Welder" Caption="welder"/>
-<GuideEntityEmbed Entity="Wirecutter" Caption="wirecutter"/>
-<GuideEntityEmbed Entity="KitchenKnife" Caption="knife"/>
-<GuideEntityEmbed Entity="Crowbar" Caption="crowbar"/>
-<GuideEntityEmbed Entity="CableApcStack" Caption="lv cable"/>
+<GuideEntityEmbed Entity="ClothingMaskSterile" Caption="any mask"/>
+<GuideEntityEmbed Entity="ClothingHandsGlovesNitrile" Caption="any gloves"/>
+<GuideEntityEmbed Entity="NitrousOxideTank" Caption="nitrous oxide"/>
 </Box>
 
-They aren't ideal compared to real surgical equipment, but they'll do in a pinch!
+## In the field
+The bone stapler mends broken bones a little at a time, and the medigun heals most of the way. Both stop short of a full repair, so send the patient to a doctor afterwards.
 
+<Box>
+<GuideEntityEmbed Entity="FSBoneStapler" Caption="bone stapler"/>
+<GuideEntityEmbed Entity="FSMedicalBeamGun" Caption="medigun"/>
+</Box>
 </Document>
