@@ -52,6 +52,11 @@ public sealed partial class FSPerkKillPipelineSystem : EntitySystem
         _meleeHits.Add((user, target));
     }
 
+    public bool IsMeleeKill(EntityUid killer, EntityUid target)
+    {
+        return _meleeHits.Contains((killer, target));
+    }
+
     private void OnMobStateChanged(MobStateChangedEvent args)
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead)

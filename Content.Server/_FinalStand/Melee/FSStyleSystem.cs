@@ -14,6 +14,7 @@ public sealed partial class FSStyleSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private FSPerkKillPipelineSystem _killPipeline = default!;
 
     private const float LightHit = 14f;
     private const float HeavyHit = 24f;
@@ -26,6 +27,8 @@ public sealed partial class FSStyleSystem : EntitySystem
     private const float HeavyKill = 10f;
     private const float MultiKill = 20f;
     private const float SwitchBonus = 1.3f;
+
+    public const float KillMoneyPerRank = 0.01f;
 
     public const float StrikePoints = 5f;
     public const float PiercePoints = 10f;
@@ -100,6 +103,12 @@ public sealed partial class FSStyleSystem : EntitySystem
     public int Rank(EntityUid user)
     {
         return TryComp<FSStyleComponent>(user, out var style) ? FSStyleComponent.RankOf(style.ScoreAt(_timing.CurTime)) : 0;
+    }
+
+    // A melee kill pays a little more for each style rank the killer holds.
+    public float KillMoneyMultiplier(EntityUid killer, EntityUid target)
+    {
+        return _killPipeline.IsMeleeKill(killer, target) ? 1f + KillMoneyPerRank * Rank(killer) : 1f;
     }
 
     public float ShowstopperMultiplier(EntityUid user, FSPerkLevelsComponent perks)

@@ -23,6 +23,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Content.Server.Light.EntitySystems;
 using Content.Server.Power.Components;
+using Content.Server._FinalStand.Melee;
 using Content.Server._FinalStand.Onboarding;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Titles;
@@ -63,6 +64,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private FSOnboardingSystem _onboarding = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
     [Dependency] private FSArchetypeSystem _archetypes = default!;
+    [Dependency] private FSStyleSystem _style = default!;
     [Dependency] private FSRoundPresenceSystem _presence = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
@@ -607,7 +609,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         {
             killerMind = mindId;
             var weaponBonus = TryComp<FSPendingKillBonusComponent>(ent.Owner, out var pending) ? 1f + pending.MoneyPercent : 1f;
-            _wallet.GiveCredits(mindId, (int) (killCredits * weaponBonus * _archetypes.Bonus(mindId).Credits
+            _wallet.GiveCredits(mindId, (int) (killCredits * weaponBonus * _style.KillMoneyMultiplier(args.Origin.Value, ent.Owner) * _archetypes.Bonus(mindId).Credits
                 * _titleBuffs.ForMind(mindId).KillCredits));
 
             if (IsSecurityRole(mindId))
