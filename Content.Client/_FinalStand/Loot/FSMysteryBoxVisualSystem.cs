@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.Loot;
 using Content.Shared.Random.Helpers;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -16,6 +17,8 @@ public sealed partial class FSMysteryBoxVisualSystem : EntitySystem
     [Dependency] private IPrototypeManager _protoMan = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SpriteSystem _sprite = default!;
+
+    private static readonly EntProtoId TopperProto = "FSMysteryBoxTopper";
 
     private const string LidLayer = "lid";
     private const string DisplayLayer = "display";
@@ -35,6 +38,7 @@ public sealed partial class FSMysteryBoxVisualSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSMysteryBoxComponent, AfterAutoHandleStateEvent>(OnState);
+        SubscribeLocalEvent<FSMysteryBoxComponent, ComponentShutdown>(OnShutdown);
         _label = new FSMysteryBoxLabelOverlay();
         _overlays.AddOverlay(_label);
     }
@@ -47,8 +51,13 @@ public sealed partial class FSMysteryBoxVisualSystem : EntitySystem
 
     private void OnState(Entity<FSMysteryBoxComponent> ent, ref AfterAutoHandleStateEvent args)
     {
-        if (ent.Comp.State == FSMysteryBoxState.Offering && ent.Comp.Prize is { } prize)
-            _sprite.LayerSetTexture(ent.Owner, DisplayLayer, _sprite.GetPrototypeIcon(prize).Default);
+        ent.Comp.NextIcon = TimeSpan.Zero;
+    }
+
+    private void OnShutdown(Entity<FSMysteryBoxComponent> ent, ref ComponentShutdown args)
+    {
+        if (Exists(ent.Comp.Topper))
+            QueueDel(ent.Comp.Topper);
     }
 
     public override void FrameUpdate(float frameTime)
@@ -56,10 +65,21 @@ public sealed partial class FSMysteryBoxVisualSystem : EntitySystem
         base.FrameUpdate(frameTime);
 
         var now = _timing.CurTime;
-        var query = EntityQueryEnumerator<FSMysteryBoxComponent, SpriteComponent>();
-        while (query.MoveNext(out var uid, out var box, out var sprite))
+        var query = EntityQueryEnumerator<FSMysteryBoxComponent, SpriteComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var box, out var boxSprite, out var xform))
         {
-            Entity<SpriteComponent> ent = (uid, sprite);
+            if (xform.MapID == MapId.Nullspace)
+                continue;
+
+            if (!TryComp<SpriteComponent>(box.Topper, out var sprite))
+            {
+                box.Topper = SpawnAttachedTo(TopperProto, new EntityCoordinates(uid, Vector2.Zero));
+                box.NextIcon = TimeSpan.Zero;
+                _sprite.LayerSetVisible((uid, boxSprite), LidLayer, false);
+                continue;
+            }
+
+            Entity<SpriteComponent> ent = (box.Topper.Value, sprite);
             var elapsed = (float) (now - box.StateStart).TotalSeconds;
             var left = (float) (box.StateEnd - now).TotalSeconds;
             var total = (float) (box.StateEnd - box.StateStart).TotalSeconds;
@@ -78,6 +98,11 @@ public sealed partial class FSMysteryBoxVisualSystem : EntitySystem
                     break;
                 case FSMysteryBoxState.Offering:
                     SetLid(ent, 1f);
+                    if (now >= box.NextIcon && box.Prize is { } prize)
+                    {
+                        _sprite.LayerSetTexture(ent.AsNullable(), DisplayLayer, _sprite.GetPrototypeIcon(prize).Default);
+                        box.NextIcon = TimeSpan.MaxValue;
+                    }
                     var sink = Math.Clamp(left / SinkTime, 0f, 1f);
                     var bob = MathF.Sin(elapsed * 3f) * 0.04f;
                     SetDisplay(ent, MathHelper.Lerp(0.1f, FloatHeight, sink) + bob, sink);

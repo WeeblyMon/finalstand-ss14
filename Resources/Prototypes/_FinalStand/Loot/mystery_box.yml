@@ -55,9 +55,6 @@
     - state: base
     - state: lid
       map: [ "lid" ]
-    - map: [ "display" ]
-      visible: false
-      shader: unshaded
   - type: InteractionOutline
   - type: PointLight
     enabled: false
@@ -93,3 +90,18 @@
         - MachineMask
         layer:
         - MachineLayer
+
+- type: entity
+  id: FSMysteryBoxTopper
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: _FinalStand/Structures/mystery_box.rsi
+    offset: 0.5,0
+    layers:
+    - state: lid
+      map: [ "lid" ]
+    - map: [ "display" ]
+      visible: false
+      shader: unshaded

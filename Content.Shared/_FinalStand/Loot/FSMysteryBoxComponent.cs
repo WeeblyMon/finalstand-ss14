@@ -57,6 +57,9 @@ public sealed partial class FSMysteryBoxComponent : Component
 
     [ViewVariables]
     public TimeSpan NextIcon;
+
+    [ViewVariables]
+    public EntityUid? Topper;
 }
 
 [DataDefinition]
