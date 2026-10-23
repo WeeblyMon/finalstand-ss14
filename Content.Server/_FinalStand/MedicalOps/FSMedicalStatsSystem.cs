@@ -294,18 +294,24 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (args.Origin == uid || !TryGetPlayerMind(args.Origin, out var healerMind) || IsAbandoned(uid))
             return;
 
-        var recovered = args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive
-            || args.OldMobState == MobState.Critical && args.NewMobState == MobState.Alive;
-        if (!recovered || !TryCountPayout(_recoveriesPaid, healerMind, uid, RecoveriesPaidPerPatientPerWave))
+        var revive = args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive;
+        if (!revive && !(args.OldMobState == MobState.Critical && args.NewMobState == MobState.Alive))
             return;
 
-        if (args.OldMobState == MobState.Dead)
+        // Mentor points have their own cooldown per pair, so a revive counts for them past the payout cap.
+        if (revive)
+        {
+            var revived = new FSAllyRevivedEvent(healerMind, uid);
+            RaiseLocalEvent(ref revived);
+        }
+
+        if (!TryCountPayout(_recoveriesPaid, healerMind, uid, RecoveriesPaidPerPatientPerWave))
+            return;
+
+        if (revive)
         {
             Award(healerMind, "revive", points: RevivePoints, revives: 1,
                 credits: ReviveCredits, fund: ReviveFund);
-
-            var revived = new FSAllyRevivedEvent(healerMind, uid);
-            RaiseLocalEvent(ref revived);
 
             comp.PendingSaveCredit = healerMind;
             comp.PendingSaveWave = _waveRule.GetWaveNumber();

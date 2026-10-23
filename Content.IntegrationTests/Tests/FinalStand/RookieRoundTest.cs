@@ -183,6 +183,32 @@ public sealed class RookieRoundTest : GameTest
     }
 
     [Test]
+    public async Task ARevivePaysTheMentorPastTheMedicPayoutCap()
+    {
+        await StartRoundWithARookie();
+
+        await Server.WaitAssertion(() =>
+        {
+            MakeVeteranAMentor();
+            var mobState = SEntMan.System<MobStateSystem>();
+            var rookie = BodyOf(_rookie);
+
+            // Three stabilises use up this wave's medic payouts for the rookie, and pay no mentor points.
+            for (var i = 0; i < 3; i++)
+            {
+                mobState.ChangeMobState(rookie, MobState.Critical);
+                mobState.ChangeMobState(rookie, MobState.Alive, origin: BodyOf(_veteran));
+            }
+            Assert.That(MentorPoints(), Is.Zero, "test precondition");
+
+            mobState.ChangeMobState(rookie, MobState.Dead);
+            mobState.ChangeMobState(rookie, MobState.Critical, origin: BodyOf(_veteran));
+            Assert.That(MentorPoints(), Is.EqualTo(FSMentorSystem.ReviveMp),
+                "the mentor's own cooldown limits revives, not the medic payout cap");
+        });
+    }
+
+    [Test]
     public async Task HurtingARookieVoidsThePairForTheRound()
     {
         await StartRoundWithARookie();
