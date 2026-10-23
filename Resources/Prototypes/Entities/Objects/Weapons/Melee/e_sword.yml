@@ -27,8 +27,8 @@
       trailDuration: 0.16
       slashEffect: FSMeleeStabEnergy
       slashScale: 0.5
-      slashOffset: 0.9
-      slashTravel: 0.3
+      slashOffset: 0.6
+      slashTravel: 0.25
       slashGrow: 1.1
     heavy:
       anticipation: 0.03
@@ -60,8 +60,8 @@
       slashEffect: FSMeleeSlashWarriorArcTinted
       slashColor: "#7ff0ff"
       slashScale: 1.1
-      slashOffset: 0.6
-      slashTravel: 1.2
+      slashOffset: 0.45
+      slashTravel: 0.8
       slashGrow: 1.25
     comboHits: 2
     comboReadySound:

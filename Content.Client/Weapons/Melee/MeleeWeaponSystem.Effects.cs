@@ -16,6 +16,7 @@ public sealed partial class MeleeWeaponSystem
     private const string FadeAnimationKey = "melee-fade";
     private const string SlashAnimationKey = "melee-slash";
     private const string ThrustAnimationKey = "melee-thrust";
+    private const double LightSwingArc = 110; // FINALSTAND
 
     /// <summary>
     /// Does all of the melee effects for a player that are predicted, i.e. character lunge and weapon animation.
@@ -64,6 +65,10 @@ public sealed partial class MeleeWeaponSystem
 
             spriteRotation = meleeWeaponComponent.WideAnimationRotation;
 
+            // FINALSTAND: full-circle weapons still swing a normal arc on a light attack
+            if (!juiceHeavy && Math.Abs(angle.Degrees) > LightSwingArc)
+                angle = Angle.FromDegrees(LightSwingArc);
+
             if (meleeWeaponComponent.SwingLeft)
                 angle *= -1;
 
@@ -111,10 +116,12 @@ public sealed partial class MeleeWeaponSystem
 
         if (juice != null) // FINALSTAND
         {
-            _fsJuice.TrackTrail(animationUid, user, juice, length + anticipation + hold);
+            // A thrust's trail stops at full extension so it doesn't follow the blade back.
+            var trailLength = arcComponent.Animation == WeaponArcAnimation.Thrust ? anticipation + length * 0.3f + hold : length + anticipation + hold;
+            _fsJuice.TrackTrail(animationUid, user, juice, trailLength);
             _fsJuice.PlaySwingEffect(user, juice);
             if (_fsJuice.GetStyle(weapon, juiceHeavy) != FSMeleeHeavyStyle.Spin)
-                _fsJuice.PlaySlash(user, weapon, juiceHeavy, juice, localPos.ToWorldAngle(), (TransformSystem.GetWorldRotation(userXform) - userXform.LocalRotation).RotateVec(localPos), TryComp(weapon, out MeleeWeaponComponent? swingMelee) && swingMelee.SwingLeft, anticipation, length);
+                _fsJuice.PlaySlash(user, weapon, juiceHeavy, juice, localPos.ToWorldAngle(), (TransformSystem.GetWorldRotation(userXform) - userXform.LocalRotation).RotateVec(localPos), !(TryComp(weapon, out MeleeWeaponComponent? swingMelee) && swingMelee.SwingLeft), anticipation, length);
         }
     }
 
@@ -201,8 +208,8 @@ public sealed partial class MeleeWeaponSystem
                         new AnimationTrackProperty.KeyFrame(Vector2.Lerp(startOffset, endOffset, 0.65f), length * 0.10f),
                         new AnimationTrackProperty.KeyFrame(Vector2.Lerp(startOffset, endOffset, 1f), length * 0.20f),
                         new AnimationTrackProperty.KeyFrame(Vector2.Lerp(startOffset, endOffset, 1f), hold),
-                        new AnimationTrackProperty.KeyFrame(Vector2.Lerp(startOffset, endOffset, 0.9f), length * 0.30f),
-                        new AnimationTrackProperty.KeyFrame(Vector2.Lerp(startOffset, endOffset, 0.7f), length * 0.60f, Easings.OutQuart)
+                        new AnimationTrackProperty.KeyFrame(Vector2.Lerp(startOffset, endOffset, 0.95f), length * 0.30f, Easings.InOutQuad),
+                        new AnimationTrackProperty.KeyFrame(Vector2.Lerp(startOffset, endOffset, 0.8f), length * 0.60f, Easings.InOutQuad)
                     }
                 },
             }

@@ -271,3 +271,9 @@
     sprite: _FinalStand/Effects/Melee/slam.rsi
     state: slam
     drawdepth: FloorObjects
+
+# The slash arc under its own id, so a light swing isn't mistaken for the weapon's wide attack.
+- type: entity
+  parent: WeaponArcSlash
+  id: FSWeaponArcSwing
+  categories: [ HideSpawnMenu ]
