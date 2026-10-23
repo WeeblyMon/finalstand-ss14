@@ -5,6 +5,7 @@ using Content.Shared.Storage;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Audio;
 
 namespace Content.Server._FinalStand.SmartReload;
 
@@ -30,7 +31,9 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
         var hasMag = FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var slot)
                      && slot!.Item != null;
-        var delay  = (hasMag ? MagEjectTime + MagInsertTime : MagInsertTime) * GetReloadMultiplier(user, gun);
+        var multiplier = GetReloadMultiplier(user, gun);
+        var profile = CompOrNull<FSReloadProfileComponent>(gun);
+        var delay  = (hasMag ? MagEjectTime + MagInsertTime : MagInsertTime) * (profile?.TimeMultiplier ?? 1f) * multiplier;
 
         var doAfterArgs = new DoAfterArgs(EntityManager, user, delay,
             new FSMagReloadDoAfterEvent
@@ -47,7 +50,11 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             DuplicateCondition = DuplicateConditions.SameEvent | DuplicateConditions.SameTarget,
         };
 
-        _doAfter.TryStartDoAfter(doAfterArgs);
+        if (!_doAfter.TryStartDoAfter(doAfterArgs) || profile is not { Sound: { } sound })
+            return;
+
+        var pitch = Math.Clamp(1f / multiplier, 1f, 2f);
+        profile.Playing = _audio.PlayPvs(sound, gun, AudioParams.Default.WithPitchScale(pitch))?.Entity;
     }
 
     private void OnMagReloadComplete(EntityUid gun, MagazineAmmoProviderComponent comp, FSMagReloadDoAfterEvent args)
@@ -62,6 +69,14 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
     private void DoMagReload(EntityUid gun, FSMagReloadDoAfterEvent args)
     {
+        if (TryComp<FSReloadProfileComponent>(gun, out var profile))
+        {
+            if (args.Cancelled)
+                _audio.Stop(profile.Playing);
+
+            profile.Playing = null;
+        }
+
         if (args.Cancelled || !args.User.IsValid())
             return;
 

@@ -19,6 +19,7 @@ using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Whitelist;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Player;
 
@@ -40,6 +41,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
     [Dependency] private FSBloodloadSystem _bloodload = default!;
     [Dependency] private FSSpeedloadSystem _speedload = default!;
     [Dependency] private FSWolfPackSystem _wolfPack = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     private readonly Dictionary<EntityUid, DoAfterId> _activeShellInserts = new();
 
