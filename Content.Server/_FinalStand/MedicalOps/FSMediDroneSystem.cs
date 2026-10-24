@@ -7,6 +7,7 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
+using Content.Shared.Whitelist;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -25,6 +26,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
     [Dependency] private ExplosionSystem _explosion = default!;
     [Dependency] private FSMediGunSystem _mediGun = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private EntityWhitelistSystem _whitelist = default!;
 
     private static readonly SoundSpecifier LaunchSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
     private static readonly SoundSpecifier LowChargeSound = new SoundPathSpecifier("/Audio/Machines/beep.ogg");
@@ -143,6 +145,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
     {
         return patient != owner
                && !TerminatingOrDeleted(patient)
+               && _whitelist.IsWhitelistPass(gun.HealAbleWhitelist, patient)
                && !_mobState.IsDead(patient)
                && TryComp<DamageableComponent>(patient, out var damageable)
                && HealableDamage(damageable, gun) >= MinHealableDamage
