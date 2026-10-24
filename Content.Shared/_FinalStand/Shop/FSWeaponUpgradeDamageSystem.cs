@@ -1,4 +1,4 @@
-using Content.Shared._FinalStand.Weapons;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage.Events;
 using Content.Shared.FixedPoint;
 using Content.Shared.Weapons.Melee.Events;
@@ -13,7 +13,7 @@ public sealed partial class FSWeaponUpgradeDamageSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, GetMeleeDamageEvent>(OnGetMeleeDamage);
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
-        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, FSHitscanDamageModifyEvent>(OnHitscanDamage);
+        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, FSHitscanDamageEvent>(OnHitscanDamage);
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, DamageExamineEvent>(OnDamageExamine);
     }
 
@@ -32,7 +32,7 @@ public sealed partial class FSWeaponUpgradeDamageSystem : EntitySystem
             args.Multipliers *= state.AttackSpeedMultiplier;
     }
 
-    private void OnHitscanDamage(EntityUid weapon, FSWeaponUpgradeStateComponent state, ref FSHitscanDamageModifyEvent args)
+    private void OnHitscanDamage(EntityUid weapon, FSWeaponUpgradeStateComponent state, ref FSHitscanDamageEvent args)
     {
         if (state.DamageMultiplier > 1f)
             args.Damage *= state.DamageMultiplier;

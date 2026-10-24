@@ -289,7 +289,7 @@ public sealed partial class WoundSystem
     {
         var delta = args.Overflow ?? args.NewSeverity - args.OldSeverity;
 
-        if (!_net.IsServer
+        if (!_net.IsServer // FINALSTAND: the client applying wound state tried to drop the part's organs itself
             || TerminatingOrDeleted(uid)
             || TerminatingOrDeleted(component.HoldingWoundable)
             // || !TryComp<TraumaInflicterComponent>(uid, out var traumaInflicter) // Goob edit

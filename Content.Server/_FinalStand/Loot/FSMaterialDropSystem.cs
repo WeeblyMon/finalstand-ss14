@@ -32,12 +32,26 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
     private readonly Queue<EntityUid> _looseDropOrder = new();
     private readonly HashSet<Entity<StackComponent>> _nearbyStacks = new();
 
+    private int _basePlayers;
+    private float _perPlayer;
+    private int _baseWave;
+    private float _perWave;
+    private float _bonusCap;
+    private float _mergeRange;
+
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSMaterialDropComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+
+        Subs.CVar(_cfg, CCVars.FSMatDropBasePlayers, v => _basePlayers = v, true);
+        Subs.CVar(_cfg, CCVars.FSMatDropPerPlayer, v => _perPlayer = v, true);
+        Subs.CVar(_cfg, CCVars.FSMatDropBaseWave, v => _baseWave = v, true);
+        Subs.CVar(_cfg, CCVars.FSMatDropPerWave, v => _perWave = v, true);
+        Subs.CVar(_cfg, CCVars.FSMatDropBonusCap, v => _bonusCap = v, true);
+        Subs.CVar(_cfg, CCVars.FSMatDropMergeRange, v => _mergeRange = v, true);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent _)
@@ -69,11 +83,11 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
         TrimLooseDrops();
     }
 
-    public float GetAmountMultiplier(int players, int wave)
+    private float GetAmountMultiplier(int players, int wave)
     {
-        var playerBonus = Math.Max(0, players - _cfg.GetCVar(CCVars.FSMatDropBasePlayers)) * _cfg.GetCVar(CCVars.FSMatDropPerPlayer);
-        var waveBonus = Math.Max(0, wave - _cfg.GetCVar(CCVars.FSMatDropBaseWave)) * _cfg.GetCVar(CCVars.FSMatDropPerWave);
-        return 1f + MathF.Min(playerBonus + waveBonus, _cfg.GetCVar(CCVars.FSMatDropBonusCap));
+        var playerBonus = Math.Max(0, players - _basePlayers) * _perPlayer;
+        var waveBonus = Math.Max(0, wave - _baseWave) * _perWave;
+        return 1f + MathF.Min(playerBonus + waveBonus, _bonusCap);
     }
 
     private void DropMaterial(EntProtoId proto, int amount, MapCoordinates coords)
@@ -90,7 +104,7 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
         _stack.SetCount((drop, stack), amount);
 
         _nearbyStacks.Clear();
-        _lookup.GetEntitiesInRange(coords, _cfg.GetCVar(CCVars.FSMatDropMergeRange), _nearbyStacks, LookupFlags.Dynamic | LookupFlags.Sundries);
+        _lookup.GetEntitiesInRange(coords, _mergeRange, _nearbyStacks, LookupFlags.Dynamic | LookupFlags.Sundries);
         foreach (var other in _nearbyStacks)
         {
             if (other.Owner == drop

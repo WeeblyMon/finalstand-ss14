@@ -59,9 +59,9 @@ public sealed partial class FSPerkCritSystem : EntitySystem
         if (!TryComp<ItemComponent>(weapon, out var item))
             return 0f;
 
-        var weight = _item.GetSizePrototype(item.Size).Weight;
-        return weight >= FSWeaponClassifierSystem.HugeWeight ? 0f
-            : weight >= FSWeaponClassifierSystem.LargeWeight ? FSPerkBonusConstants.ConcealedCarryLargeGunFactor
+        var size = _item.GetSizePrototype(item.Size);
+        return size >= _item.GetSizePrototype(FSWeaponClassifierSystem.HugeSize) ? 0f
+            : size >= _item.GetSizePrototype(FSWeaponClassifierSystem.LargeSize) ? FSPerkBonusConstants.ConcealedCarryLargeGunFactor
             : 1f;
     }
 

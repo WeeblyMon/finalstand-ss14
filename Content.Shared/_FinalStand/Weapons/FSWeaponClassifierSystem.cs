@@ -27,8 +27,8 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private SharedItemSystem _item = default!;
 
-    public const int LargeWeight = 8;
-    public const int HugeWeight = 16;
+    public static readonly ProtoId<ItemSizePrototype> LargeSize = "Large";
+    public static readonly ProtoId<ItemSizePrototype> HugeSize = "Huge";
 
     private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
     private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";
@@ -53,7 +53,7 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
         return HasComp<GunComponent>(uid)
             && !HasComp<WieldableComponent>(uid)
             && TryComp<ItemComponent>(uid, out var item)
-            && _item.GetSizePrototype(item.Size).Weight < LargeWeight;
+            && _item.GetSizePrototype(item.Size) < _item.GetSizePrototype(LargeSize);
     }
 
     public bool IsTwoHandedGun(EntityUid uid)

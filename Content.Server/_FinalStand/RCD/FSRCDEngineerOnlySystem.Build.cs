@@ -64,6 +64,10 @@ public sealed partial class FSRCDEngineerOnlySystem
     private const float ChiefCapMultiplier = 1.5f;
     private const float ThreatRange = 5f;
     private const float ThreatDelayMultiplier = 3f;
+    // A fixture box wider or taller than this covers more than the tile it is placed on.
+    private const float SingleTileSpan = 1.1f;
+    // Lets a half-extent sitting just under a tile edge still reach that tile.
+    private const float FootprintSlack = 0.05f;
 
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _threats = new();
     private readonly Dictionary<EntityUid, Dictionary<string, int>> _builtByMind = new();
@@ -124,7 +128,7 @@ public sealed partial class FSRCDEngineerOnlySystem
     {
         if (piece.Prototype is not { } protoId
             || !_proto.TryIndex<EntityPrototype>(protoId, out var proto)
-            || !proto.TryGetComponent<FixturesComponent>(out var fixtures, EntityManager.ComponentFactory)
+            || !proto.TryGetComponent<FixturesComponent>(out var fixtures, Factory)
             || fixtures.Fixtures.Count == 0)
             return false;
 
@@ -135,15 +139,15 @@ public sealed partial class FSRCDEngineerOnlySystem
             bounds = bounds is { } existing ? existing.Union(aabb) : aabb;
         }
 
-        if (bounds is not { } box || box.Width <= 1.1f && box.Height <= 1.1f)
+        if (bounds is not { } box || box.Width <= SingleTileSpan && box.Height <= SingleTileSpan)
             return false;
 
         if (_transform.GetGrid(location) is not { } grid || !TryComp<MapGridComponent>(grid, out var gridComp))
             return true;
 
         var center = _mapSystem.TileIndicesFor(grid, gridComp, location);
-        var reachX = (int) MathF.Floor(box.Width / 2f + 0.05f);
-        var reachY = (int) MathF.Floor(box.Height / 2f + 0.05f);
+        var reachX = (int) MathF.Floor(box.Width / 2f + FootprintSlack);
+        var reachY = (int) MathF.Floor(box.Height / 2f + FootprintSlack);
         for (var dx = -reachX; dx <= reachX; dx++)
         {
             for (var dy = -reachY; dy <= reachY; dy++)

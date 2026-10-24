@@ -151,6 +151,7 @@ public abstract partial class SharedWieldableSystem : EntitySystem
         if (HasComp<GunRequiresWieldComponent>(uid))
             return;
 
+        // FINALSTAND: a gun with no spread has no accuracy to gain from wielding, so no wield line.
         if (TryComp<GunComponent>(uid, out var gun) && gun.MinAngle <= Angle.Zero && gun.MaxAngle <= Angle.Zero)
             return;
 

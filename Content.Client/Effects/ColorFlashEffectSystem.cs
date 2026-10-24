@@ -118,6 +118,7 @@ public sealed partial class ColorFlashEffectSystem : SharedColorFlashEffectSyste
             }
 
             _animation.Stop(ent, AnimationKey);
+            // FINALSTAND: put back the colour the last flash saved before sprite.Color is read, or a mob hit mid-flash keeps the tint.
             if (comp != null)
                 _sprite.SetColor((ent, sprite), comp.Color);
 

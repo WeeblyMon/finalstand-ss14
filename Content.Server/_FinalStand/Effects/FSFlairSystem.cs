@@ -8,9 +8,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Effects;
 
-[ByRefEvent]
-public readonly record struct FSStructureDestroyedEvent(EntityUid Structure);
-
 public sealed partial class FSFlairSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;

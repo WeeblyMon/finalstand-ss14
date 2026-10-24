@@ -20,7 +20,7 @@ public sealed partial class RequireProjectileTargetSystem : EntitySystem
     }
 
     // FINALSTAND: a mech pilot is in a container but aims like someone outside it.
-    public bool IsVehicleOperator(EntityUid shooter)
+    private bool IsVehicleOperator(EntityUid shooter)
     {
         return _container.TryGetContainingContainer(shooter, out var holder) && HasComp<VehicleComponent>(holder.Owner);
     }
