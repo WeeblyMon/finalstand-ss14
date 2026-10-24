@@ -602,7 +602,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             ? enemyVal.KillCredits
             : comp.KillReward;
         var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber) * 0.5f
-            * RewardMultiplier(comp));
+            * RewardMultiplier(comp) * ModifierFactor(comp, m => m.EnemyMoney));
 
         EntityUid? killerMind = null;
         if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))

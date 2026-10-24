@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Deployables;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.HMG;
@@ -20,6 +21,7 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private FSUndyingSystem _undying = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
 
     private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
     private EntityQuery<FSArmorComponent> _armorQuery;
@@ -75,7 +77,8 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
             return;
 
         cap.MoneyGivenPerPlayer.TryGetValue(mindId, out var alreadyGiven);
-        if (alreadyGiven >= cap.MaxMoneyPerPlayer)
+        var max = (int) (cap.MaxMoneyPerPlayer * _waveRule.GetEnemyMoneyMultiplier());
+        if (alreadyGiven >= max)
             return;
 
         var payout = flatAmount ?? BaseMoneyPerHit;
@@ -90,7 +93,7 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
                 payout = (int) MathF.Round(payout * HarvesterMoneyMultiplier);
         }
 
-        var give = Math.Min(payout, cap.MaxMoneyPerPlayer - alreadyGiven);
+        var give = Math.Min(payout, max - alreadyGiven);
         cap.MoneyGivenPerPlayer[mindId] = alreadyGiven + give;
         _wallet.GiveCredits(mindId, give);
     }

@@ -88,6 +88,9 @@ public sealed partial class WaveGameRuleSystem
     public float GetRewardMultiplier()
         => TryGetActiveRule(out _, out var comp, out _) ? RewardMultiplier(comp) : 1f;
 
+    public float GetEnemyMoneyMultiplier()
+        => TryGetActiveRule(out _, out var comp, out _) ? ModifierFactor(comp, m => m.EnemyMoney) : 1f;
+
     private float RewardMultiplier(WaveGameRuleComponent comp)
         => FSDifficultyRules.RewardMultiplier(comp.Difficulty) * FSRoundModifierRules.RewardMultiplier(GetModifiers(comp));
 
