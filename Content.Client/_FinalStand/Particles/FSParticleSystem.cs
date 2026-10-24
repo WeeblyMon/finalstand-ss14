@@ -1,11 +1,12 @@
 using System.Numerics;
 using Content.Shared._FinalStand.Particles;
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
+using Robust.Shared.Graphics.RSI;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
-using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Particles;
 
@@ -17,6 +18,7 @@ public sealed partial class FSParticleSystem : EntitySystem
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     public const int MaxParticles = 1500;
 
@@ -33,7 +35,7 @@ public sealed partial class FSParticleSystem : EntitySystem
         public float Spin;
         public Color Color;
         public FSParticleEmitterPrototype Emitter;
-        public Texture Texture;
+        public Texture[] Frames;
     }
 
     private sealed class Attachment
@@ -43,6 +45,8 @@ public sealed partial class FSParticleSystem : EntitySystem
         public Color Tint;
         public float RateScale = 1f;
         public float Owed;
+        public Vector2? Last;
+        public float? Heading;
     }
 
     public readonly Particle[] Particles = new Particle[MaxParticles];
@@ -50,7 +54,7 @@ public sealed partial class FSParticleSystem : EntitySystem
 
     private readonly Dictionary<int, Attachment> _attachments = new();
     private readonly List<int> _deadHandles = new();
-    private readonly Dictionary<ResPath, Texture?> _textures = new();
+    private readonly Dictionary<string, Texture[]?> _frames = new();
     private int _nextHandle = 1;
 
     private FSParticleOverlay? _overlay;
@@ -125,6 +129,9 @@ public sealed partial class FSParticleSystem : EntitySystem
                 continue;
             }
 
+            if (attachment.Emitter.AlignToHeading && !TrackHeading(attachment))
+                continue;
+
             attachment.Owed += attachment.Emitter.Rate * attachment.RateScale * frameTime;
             if (attachment.Owed < 1f)
                 continue;
@@ -133,7 +140,7 @@ public sealed partial class FSParticleSystem : EntitySystem
             while (attachment.Owed >= 1f)
             {
                 attachment.Owed -= 1f;
-                Spawn(attachment.Emitter, at.MapId, at.Position, attachment.Tint);
+                Spawn(attachment.Emitter, at.MapId, at.Position, attachment.Tint, attachment.Heading);
             }
         }
 
@@ -142,6 +149,19 @@ public sealed partial class FSParticleSystem : EntitySystem
         _deadHandles.Clear();
 
         Step(frameTime);
+    }
+
+    private bool TrackHeading(Attachment attachment)
+    {
+        var position = _xform.GetWorldPosition(attachment.Entity);
+        if (attachment.Last is { } last && (position - last).LengthSquared() > 0.000001f)
+        {
+            var delta = position - last;
+            attachment.Heading = MathF.Atan2(delta.Y, delta.X);
+        }
+
+        attachment.Last = position;
+        return attachment.Heading != null;
     }
 
     private void Step(float dt)
@@ -167,9 +187,9 @@ public sealed partial class FSParticleSystem : EntitySystem
         }
     }
 
-    private void Spawn(FSParticleEmitterPrototype emitter, MapId map, Vector2 origin, Color tint)
+    private void Spawn(FSParticleEmitterPrototype emitter, MapId map, Vector2 origin, Color tint, float? rotation = null)
     {
-        if (ParticleCount >= MaxParticles || GetTexture(emitter.Texture) is not { } texture)
+        if (ParticleCount >= MaxParticles || GetFrames(emitter) is not { } frames)
             return;
 
         var angle = MathHelper.DegreesToRadians(emitter.Direction + _random.NextFloat(-emitter.Spread, emitter.Spread) / 2f);
@@ -188,28 +208,30 @@ public sealed partial class FSParticleSystem : EntitySystem
             Life = _random.NextFloat(emitter.Lifetime.X, MathF.Max(emitter.Lifetime.X, emitter.Lifetime.Y)),
             Size0 = emitter.Size.X * jitter,
             Size1 = emitter.Size.Y * jitter,
-            Rotation = _random.NextFloat(0f, MathF.Tau),
+            Rotation = rotation ?? _random.NextFloat(0f, MathF.Tau),
             Spin = MathHelper.DegreesToRadians(_random.NextFloat(emitter.Spin.X, MathF.Max(emitter.Spin.X, emitter.Spin.Y))),
             Color = emitter.Tinted ? Multiply(emitter.Color, tint) : emitter.Color,
             Emitter = emitter,
-            Texture = texture,
+            Frames = frames,
         };
     }
 
     private static Color Multiply(Color a, Color b) => new(a.R * b.R, a.G * b.G, a.B * b.B, a.A * b.A);
 
-    private Texture? GetTexture(ResPath path)
+    private Texture[]? GetFrames(FSParticleEmitterPrototype emitter)
     {
-        if (_textures.TryGetValue(path, out var cached))
+        if (_frames.TryGetValue(emitter.ID, out var cached))
             return cached;
 
-        Texture? texture = null;
-        if (_resources.TryGetResource<TextureResource>(path, out var resource))
-            texture = resource.Texture;
+        Texture[]? frames = null;
+        if (emitter.Animation is { } animation)
+            frames = _sprite.GetState(animation).GetFrames(RsiDirection.South);
+        else if (emitter.Texture is { } path && _resources.TryGetResource<TextureResource>(path, out var resource))
+            frames = [resource.Texture];
         else
-            Log.Error($"Particle texture '{path}' is missing");
+            Log.Error($"Particle emitter '{emitter.ID}' has no texture or animation");
 
-        _textures[path] = texture;
-        return texture;
+        _frames[emitter.ID] = frames;
+        return frames;
     }
 }

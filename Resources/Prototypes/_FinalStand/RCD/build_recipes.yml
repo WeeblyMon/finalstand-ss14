@@ -49,9 +49,11 @@
     collection: FSEngLandTurret
   capGroup: heavy
   materials:
-    Plasteel: 4
-    Steel: 6
+    Plasteel: 6
+    Steel: 8
     Gold: 1
+    Brass: 2
+    Gunpowder: 2
 
 - type: fsBuildRecipe
   id: FSHMGDeployed

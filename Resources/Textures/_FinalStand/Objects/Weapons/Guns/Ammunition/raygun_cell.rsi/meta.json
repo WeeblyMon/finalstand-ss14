@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "sprites by CaramelKitten",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "cell-0"
+    },
+    {
+      "name": "cell-1"
+    },
+    {
+      "name": "cell-2"
+    }
+  ]
+}

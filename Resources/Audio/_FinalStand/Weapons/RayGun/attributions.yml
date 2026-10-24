@@ -1,0 +1,4 @@
+- files: ["fire.ogg", "reload.ogg"]
+  license: "Custom"
+  copyright: "Ray Gun firing and reload sounds from the Call of Duty series by Activision. Trimmed, downmixed to mono and levelled for Final Stand."
+  source: "https://www.callofduty.com/"
