@@ -98,7 +98,6 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private float _zoomPunch;
     private float _zoomStart = float.MinValue;
     private FSMeleeTrailOverlay? _overlay;
-    private FSImpactFrameOverlay? _impactFrame;
     private FSMeleeChargeOverlay? _chargeOverlay;
     private FSExecutionMarkerOverlay? _executionOverlay;
     private readonly Dictionary<EntityUid, float> _tilting = new();
@@ -119,8 +118,6 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         _overlay = new FSMeleeTrailOverlay(this);
         _overlays.AddOverlay(_overlay);
-        _impactFrame = new FSImpactFrameOverlay();
-        _overlays.AddOverlay(_impactFrame);
         _chargeOverlay = new FSMeleeChargeOverlay();
         _overlays.AddOverlay(_chargeOverlay);
         _executionOverlay = new FSExecutionMarkerOverlay(this);
@@ -133,8 +130,6 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         if (_overlay != null)
             _overlays.RemoveOverlay(_overlay);
-        if (_impactFrame != null)
-            _overlays.RemoveOverlay(_impactFrame);
         if (_chargeOverlay != null)
             _overlays.RemoveOverlay(_chargeOverlay);
         if (_executionOverlay != null)
@@ -281,9 +276,6 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         if (cue != null)
             _audio.PlayLocal(cue, user, user, cue.Params);
-
-        if ((profile.Execution || profile.FullCharge) && effects && !_cfg.GetCVar(CCVars.ReducedMotion))
-            _impactFrame?.Flash(RealTime);
 
         AddTrauma(user, profile.Trauma * Math.Min(1f + 0.25f * (targets.Count - 1), 2f), dir, profile.ShakeMode);
 

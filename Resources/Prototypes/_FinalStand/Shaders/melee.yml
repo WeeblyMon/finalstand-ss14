@@ -1,11 +1,4 @@
 - type: shader
-  id: FSImpactFrame
-  kind: source
-  path: "/Textures/Shaders/_FinalStand/impact_frame.swsl"
-  params:
-    threshold: 0.22
-
-- type: shader
   id: FSBloodStain1
   kind: source
   path: "/Textures/Shaders/_FinalStand/blood_stain.swsl"
