@@ -29,9 +29,37 @@ public enum FSTutorialTip : byte
 
 public static class FSTutorialText
 {
-    public static string TitleLocId(FSTutorialTip tip) => $"fs-tutorial-{Key(tip)}-title";
+    private static readonly EntProtoId CccProto = "FinalStandCCC";
+    private static readonly EntProtoId WeaponShopProto = "FSWeaponShopViper";
+    private static readonly EntProtoId PerkShopProto = "FSPerkShop";
+    private static readonly EntProtoId AmmoBoxProto = "WaveAmmoBox";
+    private static readonly EntProtoId GrenadeProto = "FSGrenadeFrag";
+    private static readonly EntProtoId DefibProto = "FSEmergencyDefibrillator";
+    private static readonly EntProtoId LanternProto = "FlashlightLantern";
+    private static readonly EntProtoId GiantProto = "FSZombieGiant";
+    private static readonly EntProtoId RunnerProto = "FSZombieRunner";
+    private static readonly EntProtoId ArmouredProto = "FSZombieArmoured";
+    private static readonly EntProtoId BloaterProto = "FSZombieBloater";
+    private static readonly EntProtoId FlamethrowerProto = "FSZombieFlamethrower";
+    private static readonly EntProtoId TeslaProto = "FSZombieTesla";
+    private static readonly EntProtoId DevastatorProto = "FSZombieDevastator";
+    private static readonly EntProtoId RevenantProto = "FSZombieRevenant";
 
-    public static string BodyLocId(FSTutorialTip tip) => $"fs-tutorial-{Key(tip)}-body";
+    // Declared after the ids above: static initialisers run in text order.
+    private static readonly Dictionary<EntProtoId, FSTutorialTip> EnemyTips = new()
+    {
+        [RunnerProto] = FSTutorialTip.Runner,
+        [ArmouredProto] = FSTutorialTip.Armoured,
+        [BloaterProto] = FSTutorialTip.Bloater,
+        [FlamethrowerProto] = FSTutorialTip.Flamethrower,
+        [TeslaProto] = FSTutorialTip.Tesla,
+        [DevastatorProto] = FSTutorialTip.Devastator,
+        [RevenantProto] = FSTutorialTip.Revenant,
+    };
+
+    public static LocId TitleLocId(FSTutorialTip tip) => $"fs-tutorial-{Key(tip)}-title";
+
+    public static LocId BodyLocId(FSTutorialTip tip) => $"fs-tutorial-{Key(tip)}-body";
 
     public static string Key(FSTutorialTip tip) => tip switch
     {
@@ -59,37 +87,26 @@ public static class FSTutorialText
 
     public static EntProtoId? Icon(FSTutorialTip tip) => tip switch
     {
-        FSTutorialTip.Welcome => "FinalStandCCC",
-        FSTutorialTip.CccAttacked => "FinalStandCCC",
-        FSTutorialTip.Prep => "FSWeaponShopViper",
-        FSTutorialTip.PerkShop => "FSPerkShop",
-        FSTutorialTip.Perks => "FSPerkShop",
-        FSTutorialTip.FirstWave => "WaveAmmoBox",
-        FSTutorialTip.Grenades => "FSGrenadeFrag",
-        FSTutorialTip.Downed => "FSEmergencyDefibrillator",
-        FSTutorialTip.DarkWave => "FlashlightLantern",
-        FSTutorialTip.BossWave => "FSZombieGiant",
-        FSTutorialTip.Runner => "FSZombieRunner",
-        FSTutorialTip.Armoured => "FSZombieArmoured",
-        FSTutorialTip.Bloater => "FSZombieBloater",
-        FSTutorialTip.Flamethrower => "FSZombieFlamethrower",
-        FSTutorialTip.Tesla => "FSZombieTesla",
-        FSTutorialTip.Devastator => "FSZombieDevastator",
-        FSTutorialTip.Revenant => "FSZombieRevenant",
-        _ => null,
+        FSTutorialTip.Welcome or FSTutorialTip.CccAttacked => CccProto,
+        FSTutorialTip.Prep => WeaponShopProto,
+        FSTutorialTip.PerkShop or FSTutorialTip.Perks => PerkShopProto,
+        FSTutorialTip.FirstWave => AmmoBoxProto,
+        FSTutorialTip.Grenades => GrenadeProto,
+        FSTutorialTip.Downed => DefibProto,
+        FSTutorialTip.DarkWave => LanternProto,
+        FSTutorialTip.BossWave => GiantProto,
+        FSTutorialTip.Runner => RunnerProto,
+        FSTutorialTip.Armoured => ArmouredProto,
+        FSTutorialTip.Bloater => BloaterProto,
+        FSTutorialTip.Flamethrower => FlamethrowerProto,
+        FSTutorialTip.Tesla => TeslaProto,
+        FSTutorialTip.Devastator => DevastatorProto,
+        FSTutorialTip.Revenant => RevenantProto,
+        _ => (EntProtoId?) null,
     };
 
-    public static FSTutorialTip? ForEnemy(string? prototype) => prototype switch
-    {
-        "FSZombieRunner" => FSTutorialTip.Runner,
-        "FSZombieArmoured" => FSTutorialTip.Armoured,
-        "FSZombieBloater" => FSTutorialTip.Bloater,
-        "FSZombieFlamethrower" => FSTutorialTip.Flamethrower,
-        "FSZombieTesla" => FSTutorialTip.Tesla,
-        "FSZombieDevastator" => FSTutorialTip.Devastator,
-        "FSZombieRevenant" => FSTutorialTip.Revenant,
-        _ => null,
-    };
+    public static FSTutorialTip? ForEnemy(EntProtoId prototype)
+        => EnemyTips.TryGetValue(prototype, out var tip) ? tip : null;
 }
 
 [Serializable, NetSerializable]

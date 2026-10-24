@@ -17,12 +17,7 @@ namespace Content.Client._FinalStand.Leaderboard;
 
 public sealed class FSLeaderboardWindow : FancyWindow
 {
-    private static readonly Color[] Medals =
-    {
-        Color.FromHex("#e3b448"),
-        Color.FromHex("#c9ccd1"),
-        Color.FromHex("#c27c48"),
-    };
+    private static readonly Color[] Medals = { FSUiPalette.MedalGold, FSUiPalette.MedalSilver, FSUiPalette.MedalBronze };
 
     private const int PodiumSize = 3;
     private const float RankWidth = 44f;

@@ -151,7 +151,7 @@ public sealed partial class FSLadderSystem : EntitySystem
     public static FSRunRecord BuildRun(IReadOnlyCollection<string> names, WaveGameRuleSystem.RoundSummary summary,
         int durationSeconds, DateTime endedAtUtc)
     {
-        var players = string.Join(", ", names.OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
+        var players = string.Join(FSLadder.PlayerSeparator, names.OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
         if (players.Length > MaxPlayersText)
             players = players[..(MaxPlayersText - 1)] + "…";
 

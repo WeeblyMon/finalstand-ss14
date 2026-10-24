@@ -38,7 +38,7 @@ public sealed partial class WaveHudSystem
         {
             case FSWaveObjectiveResult.Completed:
                 overlay.ObjectiveLabel = Loc.GetString("fs-hud-objective-done");
-                overlay.ObjectiveValue = $"+${objective.Reward:N0}";
+                overlay.ObjectiveValue = Loc.GetString("fs-hud-objective-reward", ("amount", objective.Reward.ToString("N0")));
                 overlay.ObjectiveColor = FSPalette.Money;
                 return;
             case FSWaveObjectiveResult.Failed:
@@ -53,7 +53,8 @@ public sealed partial class WaveHudSystem
             FSWaveObjectiveKind.KillQuota
                 or FSWaveObjectiveKind.HealQuota
                 or FSWaveObjectiveKind.Bounty
-                or FSWaveObjectiveKind.MeleeKills => $"{objective.Progress}/{objective.Target}",
+                or FSWaveObjectiveKind.MeleeKills => Loc.GetString("fs-hud-objective-progress",
+                    ("progress", objective.Progress.ToString()), ("target", objective.Target.ToString())),
             FSWaveObjectiveKind.NoDowns
                 or FSWaveObjectiveKind.Fortress
                 or FSWaveObjectiveKind.NoSpending => Loc.GetString("fs-hud-objective-holding"),

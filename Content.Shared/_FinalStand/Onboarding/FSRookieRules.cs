@@ -1,3 +1,6 @@
+using Content.Shared._FinalStand.Titles;
+using Robust.Shared.Prototypes;
+
 namespace Content.Shared._FinalStand.Onboarding;
 
 public static class FSRookieRules
@@ -10,8 +13,8 @@ public static class FSRookieRules
     public const int GraduationPerkPoints = 3;
     public const float CatchUpXpMultiplier = 2f;
 
-    public const string FirstRoundTitle = "FSTitleFreshMeat";
-    public const string GraduationTitle = "FSTitleSurvivor";
+    public static readonly ProtoId<FSTitlePrototype> FirstRoundTitle = "FSTitleFreshMeat";
+    public static readonly ProtoId<FSTitlePrototype> GraduationTitle = "FSTitleSurvivor";
 
     public static bool IsRookie(TimeSpan overallPlaytime) => overallPlaytime < RookieThreshold;
 }

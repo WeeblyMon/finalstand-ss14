@@ -11,9 +11,11 @@ fs-objective-blitz-desc = Clear this wave within {$seconds} seconds.
 
 fs-hud-objective-done = BONUS DONE
 fs-hud-objective-failed = BONUS FAILED
+fs-hud-objective-reward = +${$amount}
 fs-hud-objective-holding = holding
 fs-hud-objective-ccc = {$lost}% / {$limit}%
 fs-hud-objective-hunting = hunting
+fs-hud-objective-progress = {$progress}/{$target}
 fs-hud-objective-distance = {$distance}m away
 fs-hud-objective-unhurt = {$unhurt} unhurt, need {$needed}
 fs-objective-hold-the-line-name = Hold the Line

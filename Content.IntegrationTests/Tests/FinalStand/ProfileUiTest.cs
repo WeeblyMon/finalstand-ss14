@@ -12,6 +12,7 @@ using Content.Shared._FinalStand.Titles;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
@@ -47,13 +48,18 @@ public sealed class ProfileUiTest : GameTest
         await Send(new FSTitleEquipEvent { Title = "FSTitleMentor" });
         await Server.WaitAssertion(() =>
             Assert.That(SEntMan.System<FSTitleSystem>().GetEquipped(user)?.Id, Is.EqualTo("FSTitleMentor")));
-        await Client.WaitAssertion(() => Assert.That(profile.EquippedTitle, Is.EqualTo("FSTitleMentor"),
+        await Client.WaitAssertion(() => Assert.That(profile.EquippedTitle, Is.EqualTo(new ProtoId<FSTitlePrototype>("FSTitleMentor")),
             "the lobby hears about the change straight away"));
 
         await Send(new FSTitleEquipEvent { Title = "FSTitleGuardianAngel" });
         await Server.WaitAssertion(() =>
             Assert.That(SEntMan.System<FSTitleSystem>().GetEquipped(user)?.Id, Is.EqualTo("FSTitleMentor"),
                 "a title you don't own can't be equipped by sending its id"));
+
+        await Send(new FSTitleEquipEvent { Title = new ProtoId<FSTitlePrototype>(null!) });
+        await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.System<FSTitleSystem>().GetEquipped(user)?.Id, Is.EqualTo("FSTitleMentor"),
+                "an id with nothing in it is ignored, not read as unequip"));
 
         await Send(new FSTitleEquipEvent { Title = null });
         await Server.WaitAssertion(() => Assert.That(SEntMan.System<FSTitleSystem>().GetEquipped(user), Is.Null));

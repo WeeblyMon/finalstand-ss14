@@ -1,3 +1,4 @@
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Titles;
@@ -8,14 +9,14 @@ public sealed class FSTitlesRequestEvent : EntityEventArgs;
 [Serializable, NetSerializable]
 public sealed class FSTitleEquipEvent : EntityEventArgs
 {
-    public string? Title;
+    public ProtoId<FSTitlePrototype>? Title;
 }
 
 [Serializable, NetSerializable]
 public sealed class FSTitlesStateEvent : EntityEventArgs
 {
-    public List<string> Owned = new();
-    public string? Equipped;
+    public List<ProtoId<FSTitlePrototype>> Owned = new();
+    public ProtoId<FSTitlePrototype>? Equipped;
 }
 
 [Serializable, NetSerializable]
@@ -28,7 +29,7 @@ public sealed class FSMentorBuyEvent : EntityEventArgs
 }
 
 [Serializable, NetSerializable]
-public sealed record FSMentorShopEntry(string Id, int Cost, string? Title, bool Owned, int PerkPoints = 0);
+public sealed record FSMentorShopEntry(string Id, int Cost, ProtoId<FSTitlePrototype>? Title, bool Owned, int PerkPoints = 0);
 
 [Serializable, NetSerializable]
 public sealed class FSMentorStateEvent : EntityEventArgs

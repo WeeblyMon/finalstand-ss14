@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Stylesheets;
@@ -34,6 +35,11 @@ public static class FSUiPalette
 
     // Money, and the one primary call to action per window.
     public static readonly Color Currency = Color.FromHex("#d2a44e");
+
+    // Podium places on the scoreboard and server records.
+    public static readonly Color MedalGold = FSPalette.MedalGold;
+    public static readonly Color MedalSilver = FSPalette.MedalSilver;
+    public static readonly Color MedalBronze = FSPalette.MedalBronze;
 
     public const float DisabledOpacity = 0.6f;
 }

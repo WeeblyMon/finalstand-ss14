@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Mentor;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
 using Robust.Shared.Prototypes;

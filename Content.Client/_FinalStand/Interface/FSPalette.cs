@@ -22,6 +22,12 @@ public static class FSPalette
     public static readonly Color Ok = Color.FromHex("#7e9464");
     public static readonly Color Money = Color.FromHex("#d2a44e");
 
+    // Podium places on the scoreboard and server records, and the local player's name in them.
+    public static readonly Color MedalGold = Color.FromHex("#e3b448");
+    public static readonly Color MedalSilver = Color.FromHex("#c9ccd1");
+    public static readonly Color MedalBronze = Color.FromHex("#c27c48");
+    public static readonly Color OwnName = Color.FromHex("#FFE45C");
+
     public static readonly Color BarTrack = Color.White.WithAlpha(0.06f);
     public static readonly Color BarSheen = Color.White.WithAlpha(0.12f);
     public static readonly Color HealthFill = Color.FromHex("#b5453a");

@@ -65,6 +65,7 @@ public sealed partial class WaveHudOverlay : Overlay
     private float _hudScale = 1f;
     private float _hudResolutionFactor = 1f;
 
+    private const int FitCacheLimit = 256;
     private readonly Dictionary<(string Text, Font Font, int Width), string> _fitCache = new();
 
     private string FitText(DrawingHandleScreen screen, Font font, string text, float maxWidth)
@@ -73,7 +74,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (_fitCache.TryGetValue(key, out var cached))
             return cached;
 
-        if (_fitCache.Count > 256)
+        if (_fitCache.Count > FitCacheLimit)
             _fitCache.Clear();
 
         return _fitCache[key] = TrimToWidth(screen, font, text, maxWidth);

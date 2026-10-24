@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.GameTicking;
@@ -21,12 +20,7 @@ public sealed partial class FSLadderBoardOverlay : Overlay
 
     private static readonly ResPath BoldPath = new("/Fonts/NotoSans/NotoSans-Bold.ttf");
     private static readonly ResPath RegularPath = new("/Fonts/NotoSans/NotoSans-Regular.ttf");
-    private static readonly Color[] Medals =
-    {
-        Color.FromHex("#e3b448"),
-        Color.FromHex("#c9ccd1"),
-        Color.FromHex("#c27c48"),
-    };
+    private static readonly Color[] Medals = { FSPalette.MedalGold, FSPalette.MedalSilver, FSPalette.MedalBronze };
 
     private const float Width = 290f;
     private const float Pad = 8f;
@@ -37,12 +31,13 @@ public sealed partial class FSLadderBoardOverlay : Overlay
     private const float WorldLift = 0.7f;
     private const float CullMargin = 160f;
     private const string Ellipsis = "…";
-    private const string Separator = ", ";
+    private const string Separator = FSLadder.PlayerSeparator;
     private const float TooltipPad = 6f;
     private const float TooltipOffset = 14f;
-    private static readonly Color OwnName = Color.FromHex("#FFE45C");
+    private const int FitCacheLimit = 256;
 
     private readonly List<string> _hoverNames = new();
+    private readonly Dictionary<(string Text, Font Font, float Width), string> _fitCache = new();
     private bool _hovering;
     private string? _ownName;
 
@@ -147,7 +142,7 @@ public sealed partial class FSLadderBoardOverlay : Overlay
             var rankColor = i < Medals.Length ? Medals[i] : FSPalette.TextMuted;
             var x = box.Left + Pad;
 
-            handle.DrawString(_body, new Vector2(x, y), $"#{i + 1}", rankColor);
+            handle.DrawString(_body, new Vector2(x, y), Loc.GetString("fs-leaderboard-place", ("place", i + 1)), rankColor);
             x += RankWidth;
 
             var result = Loc.GetString(run.Victory ? "fs-ladder-board-row-victory" : "fs-ladder-board-row-wave",
@@ -186,12 +181,12 @@ public sealed partial class FSLadderBoardOverlay : Overlay
         }
 
         var own = Fit(handle, _body!, crew[0], maxWidth);
-        handle.DrawString(_body!, pos, own, OwnName);
+        handle.DrawString(_body!, pos, own, FSPalette.OwnName);
         if (crew.Count == 1 || own.EndsWith(Ellipsis))
             return;
 
         var used = handle.GetDimensions(_body!, own, 1f).X;
-        var rest = Separator + string.Join(Separator, crew.Skip(1));
+        var rest = string.Join(Separator, crew)[crew[0].Length..];
         if (maxWidth - used > 0f)
             handle.DrawString(_body!, pos + new Vector2(used, 0f), Fit(handle, _body!, rest, maxWidth - used), color);
     }
@@ -223,7 +218,7 @@ public sealed partial class FSLadderBoardOverlay : Overlay
         lineY += _title.GetLineHeight(1f) + 2f;
         foreach (var name in _hoverNames)
         {
-            handle.DrawString(_body, new Vector2(x + TooltipPad, lineY), name, IsOwn(name) ? OwnName : FSPalette.TextBright);
+            handle.DrawString(_body, new Vector2(x + TooltipPad, lineY), name, IsOwn(name) ? FSPalette.OwnName : FSPalette.TextBright);
             lineY += lineHeight;
         }
     }
@@ -234,7 +229,20 @@ public sealed partial class FSLadderBoardOverlay : Overlay
         handle.DrawString(font, new Vector2(box.Left + (box.Width - width) / 2f, y), text, color);
     }
 
-    private static string Fit(DrawingHandleScreen handle, Font font, string text, float maxWidth)
+    // Rows are redrawn every frame; trimming measures the text once per character it drops.
+    private string Fit(DrawingHandleScreen handle, Font font, string text, float maxWidth)
+    {
+        var key = (text, font, maxWidth);
+        if (_fitCache.TryGetValue(key, out var cached))
+            return cached;
+
+        if (_fitCache.Count > FitCacheLimit)
+            _fitCache.Clear();
+
+        return _fitCache[key] = TrimToWidth(handle, font, text, maxWidth);
+    }
+
+    private static string TrimToWidth(DrawingHandleScreen handle, Font font, string text, float maxWidth)
     {
         if (handle.GetDimensions(font, text, 1f).X <= maxWidth)
             return text;
