@@ -385,3 +385,62 @@
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: icon
     scale: 1,1
+
+- type: entity
+  id: FSWeaponShopRayGun
+  parent: FSWeaponShopBase
+  name: Ray Gun
+  description: A wonder weapon from another war. Green bolts burst on impact and hurt every zombie caught in the blast.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSWeaponRayGun
+    price: 75000
+    purchasable: false
+    requiresHeldWeapon: true
+    starterAmmoProtoId: FSRayGunCell
+    starterAmmoCount: 3
+    category: Splash-Damage Wonder Weapon
+    statDamage: 90
+    statFireRate: 40
+    statAccuracy: 85
+    statCapacity: 50
+    upgrades:
+    - id: raygun-overcharged-emitter
+      name: Overcharged Emitter
+      description: Hotter bolts deal 10% more damage per level, and the splash grows with them.
+      maxLevel: 5
+      baseCost: 9000
+      type: Damage
+      valuePerLevel: 0.1
+    - id: raygun-extended-cell
+      name: Extended Cell
+      description: Each cell holds 5 more shots per level. Four levels match Porter's 40.
+      maxLevel: 4
+      baseCost: 8000
+      type: MagazineSize
+      valuePerLevel: 5
+    - id: raygun-wide-burst
+      name: Wide Burst
+      description: Widens the splash by half a tile per level.
+      maxLevel: 2
+      baseCost: 10000
+      type: Radius
+      valuePerLevel: 1
+    - id: raygun-quick-swap
+      name: Quick Swap
+      description: Swaps cells 15% faster per level.
+      maxLevel: 3
+      baseCost: 7000
+      type: ReloadSpeed
+      valuePerLevel: 0.15
+    - id: raygun-hair-trigger
+      name: Hair Trigger
+      description: Fires 0.4 more shots per second per level.
+      maxLevel: 3
+      baseCost: 8000
+      type: FireRate
+      valuePerLevel: 0.4
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/raygun.rsi
+    state: base
+    scale: 1,1

@@ -1,0 +1,51 @@
+- type: fsParticleEmitter
+  id: FSRayGunTrailRing
+  animation:
+    sprite: _FinalStand/Effects/RayGun/raygun_trail.rsi
+    state: ring
+  rate: 30
+  lifetime: 0.3, 0.3
+  size: 0.8, 0.95
+  alignToHeading: true
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.3
+
+- type: fsParticleEmitter
+  id: FSRayGunTrailGlow
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  rate: 45
+  lifetime: 0.18, 0.3
+  speed: 0, 0.4
+  spread: 360
+  size: 0.45, 0.08
+  color: "#4dff6aaa"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.7
+
+- type: fsParticleEmitter
+  id: FSRayGunImpactSparks
+  texture: /Textures/_FinalStand/Effects/Particles/spark.png
+  burst: 16
+  lifetime: 0.25, 0.45
+  speed: 3, 7
+  drag: 3
+  size: 0.32, 0.1
+  alignToVelocity: true
+  stretch: 2.5
+  color: "#8cff96"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.6
+
+- type: fsParticleEmitter
+  id: FSRayGunImpactRing
+  texture: /Textures/_FinalStand/Effects/Particles/ring.png
+  burst: 1
+  lifetime: 0.3, 0.3
+  size: 0.6, 3.2
+  color: "#5dff70cc"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.85

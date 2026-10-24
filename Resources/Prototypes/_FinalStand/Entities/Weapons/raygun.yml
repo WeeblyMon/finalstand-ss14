@@ -1,0 +1,186 @@
+- type: entity
+  id: FSWeaponRayGun
+  parent: BaseItem
+  name: Ray Gun
+  description: A wonder weapon from another war. Its green bolts burst on impact and hurt every zombie caught in the blast.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/raygun.rsi
+    layers:
+    - state: base
+      map: [ "enum.GunVisualLayers.Base" ]
+  - type: Item
+    size: Small
+    shape:
+    - 0,0,1,0
+    - 0,1,0,1
+    storedOffset: 0,-4
+  - type: Clothing
+    sprite: _FinalStand/Objects/Weapons/Guns/raygun.rsi
+    quickEquip: false
+    slots:
+    - suitStorage
+    - Belt
+  - type: Tag
+    tags:
+    - Sidearm
+    - WeaponGunEnergy
+  - type: Gun
+    fireRate: 3
+    projectileSpeed: 16
+    minAngle: 0.5
+    maxAngle: 4
+    angleIncrease: 1
+    angleDecay: 8
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/_FinalStand/Weapons/RayGun/fire.ogg
+    soundEmpty:
+      path: /Audio/Weapons/Guns/Empty/empty.ogg
+  - type: FSMuzzleFlashColor
+    color: "#44FF55"
+  - type: AmmoCounter
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Cell
+        startingItem: FSRayGunCell
+        priority: 2
+        whitelist:
+          tags:
+          - FSRayGunCell
+        whitelistFailPopup: gun-magazine-whitelist-fail
+        insertSound: null
+        ejectSound: null
+  - type: ContainerContainer
+    containers:
+      gun_magazine: !type:ContainerSlot
+  - type: MagazineAmmoProvider
+  - type: FSReloadProfile
+    timeMultiplier: 3.75
+    sound:
+      path: /Audio/_FinalStand/Weapons/RayGun/reload.ogg
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.AmmoVisuals.MagLoaded:
+        enum.GunVisualLayers.Base:
+          True: { state: base }
+          False: { state: bolt-open }
+  - type: Crit
+    baseCritChance: 0.05
+
+- type: entity
+  id: FSRayGunCell
+  parent: BaseItem
+  name: ray gun cell
+  description: A charged cell for the Ray Gun. Holds 20 shots.
+  components:
+  - type: Tag
+    tags:
+    - FSRayGunCell
+  - type: Item
+    size: Small
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/Ammunition/raygun_cell.rsi
+    layers:
+    - state: cell-2
+      map: [ "enum.GunVisualLayers.Mag" ]
+  - type: BallisticAmmoProvider
+    mayTransfer: false
+    whitelist:
+      tags:
+      - FSCartridgeRayGun
+    proto: FSCartridgeRayGun
+    capacity: 20
+  - type: ContainerContainer
+    containers:
+      ballistic-ammo: !type:Container
+  - type: MagazineVisuals
+    magState: cell
+    steps: 3
+    zeroVisible: true
+  - type: Appearance
+
+- type: entity
+  id: FSCartridgeRayGun
+  parent: BaseCartridge
+  name: ray gun charge
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/raygun_bolt.rsi
+    state: bolt
+    scale: 0.5, 0.5
+  - type: Tag
+    tags:
+    - Cartridge
+    - FSCartridgeRayGun
+  - type: CartridgeAmmo
+    proto: FSBulletRayGun
+    deleteOnSpawn: true
+
+- type: entity
+  id: FSBulletRayGun
+  parent: BulletLaser
+  name: ray gun bolt
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSNoStructureDamage
+  - type: FSPiercesGlass
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/raygun_bolt.rsi
+    rotation: -90
+    layers:
+    - state: bolt
+      shader: unshaded
+  - type: Projectile
+    impactEffect: FSRayGunImpactEffect
+    forceSound: true
+    soundHit:
+      path: /Audio/Weapons/Guns/Hits/energy_meat1.ogg
+    damage:
+      types:
+        Heat: 80
+  - type: FSSplashShot
+    fraction: 0.5
+    radius: 1.5
+    bursts:
+    - FSRayGunImpactSparks
+    - FSRayGunImpactRing
+  - type: FSParticleTrail
+    emitters:
+    - FSRayGunTrailRing
+    - FSRayGunTrailGlow
+  - type: PointLight
+    castShadows: false
+    color: "#44FF55"
+    radius: 2
+    energy: 4
+
+- type: entity
+  id: FSRayGunImpactEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.48
+  - type: Sprite
+    drawdepth: Effects
+    layers:
+    - shader: unshaded
+      map: [ "enum.EffectLayers.Unshaded" ]
+      sprite: _FinalStand/Effects/RayGun/raygun_impact.rsi
+      state: burst
+  - type: EffectVisuals
+  - type: PointLight
+    castShadows: false
+    color: "#44FF55"
+    radius: 3.5
+    energy: 6
+  - type: LightFade
+    duration: 0.45
+  - type: Tag
+    tags:
+    - HideContextMenu

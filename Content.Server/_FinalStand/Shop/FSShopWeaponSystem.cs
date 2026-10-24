@@ -75,7 +75,8 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
     private void OnExamined(EntityUid uid, FSShopWeaponComponent comp, ExaminedEvent args)
     {
-        args.PushMarkup(Loc.GetString("shop-weapon-examine-price", ("price", comp.Price)));
+        if (comp.Purchasable)
+            args.PushMarkup(Loc.GetString("shop-weapon-examine-price", ("price", comp.Price)));
     }
 
     // Research and department locks. Every entry point checks this, not just the UI open.
@@ -109,7 +110,26 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return false;
         }
 
+        if (comp.RequiresHeldWeapon && !HoldsShopWeapon(player, comp))
+        {
+            if (!silent)
+                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-held"), uid, player);
+            return false;
+        }
+
         return true;
+    }
+
+    private bool HoldsShopWeapon(EntityUid player, FSShopWeaponComponent comp)
+    {
+        var protos = ShopProtoIds(comp);
+        foreach (var held in _hands.EnumerateHeld(player))
+        {
+            if (MetaData(held).EntityPrototype?.ID is { } id && protos.Contains(id))
+                return true;
+        }
+
+        return false;
     }
 
     private bool IsResearched(string nodeId) =>
@@ -163,7 +183,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         if (comp.WeaponProtoId == null)
             return;
 
-        if (!TryAccess(uid, comp, player))
+        if (!TryAccess(uid, comp, player) || !comp.Purchasable)
             return;
 
         var owned = new List<CarriedItem>();
@@ -194,34 +214,11 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
-        var weapon = Spawn(comp.WeaponProtoId.Value, Transform(player).Coordinates);
-
-        EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+        var weapon = GrantWeapon(player, comp)!.Value;
         if (bindable)
             _binding.Bind(weapon, mindId);
 
-        TryGiveItemToPlayer(player, weapon);
-
-        var starters = false;
-        foreach (var def in comp.Upgrades)
-        {
-            if (!def.Starter)
-                continue;
-
-            EnsureComp<FSWeaponUpgradeStateComponent>(weapon).Levels[def.Id] = 1;
-            _upgrades.ApplySingleUpgrade(weapon, player, def, 1);
-            starters = true;
-        }
-
-        if (comp.StarterAmmoProtoId != null)
-        {
-            var coords = Transform(player).Coordinates.Offset(new System.Numerics.Vector2(0.5f, 0.5f));
-            for (var i = 0; i < comp.StarterAmmoCount; i++)
-            {
-                var ammo = Spawn(comp.StarterAmmoProtoId.Value, coords);
-                _stash.Stash(player, ammo);
-            }
-        }
+        var starters = comp.Upgrades.Any(def => def.Starter);
 
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         var (buyAcc, buyNextAcc) = ComputeAccuracy(player, comp);
@@ -480,7 +477,35 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             RaiseNetworkEvent(new FSShopSellFailedEvent(reason), Filter.SinglePlayer(session));
     }
 
-    private void TryGiveItemToPlayer(EntityUid player, EntityUid item)
+    public EntityUid? GrantWeapon(EntityUid player, FSShopWeaponComponent comp)
+    {
+        if (comp.WeaponProtoId is not { } proto)
+            return null;
+
+        var weapon = Spawn(proto, Transform(player).Coordinates);
+        EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+        TryGiveItemToPlayer(player, weapon);
+
+        foreach (var def in comp.Upgrades)
+        {
+            if (!def.Starter)
+                continue;
+
+            EnsureComp<FSWeaponUpgradeStateComponent>(weapon).Levels[def.Id] = 1;
+            _upgrades.ApplySingleUpgrade(weapon, player, def, 1);
+        }
+
+        if (comp.StarterAmmoProtoId is { } ammoProto)
+        {
+            var coords = Transform(player).Coordinates.Offset(new System.Numerics.Vector2(0.5f, 0.5f));
+            for (var i = 0; i < comp.StarterAmmoCount; i++)
+                _stash.Stash(player, Spawn(ammoProto, coords));
+        }
+
+        return weapon;
+    }
+
+    public void TryGiveItemToPlayer(EntityUid player, EntityUid item)
     {
         // Grenade packs are pocket items — they must stay in inventory, never in hand.
         if (HasComp<FSGrenadePackComponent>(item))
