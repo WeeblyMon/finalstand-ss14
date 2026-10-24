@@ -243,7 +243,7 @@ fs-perk-undying-level = { $value }s Duration
 fs-perk-undying-buff = Undying: unlimited ammo, then you die
 
 fs-perk-man-on-fire-name = The Man On Fire
-fs-perk-man-on-fire-desc = Reduces fire damage taken. At max level, burning slowly heals you.
+fs-perk-man-on-fire-desc = Reduces fire damage taken.
 fs-perk-man-on-fire-level = -{ $value }% Fire Damage
 
 fs-perk-bandolier-name = Bandolier

@@ -154,10 +154,10 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
             ? enemyValue.KillCredits
             : rewards.KillReward;
         return (int) (value * KillMultiplier(_waveRule.GetWaveNumber()) * rewards.KillShare
-            * _waveRule.GetRewardMultiplier());
+            * _waveRule.GetRewardMultiplier() * _waveRule.GetEnemyMoneyMultiplier());
     }
 
-    private static float KillMultiplier(int wave)
+    public static float KillMultiplier(int wave)
     {
         foreach (var (upToWave, multiplier) in KillMultipliers)
         {

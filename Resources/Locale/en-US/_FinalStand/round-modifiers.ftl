@@ -9,7 +9,7 @@ fs-modifier-reroll-too-late = Modifiers are locked once wave 1 starts.
 fs-modifier-reroll-used = The modifiers have already been put to a reroll vote this round.
 
 fs-modifier-swarm-name = Swarm
-fs-modifier-swarm-desc = Twice as many zombies, each with half the health. Area damage and piercing shine.
+fs-modifier-swarm-desc = Twice as many zombies, each with half the health and 40% of the usual money. Area damage and piercing shine.
 fs-modifier-juggernauts-name = Juggernauts
 fs-modifier-juggernauts-desc = Zombies have 50% more health but move 15% slower. Focus fire.
 fs-modifier-frenzy-name = Frenzy

@@ -37,6 +37,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private WoundSystem _wound = default!;
+    [Dependency] private FSSurgeryGuideSystem _surgeryGuide = default!;
 
     private const float DrFullBudget = 60f;
     private const float DrHalfBudget = 150f;
@@ -251,16 +252,21 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (args.Surgeon == args.Patient || IsAbandoned(args.Patient) || !TryGetPlayerMind(args.Surgeon, out var surgeonMind))
             return;
 
+        if (!_surgeryGuide.IsGoal(MetaData(args.Surgery).EntityPrototype?.ID))
+            return;
+
         if (!TryCountPayout(_surgeriesPaid, surgeonMind, args.Patient, SurgeriesPaidPerPatientPerWave))
             return;
 
+        var credits = (int) MathF.Round(SurgeryCredits * FSWaveRewardsSystem.KillMultiplier(_waveRule.GetWaveNumber()));
+
         Award(surgeonMind, "surgery",
             points: SurgeryPoints,
-            credits: SurgeryCredits,
+            credits: credits,
             fund: SurgeryFund);
 
         _adminLogger.Add(LogType.Healed, LogImpact.Medium,
-            $"{ToPrettyString(surgeonMind):surgeon} completed surgery on {ToPrettyString(args.Patient):patient} for {SurgeryCredits} credits");
+            $"{ToPrettyString(surgeonMind):surgeon} completed surgery on {ToPrettyString(args.Patient):patient} for {credits} credits");
     }
 
     private void OnTopicalApplied(EntityUid uid, FSMedicalPatientComponent comp, ref FSTopicalAppliedEvent args)

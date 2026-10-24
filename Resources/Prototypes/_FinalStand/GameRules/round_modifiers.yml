@@ -6,6 +6,7 @@
   rewardBonus: 0.15
   enemyCount: 2
   enemyHealth: 0.5
+  enemyMoney: 0.4
 
 - type: fsRoundModifier
   id: FSModifierJuggernauts

@@ -3,9 +3,18 @@
   goals:
   - SurgeryStopBloodOutput
   - SurgeryFixDismemberment
+  - SurgeryAttachHead
+  - SurgeryAttachGroin
+  - SurgeryAttachLeftArm
+  - SurgeryAttachRightArm
+  - SurgeryAttachLeftLeg
+  - SurgeryAttachRightLeg
+  - SurgeryAttachLeftHand
+  - SurgeryAttachRightHand
+  - SurgeryAttachLeftFoot
+  - SurgeryAttachRightFoot
   - SurgeryMendBones
   - SurgeryHealOrgans
-  - SurgeryMendBrainTissue
   - SurgeryTendWoundsBrute
   - SurgeryTendWoundsBurn
   access:
@@ -15,3 +24,16 @@
   - SurgeryCloseIncision
   - SurgeryCloseIncisionHead
   - SurgeryCloseIncisionChest
+  electives:
+  - SurgeryRemovePart
+  - SurgeryInsertItem
+  - SurgeryRemoveHeart
+  - SurgeryInsertHeart
+  - SurgeryRemoveLungs
+  - SurgeryInsertLungs
+  - SurgeryRemoveLiver
+  - SurgeryInsertLiver
+  - SurgeryRemoveStomach
+  - SurgeryInsertStomach
+  - SurgeryRemoveEyes
+  - SurgeryInsertEyes

@@ -15,4 +15,6 @@ public record struct SurgeryValidEvent(
     EntityUid Body,
     EntityUid Organ,
     bool Cancelled = false,
-    ProtoId<OrganCategoryPrototype>? Category = null);
+    ProtoId<OrganCategoryPrototype>? Category = null,
+    bool IgnoreBlockers = false,
+    LocId? Blocker = null);

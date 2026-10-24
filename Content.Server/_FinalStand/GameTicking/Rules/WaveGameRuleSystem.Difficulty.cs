@@ -92,6 +92,9 @@ public sealed partial class WaveGameRuleSystem
     public float GetRewardMultiplier()
         => TryGetActiveRule(out _, out var comp) ? RewardMultiplier(comp) : 1f;
 
+    public float GetEnemyMoneyMultiplier()
+        => TryGetActiveRule(out _, out var comp) ? ModifierFactor(comp, m => m.EnemyMoney) : 1f;
+
     // Runs on every kill, so it walks the ids rather than an iterator.
     private float RewardMultiplier(WaveGameRuleComponent comp)
     {

@@ -46,6 +46,9 @@ public sealed partial class FSRoundModifierPrototype : IPrototype
     public float EnemySpeed { get; private set; } = 1f;
 
     [DataField]
+    public float EnemyMoney { get; private set; } = 1f;
+
+    [DataField]
     public float PrepDuration { get; private set; } = 1f;
 
     [DataField]

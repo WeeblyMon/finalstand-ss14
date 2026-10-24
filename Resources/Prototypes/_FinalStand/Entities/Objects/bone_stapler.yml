@@ -16,3 +16,5 @@
   - type: FSMedicalOnly
   - type: UseDelay
     delay: 45
+  - type: GuideHelp
+    guides: [ Surgery ]

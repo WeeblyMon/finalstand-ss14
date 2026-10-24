@@ -7,6 +7,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
@@ -35,6 +36,8 @@ public sealed class SurgeryPayoutTest : GameTest
         await server.WaitAssertion(() =>
         {
             var surgeon = entMan.SpawnEntity(Human, map.GridCoords);
+            // Only finishing a goal surgery pays, not opening or closing up.
+            var surgery = entMan.SpawnEntity("SurgeryTendWoundsBrute", MapCoordinates.Nullspace);
             // The payout goes to a player's mind.
             var mind = minds.CreateMind(Pair.Player!.UserId, "surgeon");
             minds.TransferTo(mind, surgeon);
@@ -44,18 +47,18 @@ public sealed class SurgeryPayoutTest : GameTest
             var leftMind = minds.CreateMind(left.UserId, "left the server");
             minds.TransferTo(leftMind, abandoned);
             server.PlayerMan.RemoveSession(left);
-            var onAbandoned = new FSSurgeryCompletedEvent(surgeon, abandoned, abandoned, EntityUid.Invalid);
+            var onAbandoned = new FSSurgeryCompletedEvent(surgeon, abandoned, abandoned, surgery);
             entMan.EventBus.RaiseLocalEvent(abandoned, ref onAbandoned);
             Assert.That(wallets.GetCredits(mind), Is.Zero, "surgery on a disconnected player's body paid out");
 
             var corpse = entMan.SpawnEntity(Human, map.GridCoords);
-            var onCorpse = new FSSurgeryCompletedEvent(surgeon, corpse, corpse, EntityUid.Invalid);
+            var onCorpse = new FSSurgeryCompletedEvent(surgeon, corpse, corpse, surgery);
             entMan.EventBus.RaiseLocalEvent(corpse, ref onCorpse);
             Assert.That(wallets.GetCredits(mind), Is.Zero, "surgery on a body that isn't a player's paid out");
 
             var patient = entMan.SpawnEntity(Human, map.GridCoords);
             entMan.EnsureComponent<FSMedicalPatientComponent>(patient);
-            var onPatient = new FSSurgeryCompletedEvent(surgeon, patient, patient, EntityUid.Invalid);
+            var onPatient = new FSSurgeryCompletedEvent(surgeon, patient, patient, surgery);
             entMan.EventBus.RaiseLocalEvent(patient, ref onPatient);
             Assert.That(wallets.GetCredits(mind), Is.GreaterThan(0), "a finished surgery on a player paid nothing");
         });
