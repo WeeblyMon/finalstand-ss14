@@ -6,7 +6,7 @@ public sealed partial class FSPendingKillBonusComponent : Component
 {
     [DataField] public int MoneyBonus = 0;
     // Share of the kill's own credits, paid on top.
-    [DataField] public float MoneyFraction = 0f;
+    [DataField] public float MoneyPercent = 0f;
 
     [ViewVariables]
     public EntityUid? Payee;

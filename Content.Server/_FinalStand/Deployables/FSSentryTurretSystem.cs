@@ -142,5 +142,13 @@ public sealed partial class FSSentryTurretSystem : EntitySystem
         _transform.SetWorldRotation(casing, _random.NextAngle());
         _throwing.TryThrow(casing, back * _random.NextFloat(0.9f, 1.5f), baseThrowSpeed: 7f,
             recoil: false, playSound: false, compensateFriction: true);
+
+        turret.Casings.Enqueue(casing);
+        while (turret.Casings.Count > turret.MaxCasings)
+        {
+            var oldest = turret.Casings.Dequeue();
+            if (!TerminatingOrDeleted(oldest))
+                QueueDel(oldest);
+        }
     }
 }

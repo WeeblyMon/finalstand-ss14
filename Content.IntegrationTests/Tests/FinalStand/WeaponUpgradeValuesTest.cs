@@ -32,8 +32,14 @@ public sealed class WeaponUpgradeValuesTest : GameTest
     // A share of something, so at most all of it once fully upgraded.
     private static readonly HashSet<WeaponUpgradeType> FractionTypes =
     [
+        WeaponUpgradeType.MoneyGainPercent,
+    ];
+
+    // A share per level that may stack past the whole (Blood Thirster heals 170% at level 2), but one level is never
+    // more than all of it.
+    private static readonly HashSet<WeaponUpgradeType> PerLevelFractionTypes =
+    [
         WeaponUpgradeType.LifeSteal,
-        WeaponUpgradeType.MoneyGainBonusPercent,
     ];
 
     // Read as the effect's per-level strength; zero would sell an upgrade that does nothing.
@@ -73,6 +79,12 @@ public sealed class WeaponUpgradeValuesTest : GameTest
                         {
                             Assert.That(def.ValuePerLevel * def.MaxLevel, Is.InRange(0f, 1f),
                                 $"{name}: {def.Type} is a share, {def.ValuePerLevel} x {def.MaxLevel} levels");
+                        }
+
+                        if (PerLevelFractionTypes.Contains(def.Type))
+                        {
+                            Assert.That(def.ValuePerLevel, Is.InRange(0f, 1f),
+                                $"{name}: {def.Type} is a share per level, got {def.ValuePerLevel}");
                         }
 
                         if (MagnitudeTypes.Contains(def.Type))

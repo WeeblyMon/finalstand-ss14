@@ -126,6 +126,10 @@ fs-perk-rampage-level-2 = +6/+0.4/+4%
 fs-perk-rampage-level-3 = +9/+0.6/+6%
 fs-perk-rampage-level-4 = +12/+0.8/+8%
 
+fs-perk-showstopper-name = Showstopper
+fs-perk-showstopper-desc = Your style rank boosts melee damage. Melee kills at S rank or higher heal you.
+fs-perk-showstopper-level = +{ $value }% Damage per Rank / +{ $value2 } HP per Kill
+
 fs-perk-investor-name = Investor
 fs-perk-investor-desc = At the end of each wave your money gains interest.
 fs-perk-investor-level = +{ $value }% Return

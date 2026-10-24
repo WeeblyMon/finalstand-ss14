@@ -103,6 +103,28 @@ public sealed partial class FSPlayerUpgradesSystem
                     break;
                 }
 
+            case WeaponUpgradeType.DashPower:
+                {
+                    state.DashBonus += def.ValuePerLevel;
+                    break;
+                }
+            case WeaponUpgradeType.Whirlwind:
+                {
+                    state.WhirlwindEnabled = true;
+                    break;
+                }
+            case WeaponUpgradeType.StabLifeSteal:
+                {
+                    state.StabHeal += def.ValuePerLevel;
+                    break;
+                }
+            case WeaponUpgradeType.MeleeSignature:
+                {
+                    if (def.Signature is { } signature)
+                        state.Signatures[signature] = newLevel * def.ValuePerLevel;
+                    break;
+                }
+
             default:
                 return false;
         }

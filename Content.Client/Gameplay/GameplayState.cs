@@ -1,4 +1,3 @@
-using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Content.Client.Changelog;
 using Content.Client.Hands;
@@ -119,9 +118,6 @@ namespace Content.Client.Gameplay
             {
                 screenType = default;
             }
-
-            if (FSClassicHud.Enabled) // FINALSTAND
-                screenType = ScreenType.Default;
 
             switch (screenType)
             {

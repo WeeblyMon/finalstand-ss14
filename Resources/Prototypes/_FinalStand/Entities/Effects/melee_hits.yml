@@ -1,0 +1,311 @@
+- type: entity
+  id: FSMeleeEffectBase
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.3
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/hits.rsi
+    drawdepth: Effects
+    noRot: true
+    shader: unshaded
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitSlashThin
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: slash_thin
+    scale: 0.9, 0.9
+    color: "#ffffff"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitBurst
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: burst
+    scale: 0.8, 0.8
+    color: "#f0e2c8"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitHeavySlash
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.35
+  - type: Sprite
+    state: slash_heavy
+    color: "#ffd8c8"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitThrust
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.25
+  - type: Sprite
+    state: thrust
+    scale: 0.9, 0.9
+    color: "#f2dada"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitShatter
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.33
+  - type: Sprite
+    state: shatter
+    scale: 0.8, 0.8
+    color: "#f2dada"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSpinRing
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.28
+  - type: Sprite
+    state: ring
+    scale: 1.9, 1.9
+    color: "#c04848cc"
+
+- type: entity
+  parent: FSMeleeSpinRing
+  id: FSMeleeTempestRing
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: ring
+    scale: 1.7, 1.7
+    color: "#7ff0ffdd"
+
+# The gun a Shot heavy draws for its shot; its sprite layer comes from the weapon.
+- type: entity
+  id: FSMeleeDrawnGun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: OverMobs
+  - type: AnimationPlayer
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  parent: FSMeleeSpinRing
+  id: FSMeleeWildfireBurst
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Sprite
+    state: ring
+    scale: 2.4, 2.4
+    color: "#ff7a1ce0"
+
+- type: entity
+  parent: FSMeleeSpinRing
+  id: FSMeleeAftershockBurst
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Sprite
+    state: ring
+    scale: 3.2, 3.2
+    color: "#d8a060d0"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitCross
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: cross
+    scale: 0.95, 0.95
+    color: "#d8e8ff"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitEnergy
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: slash_clean
+    scale: 0.8, 0.8
+    color: "#5ce1ff"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitEnergyCross
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: cross
+    scale: 1.05, 1.05
+    color: "#5ce1ff"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeKillBlood
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    state: blood
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorCrossTinted
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_cross_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorArcTinted
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.29
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_arc_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorBurst
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_burst
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorBurstTinted
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_burst_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorCleave
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.23
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_cleave
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashRogueCrescent
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.29
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: rogue_crescent
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashRogueDoubleTinted
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.2
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: rogue_double_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeStabEnergy
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.26
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/stabs.rsi
+    state: esword
+
+- type: entity
+  parent: FSMeleeStabEnergy
+  id: FSMeleeStabHalberd
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: halberd
+
+- type: entity
+  parent: FSMeleeStabEnergy
+  id: FSMeleeStabKnife
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    state: knife
+
+- type: entity
+  parent: FSMeleeStabEnergy
+  id: FSMeleeStabChainsaw
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.21
+  - type: Sprite
+    state: chainsaw
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashChainsawRip
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.25
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/rip.rsi
+    state: chainsaw
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlamShockwave
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.33
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/slam.rsi
+    state: slam
+    drawdepth: FloorObjects
+
+# The slash arc under its own id, so a light swing isn't mistaken for the weapon's wide attack.
+- type: entity
+  parent: WeaponArcSlash
+  id: FSWeaponArcSwing
+  categories: [ HideSpawnMenu ]

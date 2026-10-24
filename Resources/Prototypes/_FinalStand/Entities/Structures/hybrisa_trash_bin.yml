@@ -1,0 +1,108 @@
+- type: entity
+  abstract: true
+  id: FSTrashBinBase
+  parent: BaseStructure
+  name: trash bin
+  description: A Weston-Yamada trash bin used for disposing your unwanted items, or you can just throw your shit on the ground like every other asshole.
+  placement:
+    mode: SnapgridCenter
+    snap:
+    - Disposal
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Piping/disposal.rsi
+    layers:
+    - state: condisposal
+      map: [ "enum.DisposalUnitVisualLayers.Base" ]
+    - state: trash-can
+    - state: disposal-flush
+      map: [ "enum.DisposalUnitVisualLayers.OverlayFlushing" ]
+    - state: dispover-charge
+      map: [ "enum.DisposalUnitVisualLayers.OverlayCharging" ]
+    - state: dispover-ready
+      map: [ "enum.DisposalUnitVisualLayers.OverlayEngaged" ]
+    - state: dispover-full
+      map: [ "enum.DisposalUnitVisualLayers.OverlayFull" ]
+    - state: dispover-handle
+  - type: Physics
+    bodyType: Static
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+    - trigger:
+        !type:DamageTrigger
+        damage: 100
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+          params:
+            volume: -6
+  - type: Damageable
+    damageModifierSet: StructuralMetallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Appearance
+  - type: InteractionOutline
+  - type: Anchorable
+    flags:
+    - None
+  - type: ContainerContainer
+    containers:
+      DisposalUnitComponent: !type:Container
+  - type: RequireProjectileTarget
+  - type: DisposalUnit
+    container:
+      occludes: true
+      showEnts: false
+      ents: []
+  - type: ThrowInsertContainer
+    containerId: DisposalUnitComponent
+    probability: 0
+
+- type: entity
+  parent: FSTrashBinBase
+  id: FSTrashBinGreen
+  components:
+  - type: Sprite
+    layers:
+    - state: trashgreen
+      map: [ "enum.DisposalUnitVisualLayers.Base" ]
+    - state: trashgreen
+    - state: trashgreen
+      map: [ "enum.DisposalUnitVisualLayers.OverlayCharging" ]
+    - state: trashgreen
+      map: [ "enum.DisposalUnitVisualLayers.OverlayFlushing" ]
+    - state: trashgreen
+    - state: trashgreen
+      map: [ "enum.DisposalUnitVisualLayers.OverlayEngaged" ]
+    - state: trashgreen
+      map: [ "enum.DisposalUnitVisualLayers.OverlayFull" ]
+    - state: trashgreen
+
+- type: entity
+  parent: FSTrashBinBase
+  id: FSTrashBinBlue
+  components:
+  - type: Sprite
+    layers:
+    - state: trashblue
+      map: [ "enum.DisposalUnitVisualLayers.Base" ]
+    - state: trashblue
+    - state: trashblue
+      map: [ "enum.DisposalUnitVisualLayers.OverlayCharging" ]
+    - state: trashblue
+      map: [ "enum.DisposalUnitVisualLayers.OverlayFlushing" ]
+    - state: trashblue
+    - state: trashblue
+      map: [ "enum.DisposalUnitVisualLayers.OverlayEngaged" ]
+    - state: trashblue
+      map: [ "enum.DisposalUnitVisualLayers.OverlayFull" ]
+    - state: trashblue

@@ -30,6 +30,30 @@
       baseCost: 1000
       type: Bleed
       valuePerLevel: 0.2
+    - id: bat-grand-slam
+      name: fs-upgrade-bat-grand-slam
+      description: fs-upgrade-bat-grand-slam-desc
+      maxLevel: 1
+      baseCost: 6000
+      type: MeleeSignature
+      signature: GrandSlam
+      valuePerLevel: 1
+    - id: bat-ricochet
+      name: fs-upgrade-bat-ricochet
+      description: fs-upgrade-bat-ricochet-desc
+      maxLevel: 1
+      baseCost: 5000
+      type: MeleeSignature
+      signature: Ricochet
+      valuePerLevel: 1
+    - id: bat-running-start
+      name: fs-upgrade-bat-running-start
+      description: fs-upgrade-bat-running-start-desc
+      maxLevel: 1
+      baseCost: 3000
+      type: MeleeSignature
+      signature: RunningStart
+      valuePerLevel: 1
     - id: bat-concussion
       name: fs-upgrade-bat-concussion
       description: fs-upgrade-bat-concussion-desc

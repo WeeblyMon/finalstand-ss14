@@ -96,7 +96,7 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
     }
 
     private void OnDamageNumber(FSDamageNumberEvent ev) =>
-        Spawn(ev.Target, ((int)MathF.Round(ev.Amount)).ToString(), ev.Amount, 0f, isCrit: ev.IsCrit);
+        Spawn(ev.Target, ((int)MathF.Round(ev.Amount)).ToString(), ev.Amount, 0f, isCrit: ev.IsCrit, reveal: ev.Reveal);
 
     private void OnArmorDamageNumber(FSArmorDamageNumberEvent ev) =>
         Spawn(ev.Target, ((int)MathF.Round(ev.Amount)).ToString(), ev.Amount, -0.2f, isArmor: true);

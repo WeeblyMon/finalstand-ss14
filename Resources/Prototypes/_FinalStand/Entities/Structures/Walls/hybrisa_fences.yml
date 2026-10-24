@@ -1,0 +1,170 @@
+- type: entity
+  parent: BaseStructure
+  id: FSFenceHybrisa
+  name: fence
+  description: A large metal mesh strewn between two poles. A cheap way to separate areas while still being able to see through.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,-0.5,0.5,0.5"
+        density: 100
+        mask:
+        - FullTileMask
+        layer:
+        - WallLayer
+  - type: Sprite
+    sprite: _FinalStand/Structures/hybrisa_fences.rsi
+    state: fence0
+  - type: Icon
+    sprite: _FinalStand/Structures/hybrisa_fences.rsi
+    state: fence0
+  - type: IconSmooth
+    key: fences
+    base: fence
+    mode: CardinalFlags
+  - type: InteractionOutline
+  - type: Clickable
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Construction
+    graph: FSFenceHybrisa
+    node: fence
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 300
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          PartRodMetal1:
+            min: 1
+            max: 2
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+    - trigger:
+        !type:DamageTrigger
+        damage: 80
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          path: /Audio/Items/wirecutter.ogg
+      - !type:ChangeConstructionNodeBehavior
+        node: broken
+
+- type: entity
+  parent: FSFenceHybrisa
+  id: FSFenceHybrisaBroken
+  name: broken fence
+  description: A large metal mesh strewn between two poles, torn wide open.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/hybrisa_fences.rsi
+    state: brokenfence0
+  - type: Icon
+    sprite: _FinalStand/Structures/hybrisa_fences.rsi
+    state: brokenfence0
+  - type: IconSmooth
+    key: fences
+    base: brokenfence
+    mode: CardinalFlags
+  - type: Construction
+    graph: FSFenceHybrisa
+    node: broken
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,-0.5,0.5,0.5"
+        density: 100
+        mask:
+        - FullTileMask
+        layer:
+        - TableLayer
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 120
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          PartRodMetal1:
+            min: 1
+            max: 1
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSFenceHybrisa
+  id: FSFenceHybrisaElectric
+  suffix: Electric
+  description: A large metal mesh strewn between two poles. Warning strips mark it as live, though the colony grid died long ago.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/hybrisa_fences_electric.rsi
+    state: fence0
+  - type: Icon
+    sprite: _FinalStand/Structures/hybrisa_fences_electric.rsi
+    state: fence0
+  - type: Construction
+    graph: FSFenceHybrisaElectric
+    node: fence
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 300
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          PartRodMetal1:
+            min: 1
+            max: 2
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+    - trigger:
+        !type:DamageTrigger
+        damage: 80
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          path: /Audio/Items/wirecutter.ogg
+      - !type:ChangeConstructionNodeBehavior
+        node: broken
+
+- type: entity
+  parent: FSFenceHybrisaBroken
+  id: FSFenceHybrisaElectricBroken
+  suffix: Electric
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/hybrisa_fences_electric.rsi
+    state: brokenfence0
+  - type: Icon
+    sprite: _FinalStand/Structures/hybrisa_fences_electric.rsi
+    state: brokenfence0
+  - type: Construction
+    graph: FSFenceHybrisaElectric
+    node: broken

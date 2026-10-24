@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.WaveHud;
 using Content.Client.Stylesheets;
+using Content.Client.UserInterface.Systems.Actions.Controls;
 using Content.Client.UserInterface.Systems.Actions.Widgets;
 using Content.Client.UserInterface.Systems.Chat.Widgets;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
@@ -54,11 +55,30 @@ public sealed partial class SeparatedChatGameScreen : InGameScreen
 
         // Vanilla reflow-to-fit sizing fights FS's fixed nine-slot paged bar.
         Actions.ActionsContainer.MaxSize = new Vector2(9999, 9999);
-        Actions.ActionsContainer.Columns = ActionColumns;
         Actions.ActionsContainer.ExpandBackwards = false;
+
+        if (FSClassicHud.Enabled)
+        {
+            MainViewport.OnResized += ResizeClassicActions;
+            Inventory.OnResized += ResizeClassicActions;
+
+            ResizeClassicActions();
+        }
+        else
+        {
+            Actions.ActionsContainer.Columns = ActionColumns;
+        }
 
         ScreenContainer.OnSplitResizeFinished += () =>
             OnChatResized?.Invoke(new Vector2(ScreenContainer.SplitFraction, 0));
+    }
+
+    private void ResizeClassicActions()
+    {
+        var indent = Inventory.Size.Y + 40;
+        var height = MainViewport.Size.Y - indent;
+
+        Actions.ActionsContainer.MaxGridHeight = MathF.Max(height, ActionButton.ClassicSlotSize);
     }
 
     // Same vanilla toggle DefaultGameScreen reparents into the storage row.

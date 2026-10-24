@@ -159,6 +159,9 @@ public sealed class FSPerkDef
 
             new("Rampage", PerkCategory.Purple, Fixed()),
 
+            new("Showstopper", PerkCategory.Purple,
+                Levels(i => [FSPerkBonusConstants.ShowstopperPerRankPerLevel * (i + 1) * 100f, FSPerkBonusConstants.ShowstopperHealPerLevel * (i + 1)])),
+
             new("Investor", PerkCategory.Yellow, Pct(FSPerkBonusConstants.InvestorPerLevel)),
 
             new("MutualFund", PerkCategory.Yellow, Pct(FSPerkBonusConstants.MutualFundPerLevel)),

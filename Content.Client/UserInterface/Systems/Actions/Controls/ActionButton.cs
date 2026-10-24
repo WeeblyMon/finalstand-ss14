@@ -30,7 +30,7 @@ public sealed class ActionButton : Control, IEntityControl
     // one scale without either widget reaching into the other's layout constants.
     public const int SlotSize = WaveHudOverlay.HudSlotSize;
     private const int SourceArtSize = 32;
-    private const int ClassicSlotSize = 64;
+    public const int ClassicSlotSize = 64;
     private const float ArtScale = SlotSize / (float) SourceArtSize;
 
     private IEntityManager _entities;

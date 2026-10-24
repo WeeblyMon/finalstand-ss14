@@ -5,6 +5,7 @@
   placement:
     mode: SnapgridCenter
   components:
+  - type: FSObjectiveVignette
   - type: FinalStandCCC
   - type: FSPlayerDamageImmune
   - type: FSBreachCostOverride

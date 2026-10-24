@@ -1,0 +1,74 @@
+# ── Unholy Halberd Shop ──────────────────────────────────────────────────────
+# Reach weapon. Long thrust on a click, a wielded 360° spin on a heavy swing.
+
+- type: entity
+  id: FSWeaponShopUnholyHalberd
+  parent: FSWeaponShopBase
+  name: Unholy Halberd
+  description: A poleaxe that keeps the horde at arm's length. Wield it to spin.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSWeaponUnholyHalberd
+    price: 5000
+    category: fs-weapon-shop-category-melee-polearm
+    statDamage: 35
+    statFireRate: 70
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: halberd-honed
+      name: fs-upgrade-halberd-honed
+      description: fs-upgrade-halberd-honed-desc
+      maxLevel: 3
+      baseCost: 4000
+      type: Damage
+      valuePerLevel: 0.9
+    - id: halberd-balanced
+      name: fs-upgrade-halberd-balanced
+      description: fs-upgrade-halberd-balanced-desc
+      maxLevel: 5
+      baseCost: 5000
+      type: AttackSpeed
+      valuePerLevel: 0.15
+    - id: halberd-impaler
+      name: fs-upgrade-halberd-impaler
+      description: fs-upgrade-halberd-impaler-desc
+      maxLevel: 3
+      baseCost: 4000
+      type: CritChance
+      valuePerLevel: 0.1
+    - id: halberd-whirlwind
+      name: fs-upgrade-halberd-whirlwind
+      description: fs-upgrade-halberd-whirlwind-desc
+      maxLevel: 1
+      baseCost: 9000
+      type: Whirlwind
+      valuePerLevel: 1
+    - id: halberd-cyclone
+      name: fs-upgrade-halberd-cyclone
+      description: fs-upgrade-halberd-cyclone-desc
+      maxLevel: 4
+      baseCost: 7000
+      type: MeleeSignature
+      signature: Cyclone
+      valuePerLevel: 0.3
+      requiresUpgrade: halberd-whirlwind
+    - id: halberd-brace
+      name: fs-upgrade-halberd-brace
+      description: fs-upgrade-halberd-brace-desc
+      maxLevel: 1
+      baseCost: 9000
+      type: MeleeSignature
+      signature: Brace
+      valuePerLevel: 1
+    - id: halberd-sanguine-thrust
+      name: fs-upgrade-halberd-sanguine-thrust
+      description: fs-upgrade-halberd-sanguine-thrust-desc
+      maxLevel: 3
+      baseCost: 5000
+      type: StabLifeSteal
+      valuePerLevel: 2
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/cult_halberd.rsi
+    state: icon
+    scale: 1,1

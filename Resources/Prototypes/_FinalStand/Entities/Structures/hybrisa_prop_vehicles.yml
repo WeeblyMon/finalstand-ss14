@@ -1,0 +1,1503 @@
+# Temporary until we get actual vehicle code
+
+- type: entity
+  id: FSCarPileup
+  name: burned out vehicle pileup
+  description: Burned-out vehicles block your path, their charred frames and shattered glass hinting at recent chaos. The acrid smell of smoke lingers.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,0.5,3.5,2"
+        density: 190
+        layer:
+        - MobMask
+  - type: Sprite
+    sprite: _FinalStand/Structures/vehicle_pileup.rsi
+    state: car_pileup
+    offset: 1.5, 1
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Damageable
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 1200
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  abstract: true
+  id: FSPropVehicleBase
+  components:
+  - type: Transform
+    noRot: true
+  - type: Physics
+    bodyType: Static
+    fixedRotation: true
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,-0.5,1.4,0.5"
+        density: 190
+        layer:
+        - MobMask
+  - type: Sprite
+    sprite: _FinalStand/Structures/Vehicles/vehicles.rsi
+    offset: 0.5, 0.5
+  - type: Damageable
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 800
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: Clickable
+  - type: InteractionOutline
+  - type: RequireProjectileTarget
+
+# Vehicles
+
+- type: entity
+  parent: FSPropVehicleBase
+  id: FSPropVehicleMonoSupronOrange
+  suffix: Orange
+  name: Mono-Supron
+  description: The 'Mono-Supron', a mass-produced civilian vehicle for the colonial markets, in and outside of the United Nations. Produced by 'Miyahira' a car marque and a subsidiary company of the Weston-Yamada Corporation.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Vehicles/vehicles.rsi
+    state: miyahira_orange
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronOrangeFlipped
+  suffix: Orange, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_orange_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronBlack
+  suffix: Black
+  components:
+  - type: Sprite
+    state: miyahira_black
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronBlackFlipped
+  suffix: Black, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_black_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronBlue
+  suffix: Blue
+  components:
+  - type: Sprite
+    state: miyahira_blue
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronBlueFlipped
+  suffix: Blue, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_blue_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronBrown
+  suffix: Brown
+  components:
+  - type: Sprite
+    state: miyahira_brown
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronBrownFlipped
+  suffix: Brown, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_brown_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronCop
+  suffix: Cop
+  components:
+  - type: Sprite
+    state: miyahira_cop
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronCopFlipped
+  suffix: Cop, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_cop_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronDesatBlue
+  suffix: Desat Blue
+  components:
+  - type: Sprite
+    state: miyahira_desatblue
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronDesatBlueFlipped
+  suffix: Desat Blue, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronGreen
+  suffix: Green
+  components:
+  - type: Sprite
+    state: miyahira_green
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronGreenFlipped
+  suffix: Green, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_green_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronLightBlue
+  suffix: LightBlue
+  components:
+  - type: Sprite
+    state: miyahira_lightblue
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronLightBlueFlipped
+  suffix: LightBlue, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronPink
+  suffix: Pink
+  components:
+  - type: Sprite
+    state: miyahira_pink
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronPinkFlipped
+  suffix: Pink, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_pink_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronPurple
+  suffix: Purple
+  components:
+  - type: Sprite
+    state: miyahira_purple
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronPurpleFlipped
+  suffix: Purple, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_purple_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronRed
+  suffix: Red
+  components:
+  - type: Sprite
+    state: miyahira_red
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronRedFlipped
+  suffix: Red, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_red_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronShell
+  suffix: Shell
+  components:
+  - type: Sprite
+    state: miyahira_shell
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronShellFlipped
+  suffix: Shell, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_shell_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronTaxi
+  suffix: Taxi
+  components:
+  - type: Sprite
+    state: miyahira_taxi
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronTaxiFlipped
+  suffix: Taxi, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_taxi_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronTurquoise
+  suffix: Turquoise
+  components:
+  - type: Sprite
+    state: miyahira_turquoise
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronTurquoiseFlipped
+  suffix: Turquoise, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronWY
+  suffix: WeYa
+  components:
+  - type: Sprite
+    state: miyahira_wy
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronWYFlipped
+  suffix: WeYa, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_wy_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronBlackDestroyed
+  suffix: Black, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronBlackDestroyedFlipped
+  suffix: Black, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronBlueDestroyed
+  suffix: Blue, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronBlueDestroyedFlipped
+  suffix: Blue, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronBrownDestroyed
+  suffix: Brown, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronBrownDestroyedFlipped
+  suffix: Brown, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronCopDestroyed
+  suffix: Cop, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronCopDestroyedFlipped
+  suffix: Cop, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronDesatBlueDestroyed
+  suffix: DesatBlue, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronDesatBlueDestroyedFlipped
+  suffix: DesatBlue, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronGreenDestroyed
+  suffix: Green, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronGreenDestroyedFlipped
+  suffix: Green, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronLightBlueDestroyed
+  suffix: LightBlue, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronLightBlueDestroyedFlipped
+  suffix: LightBlue, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronPinkDestroyed
+  suffix: Pink, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronPinkDestroyedFlipped
+  suffix: Pink, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronPurpleDestroyed
+  suffix: Purple, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronPurpleDestroyedFlipped
+  suffix: Purple, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronRedDestroyed
+  suffix: Red, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronRedDestroyedFlipped
+  suffix: Red, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronTaxiDestroyed
+  suffix: Taxi, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronTaxiDestroyedFlipped
+  suffix: Taxi, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronTurquoiseDestroyed
+  suffix: Turquoise, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronTurquoiseDestroyedFlipped
+  suffix: Turquoise, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronWYDestroyed
+  suffix: WeYa, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged2
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronWYDestroyedFlipped
+  suffix: WeYa, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged2_f
+
+# Orange damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronOrangeDamaged1
+  suffix: Orange, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronOrangeDamaged1Flipped
+  suffix: Orange, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronOrangeDestroyed
+  suffix: Orange, Damaged 2
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged2
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 400
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDestroyed
+  id: FSPropVehicleMonoSupronOrangeDestroyedFlipped
+  suffix: Orange, Damaged 2, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged2_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronOrangeDamaged3
+  suffix: Orange, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronOrangeDamaged3Flipped
+  suffix: Orange, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronOrangeDamaged4
+  suffix: Orange, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronOrangeDamaged4Flipped
+  suffix: Orange, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronOrangeDamaged5
+  suffix: Orange, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronOrangeDamaged5Flipped
+  suffix: Orange, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_orange_damaged5_f
+
+# Black damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronBlackDamaged1
+  suffix: Black, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlackDamaged1
+  id: FSPropVehicleMonoSupronBlackDamaged1Flipped
+  suffix: Black, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronBlackDamaged3
+  suffix: Black, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlackDamaged3
+  id: FSPropVehicleMonoSupronBlackDamaged3Flipped
+  suffix: Black, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronBlackDamaged4
+  suffix: Black, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlackDamaged4
+  id: FSPropVehicleMonoSupronBlackDamaged4Flipped
+  suffix: Black, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronBlackDamaged5
+  suffix: Black, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlackDamaged5
+  id: FSPropVehicleMonoSupronBlackDamaged5Flipped
+  suffix: Black, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_black_damaged5_f
+
+# Blue damaged 
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronBlueDamaged1
+  suffix: Blue, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlueDamaged1
+  id: FSPropVehicleMonoSupronBlueDamaged1Flipped
+  suffix: Blue, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronBlueDamaged3
+  suffix: Blue, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlueDamaged3
+  id: FSPropVehicleMonoSupronBlueDamaged3Flipped
+  suffix: Blue, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronBlueDamaged4
+  suffix: Blue, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlueDamaged4
+  id: FSPropVehicleMonoSupronBlueDamaged4Flipped
+  suffix: Blue, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronBlueDamaged5
+  suffix: Blue, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlueDamaged5
+  id: FSPropVehicleMonoSupronBlueDamaged5Flipped
+  suffix: Blue, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_blue_damaged5_f
+
+# Brown damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronBrownDamaged1
+  suffix: Brown, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBrownDamaged1
+  id: FSPropVehicleMonoSupronBrownDamaged1Flipped
+  suffix: Brown, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronBrownDamaged3
+  suffix: Brown, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBrownDamaged3
+  id: FSPropVehicleMonoSupronBrownDamaged3Flipped
+  suffix: Brown, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronBrownDamaged4
+  suffix: Brown, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBrownDamaged4
+  id: FSPropVehicleMonoSupronBrownDamaged4Flipped
+  suffix: Brown, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronBrownDamaged5
+  suffix: Brown, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBrownDamaged5
+  id: FSPropVehicleMonoSupronBrownDamaged5Flipped
+  suffix: Brown, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_brown_damaged5_f
+
+# Cop damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronCopDamaged1
+  suffix: Cop, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronCopDamaged1
+  id: FSPropVehicleMonoSupronCopDamaged1Flipped
+  suffix: Cop, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronCopDamaged3
+  suffix: Cop, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronCopDamaged3
+  id: FSPropVehicleMonoSupronCopDamaged3Flipped
+  suffix: Cop, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronCopDamaged4
+  suffix: Cop, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronCopDamaged4
+  id: FSPropVehicleMonoSupronCopDamaged4Flipped
+  suffix: Cop, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronCopDamaged5
+  suffix: Cop, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronCopDamaged5
+  id: FSPropVehicleMonoSupronCopDamaged5Flipped
+  suffix: Cop, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_cop_damaged5_f
+
+# Desat Blue damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronDesatBlueDamaged1
+  suffix: Desat Blue, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronDesatBlueDamaged1
+  id: FSPropVehicleMonoSupronDesatBlueDamaged1Flipped
+  suffix: Desat Blue, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronDesatBlueDamaged3
+  suffix: Desat Blue, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronDesatBlueDamaged3
+  id: FSPropVehicleMonoSupronDesatBlueDamaged3Flipped
+  suffix: Desat Blue, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronDesatBlueDamaged4
+  suffix: Desat Blue, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronDesatBlueDamaged4
+  id: FSPropVehicleMonoSupronDesatBlueDamaged4Flipped
+  suffix: Desat Blue, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronDesatBlueDamaged5
+  suffix: Desat Blue, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronDesatBlueDamaged5
+  id: FSPropVehicleMonoSupronDesatBlueDamaged5Flipped
+  suffix: Desat Blue, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_desatblue_damaged5_f
+
+# Green damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronGreenDamaged1
+  suffix: Green, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronGreenDamaged1
+  id: FSPropVehicleMonoSupronGreenDamaged1Flipped
+  suffix: Green, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronGreenDamaged3
+  suffix: Green, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronGreenDamaged3
+  id: FSPropVehicleMonoSupronGreenDamaged3Flipped
+  suffix: Green, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronGreenDamaged4
+  suffix: Green, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronGreenDamaged4
+  id: FSPropVehicleMonoSupronGreenDamaged4Flipped
+  suffix: Green, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronGreenDamaged5
+  suffix: Green, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronGreenDamaged5
+  id: FSPropVehicleMonoSupronGreenDamaged5Flipped
+  suffix: Green, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_green_damaged5_f
+
+# Lightblue damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronLightBlueDamaged1
+  suffix: LightBlue, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronLightBlueDamaged1
+  id: FSPropVehicleMonoSupronLightBlueDamaged1Flipped
+  suffix: LightBlue, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronLightBlueDamaged3
+  suffix: LightBlue, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronLightBlueDamaged3
+  id: FSPropVehicleMonoSupronLightBlueDamaged3Flipped
+  suffix: LightBlue, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronLightBlueDamaged4
+  suffix: LightBlue, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronLightBlueDamaged4
+  id: FSPropVehicleMonoSupronLightBlueDamaged4Flipped
+  suffix: LightBlue, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronLightBlueDamaged5
+  suffix: LightBlue, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronLightBlueDamaged5
+  id: FSPropVehicleMonoSupronLightBlueDamaged5Flipped
+  suffix: LightBlue, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_lightblue_damaged5_f
+  
+# Pink damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronPinkDamaged1
+  suffix: Pink, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronPinkDamaged1
+  id: FSPropVehicleMonoSupronPinkDamaged1Flipped
+  suffix: Pink, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronPinkDamaged3
+  suffix: Pink, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronPinkDamaged3
+  id: FSPropVehicleMonoSupronPinkDamaged3Flipped
+  suffix: Pink, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronPinkDamaged4
+  suffix: Pink, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronPinkDamaged4
+  id: FSPropVehicleMonoSupronPinkDamaged4Flipped
+  suffix: Pink, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronPinkDamaged5
+  suffix: Pink, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronPinkDamaged5
+  id: FSPropVehicleMonoSupronPinkDamaged5Flipped
+  suffix: Pink, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_pink_damaged5_f
+
+# Purple damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronPurpleDamaged1
+  suffix: Purple, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronPurpleDamaged1
+  id: FSPropVehicleMonoSupronPurpleDamaged1Flipped
+  suffix: Purple, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronPurpleDamaged3
+  suffix: Purple, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronPurpleDamaged3
+  id: FSPropVehicleMonoSupronPurpleDamaged3Flipped
+  suffix: Purple, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronPurpleDamaged4
+  suffix: Purple, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronPurpleDamaged4
+  id: FSPropVehicleMonoSupronPurpleDamaged4Flipped
+  suffix: Purple, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronPurpleDamaged5
+  suffix: Purple, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronPurpleDamaged5
+  id: FSPropVehicleMonoSupronPurpleDamaged5Flipped
+  suffix: Purple, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_purple_damaged5_f
+
+# Red damaged 
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronRedDamaged1
+  suffix: Red, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronRedDamaged1
+  id: FSPropVehicleMonoSupronRedDamaged1Flipped
+  suffix: Red, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronRedDamaged3
+  suffix: Red, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronRedDamaged3
+  id: FSPropVehicleMonoSupronRedDamaged3Flipped
+  suffix: Red, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronRedDamaged4
+  suffix: Red, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronRedDamaged4
+  id: FSPropVehicleMonoSupronRedDamaged4Flipped
+  suffix: Red, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged4_f
+
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronRedDamaged5
+  suffix: Red, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronRedDamaged5
+  id: FSPropVehicleMonoSupronRedDamaged5Flipped
+  suffix: Red, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_red_damaged5_f
+
+# Taxi damaged
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronTaxiDamaged1
+  suffix: Taxi, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronTaxiDamaged1
+  id: FSPropVehicleMonoSupronTaxiDamaged1Flipped
+  suffix: Taxi, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronTaxiDamaged3
+  suffix: Taxi, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronTaxiDamaged3
+  id: FSPropVehicleMonoSupronTaxiDamaged3Flipped
+  suffix: Taxi, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronTaxiDamaged4
+  suffix: Taxi, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronTaxiDamaged4
+  id: FSPropVehicleMonoSupronTaxiDamaged4Flipped
+  suffix: Taxi, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronTaxiDamaged5
+  suffix: Taxi, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronTaxiDamaged5
+  id: FSPropVehicleMonoSupronTaxiDamaged5Flipped
+  suffix: Taxi, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_taxi_damaged5_f
+
+# Turquoise damaged 
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronTurquoiseDamaged1
+  suffix: Turquoise, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronTurquoiseDamaged1
+  id: FSPropVehicleMonoSupronTurquoiseDamaged1Flipped
+  suffix: Turquoise, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronTurquoiseDamaged3
+  suffix: Turquoise, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronTurquoiseDamaged3
+  id: FSPropVehicleMonoSupronTurquoiseDamaged3Flipped
+  suffix: Turquoise, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronTurquoiseDamaged4
+  suffix: Turquoise, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronTurquoiseDamaged4
+  id: FSPropVehicleMonoSupronTurquoiseDamaged4Flipped
+  suffix: Turquoise, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronTurquoiseDamaged5
+  suffix: Turquoise, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronTurquoiseDamaged5
+  id: FSPropVehicleMonoSupronTurquoiseDamaged5Flipped
+  suffix: Turquoise, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_damaged5_f
+
+# WeYa damaged 
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged1
+  id: FSPropVehicleMonoSupronWYDamaged1
+  suffix: WeYa, Damaged 1
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged1
+
+- type: entity
+  parent: FSPropVehicleMonoSupronWYDamaged1
+  id: FSPropVehicleMonoSupronWYDamaged1Flipped
+  suffix: WeYa, Damaged 1, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged1_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged3
+  id: FSPropVehicleMonoSupronWYDamaged3
+  suffix: WeYa, Damaged 3
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged3
+
+- type: entity
+  parent: FSPropVehicleMonoSupronWYDamaged3
+  id: FSPropVehicleMonoSupronWYDamaged3Flipped
+  suffix: WeYa, Damaged 3, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged3_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged4
+  id: FSPropVehicleMonoSupronWYDamaged4
+  suffix: WeYa, Damaged 4
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged4
+
+- type: entity
+  parent: FSPropVehicleMonoSupronWYDamaged4
+  id: FSPropVehicleMonoSupronWYDamaged4Flipped
+  suffix: WeYa, Damaged 4, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged4_f
+
+- type: entity
+  parent: FSPropVehicleMonoSupronOrangeDamaged5
+  id: FSPropVehicleMonoSupronWYDamaged5
+  suffix: WeYa, Damaged 5
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged5
+
+- type: entity
+  parent: FSPropVehicleMonoSupronWYDamaged5
+  id: FSPropVehicleMonoSupronWYDamaged5Flipped
+  suffix: WeYa, Damaged 5, Flipped
+  components:
+  - type: Sprite
+    state: miyahira_wy_damaged5_f
+
+# Offset
+- type: entity
+  parent: FSPropVehicleMonoSupronOrange
+  id: FSPropVehicleMonoSupronBlueOffset
+  suffix: Blue, Offset
+  components:
+  - type: Sprite
+    state: miyahira_blue_f
+    offset: 0.5,0.8
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlueOffset
+  id: FSPropVehicleMonoSupronRedOffset
+  suffix: Red, Offset
+  components:
+  - type: Sprite
+    state: miyahira_red
+
+- type: entity
+  parent: FSPropVehicleMonoSupronBlueOffset
+  id: FSPropVehicleMonoSupronTurquoiseOffset
+  suffix: Turquoise, Offset
+  components:
+  - type: Sprite
+    state: miyahira_turquoise_f

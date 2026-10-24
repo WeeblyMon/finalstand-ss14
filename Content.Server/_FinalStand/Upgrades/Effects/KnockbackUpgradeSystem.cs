@@ -55,26 +55,24 @@ public sealed partial class KnockbackUpgradeSystem : EntitySystem
     public void ApplyKnockback(EntityUid target, EntityUid origin, int level, float forceMultiplier = 1f)
     {
         var idx = Math.Clamp(level, 1, VelocityByLevel.Length) - 1;
-        var speed    = VelocityByLevel[idx] * forceMultiplier;
-        var duration = DurationByLevel[idx];
+        var dir = _transform.GetWorldPosition(target) - _transform.GetWorldPosition(origin);
+        Push(target, dir, VelocityByLevel[idx] * forceMultiplier, DurationByLevel[idx]);
+    }
 
+    public float Push(EntityUid target, Vector2 direction, float speed, TimeSpan duration)
+    {
         if (TryComp<FSKnockbackResistComponent>(target, out var resist))
             speed *= resist.Multiplier;
 
-        if (speed <= 0f || HasComp<FSKnockedBackComponent>(target))
-            return;
+        if (speed <= 0f || direction == Vector2.Zero || HasComp<FSKnockedBackComponent>(target))
+            return 0f;
 
         if (!TryComp<PhysicsComponent>(target, out var body))
-            return;
+            return 0f;
 
-        var originPos = _transform.GetWorldPosition(origin);
-        var targetPos = _transform.GetWorldPosition(target);
-        var dir = targetPos - originPos;
-        if (dir == Vector2.Zero)
-            return;
-
-        _physics.SetLinearVelocity(target, body.LinearVelocity + Vector2.Normalize(dir) * speed, body: body);
+        _physics.SetLinearVelocity(target, body.LinearVelocity + Vector2.Normalize(direction) * speed, body: body);
 
         _knockedBack.KnockBack(target, duration);
+        return speed;
     }
 }

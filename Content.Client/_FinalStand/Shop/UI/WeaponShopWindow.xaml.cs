@@ -32,6 +32,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
     private EntProtoId? _weaponProtoId;
     private bool _isGrenadePackShop;
     private bool _singlePurchase;
+    private bool _purchasable = true;
     private bool _owned;
     private int _credits;
 
@@ -209,6 +210,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
         _price = comp.Price;
         _weaponProtoId = comp.WeaponProtoId;
         _singlePurchase = comp.SinglePurchase;
+        _purchasable = comp.Purchasable;
         _isGrenadePackShop = _weaponProtoId is { } pid
             && _proto.TryIndex<EntityPrototype>(pid, out var wEntProto)
             && wEntProto.TryGetComponent<FSGrenadePackComponent>(out _, _entityManager.ComponentFactory);
@@ -287,8 +289,8 @@ public sealed partial class WeaponShopWindow : FancyWindow
         var alreadyHeld = (_isGrenadePackShop || _singlePurchase)
             && shopClient.PlayerHasWeaponInInventory(shopClient.GetLocalPlayer(), _weaponProtoId);
 
-        BuyButton.Visible = !alreadyHeld;
-        if (alreadyHeld)
+        BuyButton.Visible = _purchasable && !alreadyHeld;
+        if (!BuyButton.Visible)
             return;
 
         var afford = _credits >= _price;

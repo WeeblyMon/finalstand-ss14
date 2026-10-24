@@ -110,6 +110,106 @@
   id: CombatKnife
   description: A deadly knife intended for melee confrontations.
   components:
+  - type: FSMeleeBlood # FINALSTAND
+  - type: FSMeleeJuice # FINALSTAND
+    heavyRecovery: 1.1
+    critWhen: Wounded
+    executionHealth: 0.35
+    light:
+      anticipation: 0.03
+      hitstop: 0.035
+      trauma: 0.1
+      knockback: 2
+      flinchDuration: 0.12
+      flinchSpeed: 0.6
+      hitEffect: FSMeleeHitThrust
+      hitEffectAngle: 45
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeSlashSparks
+      killEmitter: FSMeleeBlood
+      killSound:
+        collection: FSMeleeFleshSquish
+      trailColor: "#e8f0ffaa"
+      trailWidth: 0.04
+      trailDuration: 0.08
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+      slashEffect: FSMeleeStabKnife
+      slashScale: 0.4
+      slashOffset: 0.8
+      slashTravel: 0.25
+      slashGrow: 1.05
+    heavy:
+      anticipation: 0.02
+      hitstop: 0.03
+      trauma: 0.12
+      knockback: 1
+      flinchDuration: 0.2
+      flinchSpeed: 0.5
+      maxTargets: 2
+      extraStrikes: 2
+      strikeInterval: 0.1
+      strikeDamageFraction: 0.5
+      strikeSound:
+        path: /Audio/Weapons/bladeslice.ogg
+        params:
+          volume: -4
+      strikePitchStep: 0.1
+      hitEffect: FSMeleeHitSlashThin
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeSlashSparks
+      killEmitter: FSMeleeBlood
+      killSound:
+        collection: FSMeleeFleshSquish
+      trailColor: "#e8f0ffaa"
+      trailWidth: 0.04
+      trailDuration: 0.06
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+      slashEffect: FSMeleeSlashRogueCrescent
+      slashColor: "#ffffff"
+      slashScale: 0.9
+      slashOffset: 0.45
+      slashTravel: 0.35
+    comboHits: 3
+    comboReadySound:
+      path: /Audio/Items/unsheath.ogg
+      params:
+        volume: -6
+    finisher:
+      anticipation: 0.06
+      hitstop: 0.06
+      trauma: 0.25
+      knockback: 6
+      flinchDuration: 0.8
+      flinchSpeed: 0.6
+      hitEffect: FSMeleeHitThrust
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeSlashSparks
+      killEmitter: FSMeleeBlood
+      killSound:
+        collection: FSMeleeFleshSquish
+      trailColor: "#e8f0ffaa"
+      trailWidth: 0.04
+      trailDuration: 0.08
+      reach: 1.25
+      damageMultiplier: 1.6
+      bleed: 2
+      lunge: 0.3
+      hitEffectAngle: 45
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: 2
+      slashEffect: FSMeleeStabKnife
+      slashScale: 0.5
+      slashOffset: 0.95
+      slashTravel: 0.3
+      slashGrow: 1.1
+      impactSound:
+        path: /Audio/Weapons/pierce.ogg
+        params:
+          volume: 2
   - type: Tag
     tags:
     - CombatKnife
@@ -118,6 +218,11 @@
     sprite: Objects/Weapons/Melee/combat_knife.rsi
     state: icon
   - type: MeleeWeapon
+    soundSwing: # FINALSTAND
+      collection: FSMeleeSwishLight
+      params:
+        volume: -6
+        variation: 0.06
     wideAnimationRotation: -135
     attackRate: 1.5
     damage:

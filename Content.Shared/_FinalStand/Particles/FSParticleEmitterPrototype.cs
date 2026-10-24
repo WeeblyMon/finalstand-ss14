@@ -11,8 +11,14 @@ public sealed partial class FSParticleEmitterPrototype : IPrototype
     [IdDataField]
     public string ID { get; private set; } = default!;
 
-    [DataField(required: true)]
-    public ResPath Texture;
+    [DataField]
+    public ResPath? Texture;
+
+    [DataField]
+    public SpriteSpecifier.Rsi? Animation;
+
+    [DataField]
+    public bool AlignToHeading;
 
     [DataField]
     public int Burst;

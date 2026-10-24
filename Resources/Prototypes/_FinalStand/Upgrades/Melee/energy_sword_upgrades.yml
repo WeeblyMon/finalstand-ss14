@@ -66,6 +66,29 @@
       baseCost: 12000
       type: Pierce
       valuePerLevel: 1
+    - id: esword-plasma-dash
+      name: fs-upgrade-esword-plasma-dash
+      description: fs-upgrade-esword-plasma-dash-desc
+      maxLevel: 3
+      baseCost: 10000
+      type: DashPower
+      valuePerLevel: 0.25
+    - id: esword-tempest
+      name: fs-upgrade-esword-tempest
+      description: fs-upgrade-esword-tempest-desc
+      maxLevel: 1
+      baseCost: 15000
+      type: MeleeSignature
+      signature: Tempest
+      valuePerLevel: 1
+    - id: esword-last-breath
+      name: fs-upgrade-esword-last-breath
+      description: fs-upgrade-esword-last-breath-desc
+      maxLevel: 1
+      baseCost: 18000
+      type: MeleeSignature
+      signature: LastBreath
+      valuePerLevel: 1
     - id: esword-dual-wield
       name: fs-upgrade-esword-dual-wield
       description: fs-upgrade-esword-dual-wield-desc

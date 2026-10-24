@@ -21,6 +21,7 @@ fs-shop-bound-someone = someone else
 fs-shop-bound-not-yours = This belongs to someone else.
 shop-item-already-owned-elsewhere = You already own one. It isn't on you - go find it.
 fs-upgrade-damage-examine = Upgrades add [color=#7ec8ff]+{$percent}%[/color] damage.
+shop-weapon-locked-held = Hold this weapon to use the shop.
 
 fs-weapon-shop-upgraded-suffix = (Upgraded)
 fs-weapon-shop-sell-none-found = No copy of this weapon found in inventory.
@@ -115,6 +116,7 @@ fs-weapon-shop-category-melee-sword = Melee Sword
 fs-weapon-shop-category-melee-energy = Melee Energy
 fs-weapon-shop-category-melee-heavy = Melee Heavy
 fs-weapon-shop-category-melee-knife = Melee Knife
+fs-weapon-shop-category-melee-polearm = Melee Polearm
 fs-weapon-shop-category-30-full-auto-rifle = .30 Full-Auto Rifle
 fs-weapon-shop-category-self-recharging-full-auto-laser = Self-Recharging Full-Auto Laser
 fs-weapon-shop-category-20-full-auto-rifle = .20 Full-Auto Rifle
@@ -131,3 +133,4 @@ fs-weapon-shop-category-single-shot-rocket-launcher = Single-Shot Rocket Launche
 fs-weapon-shop-category-self-recharging-tesla-cannon = Self-Recharging Tesla Cannon
 fs-weapon-shop-category-10-rotary-heavy-machine-gun = .10 Rotary Heavy Machine Gun
 fs-weapon-shop-category-sustained-fire-bio-radiation-beam = Sustained-Fire Bio-Radiation Beam
+fs-weapon-shop-category-splash-damage-wonder-weapon = Splash-Damage Wonder Weapon

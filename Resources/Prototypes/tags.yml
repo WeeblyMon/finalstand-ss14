@@ -631,6 +631,12 @@
 - type: Tag
   id: FSBarricade # FINALSTAND: deployable barricades, for perks like Built To Last.
 
+- type: Tag
+  id: FSCartridgeRayGun
+
+- type: Tag
+  id: FSRayGunCell
+
 ## G ##
 
 - type: Tag

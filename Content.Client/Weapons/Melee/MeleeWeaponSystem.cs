@@ -1,5 +1,8 @@
 using System.Linq;
+using System.Numerics;
+using Content.Client._FinalStand.Melee;
 using Content.Client.Gameplay;
+using Content.Shared._FinalStand.Melee;
 using Content.Shared.CCVar;
 using Content.Shared.CombatMode;
 using Content.Shared.Effects;
@@ -36,8 +39,9 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IClientGameTiming _clientTiming = default!; // FINALSTAND
+    [Dependency] private FSMeleeJuiceSystem _fsJuice = default!; // FINALSTAND
 
-    private const string MeleeLungeKey = "melee-lunge";
+    public const string MeleeLungeKey = "melee-lunge"; // FINALSTAND: public
 
     public override void Initialize()
     {
@@ -73,6 +77,8 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         if (!CombatMode.IsInCombatMode(entity) || !Blocker.CanAttack(entity, weapon: (weaponUid, weapon)))
         {
             weapon.Attacking = false;
+            if (TryComp<FSMeleeChargeComponent>(weaponUid, out var winding) && winding.ChargeStart != null) // FINALSTAND
+                RaisePredictiveEvent(new FSMeleeChargeEvent(GetNetEntity(weaponUid), false));
             return;
         }
 
@@ -136,6 +142,23 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
             return;
         }
 
+        // FINALSTAND: charged heavies wind up while held and swing on release
+        if (TryComp<FSMeleeChargeComponent>(weaponUid, out var charge))
+        {
+            if (altDown == BoundKeyState.Down)
+            {
+                if (charge.ChargeStart == null)
+                    RaisePredictiveEvent(new FSMeleeChargeEvent(GetNetEntity(weaponUid), true));
+                return;
+            }
+
+            if (charge.ChargeStart != null)
+            {
+                ClientHeavyAttack(entity, coordinates, weaponUid, weapon);
+                return;
+            }
+        }
+
         // Heavy attack.
         if (altDown == BoundKeyState.Down)
         {
@@ -145,6 +168,10 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
                 ClientDisarm(entity, mousePos, coordinates);
                 return;
             }
+
+            // FINALSTAND: a heavy on cooldown isn't sent at all, rather than every frame the button is held
+            if (TryComp<FSMeleeJuiceComponent>(weaponUid, out var fsJuice) && !_fsJuice.HeavyReady(entity, (weaponUid, fsJuice)))
+                return;
 
             ClientHeavyAttack(entity, coordinates, weaponUid, weapon);
             return;
@@ -190,11 +217,11 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
 
         var userPos = TransformSystem.GetWorldPosition(userXform);
         var direction = targetMap.Position - userPos;
-        var distance = MathF.Min(component.Range, direction.Length());
+        var distance = component.Angle.Theta >= Math.Tau - 0.01 ? component.Range : Math.Min(component.Range, direction.Length()); // FINALSTAND: full-circle swings reach their whole range
 
         // This should really be improved. GetEntitiesInArc uses pos instead of bounding boxes.
         // Server will validate it with InRangeUnobstructed.
-        var entities = GetNetEntityList(ArcRayCast(userPos, direction.ToWorldAngle(), component.Angle, distance, userXform.MapID, user).ToList());
+        var entities = GetNetEntityList(ArcRayCast(userPos, direction.ToWorldAngle(), component.Angle, distance, userXform.MapID, user).OrderByDescending(e => IsEnemy(user, e)).ToList()); // FINALSTAND: living enemies take the target slots before corpses, teammates and walls
         RaisePredictiveEvent(new HeavyAttackEvent(GetNetEntity(meleeUid), entities.GetRange(0, Math.Min(MaxTargets, entities.Count)), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // FINALSTAND
     }
 
@@ -212,19 +239,59 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     {
         var attackerPos = TransformSystem.GetMapCoordinates(attacker);
 
-        if (mousePos.MapId != attackerPos.MapId || (attackerPos.Position - mousePos.Position).Length() > meleeComponent.Range)
+        if (mousePos.MapId != attackerPos.MapId)
             return;
 
+        // FINALSTAND: swing toward the cursor at any distance and aim at the nearest enemy unless one was clicked
+        var direction = mousePos.Position - attackerPos.Position;
         EntityUid? target = null;
 
-        if (_stateManager.CurrentState is GameplayStateBase screen)
+        if (direction.Length() <= meleeComponent.Range && _stateManager.CurrentState is GameplayStateBase screen)
             target = screen.GetClickedEntity(mousePos);
 
         // Don't light-attack if interaction will be handling this instead
         if (Interaction.CombatModeCanHandInteract(attacker, target))
             return;
 
+        if ((target == null || !IsEnemy(attacker, target.Value)) && direction != Vector2.Zero && FindLightTarget(attacker, attackerPos, direction, meleeComponent.Range) is { } assisted)
+        {
+            target = assisted;
+            coordinates = Transform(assisted).Coordinates;
+        }
+        else if (direction.Length() > meleeComponent.Range)
+        {
+            coordinates = TransformSystem.ToCoordinates(TransformSystem.GetMap(attacker) ?? EntityUid.Invalid,
+                new MapCoordinates(attackerPos.Position + direction.Normalized() * meleeComponent.Range, attackerPos.MapId));
+        }
+
         RaisePredictiveEvent(new LightAttackEvent(GetNetEntity(target), GetNetEntity(weaponUid), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // FINALSTAND
+    }
+
+    // FINALSTAND: nearest living enemy in a 70 degree cone toward the cursor
+    private EntityUid? FindLightTarget(EntityUid attacker, MapCoordinates attackerPos, Vector2 direction, float range)
+    {
+        EntityUid? best = null;
+        var bestDistance = float.MaxValue;
+        foreach (var uid in ArcRayCast(attackerPos.Position, direction.ToWorldAngle(), Angle.FromDegrees(70), range, attackerPos.MapId, attacker))
+        {
+            if (!IsEnemy(attacker, uid))
+                continue;
+
+            var distance = (TransformSystem.GetWorldPosition(uid) - attackerPos.Position).LengthSquared();
+            if (distance >= bestDistance)
+                continue;
+
+            best = uid;
+            bestDistance = distance;
+        }
+
+        return best;
+    }
+
+    // FINALSTAND
+    private bool IsEnemy(EntityUid attacker, EntityUid uid)
+    {
+        return HasComp<MobStateComponent>(uid) && !MobState.IsDead(uid) && !_fsJuice.IsAlly(attacker, uid);
     }
 
     private void OnMeleeLunge(MeleeLungeEvent ev)

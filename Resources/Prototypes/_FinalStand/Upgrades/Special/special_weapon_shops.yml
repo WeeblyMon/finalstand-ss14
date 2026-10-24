@@ -385,3 +385,62 @@
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: icon
     scale: 1,1
+
+- type: entity
+  id: FSWeaponShopRayGun
+  parent: FSWeaponShopBase
+  name: Ray Gun
+  description: A wonder weapon from another war. Green bolts burst on impact and hurt every zombie caught in the blast.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSWeaponRayGun
+    price: 75000
+    purchasable: false
+    requiresHeldWeapon: true
+    starterAmmoProtoId: FSRayGunCell
+    starterAmmoCount: 3
+    category: fs-weapon-shop-category-splash-damage-wonder-weapon
+    statDamage: 90
+    statFireRate: 40
+    statAccuracy: 85
+    statCapacity: 50
+    upgrades:
+    - id: raygun-overcharged-emitter
+      name: fs-upgrade-raygun-overcharged-emitter
+      description: fs-upgrade-raygun-overcharged-emitter-desc
+      maxLevel: 5
+      baseCost: 9000
+      type: Damage
+      valuePerLevel: 0.1
+    - id: raygun-extended-cell
+      name: fs-upgrade-raygun-extended-cell
+      description: fs-upgrade-raygun-extended-cell-desc
+      maxLevel: 4
+      baseCost: 8000
+      type: MagazineSize
+      valuePerLevel: 5
+    - id: raygun-wide-burst
+      name: fs-upgrade-raygun-wide-burst
+      description: fs-upgrade-raygun-wide-burst-desc
+      maxLevel: 2
+      baseCost: 10000
+      type: Radius
+      valuePerLevel: 1
+    - id: raygun-quick-swap
+      name: fs-upgrade-raygun-quick-swap
+      description: fs-upgrade-raygun-quick-swap-desc
+      maxLevel: 3
+      baseCost: 7000
+      type: ReloadSpeed
+      valuePerLevel: 0.15
+    - id: raygun-hair-trigger
+      name: fs-upgrade-raygun-hair-trigger
+      description: fs-upgrade-raygun-hair-trigger-desc
+      maxLevel: 3
+      baseCost: 8000
+      type: FireRate
+      valuePerLevel: 0.4
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/raygun.rsi
+    state: base
+    scale: 1,1

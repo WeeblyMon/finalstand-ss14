@@ -1,0 +1,6 @@
+- type: fsLobbySongBackground
+  id: Intersteller
+  song: /Audio/Lobby/Interstellar.ogg
+  background: /Textures/_FinalStand/LobbyScreens/intersteller.jpg
+  title: fs-lobby-background-intersteller-title
+  artist: fs-lobby-background-intersteller-artist

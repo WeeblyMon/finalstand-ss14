@@ -381,7 +381,7 @@ fs-upgrade-bat-heavy-club = Heavy Club
 fs-upgrade-bat-heavy-club-desc = Reinforced barrel adds +80% damage per level.
 
 fs-upgrade-bat-lucille = Lucille
-fs-upgrade-bat-lucille-desc = Enemies hit bleed for 3 seconds, taking 20% of the hit's damage each second per level.
+fs-upgrade-bat-lucille-desc = Enemies hit, and anything a launched body crashes into, bleed for 3 seconds, taking 20% of the hit's damage each second per level.
 
 fs-upgrade-bat-concussion = Concussion
 fs-upgrade-bat-concussion-desc = All attacks stun enemies briefly. +2s stun.
@@ -389,11 +389,17 @@ fs-upgrade-bat-concussion-desc = All attacks stun enemies briefly. +2s stun.
 fs-upgrade-bat-heavy-concussion = Heavy Concussion
 fs-upgrade-bat-heavy-concussion-desc = Critical hits against stunned enemies.
 
+fs-upgrade-bat-grand-slam = Grand Slam
+fs-upgrade-bat-grand-slam-desc = A fully charged swing launches twice as far, and its crashes hit for the swing's full damage.
+
+fs-upgrade-bat-ricochet = Ricochet
+fs-upgrade-bat-ricochet-desc = Launched bodies bounce off walls still flying, and can bowl over the same zombies again.
+
+fs-upgrade-bat-running-start = Running Start
+fs-upgrade-bat-running-start-desc = Winding up while sprinting starts the charge half full.
+
 fs-upgrade-chainsaw-overclock = Overclock
 fs-upgrade-chainsaw-overclock-desc = Higher RPM increases attack speed by 25% per level.
-
-fs-upgrade-chainsaw-lucky-chains = Lucky Chains
-fs-upgrade-chainsaw-lucky-chains-desc = +5% critical hit chance.
 
 fs-upgrade-chainsaw-steel-chains = Steel Chains
 fs-upgrade-chainsaw-steel-chains-desc = Hardened links add +75% damage per level.
@@ -401,14 +407,17 @@ fs-upgrade-chainsaw-steel-chains-desc = Hardened links add +75% damage per level
 fs-upgrade-chainsaw-hungry-chains = Hungry Chains
 fs-upgrade-chainsaw-hungry-chains-desc = Saw drinks back +0.5 lifesteal per hit.
 
-fs-upgrade-chainsaw-fuel-efficiency = Fuel Efficiency
-fs-upgrade-chainsaw-fuel-efficiency-desc = Reduces fuel taken per swing by 0.25 per level.
-
-fs-upgrade-chainsaw-fuel-capacity = Fuel Capacity
-fs-upgrade-chainsaw-fuel-capacity-desc = Tank holds +25% more fuel per level.
-
 fs-upgrade-chainsaw-protective-saw = Protective Saw
 fs-upgrade-chainsaw-protective-saw-desc = While wielded, take 20% less damage.
+
+fs-upgrade-chainsaw-rip-and-tear = Rip and Tear
+fs-upgrade-chainsaw-rip-and-tear-desc = A right click spending 5 or more rev heals you 3 health per zombie it hits, and those kills pay 50% more.
+
+fs-upgrade-chainsaw-redline = Redline
+fs-upgrade-chainsaw-redline-desc = Rev builds up to 10 instead of 6.
+
+fs-upgrade-chainsaw-bloodthirsty = Bloodthirsty
+fs-upgrade-chainsaw-bloodthirsty-desc = A kill from a right-click rev dump makes your next grind hit a guaranteed crit.
 
 fs-upgrade-cutlass-quick-slash = Quick Slash
 fs-upgrade-cutlass-quick-slash-desc = Lighter blade increases attack speed by 20% per level.
@@ -426,25 +435,31 @@ fs-upgrade-cutlass-swashbuckler = Swashbuckler
 fs-upgrade-cutlass-swashbuckler-desc = A duelist's eye. +10% crit chance per level. Stacks with the Pirate crit-swap window.
 
 fs-upgrade-cutlass-pirate = Pirate
-fs-upgrade-cutlass-pirate-desc = Crits with all flintlocks after a Cutlass kill (and vice versa). Spawns a flintlock. 5s crit window.
+fs-upgrade-cutlass-pirate-desc = Comes with the cutlass. A flintlock in your pack fires on the cutlass's right click, recharging a shot every 2.5s. A cutlass kill readies a flintlock crit, and a flintlock kill or landed shot readies a cutlass crit, for 5s.
 
-fs-upgrade-flintlock-extra-load = Extra Load
-fs-upgrade-flintlock-extra-load-desc = Expands the Flintlock's barrel capacity by 1 round per level. Up to 6 shots before reloading.
+fs-upgrade-cutlass-quick-reload = Quick Reload
+fs-upgrade-cutlass-quick-reload-desc = Each cutlass kill brings your next flintlock shot back 1s sooner per level.
 
-fs-upgrade-flintlock-ball-and-powder = Ball & Powder
-fs-upgrade-flintlock-ball-and-powder-desc = Spawns a .45 ammo box per purchase per level. Each box holds 12 rounds and is refilled by the wave ammo resupply.
+fs-upgrade-cutlass-broadside = Broadside
+fs-upgrade-cutlass-broadside-desc = The cutlass's flintlock shot fires three balls in a spread.
 
-fs-upgrade-flintlock-steady-hand = Steady Hand
-fs-upgrade-flintlock-steady-hand-desc = Reduces the Flintlock's max spread by 0.1° per level for that one perfect shot.
+fs-upgrade-flintlock-spare-pistols = Spare Pistols
+fs-upgrade-flintlock-spare-pistols-desc = Carry another loaded pistol. The right click holds 1 more shot per level.
+
+fs-upgrade-flintlock-powder-horn = Powder Horn
+fs-upgrade-flintlock-powder-horn-desc = Spent shots come back 0.4s faster per level.
+
+fs-upgrade-flintlock-through-and-through = Through and Through
+fs-upgrade-flintlock-through-and-through-desc = The flintlock ball punches through 1 more zombie per level, keeping half its damage each time.
 
 fs-upgrade-flintlock-heavier-load = Heavier Load
-fs-upgrade-flintlock-heavier-load-desc = Higher-grain ball ammunition increases Flintlock damage by 25% per level.
+fs-upgrade-flintlock-heavier-load-desc = Heavier balls make the flintlock shot hit 50% harder per level.
 
 fs-upgrade-flintlock-explosive-shot = Explosive Shot
-fs-upgrade-flintlock-explosive-shot-desc = Flintlock bullets detonate on impact. AoE damage scales with gun damage × level.
+fs-upgrade-flintlock-explosive-shot-desc = The flintlock ball bursts on impact, hurting the zombies around it. A bigger burst each level.
 
-fs-upgrade-flintlock-payday = Payday (Flintlock)
-fs-upgrade-flintlock-payday-desc = +50 bonus credits per kill with the Flintlock per level.
+fs-upgrade-flintlock-payday = Payday
+fs-upgrade-flintlock-payday-desc = +50 credits per level for each kill the flintlock makes.
 
 fs-upgrade-esword-quick-slash = Quick Slash
 fs-upgrade-esword-quick-slash-desc = +20% attack speed per level.
@@ -467,6 +482,15 @@ fs-upgrade-esword-molecular-rupture-desc = Blade phases through armor entirely.
 fs-upgrade-esword-dual-wield = Dual Wield
 fs-upgrade-esword-dual-wield-desc = Upgrades to dual energy swords. +50% attack speed.
 
+fs-upgrade-esword-plasma-dash = Plasma Dash
+fs-upgrade-esword-plasma-dash-desc = Sweeping Blade reaches 25% further and hits 25% harder per level.
+
+fs-upgrade-esword-tempest = Tempest
+fs-upgrade-esword-tempest-desc = A left click right after a Sweeping Blade becomes a spinning cut that hits everything around where you landed.
+
+fs-upgrade-esword-last-breath = Last Breath
+fs-upgrade-esword-last-breath-desc = Sweeping through a zombie that's knocked down or sent flying finishes it outright. Specials just take the hit.
+
 fs-upgrade-fireaxe-sharpened = Sharpened Blade
 fs-upgrade-fireaxe-sharpened-desc = Hones the edge for +100% damage per level.
 
@@ -479,6 +503,36 @@ fs-upgrade-fireaxe-fireman-desc = Total immunity to fire damage. Flames pass rig
 fs-upgrade-fireaxe-fire-man = Fire Man
 fs-upgrade-fireaxe-fire-man-desc = While on fire, deal increased damage and heal.
 
+fs-upgrade-fireaxe-unstoppable = Unstoppable
+fs-upgrade-fireaxe-unstoppable-desc = Take half damage while winding up a heavy.
+
+fs-upgrade-fireaxe-wildfire = Wildfire
+fs-upgrade-fireaxe-wildfire-desc = Burning zombies the axe kills burst into flame, setting zombies within 2 tiles alight.
+
+fs-upgrade-fireaxe-aftershock = Aftershock
+fs-upgrade-fireaxe-aftershock-desc = A fully charged slam strikes again a moment later, half as hard and half again as wide.
+
+fs-upgrade-halberd-honed = Honed Edge
+fs-upgrade-halberd-honed-desc = +90% damage per level.
+
+fs-upgrade-halberd-balanced = Balanced Haft
+fs-upgrade-halberd-balanced-desc = Attack speed +15% per level.
+
+fs-upgrade-halberd-impaler = Impaler
+fs-upgrade-halberd-impaler-desc = +10% crit chance per level.
+
+fs-upgrade-halberd-whirlwind = Whirlwind
+fs-upgrade-halberd-whirlwind-desc = Hold right click to keep spinning, at 4 health a spin. Stops before it would put you down.
+
+fs-upgrade-halberd-cyclone = Cyclone
+fs-upgrade-halberd-cyclone-desc = Whirlwind spins 30% faster per level, at the same health a second.
+
+fs-upgrade-halberd-brace = Brace
+fs-upgrade-halberd-brace-desc = Thrusts from a standing start drive through two zombies behind and knock back twice as hard.
+
+fs-upgrade-halberd-sanguine-thrust = Sanguine Thrust
+fs-upgrade-halberd-sanguine-thrust-desc = Each thrust that lands restores 2 health per level.
+
 fs-upgrade-knife-quick-slash = Quick Slash
 fs-upgrade-knife-quick-slash-desc = Lighter grip increases attack speed by 33%.
 
@@ -486,10 +540,19 @@ fs-upgrade-knife-sharpened = Sharpened Blade
 fs-upgrade-knife-sharpened-desc = Hones the edge for +50% damage per level (up to x2 total).
 
 fs-upgrade-knife-golden = Golden Blade
-fs-upgrade-knife-golden-desc = Gilded blade pays out +25% money on each kill.
+fs-upgrade-knife-golden-desc = Gilded blade pays out +8% money on each kill.
 
 fs-upgrade-knife-bloodthirster = Blood Thirster
-fs-upgrade-knife-bloodthirster-desc = Heals you for 5% of the damage you deal per level.
+fs-upgrade-knife-bloodthirster-desc = Each hit heals you for 85% of its base damage per level.
+
+fs-upgrade-knife-coup-de-grace = Coup de Grâce
+fs-upgrade-knife-coup-de-grace-desc = An execution readies your next swing instantly, so executions chain.
+
+fs-upgrade-knife-hemorrhage = Hemorrhage
+fs-upgrade-knife-hemorrhage-desc = Bleeding zombies can be executed without being staggered first.
+
+fs-upgrade-knife-opportunist = Opportunist
+fs-upgrade-knife-opportunist-desc = +50% damage to zombies attacking someone else.
 
 fs-upgrade-akms-damage = Heavier Load
 fs-upgrade-akms-damage-desc = Higher-grain ammunition increases damage dealt by 15% per level.
@@ -765,3 +828,18 @@ fs-upgrade-xray-pierce-desc = Beam punches through additional targets per level.
 
 fs-upgrade-xray-dot = Radiation Coating
 fs-upgrade-xray-dot-desc = Irradiated targets emit radiation, taking ticking damage while marked. Duration and intensity scale per level.
+
+fs-upgrade-raygun-overcharged-emitter = Overcharged Emitter
+fs-upgrade-raygun-overcharged-emitter-desc = Hotter bolts deal 10% more damage per level, and the splash grows with them.
+
+fs-upgrade-raygun-extended-cell = Extended Cell
+fs-upgrade-raygun-extended-cell-desc = Each cell holds 5 more shots per level. Four levels match Porter's 40.
+
+fs-upgrade-raygun-wide-burst = Wide Burst
+fs-upgrade-raygun-wide-burst-desc = Widens the splash by half a tile per level.
+
+fs-upgrade-raygun-quick-swap = Quick Swap
+fs-upgrade-raygun-quick-swap-desc = Swaps cells 15% faster per level.
+
+fs-upgrade-raygun-hair-trigger = Hair Trigger
+fs-upgrade-raygun-hair-trigger-desc = Fires 0.4 more shots per second per level.

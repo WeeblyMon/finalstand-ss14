@@ -1,0 +1,105 @@
+- type: fsParticleEmitter
+  id: FSMeleeSlashSparks
+  texture: /Textures/_FinalStand/Effects/Particles/spark.png
+  burst: 3
+  lifetime: 0.12, 0.22
+  speed: 2.5, 4.5
+  drag: 6
+  size: 0.22, 0.08
+  alignToVelocity: true
+  stretch: 2
+  fadeIn: 0
+  fadeOut: 0.6
+
+- type: fsParticleEmitter
+  id: FSMeleeBluntDust
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  burst: 5
+  lifetime: 0.25, 0.45
+  speed: 1, 2.5
+  drag: 5
+  size: 0.18, 0.32
+  color: "#c8b89a"
+  fadeIn: 0
+  fadeOut: 0.7
+
+- type: fsParticleEmitter
+  id: FSMeleeShards
+  texture: /Textures/_FinalStand/Effects/Particles/shard.png
+  burst: 3
+  lifetime: 0.2, 0.35
+  speed: 2.5, 4
+  drag: 5
+  size: 0.2, 0.12
+  spin: -12, 12
+  fadeIn: 0
+  fadeOut: 0.5
+
+- type: fsParticleEmitter
+  id: FSMeleeBlood
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  burst: 5
+  lifetime: 0.25, 0.45
+  speed: 1.5, 3.5
+  drag: 4
+  size: 0.16, 0.06
+  color: "#a01010"
+  fadeIn: 0
+  fadeOut: 0.6
+
+- type: fsParticleEmitter
+  id: FSMeleeBloodBurst
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  burst: 8
+  lifetime: 0.35, 0.6
+  speed: 2, 5
+  drag: 4
+  size: 0.22, 0.08
+  color: "#8a0c0c"
+  fadeIn: 0
+  fadeOut: 0.6
+
+- type: fsParticleEmitter
+  id: FSMeleeGlint
+  texture: /Textures/_FinalStand/Effects/Particles/glint.png
+  burst: 3
+  lifetime: 0.15, 0.25
+  speed: 0.5, 1.5
+  drag: 4
+  size: 0.35, 0.1
+  fadeIn: 0
+  fadeOut: 0.6
+
+- type: fsParticleEmitter
+  id: FSMeleeThrustStreak
+  texture: /Textures/_FinalStand/Effects/Particles/spark.png
+  burst: 4
+  lifetime: 0.12, 0.2
+  speed: 3, 5
+  drag: 6
+  size: 0.25, 0.08
+  alignToVelocity: true
+  stretch: 3
+  fadeIn: 0
+  fadeOut: 0.5
+
+- type: fsParticleEmitter
+  id: FSMeleeEnergyHit
+  texture: /Textures/_FinalStand/Effects/Particles/glint.png
+  burst: 4
+  lifetime: 0.2, 0.35
+  speed: 1, 2.5
+  drag: 4
+  size: 0.3, 0.08
+  color: "#5ce1ff"
+  fadeIn: 0
+  fadeOut: 0.6
+
+- type: fsParticleEmitter
+  id: FSMeleeShockRing
+  texture: /Textures/_FinalStand/Effects/Particles/ring.png
+  burst: 1
+  lifetime: 0.25, 0.25
+  size: 0.3, 1.8
+  fadeIn: 0
+  fadeOut: 0.9

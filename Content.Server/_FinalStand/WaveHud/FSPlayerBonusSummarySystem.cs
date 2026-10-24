@@ -1,6 +1,7 @@
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Server._FinalStand.Crit;
+using Content.Server._FinalStand.Melee;
 using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Shop;
@@ -31,6 +32,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSResearchBuffSystem _researchBuff = default!;
+    [Dependency] private FSStyleSystem _style = default!;
     [Dependency] private FSResearchStaticGrantSystem _researchStatic = default!;
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
@@ -366,6 +368,13 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             var p = -FSPerkBonusConstants.PacifistPenalty * 100f;
             pct += p;
             sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-pacifist"), p));
+        }
+
+        if (perks != null && _style.ShowstopperMultiplier(mob, perks) is var style && style > 1f)
+        {
+            var p = (style - 1f) * 100f;
+            pct += p;
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-showstopper"), p));
         }
 
         AddPerkDamage(mob, perks, ranged: false, ref pct, sources);

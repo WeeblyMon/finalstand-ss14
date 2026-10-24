@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Melee;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
@@ -23,6 +24,7 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
     [Dependency] private FSEnemyDamageTrackerSystem _damageTracker = default!;
     [Dependency] private FSArchetypeSystem _archetypes = default!;
     [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
+    [Dependency] private FSStyleSystem _style = default!;
 
     private readonly List<EntityUid> _assisters = new();
 
@@ -70,9 +72,9 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
         if (args.Killer is { } killer && _mind.TryGetMind(killer, out var mindId, out _))
         {
             killerMind = mindId;
-            // Archetype and title bonuses are the killer's own; assists are a share of the plain value.
-            _wallet.GiveCredits(mindId, (int) (killCredits * _archetypes.Bonus(mindId).Credits
-                * _titleBuffs.ForMind(mindId).KillCredits));
+            // Style, archetype and title bonuses are the killer's own; assists are a share of the plain value.
+            _wallet.GiveCredits(mindId, (int) (killCredits * _style.KillMoneyMultiplier(killer, args.Enemy)
+                * _archetypes.Bonus(mindId).Credits * _titleBuffs.ForMind(mindId).KillCredits));
 
             if (IsSecurity(mindId))
                 _wallet.GiveCredits(mindId, rewards.SecurityKillBonus);

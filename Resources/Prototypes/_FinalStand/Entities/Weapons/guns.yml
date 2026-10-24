@@ -722,16 +722,65 @@
   - type: Crit
     baseCritChance: 0.05
 
-# Cutlass override — doubled base damage (16 → 32 Slash).
+# Cutlass override — 23 Slash plus a 40% follow-up strike, about the old 32 per swing.
 - type: entity
   parent: Cutlass
   id: FSWeaponCutlass
   suffix: FinalStand
   components:
+  - type: FSMeleeShotState
+  - type: FSMeleeBlood
+  - type: FSMeleeJuice
+    # Right click fires the flintlock that comes with the cutlass.
+    heavyStyle: Shot
+    shotWeapon: WeaponPistolFlintlock
+    shotAmmo: FSCartridgeFlintlock
+    shotSprite:
+      sprite: Objects/Weapons/Guns/Snipers/flintlock.rsi
+      state: base
+    light:
+      anticipation: 0.05
+      hitstop: 0.03
+      reach: 1.1
+      trauma: 0.15
+      knockback: 4
+      flinchDuration: 0.15
+      flinchSpeed: 0.5
+      extraStrikes: 1
+      strikeInterval: 0.12
+      strikeDamageFraction: 0.4
+      strikeSound:
+        path: /Audio/Weapons/bladeslice.ogg
+      strikePitchStep: 0.12
+      hitEffect: FSMeleeHitCross
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeGlint
+      particleTint: "#ffd27a"
+      killEmitter: FSMeleeBlood
+      killSound:
+        collection: FSMeleeFleshSquish
+      trailColor: "#9ec3ffaa"
+      trailWidth: 0.05
+      trailDuration: 0.11
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+      slashEffect: FSMeleeSlashRogueDoubleTinted
+      slashColor: "#dde9ff"
+      slashScale: 1.05
+      slashOffset: 0.6
+      slashTravel: 0.45
   - type: MeleeWeapon
+    range: 1.8
+    angle: 100
+    animation: FSWeaponArcSwing
     damage:
       types:
-        Slash: 32
+        Slash: 23
+    soundSwing:
+      collection: FSMeleeSwishLight
+      params:
+        volume: -5
+        variation: 0.06
     soundHit:
       path: /Audio/Weapons/bladeslice.ogg
   - type: Crit
@@ -743,27 +792,89 @@
   id: FSWeaponChainsaw
   suffix: FinalStand
   components:
+  - type: FSMeleeBlood
+  # Left click builds rev with every hit in a row; right click spends it on a rip through the crowd.
+  - type: FSMeleeJuice
+    critWhen: MaxRev
+    revStep: 0.08
+    revStacks: 6
+    revDumpStep: 0.25
+    revDumpSound:
+      path: /Audio/Weapons/chainsaw_pull.ogg
+      params:
+        volume: 2
+    sprintAttack: false
+    heavyRecovery: 0.5
+    light:
+      anticipation: 0
+      hitstop: 0
+      trauma: 0.15
+      shakeMode: Sustained
+      knockback: 1
+      flinchDuration: 0.3
+      flinchSpeed: 0.3
+      flinchedBonus: 0
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeBlood
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: gib
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: -5
+      slashEffect: FSMeleeStabChainsaw
+      slashScale: 0.55
+      slashOffset: 0.7
+      slashTravel: 0.15
+      slashGrow: 1.05
+    heavy:
+      anticipation: 0.05
+      hitstop: 0.04
+      trauma: 0.3
+      shakeMode: Directional
+      knockback: 5
+      flinchDuration: 0.4
+      flinchSpeed: 0.3
+      flinchedBonus: 0
+      maxTargets: 4
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeBloodBurst
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: gib
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: -2
+      slashEffect: FSMeleeSlashChainsawRip
+      slashScale: 1.0
+      slashOffset: 0.55
+      slashTravel: 0.1
+      slashGrow: 1.1
   - type: MeleeWeapon
+    range: 1.8
     autoAttack: true
-    angle: 0
+    angle: 90
     wideAnimationRotation: -135
     attackRate: 4
     damage:
       types:
         Slash: 8
         Blunt: 8
-    soundHit:
+    soundSwing:
       path: /Audio/Weapons/chainsaw_rev.ogg
       params:
-        volume: -3
+        volume: -4
+        variation: 0.04
+    soundHit:
+      path: /Audio/Weapons/bladeslice.ogg
+      params:
+        volume: -4
   - type: IncreaseDamageOnWield
     damage:
       types:
         Slash: 8
-  - type: FSChainsawFuel
-    currentFuel: 50
-    baseMaxFuel: 50
-    baseFuelPerSwing: 1.0
   - type: Crit
     baseCritChance: 0.05
 
@@ -773,12 +884,16 @@
   id: FSEnergySwordDouble
   suffix: FinalStand
   components:
+  - type: EnergySword
+    colorOptions:
+    - "#1E90FF"
   - type: ItemToggleMeleeWeapon
     activatedDamage:
         types:
             Slash: 24
             Heat: 24
   - type: MeleeWeapon
+    range: 1.8
     wideAnimationRotation: -135
     attackRate: 3
     angle: 100

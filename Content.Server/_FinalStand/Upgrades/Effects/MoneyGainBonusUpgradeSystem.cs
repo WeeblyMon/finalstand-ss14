@@ -28,18 +28,18 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
         if (ev.State is not { } state)
             return;
 
-        Mark(ev.Target, ev.Shooter, state.MoneyGainBonusPerKill, state.MoneyGainBonusFraction);
+        Mark(ev.Target, ev.Shooter, state.MoneyGainBonusPerKill, state.MoneyGainPercentPerKill);
     }
 
     // The latest hitter's weapon decides the bonus, and only they collect it.
-    public void Mark(EntityUid target, EntityUid? owner, int bonus, float fraction)
+    public void Mark(EntityUid target, EntityUid? owner, int bonus, float percent)
     {
-        if ((bonus <= 0 && fraction <= 0f) || owner == null || !HasComp<WaveSpawnedTagComponent>(target))
+        if ((bonus <= 0 && percent <= 0f) || owner == null || !HasComp<WaveSpawnedTagComponent>(target))
             return;
 
         var pending = EnsureComp<FSPendingKillBonusComponent>(target);
         pending.MoneyBonus = bonus;
-        pending.MoneyFraction = fraction;
+        pending.MoneyPercent = percent;
         pending.Payee = owner;
     }
 
@@ -50,7 +50,7 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
         if (args.Origin is not { } killer || killer != bonus.Payee || !_mind.TryGetMind(killer, out var mindId, out _))
             return;
 
-        var credits = bonus.MoneyBonus + (int) MathF.Round(bonus.MoneyFraction * _rewards.KillCredits(uid));
+        var credits = bonus.MoneyBonus + (int) MathF.Round(bonus.MoneyPercent * _rewards.KillCredits(uid));
         if (credits > 0)
             _wallet.GiveCredits(mindId, credits);
     }

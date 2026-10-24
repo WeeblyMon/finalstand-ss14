@@ -35,15 +35,39 @@
       description: fs-upgrade-knife-golden-desc
       maxLevel: 1
       baseCost: 500
-      type: MoneyGainBonusPercent
-      valuePerLevel: 0.25
+      type: MoneyGainPercent
+      valuePerLevel: 0.08
     - id: knife-bloodthirster
       name: fs-upgrade-knife-bloodthirster
       description: fs-upgrade-knife-bloodthirster-desc
       maxLevel: 2
       baseCost: 3000
       type: LifeSteal
-      valuePerLevel: 0.05
+      valuePerLevel: 0.85
+    - id: knife-coup-de-grace
+      name: fs-upgrade-knife-coup-de-grace
+      description: fs-upgrade-knife-coup-de-grace-desc
+      maxLevel: 1
+      baseCost: 3500
+      type: MeleeSignature
+      signature: CoupDeGrace
+      valuePerLevel: 1
+    - id: knife-hemorrhage
+      name: fs-upgrade-knife-hemorrhage
+      description: fs-upgrade-knife-hemorrhage-desc
+      maxLevel: 1
+      baseCost: 3000
+      type: MeleeSignature
+      signature: Hemorrhage
+      valuePerLevel: 1
+    - id: knife-opportunist
+      name: fs-upgrade-knife-opportunist
+      description: fs-upgrade-knife-opportunist-desc
+      maxLevel: 1
+      baseCost: 2500
+      type: MeleeSignature
+      signature: Opportunist
+      valuePerLevel: 0.5
   - type: Sprite
     sprite: Objects/Weapons/Melee/survival_knife.rsi
     state: icon

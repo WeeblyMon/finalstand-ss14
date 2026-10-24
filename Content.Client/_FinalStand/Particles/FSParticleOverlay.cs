@@ -54,7 +54,8 @@ public sealed class FSParticleOverlay : Overlay
             }
 
             var box = new Box2(p.Position - half, p.Position + half);
-            handle.DrawTextureRect(p.Texture, new Box2Rotated(box, rotation, p.Position), p.Color.WithAlpha(p.Color.A * alpha));
+            var frame = p.Frames[Math.Min((int) (t * p.Frames.Length), p.Frames.Length - 1)];
+            handle.DrawTextureRect(frame, new Box2Rotated(box, rotation, p.Position), p.Color.WithAlpha(p.Color.A * alpha));
         }
 
         handle.UseShader(null);

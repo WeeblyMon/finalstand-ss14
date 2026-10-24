@@ -58,7 +58,7 @@ public sealed partial class FSGiveCreditsCommand : IConsoleCommand
             return;
         }
 
-        _entMan.System<FSPlayerWalletSystem>().GiveCredits(mindId, amount);
+        _entMan.System<FSPlayerWalletSystem>().AddCredits(mindId, amount);
         shell.WriteLine($"Gave {amount} credits to {session.Name}.");
     }
 }

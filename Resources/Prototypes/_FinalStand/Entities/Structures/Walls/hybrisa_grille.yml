@@ -1,0 +1,31 @@
+- type: entity
+  parent: Grille
+  id: FSGrilleHybrisa
+  name: grille
+  description: A flimsy framework of iron rods, colony issue.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/grille.rsi
+    layers:
+    - state: grille
+    - state: electrified
+      sprite: Effects/electricity.rsi
+      map: ["enum.ElectrifiedLayers.Sparks"]
+      visible: false
+      shader: unshaded
+  - type: Icon
+    sprite: _FinalStand/Structures/Walls/grille.rsi
+    state: grille
+
+- type: entity
+  parent: GrilleBroken
+  id: FSGrilleHybrisaBroken
+  name: broken grille
+  description: The remains of a colony grille, bent flat.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/grille.rsi
+    state: brokengrille
+  - type: Icon
+    sprite: _FinalStand/Structures/Walls/grille.rsi
+    state: brokengrille

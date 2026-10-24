@@ -133,7 +133,7 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 }
             }
 
-            _killBonus.Mark(target, user, state.MoneyGainBonusPerKill, state.MoneyGainBonusFraction);
+            _killBonus.Mark(target, user, state.MoneyGainBonusPerKill, state.MoneyGainPercentPerKill);
 
         }
 

@@ -1,4 +1,5 @@
 using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
 using System.Numerics;
 using Robust.Client.Graphics;
@@ -93,9 +94,9 @@ public sealed partial class WaveHudOverlay
 
             if (hasBearing)
             {
-                DrawBearing(screen,
+                FSBearingArrow.DrawArrow(screen,
                     new Vector2(innerRight - tailW - 8f - ArrowRadius, y + rowH * 0.5f),
-                    row.Direction!.Value, pipColor);
+                    row.Direction!.Value.Normalized(), ArrowRadius, pipColor);
             }
 
             var nameLeft = innerX + PipSize + 6f;
@@ -122,19 +123,5 @@ public sealed partial class WaveHudOverlay
             trimmed = trimmed[..^1];
 
         return trimmed.Length == 0 ? string.Empty : trimmed + "...";
-    }
-
-    private static void DrawBearing(DrawingHandleScreen screen, Vector2 centre, Vector2 dir, Color color)
-    {
-        var d = dir.Normalized();
-        var perp = new Vector2(-d.Y, d.X);
-
-        var tip = centre + d * ArrowRadius;
-        var back = centre - d * (ArrowRadius * 0.55f);
-        var left = back + perp * (ArrowRadius * 0.8f);
-        var right = back - perp * (ArrowRadius * 0.8f);
-
-        var tri = new[] { tip, left, right };
-        screen.DrawPrimitives(DrawPrimitiveTopology.TriangleList, tri, color);
     }
 }

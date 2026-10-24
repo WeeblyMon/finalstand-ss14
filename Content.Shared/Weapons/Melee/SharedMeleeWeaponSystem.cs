@@ -372,6 +372,12 @@ public abstract partial class SharedMeleeWeaponSystem : EntitySystem
         return AttemptAttack(user, weaponUid, weapon, new DisarmAttackEvent(GetNetEntity(target), GetNetCoordinates(targetXform.Coordinates)), null);
     }
 
+    // FINALSTAND: wide swings from server code and tests
+    public bool AttemptHeavyAttack(EntityUid user, EntityUid weaponUid, MeleeWeaponComponent weapon, List<EntityUid> targets, EntityCoordinates coordinates)
+    {
+        return AttemptAttack(user, weaponUid, weapon, new HeavyAttackEvent(GetNetEntity(weaponUid), GetNetEntityList(targets), GetNetCoordinates(coordinates)), null);
+    }
+
     /// <summary>
     /// Called when a windup is finished and an attack is tried.
     /// </summary>
@@ -608,7 +614,7 @@ public abstract partial class SharedMeleeWeaponSystem : EntitySystem
 
         var userPos = TransformSystem.GetWorldPosition(userXform);
         var direction = targetMap.Position - userPos;
-        var distance = Math.Min(component.Range, direction.Length());
+        var distance = component.Angle.Theta >= Math.Tau - 0.01 ? component.Range : Math.Min(component.Range, direction.Length()); // FINALSTAND: full-circle swings reach their whole range
 
         var damage = GetDamage(meleeUid, user, component);
         var resistanceBypass = GetResistanceBypass(meleeUid, user, component);
@@ -833,6 +839,7 @@ public abstract partial class SharedMeleeWeaponSystem : EntitySystem
             if (damage <= highestDamage)
                 continue;
 
+            highestDamage = damage; // FINALSTAND: was never updated, so the last type won
             highestDamageType = type;
         }
 

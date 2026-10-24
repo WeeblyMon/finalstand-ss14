@@ -7,7 +7,9 @@ using Content.Client.Message;
 using Content.Client.Playtime;
 using Content.Client.UserInterface.Systems.Chat;
 using Content.Client.Voting;
+using Content.Shared._FinalStand.Audio;
 using Content.Shared.CCVar;
+using System.Linq;
 using Robust.Client;
 using Robust.Client.Console;
 using Robust.Client.ResourceManagement;
@@ -16,6 +18,7 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client.Lobby
 {
@@ -35,6 +38,7 @@ namespace Content.Client.Lobby
         private ClientGameTicker _gameTicker = default!;
         private ContentAudioSystem _contentAudioSystem = default!;
         private ReadyManifestSystem _readyManifest = default!; // FINALSTAND
+        private string? _soundtrack;
 
         protected override Type? LinkedScreenType { get; } = typeof(LobbyGui);
         public LobbyGui? Lobby;
@@ -236,6 +240,9 @@ namespace Content.Client.Lobby
 
         private void UpdateLobbySoundtrackInfo(LobbySoundtrackChangedEvent ev)
         {
+            _soundtrack = ev.SoundtrackFilename;
+            UpdateLobbyBackground();
+
             if (ev.SoundtrackFilename == null)
             {
                 Lobby!.LobbySong.SetMarkup(Loc.GetString("lobby-state-song-no-song-text"));
@@ -265,15 +272,18 @@ namespace Content.Client.Lobby
 
         private void UpdateLobbyBackground()
         {
-            if (_protoMan.TryIndex(_gameTicker.LobbyBackground, out var proto))
+            var songBackground = _soundtrack is { } soundtrack
+                ? _protoMan.EnumeratePrototypes<FSLobbySongBackgroundPrototype>()
+                    .FirstOrDefault(p => p.Song == new ResPath(soundtrack))
+                : null;
+
+            if (songBackground != null)
             {
-                Lobby!.Background.Texture = _resourceCache.GetResource<TextureResource>(proto.Background);
-
-                var markup = Loc.GetString("lobby-state-background-text",
-                    ("backgroundTitle", Loc.GetString(proto.Title)),
-                    ("backgroundArtist", Loc.GetString(proto.Artist)));
-
-                Lobby!.LobbyBackground.SetMarkup(markup);
+                ShowBackground(songBackground.Background, songBackground.Title, songBackground.Artist);
+            }
+            else if (_protoMan.TryIndex(_gameTicker.LobbyBackground, out var proto))
+            {
+                ShowBackground(proto.Background, proto.Title, proto.Artist);
             }
             else
             {
@@ -281,6 +291,17 @@ namespace Content.Client.Lobby
 
                 Lobby!.LobbyBackground.SetMarkup(Loc.GetString("lobby-state-background-no-background-text"));
             }
+        }
+
+        private void ShowBackground(ResPath background, LocId title, LocId artist)
+        {
+            Lobby!.Background.Texture = _resourceCache.GetResource<TextureResource>(background);
+
+            var markup = Loc.GetString("lobby-state-background-text",
+                ("backgroundTitle", Loc.GetString(title)),
+                ("backgroundArtist", Loc.GetString(artist)));
+
+            Lobby!.LobbyBackground.SetMarkup(markup);
         }
 
         private void SetReady(bool newReady)

@@ -1,0 +1,161 @@
+{
+    "version": 1,
+    "license": "CC-BY-4.0",
+    "copyright": "Pixelated Attack/Hit Animations by Viktor Hahn (Viktor.Hahn@web.de), https://opengameart.org/content/pixelated-attackhit-animations, https://opengameart.org/content/more-pixelated-attackhit-animations, https://opengameart.org/content/pixelated-hit-animations",
+    "size": {
+        "x": 64,
+        "y": 64
+    },
+    "states": [
+        {
+            "name": "slash_thin",
+            "delays": [
+                [
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03
+                ]
+            ]
+        },
+        {
+            "name": "slash_heavy",
+            "delays": [
+                [
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035
+                ]
+            ]
+        },
+        {
+            "name": "slash_clean",
+            "delays": [
+                [
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03
+                ]
+            ]
+        },
+        {
+            "name": "cross",
+            "delays": [
+                [
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03
+                ]
+            ]
+        },
+        {
+            "name": "thrust",
+            "delays": [
+                [
+                    0.025,
+                    0.025,
+                    0.025,
+                    0.025,
+                    0.025,
+                    0.025,
+                    0.025,
+                    0.025,
+                    0.025,
+                    0.025
+                ]
+            ]
+        },
+        {
+            "name": "burst",
+            "delays": [
+                [
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03
+                ]
+            ]
+        },
+        {
+            "name": "shatter",
+            "delays": [
+                [
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03,
+                    0.03
+                ]
+            ]
+        },
+        {
+            "name": "ring",
+            "delays": [
+                [
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035,
+                    0.035
+                ]
+            ]
+        },
+        {
+            "name": "blood",
+            "delays": [
+                [
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04
+                ]
+            ]
+        }
+    ]
+}

@@ -42,6 +42,7 @@ public sealed partial class FSClassicHudSystem : EntitySystem
         typeof(FSArmorShopIndicatorOverlay),
         typeof(FSBagShopIndicatorOverlay),
         typeof(FSGachaLabelOverlay),
+        typeof(FSMysteryBoxLabelOverlay),
         typeof(FSSyringeFillerIndicatorOverlay),
         typeof(WaveAmmoBoxIndicatorOverlay),
     };

@@ -124,6 +124,13 @@ public sealed partial class FSShopClientSystem : EntitySystem
         var query = EntityQueryEnumerator<FSShopWeaponComponent, SpriteComponent>();
         while (query.MoveNext(out var uid, out var shop, out var sprite))
         {
+            if (shop.RequiresHeldWeapon)
+            {
+                var visible = player != null && HoldsShopWeapon(player.Value, shop);
+                if (sprite.Visible != visible)
+                    _sprite.SetVisible((uid, sprite), visible);
+            }
+
             ShopGlowState state;
             if (shop.RequiresResearch is { } required && !_unlockedResearchNodes.Contains(required.Id))
                 state = ShopGlowState.Locked;
@@ -400,6 +407,20 @@ public sealed partial class FSShopClientSystem : EntitySystem
         foreach (var alias in shop.WeaponProtoIdAliases)
         {
             if (_ownedProtoIds.Contains(alias.Id))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool HoldsShopWeapon(EntityUid player, FSShopWeaponComponent shop)
+    {
+        foreach (var held in _hands.EnumerateHeld(player))
+        {
+            if (MetaData(held).EntityPrototype?.ID is not { } id)
+                continue;
+
+            if (shop.WeaponProtoId?.Id == id || shop.WeaponProtoIdAliases.Exists(alias => alias.Id == id))
                 return true;
         }
 

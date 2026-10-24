@@ -1,0 +1,97 @@
+- type: constructionGraph
+  id: FSFenceHybrisa
+  start: start
+  graph:
+  - node: start
+    actions:
+    - !type:DeleteEntity { }
+    edges:
+    - to: fence
+      steps:
+      - material: MetalRod
+        amount: 5
+        doAfter: 4
+
+  - node: fence
+    entity: FSFenceHybrisa
+    edges:
+    - to: broken
+      steps:
+      - tool: Cutting
+        doAfter: 2
+    - to: start
+      completed:
+      - !type:SpawnPrototype
+        prototype: PartRodMetal1
+        amount: 3
+      steps:
+      - tool: Welding
+        doAfter: 4
+      - tool: Prying
+        doAfter: 2
+
+  - node: broken
+    entity: FSFenceHybrisaBroken
+    edges:
+    - to: fence
+      steps:
+      - material: MetalRod
+        amount: 3
+        doAfter: 3
+    - to: start
+      completed:
+      - !type:SpawnPrototype
+        prototype: PartRodMetal1
+        amount: 1
+      steps:
+      - tool: Prying
+        doAfter: 2
+
+- type: constructionGraph
+  id: FSFenceHybrisaElectric
+  start: start
+  graph:
+  - node: start
+    actions:
+    - !type:DeleteEntity { }
+    edges:
+    - to: fence
+      steps:
+      - material: MetalRod
+        amount: 5
+        doAfter: 4
+
+  - node: fence
+    entity: FSFenceHybrisaElectric
+    edges:
+    - to: broken
+      steps:
+      - tool: Cutting
+        doAfter: 2
+    - to: start
+      completed:
+      - !type:SpawnPrototype
+        prototype: PartRodMetal1
+        amount: 3
+      steps:
+      - tool: Welding
+        doAfter: 4
+      - tool: Prying
+        doAfter: 2
+
+  - node: broken
+    entity: FSFenceHybrisaElectricBroken
+    edges:
+    - to: fence
+      steps:
+      - material: MetalRod
+        amount: 3
+        doAfter: 3
+    - to: start
+      completed:
+      - !type:SpawnPrototype
+        prototype: PartRodMetal1
+        amount: 1
+      steps:
+      - tool: Prying
+        doAfter: 2

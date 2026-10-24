@@ -9,6 +9,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Projectiles;
+using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -48,6 +49,7 @@ public sealed partial class FSHMGSystem : EntitySystem
         SubscribeLocalEvent<FSHMGGunnerComponent, MobStateChangedEvent>(OnGunnerState);
         SubscribeLocalEvent<FSHMGGunnerComponent, GetEyePvsScaleEvent>(OnGunnerPvsScale);
         SubscribeLocalEvent<FSHMGGunnerComponent, FSToggleHMGArcActionEvent>(OnToggleArc);
+        SubscribeLocalEvent<FSHMGGunnerComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
     }
 
     public float CurrentHeat(FSHMGComponent comp)
@@ -158,6 +160,11 @@ public sealed partial class FSHMGSystem : EntitySystem
         ent.Comp.ShowArc = !ent.Comp.ShowArc;
         _actions.SetToggled(ent.Comp.ArcAction, ent.Comp.ShowArc);
         Dirty(ent);
+    }
+
+    private void OnGetMeleeWeapon(Entity<FSHMGGunnerComponent> ent, ref GetMeleeWeaponEvent args)
+    {
+        args.Handled = true;
     }
 
     private void OnGunnerPvsScale(Entity<FSHMGGunnerComponent> ent, ref GetEyePvsScaleEvent args)

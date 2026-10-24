@@ -62,6 +62,9 @@ public static class FSPerkBonusConstants
     public const int UnderdogMaxZombies = 8;
     public const float ScavengerHeal = 15f;
     public const int ScavengerCredits = 150;
+    public const float ShowstopperPerRankPerLevel = 0.015f; // melee damage per style rank, D = 1 to SSS = 7
+    public const float ShowstopperHealPerLevel = 2f;        // per melee kill while at ShowstopperHealRank or higher
+    public const int ShowstopperHealRank = 5;               // S
     public const float ConcealedCarryPerLevel = 0.04f;
     public const float ConcealedCarryLargeGunFactor = 0.5f;
     public const float GunslingerDamagePerLevel = 0.06f;

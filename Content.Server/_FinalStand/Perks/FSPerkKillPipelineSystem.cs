@@ -43,6 +43,17 @@ public sealed partial class FSPerkKillPipelineSystem : EntitySystem
             _meleeHits.Add((ev.Hit.User, target));
     }
 
+    // For melee damage dealt outside the swing itself, like pierces and follow-up strikes.
+    public void MarkMeleeHit(EntityUid user, EntityUid target)
+    {
+        _meleeHits.Add((user, target));
+    }
+
+    public bool IsMeleeKill(EntityUid killer, EntityUid target)
+    {
+        return _meleeHits.Contains((killer, target));
+    }
+
     private void OnMobStateChanged(MobStateChangedEvent args)
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead)

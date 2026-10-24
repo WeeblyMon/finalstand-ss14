@@ -44,6 +44,30 @@
       baseCost: 10000
       type: WhileBurningBuff
       valuePerLevel: 1
+    - id: fireaxe-unstoppable
+      name: fs-upgrade-fireaxe-unstoppable
+      description: fs-upgrade-fireaxe-unstoppable-desc
+      maxLevel: 1
+      baseCost: 6000
+      type: MeleeSignature
+      signature: Unstoppable
+      valuePerLevel: 1
+    - id: fireaxe-wildfire
+      name: fs-upgrade-fireaxe-wildfire
+      description: fs-upgrade-fireaxe-wildfire-desc
+      maxLevel: 1
+      baseCost: 9000
+      type: MeleeSignature
+      signature: Wildfire
+      valuePerLevel: 1
+    - id: fireaxe-aftershock
+      name: fs-upgrade-fireaxe-aftershock
+      description: fs-upgrade-fireaxe-aftershock-desc
+      maxLevel: 1
+      baseCost: 12000
+      type: MeleeSignature
+      signature: Aftershock
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Melee/fireaxe.rsi
     state: icon

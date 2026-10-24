@@ -8,11 +8,11 @@ fs-hud-worn-tooltip = Show what you are wearing
 fs-hud-medical-fund = MED FUND ${ $amount }
 fs-hud-dragging = Dragging: {$target}
 
-cmd-togglehud-desc = Switches between the Final Stand HUD and the classic vanilla layout.
-cmd-togglehud-help = Usage: togglehud
-cmd-togglehud-on = Classic HUD on. Restart the game to apply it.
-cmd-togglehud-off = Final Stand HUD on. Restart the game to apply it.
-cmd-togglehud-denied = Only admins can switch the HUD.
+cmd-fstogglehud-desc = Switches between the Final Stand HUD and the classic vanilla layout.
+cmd-fstogglehud-help = Usage: fstogglehud
+cmd-fstogglehud-on = Classic HUD on. Restart the game to apply it.
+cmd-fstogglehud-off = Final Stand HUD on. Restart the game to apply it.
+cmd-fstogglehud-denied = Only admins can switch the HUD.
 
 fs-hud-bonus-source = { $label } { $pct }%
 fs-hud-bonus-resist-total = = { $pct }% less damage taken
@@ -29,6 +29,7 @@ fs-hud-bonus-bandolier = Bandolier
 fs-hud-bonus-sword-and-shield = Sword & Shield
 fs-hud-bonus-combat-medic = Combat Medic
 fs-hud-bonus-berserker = Berserker
+fs-hud-bonus-showstopper = Showstopper
 fs-hud-bonus-underdog = Underdog
 fs-hud-bonus-weapon = Weapon
 fs-hud-bonus-ravage = Ravage
