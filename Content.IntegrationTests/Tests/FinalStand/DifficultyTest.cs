@@ -202,9 +202,9 @@ public sealed class DifficultyTest : GameTest
             {
                 Assert.That(wallet.PerkPoints - before,
                     Is.EqualTo(5 + FSDifficultyRules.VictoryBonusPerkPoints(FSDifficulty.Nightmare)));
-                Assert.That(owned, Does.Contain(FSRecordsSystem.VictoryTitle));
-                Assert.That(owned, Does.Contain(FSRecordsSystem.HardVictoryTitle));
-                Assert.That(owned, Does.Contain(FSRecordsSystem.NightmareVictoryTitle));
+                Assert.That(owned, Does.Contain(FSRecordsSystem.VictoryTitle.Id));
+                Assert.That(owned, Does.Contain(FSRecordsSystem.HardVictoryTitle.Id));
+                Assert.That(owned, Does.Contain(FSRecordsSystem.NightmareVictoryTitle.Id));
             });
         });
     }

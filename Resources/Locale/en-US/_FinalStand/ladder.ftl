@@ -57,6 +57,7 @@ fs-discord-record-beaten = {$players} took the {$ladder} record from {$previous}
 fs-discord-title-victory = The station held!
 fs-discord-title-fell = The station fell at wave {$waves}
 fs-discord-footer = {$server} · round {$round}
+fs-discord-ladder-name = {$difficulty} · {$bracket}
 fs-discord-live-title = {$players} defenders are online now
 fs-discord-live-wave = Fighting wave {$wave}. Jump in!
 fs-discord-live-lobby = A round is about to start. Jump in!

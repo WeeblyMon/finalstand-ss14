@@ -30,15 +30,12 @@ public static class FSDiscordMessages
     public static WebhookPayload RoundSummary(RoundReport report)
     {
         var run = report.Run;
-        var difficulty = Loc.GetString(FSDifficultyRules.NameLocId(run.Difficulty));
-        var bracket = Loc.GetString(FSLadder.BracketLocId(run.Bracket));
-
         var fields = new List<WebhookEmbedField>
         {
             Field(Loc.GetString("fs-discord-field-result"), run.Victory
                 ? Loc.GetString("fs-discord-result-victory")
                 : Loc.GetString("fs-discord-result-fell", ("waves", run.Waves))),
-            Field(Loc.GetString("fs-discord-field-difficulty"), $"{difficulty} · {bracket}"),
+            Field(Loc.GetString("fs-discord-field-difficulty"), LadderName(run.Difficulty, run.Bracket)),
             Field(Loc.GetString("fs-discord-field-time"), TimeSpan.FromSeconds(run.DurationSeconds).ToString(@"h\:mm\:ss")),
             Field(Loc.GetString("fs-discord-field-kills"), run.Kills.ToString("N0")),
             Field(Loc.GetString("fs-discord-field-defenders"), run.Players, inline: false),
@@ -130,11 +127,16 @@ public static class FSDiscordMessages
     {
         var ladder = record.Weekly != null
             ? Loc.GetString("fs-discord-weekly-ladder")
-            : $"{Loc.GetString(FSDifficultyRules.NameLocId(record.Difficulty))} · {Loc.GetString(FSLadder.BracketLocId(record.Bracket))}";
+            : LadderName(record.Difficulty, record.Bracket);
         return previous == null
             ? Loc.GetString("fs-discord-record-first", ("ladder", ladder), ("players", record.Players))
             : Loc.GetString("fs-discord-record-beaten", ("ladder", ladder), ("players", record.Players), ("previous", previous.Players));
     }
+
+    private static string LadderName(FSDifficulty difficulty, FSPlayerBracket bracket)
+        => Loc.GetString("fs-discord-ladder-name",
+            ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(difficulty))),
+            ("bracket", Loc.GetString(FSLadder.BracketLocId(bracket))));
 
     private static WebhookEmbedField Field(string name, string value, bool inline = true) => new()
     {

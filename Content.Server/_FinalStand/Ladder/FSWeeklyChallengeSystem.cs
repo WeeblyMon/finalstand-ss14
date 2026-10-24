@@ -8,6 +8,7 @@ using Content.Server.GameTicking;
 using Content.Server.Voting;
 using Content.Server.Voting.Managers;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Titles;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Robust.Server.Player;
@@ -29,7 +30,7 @@ public sealed partial class FSWeeklyChallengeSystem : EntitySystem
     [Dependency] private FSTitleSystem _titles = default!;
     [Dependency] private SharedMindSystem _mind = default!;
 
-    public const string ChampionTitle = "FSTitleWeeklyChampion";
+    private static readonly ProtoId<FSTitlePrototype> ChampionTitle = "FSTitleWeeklyChampion";
     private static readonly TimeSpan VoteDuration = TimeSpan.FromSeconds(30);
 
     private IVoteHandle? _vote;

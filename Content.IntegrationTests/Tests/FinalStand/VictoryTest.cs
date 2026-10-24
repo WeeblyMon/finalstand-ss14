@@ -81,7 +81,7 @@ public sealed class VictoryTest : GameTest
                 Assert.That(wallet.PerkPoints - pointsBefore, Is.EqualTo(5),
                     "every defender earns exactly the victory PP (levelling is switched off so it can't hide a shortfall)");
                 Assert.That(records.VictoryThisRound, Is.True);
-                Assert.That(titles.GetOwned(session.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle));
+                Assert.That(titles.GetOwned(session.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle.Id));
             });
 
             afterVictory = wallet.PerkPoints;

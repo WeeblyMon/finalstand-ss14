@@ -11,13 +11,9 @@ using Content.Shared.Mind;
 using Content.Shared.Players.PlayTimeTracking;
 using Robust.Server.Player;
 using Robust.Shared.Enums;
-using Robust.Shared.Network;
 using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Onboarding;
-
-[ByRefEvent]
-public readonly record struct FSRookieFirstRoundEvent(NetUserId Rookie);
 
 public sealed partial class FSOnboardingSystem : EntitySystem
 {
@@ -102,7 +98,7 @@ public sealed partial class FSOnboardingSystem : EntitySystem
         _titles.Grant(session.UserId, FSRookieRules.GraduationTitle);
         _chat.DispatchServerMessage(session, Loc.GetString("fs-onboarding-graduated",
             ("points", FSRookieRules.GraduationPerkPoints)));
-        Log.Info($"[FSOnboarding] {session.Name} graduated from rookie status.");
+        Log.Info($"{session.Name} graduated from rookie status.");
         return record with { Graduated = true };
     }
 

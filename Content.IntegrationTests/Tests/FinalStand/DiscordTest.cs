@@ -36,6 +36,7 @@ public sealed class DiscordTest : GameTest
                 Assert.That(embed.Title, Is.Not.Empty);
                 Assert.That(embed.Color, Is.EqualTo(FSDiscordMessages.RecordColor), "a record outranks a plain victory colour");
                 Assert.That(text, Does.Contain("Ada, Bo"));
+                Assert.That(text, Does.Contain("Hard · 2-4 players"), "the ladder is named by difficulty and bracket");
                 Assert.That(text, Does.Contain("1300").Or.Contain("1,300"), "the MVP's kills are named");
                 Assert.That(text, Does.Contain("Cy"), "the old record holder is named, which is what pulls them back");
                 Assert.That(text, Does.Contain("Nightmare Breaker"));

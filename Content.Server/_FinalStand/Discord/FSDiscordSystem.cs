@@ -10,7 +10,6 @@ using Content.Server.Discord;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
-using Content.Shared._FinalStand.Titles;
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
@@ -58,7 +57,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
     {
         base.Initialize();
 
-        _cfg.OnValueChanged(CCVars.FSDiscordWebhook, url =>
+        Subs.CVar(_cfg, CCVars.FSDiscordWebhook, url =>
         {
             _webhook = null;
             if (string.IsNullOrWhiteSpace(url))
@@ -162,7 +161,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
         {
             var kills = _leveling.GetRoundStats(mindId).Kills;
             var revives = _medicalStats.GetStats(mindId).Revives;
-            var candidate = new FSDiscordMessages.Mvp(mind.CharacterName ?? "Unknown", kills, revives);
+            var candidate = new FSDiscordMessages.Mvp(mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name"), kills, revives);
             var score = byRevives ? revives : kills;
             var bestScore = best == null ? 0 : byRevives ? best.Value.Revives : best.Value.Kills;
             if (score > bestScore)
@@ -208,11 +207,11 @@ public sealed partial class FSDiscordSystem : EntitySystem
         {
             var response = await _discord.CreateMessage(webhook, payload);
             if (!response.IsSuccessStatusCode)
-                Log.Warning($"[FSDiscord] Webhook returned {(int) response.StatusCode}");
+                Log.Warning($"Webhook returned {(int) response.StatusCode}");
         }
         catch (Exception e)
         {
-            Log.Error($"[FSDiscord] Failed to post to Discord: {e.Message}");
+            Log.Error($"Failed to post to Discord: {e.Message}");
         }
     }
 }

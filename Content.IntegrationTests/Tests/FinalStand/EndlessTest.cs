@@ -78,7 +78,7 @@ public sealed class EndlessTest : GameTest
             {
                 Assert.That(ticker.RunLevel, Is.EqualTo(GameRunLevel.InRound), "the round waits on the endless vote");
                 Assert.That(waveRule.IsAwaitingEndless(), Is.True);
-                Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle),
+                Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle.Id),
                     "the win is banked before anyone votes");
             });
 
@@ -96,7 +96,7 @@ public sealed class EndlessTest : GameTest
 
             var ended = new WaveEndedEvent(FSRecordsSystem.EndlessTitleWave);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref ended);
-            Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.EndlessTitle));
+            Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.EndlessTitle.Id));
 
             Assert.That(ticker.RunLevel, Is.EqualTo(GameRunLevel.InRound), "endless only ends when the crew falls");
         });

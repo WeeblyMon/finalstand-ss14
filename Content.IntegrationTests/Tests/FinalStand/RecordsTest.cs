@@ -13,7 +13,7 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class RecordsTest : GameTest
 {
-    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true, DummyTicker = false };
 
     [Test]
     public async Task ARespawnedPlayerIsRecordedOncePerRound()
@@ -38,12 +38,18 @@ public sealed class RecordsTest : GameTest
 
             var wave = new WaveEndedEvent(7);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref wave);
+
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
+            Assert.That(records.GetProfile(session.UserId).RoundsPlayed, Is.Zero, "a scoreboard thrown mid-round records nothing");
+
+            SEntMan.System<GameTicker>().EndRound();
             SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
 
             var profile = records.GetProfile(session.UserId);
             Assert.Multiple(() =>
             {
-                Assert.That(profile.RoundsPlayed, Is.EqualTo(1), "two minds in one round are still one round");
+                Assert.That(profile.RoundsPlayed, Is.EqualTo(1),
+                    "two minds in one round are still one round, and throwing the scoreboard again doesn't count it twice");
                 Assert.That(profile.FurthestWave, Is.EqualTo(7));
             });
         });

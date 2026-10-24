@@ -10,17 +10,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Titles;
 
-[RegisterComponent]
-public sealed partial class FSTitleHealthBonusComponent : Component
-{
-    [DataField]
-    public float Applied;
-}
-
 public sealed partial class FSTitleBuffSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _proto = default!;
-    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;

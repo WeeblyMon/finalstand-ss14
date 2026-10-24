@@ -7,10 +7,12 @@ using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Titles;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Robust.Server.Player;
 using Robust.Shared.Network;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Records;
 
@@ -23,12 +25,12 @@ public sealed partial class FSRecordsSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private FSTitleSystem _titles = default!;
-    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private GameTicker _ticker = default!;
 
-    public const string VictoryTitle = "FSTitleStationHeld";
-    public const string HardVictoryTitle = "FSTitleIronWall";
-    public const string NightmareVictoryTitle = "FSTitleNightmareBreaker";
-    public const string EndlessTitle = "FSTitleBeyondTheWall";
+    public static readonly ProtoId<FSTitlePrototype> VictoryTitle = "FSTitleStationHeld";
+    public static readonly ProtoId<FSTitlePrototype> HardVictoryTitle = "FSTitleIronWall";
+    public static readonly ProtoId<FSTitlePrototype> NightmareVictoryTitle = "FSTitleNightmareBreaker";
+    public static readonly ProtoId<FSTitlePrototype> EndlessTitle = "FSTitleBeyondTheWall";
     public const int EndlessTitleWave = 40;
 
     public enum RecordKind : byte
@@ -39,13 +41,19 @@ public sealed partial class FSRecordsSystem : EntitySystem
 
     public readonly record struct NewBest(RecordKind Kind, int Previous, int Current);
 
-    public bool VictoryThisRound { get; set; }
+    public bool VictoryThisRound { get; private set; }
+
+    private bool _recordedThisRound;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEndText);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => VictoryThisRound = false);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
+        {
+            VictoryThisRound = false;
+            _recordedThisRound = false;
+        });
         SubscribeLocalEvent<FSRoundVictoryEvent>(OnVictory);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
     }
@@ -80,6 +88,11 @@ public sealed partial class FSRecordsSystem : EntitySystem
 
     private void OnRoundEndText(RoundEndTextAppendEvent args)
     {
+        // throwscoreboard raises this mid-round and again after it; only the real round end is recorded, once
+        if (_recordedThisRound || _ticker.RunLevel != GameRunLevel.PostRound)
+            return;
+
+        _recordedThisRound = true;
         var rounds = new Dictionary<NetUserId, (string? Name, int Kills, int Revives)>();
         var query = EntityQueryEnumerator<FSPlayerLevelComponent, MindComponent>();
         while (query.MoveNext(out var mindId, out _, out var mind))
@@ -104,7 +117,7 @@ public sealed partial class FSRecordsSystem : EntitySystem
             foreach (var best in RecordRound(userId, round.Kills, round.Revives, highest, VictoryThisRound))
             {
                 var text = DescribeBest(best);
-                lines.Add(Loc.GetString("fs-records-round-end-line", ("name", round.Name ?? "Unknown"), ("record", text)));
+                lines.Add(Loc.GetString("fs-records-round-end-line", ("name", round.Name ?? Loc.GetString("fs-leveling-unknown-name")), ("record", text)));
                 if (_playerManager.TryGetSessionById(userId, out var session))
                     _chat.DispatchServerMessage(session, Loc.GetString("fs-records-new-best", ("record", text)));
             }

@@ -17,12 +17,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Ladder;
 
-[ByRefEvent]
-public readonly record struct FSLadderRecordEvent(FSRunRecord Run, FSRunRecord? Previous);
-
-[ByRefEvent]
-public readonly record struct FSRunRecordedEvent(FSRunRecord Run, FSRunRecord? PreviousHolder, bool IsRecord);
-
 public sealed partial class FSLadderSystem : EntitySystem
 {
     [Dependency] private FSPlayerDataStore _store = default!;
@@ -146,7 +140,7 @@ public sealed partial class FSLadderSystem : EntitySystem
         {
             if (mind.UserId is not { } userId || _presence.GetWavesPresent(userId) <= 0 || !seen.Add(userId))
                 continue;
-            names.Add(mind.CharacterName ?? "Unknown");
+            names.Add(mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name"));
         }
 
         return names.Count == 0

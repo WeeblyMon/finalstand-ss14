@@ -306,7 +306,7 @@ public sealed class RoundIntegrityTest : GameTest
             {
                 Assert.That(wallet.PerkPoints, Is.EqualTo(before), "someone who wasn't present for a single wave earns no victory PP");
                 Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id),
-                    Does.Not.Contain(Content.Server._FinalStand.Records.FSRecordsSystem.VictoryTitle));
+                    Does.Not.Contain(Content.Server._FinalStand.Records.FSRecordsSystem.VictoryTitle.Id));
             });
         });
     }
