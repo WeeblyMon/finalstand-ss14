@@ -94,6 +94,17 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
         _store.SetTutorialFlag(user.UserId, remove, false);
     }
 
+    // Admin wipes: the next read comes from the database again.
+    public void Forget(NetUserId user) => _cache.Remove(user);
+
+    // Admin reset: forgets every tip the player has seen, and this round's enemy tips for everyone.
+    public void ResetSeen(NetUserId user)
+    {
+        _store.ClearTutorial(user.UserId);
+        _cache.Remove(user);
+        _enemiesSeen.Clear();
+    }
+
     public void Replay(NetUserId user)
     {
         _store.ClearTutorial(user.UserId);

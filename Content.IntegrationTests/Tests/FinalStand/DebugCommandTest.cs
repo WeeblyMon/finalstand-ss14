@@ -96,6 +96,10 @@ public sealed class DebugCommandTest : GameTest
             Run("fsdbg discord");
             Run("fsdbg state");
 
+            var oldBody = session.AttachedEntity;
+            Run("fsdbg body");
+            Assert.That(session.AttachedEntity, Is.Not.EqualTo(oldBody));
+
             Run("fsdbg down");
             Assert.That(SEntMan.System<MobStateSystem>().IsCritical(session.AttachedEntity!.Value), Is.True);
         });

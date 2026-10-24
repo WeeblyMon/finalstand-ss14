@@ -48,6 +48,9 @@ public sealed partial class FSPerkMasterySystem : EntitySystem
 
     public IReadOnlyDictionary<string, int> GetMastery(NetUserId user) => Load(user);
 
+    // Admin wipes: the next read comes from the database again.
+    public void Forget(NetUserId user) => _cache.Remove(user);
+
     private Dictionary<string, int> Load(NetUserId user)
     {
         if (!_cache.TryGetValue(user, out var kills))

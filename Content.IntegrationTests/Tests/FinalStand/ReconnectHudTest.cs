@@ -89,8 +89,10 @@ public sealed class ReconnectHudTest : GameTest
             Assert.That(wavesHeld, Is.GreaterThan(0), "test precondition");
 
             var lvl = SEntMan.GetComponent<FSPlayerLevelComponent>(mindId);
+#pragma warning disable RA0002
             lvl.Level = serverLevel;
             lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(serverLevel);
+#pragma warning restore RA0002
         });
 
         await Connect(name);

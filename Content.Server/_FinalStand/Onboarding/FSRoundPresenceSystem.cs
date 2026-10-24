@@ -26,6 +26,9 @@ public sealed partial class FSRoundPresenceSystem : EntitySystem
 
     public int GetHighestWavePresent(NetUserId userId) => _presence.GetValueOrDefault(userId).Highest;
 
+    // Admin tooling.
+    public void SetPresence(NetUserId userId, int waves, int highest) => _presence[userId] = (waves, highest);
+
     private void OnWaveEnded(ref WaveEndedEvent args)
     {
         foreach (var session in _playerManager.Sessions)

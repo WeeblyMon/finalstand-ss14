@@ -207,6 +207,24 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         SendState(Filter.Broadcast());
     }
 
+    // Admin tooling: settle or nudge the running objective by hand.
+    public void ForceResult(bool completed)
+    {
+        if (completed)
+            Complete();
+        else
+            Fail();
+    }
+
+    public void SetProgress(int progress)
+    {
+        if (Current is not { Result: FSWaveObjectiveResult.InProgress } current)
+            return;
+
+        current.Progress = Math.Clamp(progress, 0, current.Target);
+        SendState(Filter.Broadcast());
+    }
+
     private void Clear()
     {
         if (Current == null)

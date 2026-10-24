@@ -108,11 +108,7 @@ public sealed partial class FSOnboardingSystem : EntitySystem
 
     private void ApplyRookieState(EntityUid mindId, EntityUid? body, bool rookie)
     {
-        if (TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
-        {
-            lvl.CatchUpMultiplier = rookie ? FSRookieRules.CatchUpXpMultiplier : 1f;
-            _leveling.SendLevelingUpdate(mindId, lvl);
-        }
+        _leveling.SetCatchUpMultiplier(mindId, rookie ? FSRookieRules.CatchUpXpMultiplier : 1f);
 
         if (body is not { } mob || TerminatingOrDeleted(mob))
             return;

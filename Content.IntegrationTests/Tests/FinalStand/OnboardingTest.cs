@@ -85,9 +85,11 @@ public sealed class OnboardingTest : GameTest
             onboarding.RefreshPlayer(session, mindId, body);
 
             var lvl = SEntMan.GetComponent<FSPlayerLevelComponent>(mindId);
+#pragma warning disable RA0002
             lvl.Level = 50;
             lvl.Experience = 0;
             lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(50);
+#pragma warning restore RA0002
 
             var ev = new WaveEndedEvent(3);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref ev);

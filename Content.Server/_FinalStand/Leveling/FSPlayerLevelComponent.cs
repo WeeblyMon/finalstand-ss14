@@ -1,6 +1,6 @@
 namespace Content.Server._FinalStand.Leveling;
 
-[RegisterComponent]
+[RegisterComponent, Access(typeof(FSLevelingSystem))]
 public sealed partial class FSPlayerLevelComponent : Component
 {
     /// <summary>Set once the saved row has been read onto this mind.</summary>

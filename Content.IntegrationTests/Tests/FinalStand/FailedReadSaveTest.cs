@@ -156,7 +156,9 @@ public sealed class FailedReadSaveTest : GameTest
 
             // As left by a spawn whose level read failed.
             level = entMan.EnsureComponent<FSPlayerLevelComponent>(mind);
+#pragma warning disable RA0002
             level.Loaded = false;
+#pragma warning restore RA0002
         });
 
         var baseSpeed = 0f;
@@ -217,7 +219,9 @@ public sealed class FailedReadSaveTest : GameTest
             {
                 // The pair is reused; later tests shouldn't start from this one's row. Unloaded copies are never saved,
                 // so the payout's XP and the build don't get written back over the restore.
+#pragma warning disable RA0002
                 level.Loaded = false;
+#pragma warning restore RA0002
                 perks.Loaded = false;
                 store.UpsertLeveling(userId.UserId, originalRow.Level, originalRow.Experience, originalRow.PrestigeLevel,
                     originalRow.PrestigeBuffsJson);

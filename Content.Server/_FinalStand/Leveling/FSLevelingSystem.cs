@@ -212,11 +212,15 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
-        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
-            return;
+        if (_mind.TryGetMind(ev.Mob, out var mindId, out _))
+            SetUpSpawnedMind(mindId, ev.Player);
+    }
 
+    // Spawn setup. fsdbg body calls it directly, since the real spawn event would run vanilla's handlers too.
+    public void SetUpSpawnedMind(EntityUid mindId, ICommonSession player)
+    {
         var lvl = EnsureComp<FSPlayerLevelComponent>(mindId);
-        if (lvl.Loaded || TryLoad(mindId, lvl, ev.Player.UserId.UserId))
+        if (lvl.Loaded || TryLoad(mindId, lvl, player.UserId.UserId))
             SendLevelingUpdate(mindId, lvl);
     }
 
@@ -371,6 +375,10 @@ public sealed partial class FSLevelingSystem : EntitySystem
             Color.FromHex("#FFD700"));
     }
 
+    // Admin tooling: raw XP through the normal path (multipliers, level-up perk points).
+    public void GiveRawExperience(EntityUid mindId, int amount)
+        => GiveExperience(mindId, amount, "debug", resolveBody: false);
+
     private void GiveExperience(EntityUid playerEntity, int rawAmount, string source,
         bool resolveBody = true)
     {
@@ -493,6 +501,31 @@ public sealed partial class FSLevelingSystem : EntitySystem
             PrestigeLevel = lvl.PrestigeLevel,
             CatchUp = lvl.CatchUpMultiplier > 1f,
         }, Filter.SinglePlayer(session));
+    }
+
+    // Rookies earn XP faster until they graduate; the client shows the boost.
+    public void SetCatchUpMultiplier(Entity<FSPlayerLevelComponent?> mind, float multiplier)
+    {
+        if (!Resolve(mind, ref mind.Comp, false))
+            return;
+
+        mind.Comp.CatchUpMultiplier = multiplier;
+        SendLevelingUpdate(mind, mind.Comp);
+    }
+
+    // Admin tooling. Refuses a level that hasn't loaded: saving it would write its default prestige over the player's row.
+    public bool TrySetLevel(Entity<FSPlayerLevelComponent?> mind, int level)
+    {
+        if (!Resolve(mind, ref mind.Comp, false) || !mind.Comp.Loaded)
+            return false;
+
+        var lvl = mind.Comp;
+        lvl.Level = Math.Max(1, level);
+        lvl.Experience = 0;
+        lvl.XpToNextLevel = XpToNextLevel(lvl.Level);
+        SaveLeveling(mind, lvl.Level, 0, lvl.PrestigeLevel);
+        SendLevelingUpdate(mind, lvl);
+        return true;
     }
 
     public (int Xp, int Kills, int Assists) GetRoundStats(EntityUid mindId)

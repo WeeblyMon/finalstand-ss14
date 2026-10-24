@@ -95,13 +95,17 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
-        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
-            return;
+        if (_mind.TryGetMind(ev.Mob, out var mindId, out _))
+            SetUpSpawnedMind(mindId, ev.Player);
+    }
 
-        _cachedUsernames[ev.Player.UserId] = ev.Player.Name;
+    // Spawn setup. fsdbg body calls it directly, since the real spawn event would run vanilla's handlers too.
+    public void SetUpSpawnedMind(EntityUid mindId, ICommonSession player)
+    {
+        _cachedUsernames[player.UserId] = player.Name;
 
-        var wallet = GetLoadedWallet(mindId, ev.Player.UserId);
-        if (_startingCreditsGiven.Add(ev.Player.UserId))
+        var wallet = GetLoadedWallet(mindId, player.UserId);
+        if (_startingCreditsGiven.Add(player.UserId))
             wallet.Credits += StartingCredits;
 
         MarkWalletDirty(mindId);

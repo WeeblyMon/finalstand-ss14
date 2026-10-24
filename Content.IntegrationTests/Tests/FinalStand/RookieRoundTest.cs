@@ -85,7 +85,9 @@ public sealed class RookieRoundTest : GameTest
     private void MakeVeteranAMentor()
     {
         var level = SEntMan.GetComponent<FSPlayerLevelComponent>(MindOf(_veteran));
+#pragma warning disable RA0002
         level.Level = FSMentorRules.MinLevel;
+#pragma warning restore RA0002
         Assert.That(SEntMan.System<FSMentorSystem>().CanMentor(_veteran, _rookie), Is.True, "test precondition");
     }
 
