@@ -216,13 +216,15 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
             Fail();
     }
 
-    public void SetProgress(int progress)
+    // False once the objective is settled: its result already paid out or failed.
+    public bool SetProgress(int progress)
     {
         if (Current is not { Result: FSWaveObjectiveResult.InProgress } current)
-            return;
+            return false;
 
         current.Progress = Math.Clamp(progress, 0, current.Target);
         SendState(Filter.Broadcast());
+        return true;
     }
 
     private void Clear()

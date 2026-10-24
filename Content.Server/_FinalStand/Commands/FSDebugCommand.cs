@@ -499,7 +499,12 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
                     return;
                 }
 
-                _objectives.SetProgress(progress);
+                if (!_objectives.SetProgress(progress))
+                {
+                    shell.WriteError($"The objective is already {current.Result}.");
+                    return;
+                }
+
                 shell.WriteLine($"Progress set to {current.Progress}/{current.Target}. The next kill or check settles it.");
                 return;
         }

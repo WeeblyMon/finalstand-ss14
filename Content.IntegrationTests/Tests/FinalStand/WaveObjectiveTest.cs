@@ -73,6 +73,27 @@ public sealed class WaveObjectiveTest : GameTest
         });
     }
 
+    [Test]
+    public async Task ProgressCanOnlyBeSetWhileTheObjectiveRuns()
+    {
+        var map = await Pair.CreateTestMap();
+
+        await Server.WaitAssertion(() =>
+        {
+            var objectives = SEntMan.System<FSWaveObjectiveSystem>();
+            SetUp(map.GridCoords);
+            Assert.That(objectives.TryStart(Objective("FSObjectiveCullTheHerd")), Is.True);
+            var current = objectives.Current!;
+
+            Assert.That(objectives.SetProgress(3), Is.True);
+            Assert.That(current.Progress, Is.EqualTo(3));
+
+            objectives.ForceResult(completed: true);
+            Assert.That(objectives.SetProgress(5), Is.False, "a settled objective can't be moved, and says so");
+            Assert.That(current.Progress, Is.EqualTo(3));
+        });
+    }
+
     private void Kill(EntityUid killer)
     {
         var died = new FSWaveEnemyDiedEvent(EntityUid.Invalid, killer);
