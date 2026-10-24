@@ -22,6 +22,25 @@ public sealed class TitleBuffTest : GameTest
     public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true, DummyTicker = false };
 
     [Test]
+    public async Task TheTitleCommandEquipsByNameAndClears()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var titles = SEntMan.System<FSTitleSystem>();
+            var host = Server.ResolveDependency<Robust.Server.Console.IServerConsoleHost>();
+            var user = ServerSession!.UserId;
+            SEntMan.System<FSPlayerDataStore>().DeleteProgress(user.UserId);
+            titles.Grant(user, "FSTitleIronWall");
+
+            host.ExecuteCommand(ServerSession, "title iron wall");
+            Assert.That(titles.GetEquipped(user)?.Id, Is.EqualTo("FSTitleIronWall"), "a two-word name equips the title");
+
+            host.ExecuteCommand(ServerSession, "title none");
+            Assert.That(titles.GetEquipped(user), Is.Null);
+        });
+    }
+
+    [Test]
     public void EveryTitleHasASmallBuffWithADescription()
     {
         var proto = Server.ResolveDependency<IPrototypeManager>();

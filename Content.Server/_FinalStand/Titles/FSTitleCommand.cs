@@ -42,16 +42,18 @@ public sealed partial class FSTitleCommand : LocalizedEntityCommands
             return;
         }
 
-        if (string.Equals(argStr.Trim(), "none", StringComparison.OrdinalIgnoreCase))
+        // argStr is the whole typed line, command name included; titles have spaces, so rejoin the arguments.
+        var query = string.Join(' ', args);
+        if (string.Equals(query, "none", StringComparison.OrdinalIgnoreCase))
         {
             _titles.Equip(player.UserId, null);
             shell.WriteLine(Loc.GetString("cmd-title-cleared"));
             return;
         }
 
-        if (!_titles.TryResolve(player.UserId, argStr.Trim(), out var titleId))
+        if (!_titles.TryResolve(player.UserId, query, out var titleId))
         {
-            shell.WriteError(Loc.GetString("cmd-title-not-owned", ("query", argStr.Trim())));
+            shell.WriteError(Loc.GetString("cmd-title-not-owned", ("query", query)));
             return;
         }
 
