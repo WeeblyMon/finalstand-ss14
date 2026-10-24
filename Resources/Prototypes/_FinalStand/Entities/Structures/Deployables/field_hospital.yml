@@ -19,10 +19,10 @@
   - type: FSPlaceable
     previewProtoId: FSFieldHospitalDeployed
     range: 6
+  - type: GuideHelp
+    guides: [ Surgery ]
 
 # ── Field hospital - pitched ──────────────────────────────────────────────────────────────────
-# The whole mechanism is OperatingTable on a bed: SharedSurgerySystem gates every step on
-# buckle.BuckledTo having OperatingTableComponent, so no surgery code changes for this to work.
 - type: entity
   parent: Bed
   id: FSFieldHospitalDeployed
@@ -43,6 +43,8 @@
     sprite: _FinalStand/Structures/field_hospital.rsi
     state: tent
   - type: OperatingTable
+  - type: GuideHelp
+    guides: [ Surgery ]
   - type: FSFieldHospital
   - type: FSArmingDelay
     delay: 6

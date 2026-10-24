@@ -1,5 +1,6 @@
 
 using Content.Shared._FinalStand.Medical;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Server.Atmos.Rotting;
 using Content.Server.Body.Systems;
 using Content.Server.Chat.Systems;
@@ -36,9 +37,13 @@ public sealed partial class SurgerySystem : SharedSurgerySystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private FSSurgeryGuideSystem _guide = default!;
+    [Dependency] private Robust.Shared.Timing.IGameTiming _gameTiming = default!;
 
-    private readonly Dictionary<NetEntity, List<EntProtoId>> _surgeries = new();
-    private readonly Dictionary<NetEntity, List<EntProtoId>> _unavailableSurgeries = new();
+    private static readonly TimeSpan OpenRefreshInterval = TimeSpan.FromSeconds(1);
+
+    private readonly Dictionary<EntityUid, string> _openWindows = new();
+    private TimeSpan _nextOpenRefresh;
 
     public override void Initialize()
     {
@@ -50,36 +55,107 @@ public sealed partial class SurgerySystem : SharedSurgerySystem
         SubscribeLocalEvent<SurgeryDamageUserComponent, SurgeryStepEvent>(OnSurgeryDamageUser);
         SubscribeLocalEvent<SurgeryStepEmoteEffectComponent, SurgeryStepEvent>(OnStepScreamComplete);
         SubscribeLocalEvent<SurgeryStepSpawnEffectComponent, SurgeryStepEvent>(OnStepSpawnComplete);
+        SubscribeLocalEvent<SurgeryTargetComponent, BoundUIOpenedEvent>(OnWindowOpened);
+        SubscribeLocalEvent<SurgeryTargetComponent, BoundUIClosedEvent>(OnWindowClosed);
+    }
+
+    private void OnWindowOpened(Entity<SurgeryTargetComponent> ent, ref BoundUIOpenedEvent args)
+    {
+        if (args.UiKey is SurgeryUIKey)
+            _openWindows.TryAdd(ent.Owner, string.Empty);
+    }
+
+    private void OnWindowClosed(Entity<SurgeryTargetComponent> ent, ref BoundUIClosedEvent args)
+    {
+        if (args.UiKey is SurgeryUIKey && !_ui.IsUiOpen(ent.Owner, SurgeryUIKey.Key))
+            _openWindows.Remove(ent.Owner);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        if (_openWindows.Count == 0 || _gameTiming.CurTime < _nextOpenRefresh)
+            return;
+
+        _nextOpenRefresh = _gameTiming.CurTime + OpenRefreshInterval;
+
+        foreach (var body in _openWindows.Keys.ToList())
+        {
+            if (TerminatingOrDeleted(body) || !_ui.IsUiOpen(body, SurgeryUIKey.Key))
+            {
+                _openWindows.Remove(body);
+                continue;
+            }
+
+            var (choices, unavailable) = BuildOptions(body);
+            var key = OptionsKey(choices, unavailable);
+            if (_openWindows[body] == key)
+                continue;
+
+            SendOptions(body, choices, unavailable, key);
+        }
     }
 
     protected override void RefreshUI(EntityUid body)
     {
-        _surgeries.Clear();
-        _unavailableSurgeries.Clear();
+        var (choices, unavailable) = BuildOptions(body);
+        SendOptions(body, choices, unavailable, OptionsKey(choices, unavailable));
+    }
+
+    public (Dictionary<NetEntity, List<EntProtoId>> Choices, Dictionary<NetEntity, List<EntProtoId>> Unavailable)
+        BuildOptions(EntityUid body)
+    {
+        var choices = new Dictionary<NetEntity, List<EntProtoId>>();
+        var unavailableByPart = new Dictionary<NetEntity, List<EntProtoId>>();
+
         foreach (var part in _lookup.GetBodyOrgans(body))
         {
+            if (OrganCategories.ToTarget(part.Comp.Category) == null)
+                continue;
+
             var valid = new List<EntProtoId>();
             var unavailable = new List<EntProtoId>();
             foreach (var surgery in AllSurgeries)
             {
-                if (GetSingleton(surgery) is not { } surgeryEnt)
+                var role = _guide.RoleOf(surgery.Id);
+                if (role == FSSurgeryRole.Hidden || GetSingleton(surgery) is not { } surgeryEnt)
                     continue;
 
                 var ev = new SurgeryValidEvent(body, part.Owner);
                 RaiseLocalEvent(surgeryEnt, ref ev);
 
-                if (ev.Cancelled)
-                {
+                if (!ev.Cancelled)
+                    valid.Add(surgery);
+                else if (role is FSSurgeryRole.Goal or FSSurgeryRole.Elective)
                     unavailable.Add(surgery);
-                    continue;
-                }
-
-                valid.Add(surgery);
             }
-            _surgeries[GetNetEntity(part.Owner)] = valid;
-            _unavailableSurgeries[GetNetEntity(part.Owner)] = unavailable;
+
+            choices[GetNetEntity(part.Owner)] = valid;
+            unavailableByPart[GetNetEntity(part.Owner)] = unavailable;
         }
-        _ui.SetUiState(body, SurgeryUIKey.Key, new SurgeryBuiState(_surgeries, _unavailableSurgeries));
+
+        return (choices, unavailableByPart);
+    }
+
+    private static string OptionsKey(Dictionary<NetEntity, List<EntProtoId>> choices, Dictionary<NetEntity, List<EntProtoId>> unavailable)
+    {
+        return string.Join(';', choices.OrderBy(kv => kv.Key.Id)
+                   .Select(kv => $"{kv.Key.Id}:{string.Join(',', kv.Value)}"))
+               + "|"
+               + string.Join(';', unavailable.OrderBy(kv => kv.Key.Id)
+                   .Select(kv => $"{kv.Key.Id}:{string.Join(',', kv.Value)}"));
+    }
+
+    private void SendOptions(EntityUid body,
+        Dictionary<NetEntity, List<EntProtoId>> choices,
+        Dictionary<NetEntity, List<EntProtoId>> unavailable,
+        string key)
+    {
+        if (_openWindows.ContainsKey(body))
+            _openWindows[body] = key;
+
+        _ui.SetUiState(body, SurgeryUIKey.Key, new SurgeryBuiState(choices, unavailable));
         /*
             Reason we do this is because when applying a BUI State, it rolls back the state on the entity temporarily,
             which just so happens to occur right as we're checking for step completion, so we end up with the UI

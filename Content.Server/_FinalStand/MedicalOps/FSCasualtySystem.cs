@@ -74,7 +74,9 @@ public sealed partial class FSCasualtySystem : EntitySystem
         if (!_roster.IsMedicalJob(ev.JobId))
             return;
 
-        EnsureComp<SurgerySpeedModifierComponent>(ev.Mob).SpeedModifier = MedicalSurgerySpeed;
+        var speed = EnsureComp<SurgerySpeedModifierComponent>(ev.Mob);
+        speed.SpeedModifier = MedicalSurgerySpeed;
+        Dirty(ev.Mob, speed);
 
         EnsureComp<SurgeryIgnoreClothingComponent>(ev.Mob);
     }

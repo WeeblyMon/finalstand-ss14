@@ -16,4 +16,7 @@ public sealed partial class FSSurgeryGuidePrototype : IPrototype
 
     [DataField]
     public List<EntProtoId> Closing { get; private set; } = new();
+
+    [DataField]
+    public List<EntProtoId> Electives { get; private set; } = new();
 }

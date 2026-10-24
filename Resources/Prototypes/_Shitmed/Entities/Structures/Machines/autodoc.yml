@@ -100,8 +100,6 @@
     - 0,0,3,3
   - type: SurgerySpeedModifier
     speedModifier: 1
-  - type: GuideHelp
-    guides: [ Autodoc ]
 
 - type: entity
   parent: Autodoc

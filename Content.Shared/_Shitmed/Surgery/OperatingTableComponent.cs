@@ -7,9 +7,9 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._Shitmed.Medical.Surgery;
 
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class OperatingTableComponent : Component
 {
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float SpeedModifier = 1f;
 }

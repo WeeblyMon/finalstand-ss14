@@ -24,7 +24,7 @@ public abstract partial class SharedSurgerySystem
         Subs.CVar(_config, SurgeryCVars.CanOperateOnSelf, x => _noSelfOperate = !x, true);
     }
 
-    private void AttemptStartSurgery(Entity<SurgeryToolComponent> ent, EntityUid user, EntityUid target)
+    public void TryOpenSurgery(EntityUid user, EntityUid target)
     {
         if (!IsLyingDown(target, user))
             return;
@@ -51,7 +51,7 @@ public abstract partial class SharedSurgerySystem
 
         var verb = new UtilityVerb()
         {
-            Act = () => AttemptStartSurgery(ent, user, target),
+            Act = () => TryOpenSurgery(user, target),
             Icon = new SpriteSpecifier.Texture(new("/Textures/_Shitmed/Interface/Examine/scalpel.png")),
             Text = Loc.GetString("surgery-verb-text"),
             Message = Loc.GetString("surgery-verb-message"),
