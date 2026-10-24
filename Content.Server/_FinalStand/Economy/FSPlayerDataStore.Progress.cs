@@ -253,7 +253,7 @@ public sealed partial class FSPlayerDataStore
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] run save failed: {e.Message}");
+            Log.Error($"run save failed: {e.Message}");
             return null;
         }
     }
@@ -528,7 +528,7 @@ public sealed partial class FSPlayerDataStore
         catch (Exception e)
         {
             _unreadable.Add(userId);
-            Log.Error($"[FSWallet] {what} failed, so this player's progress won't be saved until restart: {e.Message}");
+            Log.Error($"{what} failed, so this player's progress won't be saved until restart: {e.Message}");
             return fallback;
         }
     }
@@ -540,7 +540,7 @@ public sealed partial class FSPlayerDataStore
         if (!_unreadable.Contains(userId))
             return true;
 
-        Log.Warning($"[FSWallet] {what} for {userId} skipped: their saved progress couldn't be read, so saving now would overwrite it");
+        Log.Warning($"{what} for {userId} skipped: their saved progress couldn't be read, so saving now would overwrite it");
         return false;
     }
 }

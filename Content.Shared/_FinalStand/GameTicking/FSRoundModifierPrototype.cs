@@ -63,10 +63,17 @@ public static class FSRoundModifierRules
     public const float MaxRewardBonus = 1f;
 
     public static float RewardMultiplier(IEnumerable<FSRoundModifierPrototype> modifiers)
-        => 1f + Math.Clamp(modifiers.Sum(m => m.RewardBonus), 0f, MaxRewardBonus);
+    {
+        var bonus = 0d;
+        foreach (var modifier in modifiers)
+            bonus += modifier.RewardBonus;
 
-    public static float Product(IEnumerable<FSRoundModifierPrototype> modifiers, Func<FSRoundModifierPrototype, float> factor)
-        => modifiers.Aggregate(1f, (acc, m) => acc * factor(m));
+        return RewardMultiplierForBonus(bonus);
+    }
+
+    // Takes the modifiers' RewardBonus total. Summed in double so every caller rounds the same way.
+    public static float RewardMultiplierForBonus(double bonus)
+        => 1f + Math.Clamp((float) bonus, 0f, MaxRewardBonus);
 
     public static bool Compatible(FSRoundModifierPrototype a, FSRoundModifierPrototype b)
         => a.ID != b.ID && !a.Incompatible.Contains(b.ID) && !b.Incompatible.Contains(a.ID);

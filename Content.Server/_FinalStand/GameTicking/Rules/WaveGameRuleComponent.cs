@@ -148,7 +148,6 @@ public sealed partial class WaveGameRuleComponent : Component
     public bool Victory;
     public bool AwaitingEndless;
     public bool Endless;
-    public int EndlessEscalations;
 
     // An admin skipped waves, so the run doesn't count for the ladder.
     public bool AdminAssisted;

@@ -15,6 +15,9 @@ public sealed partial class WaveGameRuleSystem
     private static readonly Color ModifierColor = Color.FromHex("#CE93D8");
     private static readonly Color WeeklyColor = Color.FromHex("#FFB300");
 
+    // The reroll vote runs half as long as the difficulty vote, but never shorter than this.
+    private const int MinRerollVoteSeconds = 5;
+
     private IVoteHandle? _rerollVote;
 
     private void RollModifiers(WaveGameRuleComponent comp)
@@ -59,8 +62,18 @@ public sealed partial class WaveGameRuleSystem
     public IReadOnlyList<FSRoundModifierPrototype> GetActiveModifiers()
         => TryGetActiveRule(out _, out var comp) ? GetModifiers(comp).ToList() : Array.Empty<FSRoundModifierPrototype>();
 
+    // Runs for every spawned enemy, so it walks the ids rather than an iterator.
     public float ModifierFactor(WaveGameRuleComponent comp, Func<FSRoundModifierPrototype, float> factor)
-        => FSRoundModifierRules.Product(GetModifiers(comp), factor);
+    {
+        var product = 1f;
+        foreach (var id in comp.Modifiers)
+        {
+            if (_proto.TryIndex(id, out var modifier))
+                product *= factor(modifier);
+        }
+
+        return product;
+    }
 
     public bool TrySetModifiers(IReadOnlyList<ProtoId<FSRoundModifierPrototype>> ids)
     {
@@ -106,7 +119,7 @@ public sealed partial class WaveGameRuleSystem
         var options = new VoteOptions
         {
             Title = Loc.GetString("fs-modifier-reroll-title"),
-            Duration = TimeSpan.FromSeconds(Math.Max(5, _cfg.GetCVar(CCVars.FSDifficultyVoteSeconds) / 2)),
+            Duration = TimeSpan.FromSeconds(Math.Max(MinRerollVoteSeconds, _cfg.GetCVar(CCVars.FSDifficultyVoteSeconds) / 2)),
             Options =
             {
                 (Loc.GetString("fs-modifier-reroll-yes"), true),

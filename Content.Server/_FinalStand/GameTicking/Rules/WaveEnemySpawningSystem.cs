@@ -32,6 +32,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     [Dependency] private WaveEnemyScalingSystem _scaling = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
 
     private static readonly IReadOnlyList<EntProtoId> FallbackEnemyPool = new List<EntProtoId> { "MobXeno" };
     private static readonly EntProtoId RevenantProto = "FSZombieRevenant";
@@ -298,8 +299,11 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 htn.Blackboard.SetValue("VisionRadius", boom.AggroVisionRadius);
             }
         }
-        foreach (var modifier in _waveRule.GetModifiers(comp))
-            EntityManager.AddComponents(enemy, modifier.EnemyComponents);
+        foreach (var id in comp.Modifiers)
+        {
+            if (_proto.TryIndex(id, out var modifier))
+                EntityManager.AddComponents(enemy, modifier.EnemyComponents);
+        }
 
         _scaling.ScaleEnemyHp(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave,
             FSDifficultyRules.HealthMultiplier(comp.Difficulty) * _waveRule.ModifierFactor(comp, m => m.EnemyHealth));

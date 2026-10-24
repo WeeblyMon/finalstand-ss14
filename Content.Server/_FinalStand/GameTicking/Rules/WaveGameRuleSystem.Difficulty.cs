@@ -90,8 +90,18 @@ public sealed partial class WaveGameRuleSystem
     public float GetRewardMultiplier()
         => TryGetActiveRule(out _, out var comp) ? RewardMultiplier(comp) : 1f;
 
+    // Runs on every kill, so it walks the ids rather than an iterator.
     private float RewardMultiplier(WaveGameRuleComponent comp)
-        => FSDifficultyRules.RewardMultiplier(comp.Difficulty) * FSRoundModifierRules.RewardMultiplier(GetModifiers(comp));
+    {
+        var bonus = 0d;
+        foreach (var id in comp.Modifiers)
+        {
+            if (_proto.TryIndex(id, out var modifier))
+                bonus += modifier.RewardBonus;
+        }
+
+        return FSDifficultyRules.RewardMultiplier(comp.Difficulty) * FSRoundModifierRules.RewardMultiplierForBonus(bonus);
+    }
 
     private TimeSpan PrepDuration(WaveGameRuleComponent comp)
         => comp.PrepDuration * ModifierFactor(comp, m => m.PrepDuration);

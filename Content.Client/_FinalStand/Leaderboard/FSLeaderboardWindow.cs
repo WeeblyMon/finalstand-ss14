@@ -6,7 +6,6 @@ using Content.Client.Resources;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.Leaderboard;
-using Content.Shared._FinalStand.Titles;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
@@ -171,7 +170,7 @@ public sealed class FSLeaderboardWindow : FancyWindow
 
     private static (string? Text, Color Color) TitleOf(FSLeaderboardEntry entry)
     {
-        if (entry.Title == null || !IoCManager.Resolve<IPrototypeManager>().TryIndex<FSTitlePrototype>(entry.Title, out var title))
+        if (entry.Title is not { } titleId || !IoCManager.Resolve<IPrototypeManager>().TryIndex(titleId, out var title))
             return (null, FSUiPalette.TextMuted);
         return (Loc.GetString(title.Name), title.Color);
     }

@@ -571,7 +571,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 earned,
                 score,
                 badge?.Rookie ?? false,
-                badge?.Title?.Id) { Fortify = fortify });
+                badge?.Title) { Fortify = fortify });
         }
 
         return FSLeaderboardEntry.Sort(entries);

@@ -25,9 +25,9 @@ public sealed partial class FSWaveObjectiveSystem
 
     public const float SupplyDeliveryRange = 3f;
     private static readonly TimeSpan SupplyCheckInterval = TimeSpan.FromSeconds(0.5);
-    private const string TargetLabel = "fs-objective-marker-target";
-    private const string BountyLabel = "fs-objective-marker-bounty";
-    private const string SupplyLabel = "fs-objective-marker-supplies";
+    private static readonly LocId TargetLabel = "fs-objective-marker-target";
+    private static readonly LocId BountyLabel = "fs-objective-marker-bounty";
+    private static readonly LocId SupplyLabel = "fs-objective-marker-supplies";
     public static readonly Color BountyTint = Color.FromHex("#FFD24A");
 
     private TimeSpan _nextSupplyCheck;
@@ -112,7 +112,7 @@ public sealed partial class FSWaveObjectiveSystem
         current.Supply = null;
     }
 
-    private void Mark(ActiveObjective current, EntityUid uid, string label, Color? tint = null)
+    private void Mark(ActiveObjective current, EntityUid uid, LocId label, Color? tint = null)
     {
         var marker = EnsureComp<FSObjectiveMarkerComponent>(uid);
         marker.Label = label;

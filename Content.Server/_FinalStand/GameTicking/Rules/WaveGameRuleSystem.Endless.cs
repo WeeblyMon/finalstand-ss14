@@ -71,7 +71,8 @@ public sealed partial class WaveGameRuleSystem
         comp.AwaitingEndless = false;
         comp.Endless = true;
         Log.Info($"The crew pushes on past wave {comp.WaveNumber} into endless.");
-        _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-endless-started"), AnnounceColor);
+        _chatManager.DispatchServerAnnouncement(
+            Loc.GetString("fs-endless-started", ("interval", comp.EndlessEscalationInterval)), AnnounceColor);
 
         comp.WaveNumber++;
         EscalateEndless(comp);
@@ -98,7 +99,6 @@ public sealed partial class WaveGameRuleSystem
         if (!IsEscalationWave(comp.WaveNumber, comp.VictoryWave, comp.EndlessEscalationInterval))
             return;
 
-        comp.EndlessEscalations++;
         var active = GetModifiers(comp).ToList();
         var pool = _proto.EnumeratePrototypes<FSRoundModifierPrototype>()
             .Where(m => active.All(a => a.ID != m.ID && FSRoundModifierRules.Compatible(a, m)))
