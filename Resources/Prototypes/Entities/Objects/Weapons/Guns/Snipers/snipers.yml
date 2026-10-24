@@ -92,8 +92,8 @@
     whitelist:
       tags:
       - CartridgeLightRifle
-  - type: CursorOffsetRequiresWield
-  - type: EyeCursorOffset
+  - type: CursorOffsetRequiresWield # FINALSTAND: Hristov's scope zoom on the Mosin
+  - type: EyeCursorOffset # FINALSTAND
     maxOffset: 6
     pvsIncrease: 0.6
   - type: Crit

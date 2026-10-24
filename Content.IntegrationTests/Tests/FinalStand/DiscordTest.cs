@@ -22,7 +22,7 @@ public sealed class DiscordTest : GameTest
             var run = new FSRunRecord("Ada, Bo", FSDifficulty.Hard, FSPlayerBracket.Squad, 30, true, 5025, 2400, At);
             var previous = run with { Players = "Cy", Victory = false, Waves = 22 };
             var payload = FSDiscordMessages.RoundSummary(new FSDiscordMessages.RoundReport(
-                "Final Stand EU", 42, run,
+                "Final Stand EU", 42, run, 30,
                 new FSDiscordMessages.Mvp("Ada", 1300, 2),
                 new FSDiscordMessages.Mvp("Bo", 200, 9),
                 new[] { (run, (FSRunRecord) previous) },
@@ -48,6 +48,21 @@ public sealed class DiscordTest : GameTest
     }
 
     [Test]
+    public async Task AnEndlessWinNamesTheWaveItWasWonAt()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var run = new FSRunRecord("Ada", FSDifficulty.Normal, FSPlayerBracket.Solo, 37, true, 9000, 5000, At);
+            var payload = FSDiscordMessages.RoundSummary(new FSDiscordMessages.RoundReport(
+                "S", 1, run, 30, null, null, Array.Empty<(FSRunRecord, FSRunRecord)>(),
+                Array.Empty<(string, string)>(), null));
+
+            var result = payload.Embeds!.Single().Fields[0].Value;
+            Assert.That(result, Is.EqualTo("Victory at wave 30"), "endless waves after the win don't move the victory wave");
+        });
+    }
+
+    [Test]
     public async Task ANearMissIsCalledOut()
     {
         await Server.WaitAssertion(() =>
@@ -55,7 +70,7 @@ public sealed class DiscordTest : GameTest
             var holder = new FSRunRecord("Vex", FSDifficulty.Normal, FSPlayerBracket.Crew, 28, false, 7000, 3000, At);
             var run = holder with { Players = "Rook", Waves = 26, EndedAtUtc = At.AddDays(1) };
             var payload = FSDiscordMessages.RoundSummary(new FSDiscordMessages.RoundReport(
-                "S", 1, run, null, null, Array.Empty<(FSRunRecord, FSRunRecord)>(),
+                "S", 1, run, null, null, null, Array.Empty<(FSRunRecord, FSRunRecord)>(),
                 Array.Empty<(string, string)>(), holder));
 
             var text = string.Join("\n", payload.Embeds!.Single().Fields.Select(f => f.Value));

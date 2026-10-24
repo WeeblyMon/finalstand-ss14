@@ -153,7 +153,7 @@
         - !type:MetabolizerTypeCondition
           type: [ Dwarf ]
           inverted: true
-        - !type:TagCondition
+        - !type:TagCondition # FINALSTAND: drunk perks (FSDrunkPerkSystem) skip ethanol's poison damage
           tag: FSAlcoholTolerant
           inverted: true
         damage:
@@ -185,7 +185,7 @@
         - !type:ReagentCondition
           reagent: Ethanol
           min: 12
-        - !type:TagCondition
+        - !type:TagCondition # FINALSTAND: drunk perks skip ethanol vomiting
           tag: FSAlcoholTolerant
           inverted: true
         # dwarves immune to vomiting from alcohol

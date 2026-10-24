@@ -45,6 +45,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
 
     private WebhookIdentifier? _webhook;
     private FSRunRecordedEvent? _run;
+    private int? _victoryWave;
     private readonly List<(FSRunRecord Run, FSRunRecord? Previous)> _records = new();
     private readonly List<(string Player, string Title)> _rareTitles = new();
     private TimeSpan? _lastLivePing;
@@ -71,6 +72,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
         }, true);
 
         SubscribeLocalEvent<FSRunRecordedEvent>(OnRunRecorded);
+        SubscribeLocalEvent<FSRoundVictoryEvent>(OnVictory);
         SubscribeLocalEvent<FSLadderRecordEvent>(OnLadderRecord);
         SubscribeLocalEvent<FSTitleEarnedEvent>(OnTitleEarned);
         SubscribeLocalEvent<RoundEndMessageEvent>(OnRoundEndMessage);
@@ -115,11 +117,15 @@ public sealed partial class FSDiscordSystem : EntitySystem
     private void ResetRound()
     {
         _run = null;
+        _victoryWave = null;
         _records.Clear();
         _rareTitles.Clear();
     }
 
     private void OnRunRecorded(ref FSRunRecordedEvent ev) => _run = ev;
+
+    // Endless keeps the run going past the win, so the run's wave count isn't the wave it was won at.
+    private void OnVictory(ref FSRoundVictoryEvent ev) => _victoryWave = ev.WaveNumber;
 
     private void OnLadderRecord(ref FSLadderRecordEvent ev) => _records.Add((ev.Run, ev.Previous));
 
@@ -143,6 +149,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
             _baseServer.ServerName,
             _ticker.RoundId,
             recorded.Run,
+            _victoryWave,
             FindMvp(byRevives: false),
             FindMvp(byRevives: true),
             _records.ToList(),

@@ -944,7 +944,7 @@
   flavor: salty
   color: "#0064C8"
   metabolisms:
-    Bloodstream:
+    Bloodstream: # FINALSTAND: was Drink; injected saline restores blood
       effects:
         - !type:Satiate
           satiationType: Thirst

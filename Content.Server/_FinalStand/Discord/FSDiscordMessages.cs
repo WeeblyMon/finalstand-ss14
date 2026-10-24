@@ -17,10 +17,12 @@ public static class FSDiscordMessages
 
     public readonly record struct Mvp(string Name, int Kills, int Revives);
 
+    // VictoryWave is the wave the round was won at, null if it wasn't won.
     public readonly record struct RoundReport(
         string ServerName,
         int RoundId,
         FSRunRecord Run,
+        int? VictoryWave,
         Mvp? TopKiller,
         Mvp? TopMedic,
         IReadOnlyList<(FSRunRecord Run, FSRunRecord? Previous)> Records,
@@ -32,8 +34,8 @@ public static class FSDiscordMessages
         var run = report.Run;
         var fields = new List<WebhookEmbedField>
         {
-            Field(Loc.GetString("fs-discord-field-result"), run.Victory
-                ? Loc.GetString("fs-discord-result-victory")
+            Field(Loc.GetString("fs-discord-field-result"), report.VictoryWave is { } victoryWave
+                ? Loc.GetString("fs-discord-result-victory", ("wave", victoryWave))
                 : Loc.GetString("fs-discord-result-fell", ("waves", run.Waves))),
             Field(Loc.GetString("fs-discord-field-difficulty"), LadderName(run.Difficulty, run.Bracket)),
             Field(Loc.GetString("fs-discord-field-time"), TimeSpan.FromSeconds(run.DurationSeconds).ToString(@"h\:mm\:ss")),

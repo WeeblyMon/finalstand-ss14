@@ -2,6 +2,7 @@ using Content.Client._FinalStand.Interface;
 using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared._FinalStand.Leveling;
+using Content.Shared._FinalStand.Onboarding;
 using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -155,7 +156,9 @@ public sealed partial class FSXpHudController : UIController, IOnSystemChanged<F
                 ("prestige", ev.PrestigeLevel), ("level", ev.Level), ("xp", xp), ("next", next))
             : Loc.GetString("fs-xp-bar-progress", ("level", ev.Level), ("xp", xp), ("next", next));
         var reward = Loc.GetString("fs-xp-hud-next-reward", ("points", FSLevelingRules.PerkPointsForReaching(ev.Level + 1)));
-        var catchUp = ev.CatchUp ? Loc.GetString("fs-xp-hud-catch-up") : string.Empty;
+        var catchUp = ev.CatchUp
+            ? Loc.GetString("fs-xp-hud-catch-up", ("multiplier", FSRookieRules.CatchUpXpMultiplier))
+            : string.Empty;
         _label.Text = $"{progress}  —  {reward}{catchUp}";
     }
 }

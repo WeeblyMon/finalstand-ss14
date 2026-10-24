@@ -44,7 +44,7 @@ fs-title-station-held-name = Station Held
 fs-title-station-held-desc = Was there when wave 30 fell.
 
 fs-xp-hud-next-reward = next level +{$points} PP
-fs-xp-hud-catch-up = {"  "}·  2× XP
+fs-xp-hud-catch-up = {"  "}·  {$multiplier}× XP
 
 fs-title-iron-wall-name = Iron Wall
 fs-title-iron-wall-desc = Won a round on Hard or harder.
