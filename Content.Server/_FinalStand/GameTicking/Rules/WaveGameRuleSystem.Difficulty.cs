@@ -75,6 +75,8 @@ public sealed partial class WaveGameRuleSystem
         if (!TryGetActiveRule(out _, out var comp) || comp.DifficultyLocked || comp.WeeklyKey != null)
             return false;
 
+        // An admin's or the weekly's pick stands; the open vote would overwrite it when it ends (Normal if nobody votes).
+        CancelDifficultyVote();
         comp.Difficulty = difficulty;
         comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountScalingPlayers(), CountPrimarySpawners(comp));
         _chatManager.DispatchServerAnnouncement(

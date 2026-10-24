@@ -81,6 +81,28 @@ public sealed class DifficultyTest : GameTest
     }
 
     [Test]
+    public async Task AnAdminPickEndsTheDifficultyVote()
+    {
+        await OverrideCVar(Side.Server, CCVars.FSDifficultyVoteSeconds, 60);
+        bool VoteOpen() => Server.ResolveDependency<IVoteManager>().ActiveVotes
+            .Any(v => v.Title == Loc.GetString("fs-difficulty-vote-title"));
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            Assert.That(VoteOpen(), Is.True, "test precondition");
+            Assert.That(SEntMan.System<WaveGameRuleSystem>().TrySetDifficulty(FSDifficulty.Hard), Is.True);
+        });
+        await Pair.RunTicksSync(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(VoteOpen(), Is.False, "the vote would overwrite the admin's pick when it ends");
+            Assert.That(SEntMan.System<WaveGameRuleSystem>().GetDifficulty(), Is.EqualTo(FSDifficulty.Hard));
+        });
+    }
+
+    [Test]
     public async Task DifficultyScalesTheWaveAndLocksWhenWaveOneStarts()
     {
         await Server.WaitAssertion(() =>
