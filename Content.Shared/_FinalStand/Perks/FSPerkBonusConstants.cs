@@ -48,7 +48,6 @@ public static class FSPerkBonusConstants
     public const float BandolierPerLevel = 0.15f;       // of base magazine capacity
     public const float BloodloadPerLevel = 0.70f;       // reload speed
     public const float BloodloadSeconds = 12f;
-    public const float ManOnFireHealPerSecond = 0.5f;   // only past full immunity
 
     public const float SpeedloadPerLevel = 0.10f;
     public const float ExecutionerPerLevel = 0.10f;
@@ -120,7 +119,7 @@ public static class FSPerkBonusConstants
     public static readonly float[] LifeLeechHeal = [1f, 2f, 4f, 6f];
     public static readonly float[] ImplosionDamage = [0.14f, 0.21f, 0.28f, 0.35f];
     public static readonly float[] UndyingSeconds = [1f, 4f, 8f, 16f];
-    public static readonly float[] ManOnFireResist = [0.50f, 0.75f, 1.00f, 1.10f];
+    public static readonly float[] ManOnFireResist = [0.20f, 0.35f, 0.50f, 0.60f];
     public static readonly float[] ShadowRoundsChance = [0.08f, 0.12f, 0.16f, 0.20f];
     public static readonly float[] ShredderPerStack = [0.01f, 0.015f, 0.02f, 0.025f];
     public static readonly int[] ThornsMaxStacks = [50, 100, 150, 200];

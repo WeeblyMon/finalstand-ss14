@@ -252,7 +252,7 @@ public sealed class FSPerkDef
                 Table("{0}s Duration", FSPerkBonusConstants.UndyingSeconds)),
 
             new("ManOnFire", "The Man On Fire",
-                "Reduces fire damage taken. At max level, burning slowly heals you.",
+                "Reduces fire damage taken.",
                 PerkCategory.Blue,
                 PctTable("-{0}% Fire Damage", FSPerkBonusConstants.ManOnFireResist)),
 
