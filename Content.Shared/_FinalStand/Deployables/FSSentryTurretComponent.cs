@@ -41,6 +41,11 @@ public sealed partial class FSSentryTurretComponent : Component
     [DataField]
     public EntProtoId? CasingProto;
 
+    [DataField]
+    public int MaxCasings = 2;
+
+    public readonly Queue<EntityUid> Casings = new();
+
     public TimeSpan NextFire;
 
     public bool HasTarget;
