@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Chemistry.Components;
+using Content.Shared.Chemistry.Reagent;
 using Robust.Shared.Utility;
 using Content.Shared._FinalStand.Grenades;
 using Content.Client._FinalStand.Engineering;
@@ -47,6 +48,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private IInputManager _input = default!;
     [Dependency] private FSSyringeGunExamineSystem _syringeGun = default!;
+    [Dependency] private FSChemLauncherSharedSystem _chemLauncher = default!;
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
     [Dependency] private FSHMGSystem _hmg = default!;
     [Dependency] private FSToolCardSystem _toolCard = default!;
@@ -128,6 +130,39 @@ public sealed partial class WaveHudSystem
         if (TryComp<FSSyringeGunComponent>(held, out var syringeGun)
             && _syringeGun.TryGetLoad((held, syringeGun), out var mix, out _))
             overlay.ItemDetail = mix;
+
+        if (TryComp<FSChemLauncherComponent>(held, out var launcher))
+            UpdateLauncher(overlay, launcher);
+    }
+
+    private void UpdateLauncher(WaveHudOverlay overlay, FSChemLauncherComponent launcher)
+    {
+        var colour = FSPalette.Ok;
+        if (_chemLauncher.TryGetActive(launcher, out var formula))
+        {
+            var name = Loc.GetString(formula.Name);
+            overlay.ItemDetail = launcher.Slots.Count > 1
+                ? Loc.GetString("fs-hud-chem-formula-switch", ("formula", name))
+                : name;
+
+            if (ProtoMan.TryIndex<ReagentPrototype>(formula.Reagent, out var reagent))
+                colour = reagent.SubstanceColor.WithAlpha(1f);
+        }
+
+        var key = _input.TryGetKeyBinding(ContentKeyFunctions.FSUberCharge, out var binding)
+            ? binding.GetKeyString()
+            : "Alt+E";
+
+        overlay.Uber = new WaveHudOverlay.UberMeter(
+            launcher.CatalystArmed ? 100f : launcher.Catalyst,
+            launcher.CatalystArmed,
+            0f,
+            colour,
+            key,
+            Loc.GetString("fs-hud-catalyst-title"),
+            Loc.GetString("fs-hud-catalyst-verb"),
+            Loc.GetString("fs-hud-catalyst-armed-hint"),
+            Loc.GetString("fs-hud-catalyst-armed"));
     }
 
     private void UpdateMech(WaveHudOverlay overlay, Entity<MechComponent> mech)

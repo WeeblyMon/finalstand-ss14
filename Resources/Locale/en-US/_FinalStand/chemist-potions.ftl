@@ -1,63 +1,45 @@
 reagent-name-fs-combat-stim = combat stimulant
 reagent-desc-fs-combat-stim = A cocktail keyed to crew biometrics. Hits harder, swings and shoots faster, and moves quicker until it wears off.
 
+reagent-name-fs-mending-mist = mending mist
+reagent-desc-fs-mending-mist = A fine clotting mist. Crew standing in it stop bleeding and knit back together.
+
 reagent-name-fs-corrosive = corrosive agent
-reagent-desc-fs-corrosive = An unstable acid refined from wave-enemy tissue. Eats through anything it settles on.
+reagent-desc-fs-corrosive = An unstable acid refined from wave-enemy tissue. Eats through anything caught in the cloud.
 
-fs-buff-status = CHEM BOOST ACTIVE
-fs-buff-status-timed = CHEM BOOST {$seconds}s
-fs-buff-source-chem = Chemist
-reagent-name-fs-biomass = harvested tissue
-reagent-desc-fs-biomass = Raw material rendered from wave enemies. The base for every field potion.
-research-technology-fs-coagulant-chemistry = Coagulant Chemistry
-research-technology-fs-etching-chemistry = Etching Chemistry
-
-fs-syringe-shop-title = Syringe Gun Upgrades
-fs-syringe-shop-credits = Credits: {$credits}
-fs-syringe-shop-no-refund = Purchases are permanent. There are no refunds.
-fs-syringe-shop-buy = Buy ${$price}
-fs-syringe-shop-owned = OWNED
 reagent-name-fs-solvent = solvent
 reagent-desc-fs-solvent = Strips the regenerating plating off armoured wave enemies and keeps it from growing back.
+
 reagent-name-fs-weakening = weakening agent
 reagent-desc-fs-weakening = Breaks down enemy tissue so every source of damage bites harder.
-fs-harvest-status = TISSUE {$stock}u  ({$wave}/{$cap} this wave)
-fs-harvest-status-capped = TISSUE {$stock}u  (wave limit reached)
-fs-syringe-shop-confirm = Confirm — no refund
-fs-syringe-shop-stats = {$rounds} rounds (+{$roundsDelta}) · {$fireRate}/s
-fs-chemist-objective = HARVEST: stand where enemies die - your satchel renders tissue on its own. Watch the gauge on your HUD for the per-wave ceiling.
-fs-chemist-objective-2 = BREW: dump your satchel into the field kit station, put a jug in, and press Brew on a potion. It measures the tissue and the reagent for you.
-fs-chemist-objective-3 = DELIVER: the syringe gun shoots teammates and cannot overdose them. Splash flasks buff everyone in the cloud at once.
-fs-syringe-shop-poor = Not enough credits.
-fs-syringe-shop-bought = Upgraded to {$tier}.
-reagent-name-fs-enzyme = refined enzyme
-reagent-desc-fs-enzyme = A stabilised enzyme base. Useless alone; the foundation of coagulant chemistry.
-reagent-name-fs-catalyst = etching catalyst
-reagent-desc-fs-catalyst = A corrosive salt. Useless alone; the foundation of armour-etching chemistry.
-reagent-name-fs-coagulant = coagulant mist
-reagent-desc-fs-coagulant = Clots wounds on contact. Staunches bleeding on anyone standing in the cloud.
+
+reagent-name-fs-binding-agent = binding agent
+reagent-desc-fs-binding-agent = A tarry aerosol that gums up anything walking through it.
+
 reagent-name-fs-etchant = etchant
 reagent-desc-fs-etchant = Coats a crewmate's ammunition. Their shots cut straight through enemy plating for a while.
-fs-syringe-pack-empty = The pack is empty.
-fs-syringe-pack-refilled = Filled {$count} syringes.
-fs-syringe-pack-no-refill = Nothing to draw, or the syringes are already full.
-fs-syringe-pack-full = No room in the gun.
-fs-syringe-pack-loaded = Loaded {$count} syringes.
+
+reagent-name-fs-adrenal-surge = adrenal surge
+reagent-desc-fs-adrenal-surge = Floods the system for 20 seconds: 15% faster movement, and timed actions like healing and surgery are far harder to interrupt when hit.
+
+reagent-name-fs-battle-analgesic = battle analgesic
+reagent-desc-fs-battle-analgesic = Dulls everything for 20 seconds: drag casualties 40% faster and treat wounds 15% faster.
+
+fs-buff-status = CHEM BOOST ACTIVE
+fs-buff-source-chem = Chemist
 fs-splash-flask-empty = The flask is empty - fill it from a beaker first.
-fs-buff-status-named-timed = {$name} {$seconds}s
+
 fs-potion-name-combat-stim = COMBAT STIM
 fs-potion-name-etchant = ARMOUR PIERCING
-
-reagent-name-fs-adrenal-extract = adrenal concentrate
-reagent-desc-fs-adrenal-extract = Synthesised adrenal extract. Inert until it is worked into a surge dose.
-reagent-name-fs-analgesic-base = analgesic base
-reagent-desc-fs-analgesic-base = A heavy painkilling base. Useless on its own, essential to the finished dose.
-reagent-name-fs-adrenal-surge = adrenal surge
-reagent-desc-fs-adrenal-surge = Floods the system for 60 seconds: 15% faster movement, and timed actions like healing and surgery are far harder to interrupt when hit.
-reagent-name-fs-battle-analgesic = battle analgesic
-reagent-desc-fs-battle-analgesic = Dulls everything for 75 seconds: drag casualties 40% faster and treat wounds 15% faster.
 fs-potion-name-adrenal-surge = ADRENAL SURGE
 fs-potion-name-battle-analgesic = BATTLE ANALGESIC
+
+fs-harvest-status = RESERVE {$reserve}/{$max}
+fs-harvest-status-full = RESERVE {$reserve}/{$max} - full
+
+fs-chemist-objective = LAUNCH: your chem launcher lobs clouds. Support formulas dose the crew inside, hostile ones hurt the horde. Press Z with it in hand to switch formula.
+fs-chemist-objective-2 = REFILL: every enemy that dies near you tops up the reserve, and it fills to the brim when prep starts. No trips back to the bench mid-wave.
+fs-chemist-objective-3 = BENCH: the field kit station sets which formulas your launcher carries and brews the wave tonic during prep. Doctors' bottles and pills are on its Pharmacy tab.
 
 fs-buff-landed = { $name }: { $effects } for { $seconds }s
 fs-bonus-line = +{ $percent }% { $stat }

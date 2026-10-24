@@ -21,19 +21,26 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
     private static readonly SoundSpecifier Refreshed =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/buff_refresh.ogg");
 
-    private const float RefreshFraction = 0.34f;
+    // A cloud touches every half second, so a buff this fresh is left alone.
+    private const float FreshFraction = 0.9f;
+    private const float AudibleFraction = 0.5f;
 
     protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSApplyCombatBuff> args)
     {
         var effect = args.Effect;
-        var duration = TimeSpan.FromSeconds(effect.Duration * args.Scale);
+        var duration = TimeSpan.FromSeconds(effect.Duration);
 
         var refreshing = _bonus.TryGetBuff(entity, effect.Source, out var existing);
+        var left = TimeSpan.Zero;
 
-        if (refreshing
-            && (existing?.EndTime is not { } end || end - _timing.CurTime > duration * RefreshFraction))
+        if (refreshing)
         {
-            return;
+            if (existing?.EndTime is not { } end)
+                return;
+
+            left = end - _timing.CurTime;
+            if (left > duration * FreshFraction)
+                return;
         }
 
         _bonus.ApplyBuff(entity,
@@ -49,6 +56,10 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
                     ("effects", string.Join(", ", FSMedicalBonusText.Describe(effect.Bonuses))),
                     ("seconds", (int) duration.TotalSeconds)),
                 entity, entity, PopupType.Medium);
+        }
+        else if (left > duration * AudibleFraction)
+        {
+            return;
         }
 
         _audio.PlayPvs(refreshing ? Refreshed : Landed, entity,

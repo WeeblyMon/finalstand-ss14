@@ -32,9 +32,7 @@ namespace Content.Client.Chemistry.UI
         private readonly List<ItemStorageLocation> _displayed = new();
         private List<ReagentInventoryItem> _inventory = new();
 
-        private FSFieldKitPrototype? _target;
-        private Dictionary<string, FixedPoint2> _targetIngredients = new();
-        private RecipeTab _tab = RecipeTab.FieldKit;
+        private RecipeTab _tab = RecipeTab.Basics;
         private string _filter = string.Empty;
         private string? _recipeKey;
         private int _dispenseAmount;
@@ -47,20 +45,15 @@ namespace Content.Client.Chemistry.UI
             FilterEdit.OnTextChanged += args =>
             {
                 _filter = args.Text.Trim();
-                ClearTarget(false);
                 ApplyFilter();
             };
 
-            TargetChipButton.OnPressed += _ => ClearTarget(true);
-
-            FieldKitTabButton.OnPressed += _ => SetRecipeTab(RecipeTab.FieldKit);
             BasicsTabButton.OnPressed += _ => SetRecipeTab(RecipeTab.Basics);
             CanMakeTabButton.OnPressed += _ => SetRecipeTab(RecipeTab.CanMake);
         }
 
         private enum RecipeTab : byte
         {
-            FieldKit,
             Basics,
             CanMake,
         }
@@ -80,67 +73,8 @@ namespace Content.Client.Chemistry.UI
 
         private void SyncTabButtons()
         {
-            FieldKitTabButton.Pressed = _tab == RecipeTab.FieldKit;
             BasicsTabButton.Pressed = _tab == RecipeTab.Basics;
             CanMakeTabButton.Pressed = _tab == RecipeTab.CanMake;
-        }
-
-        private void ClearTarget(bool refresh)
-        {
-            if (_target == null)
-                return;
-
-            _target = null;
-            _targetIngredients = new Dictionary<string, FixedPoint2>();
-            TargetChipButton.Visible = false;
-            _recipeKey = null;
-
-            if (!refresh)
-                return;
-
-            ApplyFilter();
-            RefreshRecipes();
-        }
-
-        private HashSet<string> Sourceable(FSFieldKitPrototype? kit = null)
-        {
-            var sourceable = new HashSet<string>();
-            foreach (var card in _cards.Values)
-            {
-                if (card.ReagentId != null)
-                    sourceable.Add(card.ReagentId);
-            }
-
-            if (kit != null)
-            {
-                foreach (var carried in kit.Carried)
-                    sourceable.Add(carried);
-            }
-
-            return sourceable;
-        }
-
-        private void SetTarget(FSFieldKitPrototype kit)
-        {
-            if (_target?.ID == kit.ID)
-            {
-                ClearTarget(true);
-                return;
-            }
-
-            _target = kit;
-            _targetIngredients = FSFieldKitResolver
-                .Plan(_prototypeManager, kit.ResolveIngredients(_prototypeManager), Sourceable(kit))
-                .Base;
-            _filter = string.Empty;
-            FilterEdit.Text = string.Empty;
-            TargetChipButton.Text = Loc.GetString("reagent-dispenser-window-target-clear",
-                ("recipe", Loc.GetString(kit.Name)));
-            TargetChipButton.Visible = true;
-            _recipeKey = null;
-
-            ApplyFilter();
-            RefreshRecipes();
         }
 
         public void UpdateReagentsList(List<ReagentInventoryItem> inventory)
@@ -180,9 +114,6 @@ namespace Content.Client.Chemistry.UI
 
         private bool Matches(ReagentCardControl card)
         {
-            if (_target != null)
-                return card.ReagentId != null && _targetIngredients.ContainsKey(card.ReagentId);
-
             return _filter.Length == 0
                    || card.ReagentLabel.Contains(_filter, StringComparison.OrdinalIgnoreCase);
         }
@@ -239,8 +170,6 @@ namespace Content.Client.Chemistry.UI
         private void RefreshRecipes()
         {
             var key = _tab + "|"
-                      + (_target?.ID ?? string.Empty) + "|"
-                      + string.Join(',', Sourceable().OrderBy(x => x)) + "|"
                       + string.Join('|', _held.OrderBy(x => x.Key).Select(x => $"{x.Key}:{x.Value}"));
 
             if (key == _recipeKey)
@@ -250,26 +179,10 @@ namespace Content.Client.Chemistry.UI
 
             SyncTabButtons();
 
-            if (_tab == RecipeTab.FieldKit)
-                PopulateFieldKit();
-            else if (_tab == RecipeTab.Basics)
+            if (_tab == RecipeTab.Basics)
                 PopulateBasics();
             else
                 FSRecipeHints.Populate(RecipeInfo, _prototypeManager, _held);
-        }
-
-        private void PopulateFieldKit()
-        {
-            RecipeInfo.Children.Clear();
-
-            var kits = _prototypeManager.EnumeratePrototypes<FSFieldKitPrototype>()
-                .Select(kit => (Kit: kit, Plan: FSFieldKitResolver.Plan(
-                    _prototypeManager, kit.ResolveIngredients(_prototypeManager), Sourceable(kit))))
-                .OrderBy(entry => entry.Plan.Unobtainable.Count > 0)
-                .ThenBy(entry => entry.Kit.Priority);
-
-            foreach (var (kit, plan) in kits)
-                RecipeInfo.AddChild(BuildFieldKitRow(kit, plan));
         }
 
         private void PopulateBasics()
@@ -342,110 +255,6 @@ namespace Content.Client.Chemistry.UI
         private string ReagentName(string id)
         {
             return _prototypeManager.TryIndex(id, out ReagentPrototype? proto) ? proto.LocalizedName : id;
-        }
-
-        private const string BiomassReagent = "FSBiomass";
-
-        private Control BuildFieldKitRow(FSFieldKitPrototype kit, FSFieldKitPlan plan)
-        {
-            var direct = kit.ResolveIngredients(_prototypeManager);
-
-            var complete = direct.All(kv => _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero) >= kv.Value);
-            var blocked = plan.Unobtainable.Count > 0;
-
-            var needsBiomass = !complete
-                               && direct.TryGetValue(BiomassReagent, out var biomassNeed)
-                               && _held.GetValueOrDefault(BiomassReagent, FixedPoint2.Zero) < biomassNeed;
-            var targeted = _target?.ID == kit.ID;
-
-            var body = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
-
-            var header = new BoxContainer { Orientation = LayoutOrientation.Horizontal, HorizontalExpand = true };
-            header.AddChild(new Label
-            {
-                Text = Loc.GetString(kit.Name),
-                Modulate = complete ? ReadyColor : Color.White,
-            });
-            header.AddChild(new Control { HorizontalExpand = true });
-            header.AddChild(new Label
-            {
-                Text = StatusText(),
-                StyleClasses = { StyleClass.LabelSubText },
-                Modulate = complete ? ReadyColor : blocked ? BlockedColor : Color.White,
-            });
-            body.AddChild(header);
-
-            if (needsBiomass && !blocked)
-                body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-harvest"), BlockedColor));
-
-            string StatusText()
-            {
-                if (complete)
-                    return Loc.GetString("reagent-dispenser-window-field-kit-ready");
-
-                if (blocked)
-                {
-                    return Loc.GetString(kit.Research
-                        ? "reagent-dispenser-window-field-kit-research"
-                        : "reagent-dispenser-window-field-kit-needs",
-                        ("reagents", string.Join(", ", plan.Unobtainable.Select(ReagentName))));
-                }
-
-                var have = direct.Count(kv => _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero) >= kv.Value);
-                return Loc.GetString("reagent-dispenser-window-field-kit-progress",
-                    ("have", have), ("need", direct.Count));
-            }
-
-            if (targeted)
-            {
-                body.AddChild(Sub(Loc.GetString(kit.Purpose)));
-
-                body.AddChild(Sub(string.Join(" · ", direct
-                    .Select(kv => ReagentName(kv.Key) + " " + Loc.GetString(
-                        "reagent-dispenser-window-field-kit-progress",
-                        ("have", _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero)), ("need", kv.Value))))));
-
-                if (plan.Base.Count > 0)
-                {
-                    body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-base",
-                        ("reagents", string.Join(" · ", plan.Base
-                            .OrderBy(kv => kv.Key)
-                            .Select(kv => $"{ReagentName(kv.Key)} {kv.Value}u"))))));
-                }
-
-                if (plan.Steps.Count > 0)
-                {
-                    var steps = plan.Steps
-                        .Select((reaction, i) => $"{i + 1}. {FSFieldKitResolver.NameOf(reaction, _prototypeManager)}");
-
-                    body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-steps",
-                        ("steps", string.Join("  ", steps)))));
-                }
-
-                if (blocked)
-                {
-                    body.AddChild(Sub(Loc.GetString(kit.Research
-                        ? "reagent-dispenser-window-field-kit-blocked-research"
-                        : "reagent-dispenser-window-field-kit-blocked",
-                        ("reagents", string.Join(", ", plan.Unobtainable.Select(ReagentName)))),
-                        BlockedColor));
-                }
-
-                body.AddChild(Sub(Loc.GetString(kit.Delivery), ReadyColor));
-            }
-
-            var button = new Button
-            {
-                StyleClasses = { StyleClass.ButtonSquare },
-                HorizontalExpand = true,
-                Pressed = targeted,
-                ToggleMode = true,
-                Modulate = blocked ? new Color(1f, 1f, 1f, 0.55f) : Color.White,
-            };
-            button.AddChild(body);
-            button.OnPressed += _ => SetTarget(kit);
-
-            return button;
         }
 
         public void UpdateContainerInfo(ReagentDispenserBoundUserInterfaceState state)

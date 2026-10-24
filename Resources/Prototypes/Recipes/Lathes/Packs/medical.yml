@@ -31,7 +31,7 @@
   - FSChemistSyringe
   - FSSyringePack
   - FSSplashFlask
-  - FSHarvestSatchel
+  - FSChemLauncher
 
 - type: latheRecipePack
   id: SurgeryStatic
@@ -99,12 +99,6 @@
 - type: latheRecipePack
   id: Chemistry
   recipes:
-  - FSEnzymeBottle
-  - FSCatalystBottle
-  - FSAdrenalBottle
-  - FSAnalgesicBottle
-  - FSSplashFlaskLarge
-  - FSSyringePackLarge
   - FSMedicalDispenserRestock
   - FSFieldHospitalItem
   - CryostasisBeaker

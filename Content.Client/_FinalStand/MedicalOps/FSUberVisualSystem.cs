@@ -17,6 +17,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._FinalStand.MedicalOps;
 
 // Über feedback: the Alt+E context key, aura and ready sparkle emitters, deploy shockwave, blocked-hit sparks and the end puff.
+// The same key arms a chem launcher's catalyst.
 public sealed partial class FSUberVisualSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
@@ -75,7 +76,7 @@ public sealed partial class FSUberVisualSystem : EntitySystem
 
     private void OnUberKey(ICommonSession? session)
     {
-        if (HeldUberCharger() != null)
+        if (HeldUberCharger() != null || HeldLauncher() != null)
             RaiseNetworkEvent(new FSUberActivateMessage());
     }
 
@@ -90,7 +91,8 @@ public sealed partial class FSUberVisualSystem : EntitySystem
             return swallow;
         }
 
-        if (!_input.IsKeyDown(Keyboard.Key.E) || HeldUberCharger() == null)
+        if (!_input.IsKeyDown(Keyboard.Key.E)
+            || HeldUberCharger() == null && HeldLauncher() is not { Comp: { CatalystArmed: false, Catalyst: >= 100f } })
             return false;
 
         RaiseNetworkEvent(new FSUberActivateMessage());
@@ -115,6 +117,16 @@ public sealed partial class FSUberVisualSystem : EntitySystem
             return null;
 
         return (held.Value, gun);
+    }
+
+    public Entity<FSChemLauncherComponent>? HeldLauncher()
+    {
+        if (_player.LocalEntity is not { } local
+            || !_hands.TryGetActiveItem(local, out var held)
+            || !TryComp<FSChemLauncherComponent>(held, out var launcher))
+            return null;
+
+        return (held.Value, launcher);
     }
 
     private void OnDeployed(FSUberDeployedEvent ev)

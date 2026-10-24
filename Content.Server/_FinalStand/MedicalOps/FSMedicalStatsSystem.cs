@@ -72,7 +72,10 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     public readonly record struct FSMedicalRoundStats(
         int HealingPoints, float HpHealed, int Stabilises, int Revives, int PatientsSaved);
 
+    public readonly record struct FSChemRoundStats(int AlliesDosed, int KillsAssisted, float ChemDamage);
+
     private readonly Dictionary<EntityUid, FSMedicalRoundStats> _roundStats = new();
+    private readonly Dictionary<EntityUid, FSChemRoundStats> _chemStats = new();
 
     private readonly Dictionary<(EntityUid Surgeon, EntityUid Patient), (int Wave, int Count)> _surgeriesPaid = new();
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _topicalsPaid = new();
@@ -80,6 +83,17 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     public FSMedicalRoundStats GetStats(EntityUid mindId) => _roundStats.GetValueOrDefault(mindId);
 
     public IReadOnlyDictionary<EntityUid, FSMedicalRoundStats> GetRoundStats() => _roundStats;
+
+    public FSChemRoundStats GetChemStats(EntityUid mindId) => _chemStats.GetValueOrDefault(mindId);
+
+    public void RecordChem(EntityUid mindId, int dosed = 0, int assisted = 0, float damage = 0f)
+    {
+        var cur = _chemStats.GetValueOrDefault(mindId);
+        _chemStats[mindId] = new FSChemRoundStats(
+            cur.AlliesDosed + dosed,
+            cur.KillsAssisted + assisted,
+            cur.ChemDamage + damage);
+    }
 
     public override void Initialize()
     {
@@ -107,6 +121,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
         _roundStats.Clear();
+        _chemStats.Clear();
         _surgeriesPaid.Clear();
         _topicalsPaid.Clear();
     }
@@ -373,7 +388,12 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             .OrderByDescending(kv => kv.Value.HealingPoints)
             .ToList();
 
-        if (sorted.Count == 0)
+        var chemists = _chemStats
+            .Where(kv => kv.Key.IsValid())
+            .OrderByDescending(kv => kv.Value.KillsAssisted)
+            .ToList();
+
+        if (sorted.Count == 0 && chemists.Count == 0)
             return;
 
         args.AddLine("══ MEDICAL ═══════════════════════════════════");
@@ -382,6 +402,12 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             if (!TryComp<MindComponent>(mindId, out var mind)) continue;
             var name = mind.CharacterName ?? "Unknown";
             args.AddLine($"  {name,-16} {stats.HealingPoints,7:N0} HP   {stats.Revives} revives  {stats.Stabilises} stabilised  {stats.PatientsSaved} saved");
+        }
+        foreach (var (mindId, chem) in chemists)
+        {
+            if (!TryComp<MindComponent>(mindId, out var mind)) continue;
+            var name = mind.CharacterName ?? "Unknown";
+            args.AddLine($"  {name,-16} {chem.AlliesDosed} dosed  {chem.KillsAssisted} kills assisted  {chem.ChemDamage:N0} chem damage");
         }
         args.AddLine($"  Department funds earned: ${_medFund.GetLifetimeEarned():N0}");
         args.AddLine("══════════════════════════════════════════════");

@@ -6,12 +6,10 @@ using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Chemistry;
 using Content.Shared.Chemistry.Components;
-using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Shared.GameObjects;
-using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
@@ -73,33 +71,6 @@ public sealed class ChemSupportTest : GameTest
 
             Assert.That(entMan.HasComponent<FSProjectileFlagsComponent>(bullet), Is.False,
                 "ordinary shots must not silently gain armour penetration");
-        });
-    }
-
-    [Test]
-    public async Task PotionsRequireTheirResearchedPrecursor()
-    {
-        var server = Pair.Server;
-        var protos = server.ResolveDependency<IPrototypeManager>();
-
-        await server.WaitAssertion(() =>
-        {
-            Assert.Multiple(() =>
-            {
-                foreach (var (reaction, precursor) in new[]
-                         {
-                             ("FSCoagulantMist", "FSRefinedEnzyme"),
-                             ("FSEtchant", "FSCatalystSalt"),
-                         })
-                {
-                    var proto = protos.Index<ReactionPrototype>(reaction);
-
-                    Assert.That(proto.Reactants.ContainsKey(precursor), Is.True,
-                        $"{reaction} must be gated behind its researched precursor");
-                    Assert.That(proto.Reactants.ContainsKey("FSBiomass"), Is.True,
-                        $"{reaction} must still be gated behind harvesting");
-                }
-            });
         });
     }
 }

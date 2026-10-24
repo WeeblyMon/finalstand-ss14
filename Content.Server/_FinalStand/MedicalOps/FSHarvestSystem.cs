@@ -1,21 +1,22 @@
+using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.Chemistry.EntitySystems;
-using Content.Shared.GameTicking;
-using Robust.Shared.Map;
-
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
+// Wave enemies dying near a carried chem launcher refill its reserve, more for tougher enemies.
 public sealed partial class FSHarvestSystem : EntitySystem
 {
-    [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
-    [Dependency] private WaveGameRuleSystem _wave = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+
+    private const float CreditsPerReserve = 30f;
+    private const int FallbackKillCredits = 100;
 
     private static readonly SoundSpecifier TickSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/harvest_tick.ogg");
@@ -25,17 +26,19 @@ public sealed partial class FSHarvestSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnWaveEnemyDied);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
-    private void OnRoundRestart(RoundRestartCleanupEvent args)
+    private void OnPrepStarted(WavePrepStartedEvent args)
     {
-        var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
-        while (query.MoveNext(out var uid, out var comp))
+        var query = EntityQueryEnumerator<FSChemLauncherComponent>();
+        while (query.MoveNext(out var uid, out var launcher))
         {
-            comp.AccruedThisWave = 0f;
-            comp.TrackedWave = -1;
-            Dirty(uid, comp);
+            if (launcher.Reserve >= launcher.MaxReserve)
+                continue;
+
+            launcher.Reserve = launcher.MaxReserve;
+            Dirty(uid, launcher);
         }
     }
 
@@ -44,29 +47,22 @@ public sealed partial class FSHarvestSystem : EntitySystem
         if (TerminatingOrDeleted(args.Enemy))
             return;
 
-        var wave = _wave.GetWaveNumber();
+        var credits = TryComp<FSEnemyValueComponent>(args.Enemy, out var value) ? value.KillCredits : FallbackKillCredits;
         var corpse = _xform.GetMapCoordinates(args.Enemy);
 
-        var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
-        while (query.MoveNext(out var satchel, out var comp))
+        var query = EntityQueryEnumerator<FSChemLauncherComponent>();
+        while (query.MoveNext(out var uid, out var launcher))
         {
-            if (comp.TrackedWave != wave)
-            {
-                comp.TrackedWave = wave;
-                comp.AccruedThisWave = 0f;
-                Dirty(satchel, comp);
-            }
-
-            if (!IsCarried(satchel) || !InRange(satchel, corpse, comp.Range))
+            if (!IsCarried(uid) || !InRange(uid, corpse, launcher.HarvestRange))
                 continue;
 
-            Accrue((satchel, comp));
+            Refill((uid, launcher), credits / CreditsPerReserve * launcher.HarvestScale);
         }
     }
 
-    private bool IsCarried(EntityUid satchel)
+    private bool IsCarried(EntityUid item)
     {
-        var parent = Transform(satchel).ParentUid;
+        var parent = Transform(item).ParentUid;
 
         for (var depth = 0; depth < 5 && parent.IsValid(); depth++)
         {
@@ -79,32 +75,22 @@ public sealed partial class FSHarvestSystem : EntitySystem
         return false;
     }
 
-    private bool InRange(EntityUid satchel, MapCoordinates corpse, float range)
+    private bool InRange(EntityUid item, MapCoordinates corpse, float range)
     {
-        var carrier = _xform.GetMapCoordinates(satchel);
+        var carrier = _xform.GetMapCoordinates(item);
 
         return carrier.MapId == corpse.MapId
                && (carrier.Position - corpse.Position).LengthSquared() <= range * range;
     }
 
-    private void Accrue(Entity<FSHarvestSatchelComponent> satchel)
+    private void Refill(Entity<FSChemLauncherComponent> launcher, float amount)
     {
-        var room = satchel.Comp.PerWaveCap - satchel.Comp.AccruedThisWave;
-        if (room <= 0f)
+        if (amount <= 0f || launcher.Comp.Reserve >= launcher.Comp.MaxReserve)
             return;
 
-        var amount = MathF.Min(satchel.Comp.PerKill, room);
+        launcher.Comp.Reserve = MathF.Min(launcher.Comp.MaxReserve, launcher.Comp.Reserve + amount);
+        Dirty(launcher);
 
-        if (!_solutions.TryGetSolution(satchel.Owner, satchel.Comp.Solution, out var soln, out _))
-            return;
-
-        var added = _solutions.TryAddReagent(soln.Value, satchel.Comp.Reagent, amount, out var accepted);
-        if (!added || accepted <= 0)
-            return;
-
-        satchel.Comp.AccruedThisWave += accepted.Float();
-        Dirty(satchel);
-
-        _audio.PlayPvs(TickSound, satchel.Owner, AudioParams.Default.WithVolume(-10f));
+        _audio.PlayPvs(TickSound, launcher.Owner, AudioParams.Default.WithVolume(-10f));
     }
 }

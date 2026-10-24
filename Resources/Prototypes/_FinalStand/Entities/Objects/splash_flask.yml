@@ -100,19 +100,6 @@
 
 - type: entity
   parent: FSSplashFlask
-  id: FSSplashFlaskCoagulant
-  suffix: Coagulant Mist
-  components:
-  - type: SolutionContainerManager
-    solutions:
-      flask:
-        maxVol: 50
-        reagents:
-        - ReagentId: FSCoagulantMist
-          Quantity: 50
-
-- type: entity
-  parent: FSSplashFlask
   id: FSSplashFlaskEtchant
   suffix: Etchant
   components:

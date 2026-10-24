@@ -18,14 +18,12 @@ public sealed class FSFieldKitStationBoundUserInterface : BoundUserInterface
             return;
 
         _window = this.CreateWindow<FieldKitStationWindow>();
-        _window.OnDump += () => SendMessage(new FSFieldKitDumpSatchelMessage());
-        _window.OnBrew += (kit, volume) => SendMessage(new FSFieldKitBrewMessage(kit, volume));
+        _window.OnSetSlot += (slot, formula) => SendMessage(new FSFieldKitSetSlotMessage(slot, formula));
+        _window.OnBrewTonic += () => SendMessage(new FSFieldKitBrewTonicMessage());
         _window.OnDispense += (location, amount) => SendMessage(new FSFieldKitDispenseMessage(location, amount));
         _window.OnDiscard += reagent => SendMessage(new FSFieldKitDiscardMessage(reagent));
         _window.OnEmptyJug += () => SendMessage(new FSFieldKitEmptyJugMessage());
-        _window.OnEject += magazine => SendMessage(new FSFieldKitEjectMessage(magazine));
-        _window.OnLoadMagazine += () => SendMessage(new FSFieldKitLoadMagazineMessage());
-        _window.OnFillFlasks += (capacity, count) => SendMessage(new FSFieldKitFillFlasksMessage(capacity, count));
+        _window.OnEject += () => SendMessage(new FSFieldKitEjectMessage());
         _window.OnBottle += count => SendMessage(new FSFieldKitBottleMessage(count));
         _window.OnPill += (dose, count) => SendMessage(new FSFieldKitPillMessage(dose, count));
         _window.OnLabel += label => SendMessage(new FSFieldKitLabelMessage(label));

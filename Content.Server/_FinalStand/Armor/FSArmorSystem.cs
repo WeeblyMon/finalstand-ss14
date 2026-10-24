@@ -1,5 +1,4 @@
 using Content.Shared._FinalStand.Armor;
-using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -38,9 +37,6 @@ public sealed partial class FSArmorSystem : EntitySystem
         while (query.MoveNext(out var uid, out var armor))
         {
             if (armor.CurrentArmor >= armor.MaxArmor)
-                continue;
-
-            if (HasComp<FSArmorSuppressedComponent>(uid))
                 continue;
 
             if (armor.RegenDelayAccumulator > 0f)

@@ -42,7 +42,8 @@ public sealed class EntityHealthBarOverlay : Overlay
     public EntityUid? MedigunTarget;
     public float MedigunSoftCap = 0.7f;
 
-    public readonly HashSet<EntityUid> ChemBuffed = new();
+    // Fraction of a fresh dose still left on each buffed crewmate.
+    public readonly Dictionary<EntityUid, float> ChemBuffed = new();
     public readonly HashSet<EntityUid> ChemUnbuffed = new();
 
     private static readonly Color[] GroupColors =
@@ -169,8 +170,8 @@ public sealed class EntityHealthBarOverlay : Overlay
                 handle.DrawRect(strip, shield.SourceColor);
             }
 
-            if (ChemBuffed.Contains(uid))
-                DrawBuffOutline(handle, position, startX, endX);
+            if (ChemBuffed.TryGetValue(uid, out var buffLeft))
+                DrawBuffOutline(handle, position, startX, endX, buffLeft);
             else if (ChemUnbuffed.Contains(uid))
                 DrawUnbuffedMark(handle, position, startX);
 
@@ -187,7 +188,7 @@ public sealed class EntityHealthBarOverlay : Overlay
         handle.SetTransform(Matrix3x2.Identity);
     }
 
-    private static void DrawBuffOutline(DrawingHandleWorld handle, Vector2 position, float startX, float endX)
+    private static void DrawBuffOutline(DrawingHandleWorld handle, Vector2 position, float startX, float endX, float left)
     {
         const float ppm = EyeManager.PixelsPerMeter;
 
@@ -200,6 +201,11 @@ public sealed class EntityHealthBarOverlay : Overlay
             new Vector2(startX - 1f, -1f) / ppm,
             new Vector2(endX + 1f, 4f) / ppm).Translated(position);
         handle.DrawRect(outline, BuffOutline, false);
+
+        var timer = new Box2(
+            new Vector2(startX, 6f) / ppm,
+            new Vector2(startX + (endX - startX) * left, 7f) / ppm).Translated(position);
+        handle.DrawRect(timer, BuffOutline);
     }
 
     private static void DrawUnbuffedMark(DrawingHandleWorld handle, Vector2 position, float startX)

@@ -280,19 +280,18 @@
   bonusDescription: Unlocks the field hospital kit at the medical lathe, so the department can run a second tent.
   vanillaTechnologyId: FSForwardAidStation
 
-# ── Line C: Pharmacology (flasks, potions) ────────────────────────────────────────────────────
+# ── Line C: Pharmacology (chem launcher clouds and formulas) ──────────────────────────────────
 
 - type: fsTechNode
-  id: FSMedicalHeavyGlassware
-  name: Heavy Glassware
+  id: FSMedicalPressurisedCanisters
+  name: Pressurised Canisters
   icon:
-    sprite: Objects/Specific/Chemistry/beaker.rsi
-    state: beaker
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    state: chemg
   branch: Medical
   tier: 2
   cost: 700
-  bonusDescription: Unlocks the heavy splash flask - 75u instead of 50u, same burst.
-  vanillaTechnologyId: FSHeavyGlassware
+  bonusDescription: Chem clouds spread a metre wider.
 
 - type: fsTechNode
   id: FSMedicalVolatileSuspension
@@ -304,9 +303,9 @@
   tier: 3
   cost: 1100
   prerequisites:
-  - FSMedicalHeavyGlassware
+  - FSMedicalPressurisedCanisters
   exclusiveGroup: FSMedicalCloudDoctrine
-  bonusDescription: Potion clouds spread half again as wide. Excludes Stabilised Aerosol.
+  bonusDescription: Chem clouds spread half again as wide. Excludes Stabilised Aerosol.
 
 - type: fsTechNode
   id: FSMedicalStabilisedAerosol
@@ -318,9 +317,9 @@
   tier: 3
   cost: 1100
   prerequisites:
-  - FSMedicalHeavyGlassware
+  - FSMedicalPressurisedCanisters
   exclusiveGroup: FSMedicalCloudDoctrine
-  bonusDescription: Potion clouds linger almost twice as long. Excludes Volatile Suspension.
+  bonusDescription: Chem clouds linger almost twice as long. Excludes Volatile Suspension.
 
 - type: fsTechNode
   id: FSMedicalAdrenalChemistry
@@ -333,8 +332,7 @@
   cost: 1600
   prerequisiteGroups:
   - [ FSMedicalVolatileSuspension, FSMedicalStabilisedAerosol ]
-  bonusDescription: Unlocks adrenal concentrate, the base for adrenal surge - crew move faster and are far harder to interrupt.
-  vanillaTechnologyId: FSAdrenalChemistry
+  bonusDescription: Adds Adrenal Surge to the chem launcher - crew in the cloud move faster and are far harder to interrupt.
 
 - type: fsTechNode
   id: FSMedicalAnalgesicChemistry
@@ -347,10 +345,37 @@
   cost: 2200
   prerequisites:
   - FSMedicalAdrenalChemistry
-  bonusDescription: Unlocks analgesic base, for battle analgesic - dosed crew drag casualties far faster and treat them quicker.
-  vanillaTechnologyId: FSAnalgesicChemistry
+  bonusDescription: Adds Battle Analgesic to the chem launcher - crew in the cloud drag casualties far faster and treat them quicker.
 
-# ── Line D: Logistics (harvest, magazines, dispenser) ─────────────────────────────────────────
+- type: fsTechNode
+  id: FSMedicalChainReaction
+  name: Chain Reaction
+  icon:
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    state: chemg_armed
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisiteGroups:
+  - [ FSMedicalVolatileSuspension, FSMedicalStabilisedAerosol ]
+  exclusiveGroup: FSMedicalCatalystDoctrine
+  bonusDescription: A catalysed hostile cloud bursts for 40 caustic on landing, and every zombie that dies inside leaves a small cloud of its own. Excludes Panacea.
+
+- type: fsTechNode
+  id: FSMedicalPanacea
+  name: Panacea
+  icon:
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    state: chemg
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisiteGroups:
+  - [ FSMedicalVolatileSuspension, FSMedicalStabilisedAerosol ]
+  exclusiveGroup: FSMedicalCatalystDoctrine
+  bonusDescription: A catalysed support cloud also heals a quarter of each crewmate's health over its life and stops their bleeding. Excludes Chain Reaction.
+
+# ── Line D: Logistics (launcher reserve, slots, dispenser) ────────────────────────────────────
 
 - type: fsTechNode
   id: FSMedicalLongRangeCollectors
@@ -361,7 +386,7 @@
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Harvest satchels draw 4 metres further, so the chemist can stand further back.
+  bonusDescription: Chem launchers draw reserve from kills 4 metres further away, so the chemist can stand further back.
 
 - type: fsTechNode
   id: FSMedicalWideSpectrumRendering
@@ -374,7 +399,7 @@
   cost: 700
   prerequisites:
   - FSMedicalLongRangeCollectors
-  bonusDescription: Each wave enemy yields half again as much harvested tissue.
+  bonusDescription: Every kill near a chem launcher refills 40% more reserve.
 
 - type: fsTechNode
   id: FSMedicalCryoStowage
@@ -387,21 +412,20 @@
   cost: 1100
   prerequisites:
   - FSMedicalWideSpectrumRendering
-  bonusDescription: The per-wave harvest ceiling rises by half. Still capped.
+  bonusDescription: Chem launchers hold half again as much reserve.
 
 - type: fsTechNode
-  id: FSMedicalExtendedMagazines
-  name: Extended Magazines
+  id: FSMedicalFormulaRack
+  name: Formula Rack
   icon:
-    sprite: Objects/Specific/Chemistry/syringe.rsi
-    state: syringe_base0
+    sprite: Objects/Specific/Chemistry/chemg.rsi
+    state: chemg
   branch: Medical
   tier: 3
   cost: 1100
   prerequisites:
   - FSMedicalWideSpectrumRendering
-  bonusDescription: Unlocks the extended syringe magazine - 240 darts instead of 200, and a full jug fills either.
-  vanillaTechnologyId: FSExtendedMagazines
+  bonusDescription: Chem launchers get a fourth formula slot.
 
 - type: fsTechNode
   id: FSMedicalFieldLogistics
