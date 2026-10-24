@@ -35,6 +35,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     [Dependency] private Engineering.FSEngineerStatsSystem _engineerStats = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSEnemyDamageTrackerSystem _damageTracker = default!;
+    [Dependency] private GameTicker _ticker = default!;
 
     private static readonly TimeSpan LobbyRequestInterval = TimeSpan.FromSeconds(1);
     private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyRequest = new();
@@ -48,6 +49,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private const int WaveCompletionXpPerWave = 100;
     private const int RoundEndXpPerWave = 200;
+    private bool _roundEndXpPaid;
     private const int PrestigeThreshold = 50;
 
     // Kills and assists land hundreds of times a second in a big wave. XP is batched: the client hears about it
@@ -178,11 +180,16 @@ public sealed partial class FSLevelingSystem : EntitySystem
     private void OnRoundEnd(RoundEndTextAppendEvent args)
     {
         if (!_waveRule.TryGetWaveStatus(out var wave, out _)) return;
-        var xp = (int) (RoundEndXpPerWave * wave * _waveRule.GetRewardMultiplier());
 
-        var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
-        while (query.MoveNext(out var mindId, out _))
-            GiveExperience(mindId, xp, "round_end", resolveBody: false);
+        // throwscoreboard raises this mid-round and again after it; the XP is paid once, at the real round end
+        if (!_roundEndXpPaid && _ticker.RunLevel == GameRunLevel.PostRound)
+        {
+            _roundEndXpPaid = true;
+            var xp = (int) (RoundEndXpPerWave * wave * _waveRule.GetRewardMultiplier());
+            var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
+            while (query.MoveNext(out var mindId, out _))
+                GiveExperience(mindId, xp, "round_end", resolveBody: false);
+        }
 
         var sorted = _roundStats
             .Where(kv => kv.Key.IsValid())
@@ -304,6 +311,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
+        _roundEndXpPaid = false;
         SaveDirty();
         _unsent.Clear();
         _roundStats.Clear();

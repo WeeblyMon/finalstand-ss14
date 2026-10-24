@@ -56,6 +56,39 @@ public sealed class RecordsTest : GameTest
     }
 
     [Test]
+    public async Task RoundEndXpIsPaidOnceAtTheRealEnd()
+    {
+        var map = await Pair.CreateTestMap();
+
+        await Server.WaitAssertion(() =>
+        {
+            var ticker = SEntMan.System<GameTicker>();
+            var minds = SEntMan.System<SharedMindSystem>();
+            var session = ServerSession!;
+            SEntMan.System<FSPlayerDataStore>().DeleteProgress(session.UserId.UserId);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
+
+            var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            var mindId = minds.CreateMind(session.UserId, "Survivor");
+            minds.TransferTo(mindId, body, mind: SEntMan.GetComponent<MindComponent>(mindId));
+            var lvl = SEntMan.EnsureComponent<FSPlayerLevelComponent>(mindId);
+            (int, int) Progress() => (lvl.Level, lvl.Experience);
+
+            var start = Progress();
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
+            Assert.That(Progress(), Is.EqualTo(start), "a scoreboard thrown mid-round pays no XP");
+
+            ticker.EndRound();
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
+            var paid = Progress();
+            Assert.That(paid, Is.Not.EqualTo(start), "the real round end pays the round-end XP");
+
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
+            Assert.That(Progress(), Is.EqualTo(paid), "throwing the scoreboard again pays nothing more");
+        });
+    }
+
+    [Test]
     public async Task RecordsAccumulateAndOnlyImprovementsCountAsBests()
     {
         await Server.WaitAssertion(() =>
