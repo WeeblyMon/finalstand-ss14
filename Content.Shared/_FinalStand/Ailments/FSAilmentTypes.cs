@@ -1,0 +1,41 @@
+using Robust.Shared.Serialization;
+
+namespace Content.Shared._FinalStand.Ailments;
+
+[Serializable, NetSerializable]
+public enum FSAilmentSlot : byte
+{
+    Bleeding,
+    Bone,
+    Burn,
+    Bloater,
+}
+
+[Serializable, NetSerializable]
+public enum FSAilmentMeter : byte
+{
+    Bleed,
+    Burn,
+    Shock,
+}
+
+public enum FSAilmentTier : byte
+{
+    None,
+    Minor,
+    Major,
+}
+
+public record struct FSAilmentMeterState(float Value, TimeSpan Updated);
+
+[ByRefEvent]
+public record struct FSAilmentInflictAttemptEvent(FSAilmentSlot Slot, bool Cancelled = false);
+
+[ByRefEvent]
+public readonly record struct FSAilmentInflictedEvent(EntityUid Patient, FSAilmentSlot Slot, EntityUid? Source);
+
+[ByRefEvent]
+public readonly record struct FSAilmentCuredEvent(EntityUid Patient, FSAilmentSlot Slot, FSAilmentTier Tier, EntityUid? Curer, bool Automatic);
+
+[ByRefEvent]
+public record struct FSIncomingHealScaleEvent(float Scale);

@@ -1,0 +1,99 @@
+- type: fsAilmentRules
+  id: Default
+  injuryFloor: 5
+  majorBleedLevel: 2
+  broken: FSAilmentBroken
+  burned: FSAilmentBurned
+  meters:
+    Bleed:
+      slot: Bleeding
+      drainPerSecond: 30
+      injury:
+        bleed: 1
+    Burn:
+      slot: Burn
+      drainPerSecond: 10
+      injury:
+        burn: true
+
+- type: entity
+  parent: MobStatusEffectDebuff
+  id: FSAilmentBase
+  abstract: true
+  components:
+  - type: StatusEffect
+    whitelist:
+      components:
+      - MobState
+      - FSAilmentState
+      requireAll: true
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentBroken
+  name: broken bone
+  components:
+  - type: FSAilment
+    slot: Bone
+    name: fs-ailment-broken
+    examine: fs-ailment-broken-examine
+    duration: 30
+    tier: Major
+    becomesOnExpire: FSAilmentSplinted
+  - type: MovementModStatusEffect
+    walkSpeedModifier: 0.65
+    sprintSpeedModifier: 0.65
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentSplinted
+  name: splinted bone
+  components:
+  - type: FSAilment
+    slot: Bone
+    name: fs-ailment-splinted
+    examine: fs-ailment-splinted-examine
+    duration: 90
+    tier: Minor
+  - type: MovementModStatusEffect
+    walkSpeedModifier: 0.85
+    sprintSpeedModifier: 0.85
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentSplintedFieldOps
+  name: splinted bone
+  components:
+  - type: FSAilment
+    slot: Bone
+    name: fs-ailment-splinted
+    examine: fs-ailment-splinted-examine
+    duration: 90
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentBurned
+  name: burns
+  components:
+  - type: FSAilment
+    slot: Burn
+    name: fs-ailment-burned
+    examine: fs-ailment-burned-examine
+    duration: 45
+    tier: Minor
+    blocksRegen: true
+    incomingHealScale: 0.5
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentSoaked
+  name: soaked
+  components:
+  - type: FSAilment
+    slot: Bloater
+    name: fs-ailment-soaked
+    examine: fs-ailment-soaked-examine
+    duration: 5
+  - type: MovementModStatusEffect
+    walkSpeedModifier: 0.775
+    sprintSpeedModifier: 0.775
