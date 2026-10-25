@@ -4,7 +4,7 @@ fs-casualty-board-respond = Respond
 fs-casualty-board-en-route = {$medic} en route
 
 fs-casualty-state-hurt = HURT
-fs-casualty-state-critical = CRITICAL
+fs-casualty-state-critical = DOWN
 fs-casualty-state-dead = DEAD
 
 fs-casualty-en-route = {$medic} is on the way.

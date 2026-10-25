@@ -43,9 +43,9 @@ public sealed partial class WaveHudSystem
 
             var state = entry.State switch
             {
-                FSCasualtyState.Dead => "DOWN",
-                FSCasualtyState.Critical => "CRIT",
-                _ => "HURT",
+                FSCasualtyState.Dead => Loc.GetString("fs-casualty-state-dead"),
+                FSCasualtyState.Critical => Loc.GetString("fs-casualty-state-critical"),
+                _ => Loc.GetString("fs-casualty-state-hurt"),
             };
 
             overlay.TriageRows.Add(new WaveHudOverlay.TriageRow(
@@ -60,8 +60,8 @@ public sealed partial class WaveHudSystem
 
     private static int Rank(FSCasualtyState state) => state switch
     {
-        FSCasualtyState.Dead => 2,
-        FSCasualtyState.Critical => 1,
+        FSCasualtyState.Critical => 2,
+        FSCasualtyState.Dead => 1,
         _ => 0,
     };
 }
