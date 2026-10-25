@@ -1,5 +1,6 @@
 ﻿using Content.Shared._FinalStand.GameTicking;
 using Robust.Shared.Audio;
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.GameTicking.Rules;
@@ -133,7 +134,7 @@ public sealed partial class WaveGameRuleComponent : Component
 
     public int ScalingPlayersThisWave = 0;
 
-    public readonly HashSet<EntityUid> PaidCatchUpMinds = new();
+    public readonly HashSet<NetUserId> PaidCatchUpUsers = new();
 
     [DataField]
     public float BaseZombieMeleeDamage = 10f;

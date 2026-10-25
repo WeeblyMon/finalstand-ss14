@@ -771,7 +771,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out _)) return;
         if (!TryGetActiveRule(out _, out var comp, out _)) return;
-        if (!comp.PaidCatchUpMinds.Add(mindId)) return;
+        if (!comp.PaidCatchUpUsers.Add(ev.Player.UserId)) return;
 
         var wavesMissed = comp.WaveNumber - 1;
         if (wavesMissed > 0)
