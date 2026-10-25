@@ -4,6 +4,12 @@
   majorBleedLevel: 2
   broken: FSAilmentBroken
   burned: FSAilmentBurned
+  bleedDamage:
+    types:
+      Bloodloss: 0.5
+  downDrain:
+    types:
+      Asphyxiation: 1
   meters:
     Bleed:
       slot: Bleeding

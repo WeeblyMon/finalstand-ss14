@@ -1,16 +1,12 @@
 using Content.Server._FinalStand.Perks;
 using Content.Server.Power.EntitySystems;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
-using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
-using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
-using Content.Shared.Body;
-using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
-using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle;
 using Content.Shared.Item.ItemToggle.Components;
@@ -34,7 +30,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private BatterySystem _battery = default!;
-    [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private MobStateSystem _mobState = default!;
@@ -42,8 +38,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
-    [Dependency] private TraumaSystem _trauma = default!;
-    [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSOverhealSystem _overheal = default!;
     [Dependency] private FSUberSystem _uber = default!;
@@ -122,14 +116,12 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (!_damageableQuery.TryComp(healed, out var damageable))
             return false;
 
-        MendWorstBone(healed, comp.BoneRepairPerTick);
+        var clotted = _ailments.Clot(healed, comp.ClotPerSecond * comp.Frequency, wielder, automatic: true);
 
         var potency = new FSHealingPotencyEvent(1f, healed);
         RaiseLocalEvent(wielder, ref potency);
 
-        // Ungated by the soft cap below: that measures the HP bar, limb wounds are a separate pool.
-        var mendedWounds = _wounds.TryHealWoundsOnOwner(healed, comp.Healing * (comp.LimbHealScale * potency.Multiplier));
-        if (mendedWounds || damageable.TotalDamage > 0)
+        if (clotted || damageable.TotalDamage > 0)
             _combatMedic.OnHealedAlly(wielder, healed);
 
         var scale = GetHealScale((healed, damageable), comp);
@@ -169,21 +161,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         var restored = before - _damageable.GetTotalDamage((healed, damageable)).Float();
         _uber.AddCharge(ent, restored * comp.UberChargePerHp);
-
-        _bloodstream.TryModifyBloodLevel(healed, comp.BleedingAmountModifier);
         return true;
-    }
-
-    private void MendWorstBone(EntityUid healed, FixedPoint2 amount)
-    {
-        if (amount <= FixedPoint2.Zero
-            || !TryComp<BodyComponent>(healed, out var body)
-            || !_trauma.TryFindWorstBone(healed, body, out var bone, out var boneComp))
-            return;
-
-        var repaired = FixedPoint2.Min(boneComp.IntegrityCap, boneComp.BoneIntegrity + amount);
-        _trauma.SetBoneIntegrity(bone, repaired, boneComp);
-        _trauma.UpdateBodyBoneAlert(healed, body);
     }
 
     public float GetHealScale(Entity<DamageableComponent> patient, FSMediGunComponent comp)

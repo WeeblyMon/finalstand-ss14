@@ -62,8 +62,7 @@
     maxRange: 4
     batteryWithdraw: 1
     softCapRatio: 0.5
-    boneRepairPerTick: 0.25
-    bleedingAmountModifier: 1
+    clotPerSecond: 0.25
     healing:
       types:
         Blunt: -2

@@ -150,10 +150,24 @@ public sealed partial class FSAilmentSystem : EntitySystem
         if (!_bloodQuery.TryComp(patient, out var blood) || blood.BleedAmount <= 0f)
             return false;
 
-        var tier = BleedTier(blood.BleedAmount);
+        var tier = TakeBleedTier(patient, blood.BleedAmount);
         _bloodstream.TryModifyBleedAmount((patient, blood), -blood.BleedAmount);
         RaiseCured(patient, FSAilmentSlot.Bleeding, tier, curer, automatic);
         return true;
+    }
+
+    public bool Clot(EntityUid patient, float amount, EntityUid? curer = null, bool automatic = false)
+    {
+        if (amount <= 0f || !_bloodQuery.TryComp(patient, out var blood) || blood.BleedAmount <= 0f)
+            return false;
+
+        if (blood.BleedAmount > amount)
+        {
+            _bloodstream.TryModifyBleedAmount((patient, blood), -amount);
+            return true;
+        }
+
+        return StopBleeding(patient, curer, automatic);
     }
 
     public void ClearAll(EntityUid patient)
@@ -208,9 +222,52 @@ public sealed partial class FSAilmentSystem : EntitySystem
         return ev.Scale;
     }
 
-    public FSAilmentTier BleedTier(float bleedAmount)
+    public void SetClock(Entity<FSAilmentStateComponent> patient, TimeSpan? end, bool held)
     {
-        return (int) MathF.Ceiling(bleedAmount) >= Rules.MajorBleedLevel ? FSAilmentTier.Major : FSAilmentTier.Minor;
+        if (patient.Comp.DownEnd != end)
+        {
+            patient.Comp.DownEnd = end;
+            DirtyField(patient.AsNullable(), nameof(FSAilmentStateComponent.DownEnd));
+        }
+
+        if (patient.Comp.Held != held)
+        {
+            patient.Comp.Held = held;
+            DirtyField(patient.AsNullable(), nameof(FSAilmentStateComponent.Held));
+        }
+    }
+
+    public void ClearClock(Entity<FSAilmentStateComponent> patient)
+    {
+        patient.Comp.DownSamples.Clear();
+        SetClock(patient, null, false);
+    }
+
+    public void SetRegenerating(Entity<FSAilmentStateComponent> patient, bool regenerating)
+    {
+        if (patient.Comp.Regenerating == regenerating)
+            return;
+
+        patient.Comp.Regenerating = regenerating;
+        DirtyField(patient.AsNullable(), nameof(FSAilmentStateComponent.Regenerating));
+    }
+
+    public void EndBleed(EntityUid patient)
+    {
+        if (_stateQuery.TryComp(patient, out var state))
+            state.PeakBleed = 0;
+    }
+
+    private FSAilmentTier TakeBleedTier(EntityUid patient, float bleedAmount)
+    {
+        var peak = (int) MathF.Ceiling(bleedAmount);
+        if (_stateQuery.TryComp(patient, out var state))
+        {
+            peak = Math.Max(peak, state.PeakBleed);
+            state.PeakBleed = 0;
+        }
+
+        return peak >= Rules.MajorBleedLevel ? FSAilmentTier.Major : FSAilmentTier.Minor;
     }
 
     private void RaiseBleeding(EntityUid patient, int level, EntityUid? source)
@@ -222,6 +279,9 @@ public sealed partial class FSAilmentSystem : EntitySystem
             return;
 
         _bloodstream.TryModifyBleedAmount((patient, blood), level - blood.BleedAmount);
+        if (_stateQuery.TryComp(patient, out var state))
+            state.PeakBleed = Math.Max(state.PeakBleed, level);
+
         Inflicted(patient, FSAilmentSlot.Bleeding, source);
     }
 
@@ -347,6 +407,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
     {
         patient.Comp.Meters.Clear();
         patient.Comp.Causes.Clear();
+        patient.Comp.PeakBleed = 0;
         if (patient.Comp.Warnings.Count == 0)
             return;
 
@@ -356,10 +417,23 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     private void OnMobStateChanged(Entity<FSAilmentStateComponent> ent, ref MobStateChangedEvent args)
     {
-        if (args.NewMobState != MobState.Dead || !_bloodQuery.TryComp(ent, out var blood) || blood.BleedAmount <= 0f)
+        if (!_net.IsClient)
+        {
+            if (args.NewMobState == MobState.Critical)
+                ent.Comp.DownSamples.Clear();
+            else
+                ClearClock(ent);
+
+            if (args.NewMobState != MobState.Alive)
+                SetRegenerating(ent, false);
+        }
+
+        if (args.NewMobState != MobState.Dead)
             return;
 
-        _bloodstream.TryModifyBleedAmount((ent.Owner, blood), -blood.BleedAmount);
+        ent.Comp.PeakBleed = 0;
+        if (_bloodQuery.TryComp(ent, out var blood) && blood.BleedAmount > 0f)
+            _bloodstream.TryModifyBleedAmount((ent.Owner, blood), -blood.BleedAmount);
     }
 
     private void OnRejuvenate(Entity<FSAilmentStateComponent> ent, ref RejuvenateEvent args)

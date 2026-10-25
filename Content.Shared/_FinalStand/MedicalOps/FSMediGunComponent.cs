@@ -1,5 +1,4 @@
 using Content.Shared.Damage;
-using Content.Shared.FixedPoint;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio;
 using Content.Shared.Actions;
@@ -12,13 +11,11 @@ namespace Content.Shared._FinalStand.MedicalOps;
 public sealed partial class FSMediGunComponent : Component
 {
     [ViewVariables] public float? BaseMaxRange;
-    [ViewVariables] public FixedPoint2? BaseBleedingAmountModifier;
+    [ViewVariables] public float? BaseClotPerSecond;
     [ViewVariables] public int? BaseMaxLinksAmount;
     [ViewVariables] public float? BaseFrequency;
     [ViewVariables] public float? BaseBatteryWithdraw;
     [ViewVariables] public float? BaseSoftCapRatio;
-    [ViewVariables] public FixedPoint2? BaseBoneRepairPerTick;
-    [ViewVariables] public float? BaseLimbHealScale;
     [ViewVariables] public float? BaseSplitLinkScale;
     [ViewVariables] public float? BaseMaxCharge;
     [ViewVariables] public float? BaseRechargeRate;
@@ -49,7 +46,7 @@ public sealed partial class FSMediGunComponent : Component
     public DamageSpecifier Healing = new();
 
     [DataField]
-    public FixedPoint2 BleedingAmountModifier = 3;
+    public float ClotPerSecond = 0.5f;
 
     [DataField]
     public float Frequency = 0.5f;
@@ -74,14 +71,6 @@ public sealed partial class FSMediGunComponent : Component
 
     [DataField]
     public float MinEffectiveScale = 0.05f;
-
-    // Bone mend per tick, ungated by the soft cap.
-    [DataField]
-    public FixedPoint2 BoneRepairPerTick = 0.5f;
-
-    // Fraction of Healing applied to limb wounds per tick, ungated by the soft cap.
-    [DataField]
-    public float LimbHealScale = 0.5f;
 
     [DataField, AutoNetworkedField]
     public SoundSpecifier? SoundOnTarget;

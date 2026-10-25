@@ -150,12 +150,12 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     {
         var c = ent.Comp;
         c.BaseMaxRange ??= c.MaxRange;
-        c.BaseBleedingAmountModifier ??= c.BleedingAmountModifier;
+        c.BaseClotPerSecond ??= c.ClotPerSecond;
         c.BaseMaxLinksAmount ??= c.MaxLinksAmount;
         c.BaseFrequency ??= c.Frequency;
 
         c.MaxRange = c.BaseMaxRange.Value + (Unlocked(ExtendedOptics) ? 3f : 0f);
-        c.BleedingAmountModifier = c.BaseBleedingAmountModifier.Value + (Unlocked(HaemostaticBeam) ? 2 : 0);
+        c.ClotPerSecond = c.BaseClotPerSecond.Value * (Unlocked(HaemostaticBeam) ? 2f : 1f);
         c.MaxLinksAmount = c.BaseMaxLinksAmount.Value + (Unlocked(FocusedEmitters) ? 1 : 0);
         c.Frequency = c.BaseFrequency.Value * (Unlocked(RapidCycling) ? 0.7f : 1f);
 
@@ -166,12 +166,6 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 
         c.BaseSoftCapRatio ??= c.SoftCapRatio;
         c.SoftCapRatio = c.BaseSoftCapRatio.Value + (Unlocked(FocusedNanites) ? 0.1f : 0f);
-
-        c.BaseBoneRepairPerTick ??= c.BoneRepairPerTick;
-        c.BoneRepairPerTick = c.BaseBoneRepairPerTick.Value * (Unlocked(BoneKnitter) ? 2 : 1);
-
-        c.BaseLimbHealScale ??= c.LimbHealScale;
-        c.LimbHealScale = c.BaseLimbHealScale.Value * (Unlocked(LimbMender) ? 1.6f : 1f);
 
         c.BaseSplitLinkScale ??= c.SplitLinkScale;
         c.SplitLinkScale = c.BaseSplitLinkScale.Value * (Unlocked(SplitBeamTuning) ? 1.25f : 1f);

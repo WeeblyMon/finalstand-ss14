@@ -1,6 +1,5 @@
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
-using Content.Shared._FinalStand.Medical;
-using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.EntityEffects;
 using Robust.Shared.GameStates;
 using Robust.Shared.Timing;
@@ -16,24 +15,11 @@ public sealed partial class FSArmorPiercingComponent : Component
 
 public sealed partial class FSStaunchBleedingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSStaunchBleeding>
 {
-    [Dependency] private WoundSystem _wounds = default!;
-    [Dependency] private OrganLookupSystem _organs = default!;
-
-    private readonly List<EntityUid> _woundables = new();
+    [Dependency] private FSAilmentSystem _ailments = default!;
 
     protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSStaunchBleeding> args)
     {
-        if (!_organs.TryGetRootOrgan(entity.Owner, out var root))
-            return;
-
-        _woundables.Clear();
-        _woundables.Add(root.Owner);
-
-        foreach (var child in _wounds.GetAllWoundableChildren(root.Owner))
-            _woundables.Add(child.Owner);
-
-        foreach (var woundable in _woundables)
-            _wounds.TryHaltAllBleeding(woundable);
+        _ailments.StopBleeding(entity, automatic: true);
     }
 }
 

@@ -5,6 +5,7 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Perks;
 using Content.Server._Shitmed.Body.Systems;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage;
@@ -37,6 +38,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSSurgeryGuideSystem _surgeryGuide = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
 
     private const float DrFullBudget = 60f;
     private const float DrHalfBudget = 150f;
@@ -142,7 +144,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private void OnPatientDamageChanged(EntityUid uid, FSMedicalPatientComponent comp, DamageChangedEvent args)
     {
-        if (args.DamageDelta is null || args.DamageDelta.Empty)
+        if (args.DamageDelta is null || args.DamageDelta.Empty || _ailments.InInternalDamage)
             return;
 
         if (args.DamageIncreased)

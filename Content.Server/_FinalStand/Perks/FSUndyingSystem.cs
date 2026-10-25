@@ -1,5 +1,4 @@
 using Content.Server.Popups;
-using Content.Server._Shitmed.DelayedDeath;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mobs;
@@ -80,8 +79,6 @@ public sealed partial class FSUndyingSystem : EntitySystem
         ent.Comp.Used = true;
         ent.Comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(seconds);
 
-        RemComp<DelayedDeathComponent>(ent);
-
         _ammo.FillHeld(ent);
         _popup.PopupEntity("Undying!", ent, PopupType.LargeCaution);
         ent.Comp.ShownSeconds = (int) MathF.Ceiling(seconds);
@@ -103,7 +100,6 @@ public sealed partial class FSUndyingSystem : EntitySystem
             if (now < end)
             {
                 _ammo.FillHeld(uid);
-                RemComp<DelayedDeathComponent>(uid);
                 var left = (int) Math.Ceiling((end - now).TotalSeconds);
                 if (left != undying.ShownSeconds)
                 {

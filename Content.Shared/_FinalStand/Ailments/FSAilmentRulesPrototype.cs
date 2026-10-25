@@ -1,3 +1,4 @@
+using Content.Shared.Damage;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Ailments;
@@ -28,6 +29,27 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
 
     [DataField]
     public Dictionary<FSAilmentMeter, FSAilmentMeterRule> Meters = new();
+
+    [DataField(required: true)]
+    public DamageSpecifier BleedDamage = new();
+
+    [DataField(required: true)]
+    public DamageSpecifier DownDrain = new();
+
+    [DataField]
+    public TimeSpan ClockWindow = TimeSpan.FromSeconds(3);
+
+    [DataField]
+    public TimeSpan ClockResendDrift = TimeSpan.FromSeconds(2);
+
+    [DataField]
+    public TimeSpan RegenDelay = TimeSpan.FromSeconds(6);
+
+    [DataField]
+    public float RegenPerSecond = 0.5f;
+
+    [DataField]
+    public float RegenCap = 0.5f;
 }
 
 [DataDefinition]
