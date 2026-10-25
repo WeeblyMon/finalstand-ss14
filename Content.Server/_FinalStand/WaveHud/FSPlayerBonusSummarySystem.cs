@@ -520,7 +520,8 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         if (underdog > 1f)
         {
             taken *= 1f / underdog;
-            sources.Add(FormatPct("Underdog", (1f - 1f / underdog) * 100f));
+            points += underdog - 1f;
+            sources.Add(FormatPct("Underdog", (underdog - 1f) * 100f));
         }
 
         if (sources.Count == 0)
