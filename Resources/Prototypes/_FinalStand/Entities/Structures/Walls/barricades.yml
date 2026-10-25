@@ -33,6 +33,7 @@
     damageModifierSet: FSBarricade
   - type: Injurable
     damageContainer: Inorganic
+  - type: FSPlayerDamageImmune
   - type: ExaminableDamage
     messages: FSBarricadeMessages
   - type: Flammable
