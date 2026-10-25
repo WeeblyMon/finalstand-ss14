@@ -132,7 +132,7 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
 
         var blastDamage = new DamageSpecifier();
         blastDamage.DamageDict["Blunt"] = FixedPoint2.New(comp.ExplosionDamage);
-        blastDamage.DamageDict["Toxin"] = FixedPoint2.New(comp.ToxinDamage);
+        blastDamage.DamageDict["Caustic"] = FixedPoint2.New(comp.CausticDamage);
 
         // One query at the wider radius; each effect then filters by its own.
         var searchRadius = MathF.Max(comp.ExplosionRadius, comp.SlowRadius);

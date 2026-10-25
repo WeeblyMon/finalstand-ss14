@@ -24,6 +24,7 @@
         Heat: -6
         Cold: -4
         Shock: -6
+        Caustic: -6
         Asphyxiation: -6
         Bloodloss: -6
     soundOnTarget:
