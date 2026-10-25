@@ -14,6 +14,15 @@ public sealed class DiscordTest : GameTest
 {
     private static readonly DateTime At = new(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc);
 
+    // Test servers have no webhook. A timer or process hook would keep every discarded server alive (a stopping
+    // server never calls Shutdown), which ran the full suite out of memory.
+    [Test]
+    public async Task AServerWithoutAWebhookHoldsNoProcessHooks()
+    {
+        await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.System<FSDiscordStatusSystem>().HoldsProcessHooks, Is.False));
+    }
+
     [Test]
     public async Task ARecordVictoryReportCarriesEverythingTheChannelNeeds()
     {

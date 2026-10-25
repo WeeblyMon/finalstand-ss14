@@ -64,6 +64,27 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _roundStarted = null);
 
         _playerManager.PlayerStatusChanged += OnPlayerStatusChanged;
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+
+        _cfg.UnsubValueChanged(CCVars.FSDiscordStatusWebhook, OnWebhookChanged);
+        _playerManager.PlayerStatusChanged -= OnPlayerStatusChanged;
+        ReleaseProcessHooks();
+        MarkOffline();
+    }
+
+    public bool HoldsProcessHooks => _timer != null;
+
+    // The timer, exit hook and signal handlers reach this system from outside the server, and a stopping server only
+    // clears its systems without calling Shutdown, so they would keep the whole server alive (every pair a test run
+    // throws away). They exist only while there is a webhook to report to.
+    private void HoldProcessHooks()
+    {
+        if (_timer != null)
+            return;
 
         _timer = new System.Threading.Timer(_ => _tasks.RunOnMainThread(OnTimer), null, TimerPeriod, TimerPeriod);
 
@@ -80,18 +101,15 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         }
     }
 
-    public override void Shutdown()
+    private void ReleaseProcessHooks()
     {
-        base.Shutdown();
+        if (_timer == null)
+            return;
 
-        _cfg.UnsubValueChanged(CCVars.FSDiscordStatusWebhook, OnWebhookChanged);
-        _playerManager.PlayerStatusChanged -= OnPlayerStatusChanged;
-        AppDomain.CurrentDomain.ProcessExit -= OnProcessExit;
-        _timer?.Dispose();
+        _timer.Dispose();
         _timer = null;
 
-        MarkOffline();
-
+        AppDomain.CurrentDomain.ProcessExit -= OnProcessExit;
         foreach (var signal in _signals)
             signal.Dispose();
         _signals.Clear();
@@ -126,8 +144,12 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         _lastSent = null;
 
         if (string.IsNullOrWhiteSpace(url))
+        {
+            ReleaseProcessHooks();
             return;
+        }
 
+        HoldProcessHooks();
         _discord.GetWebhook(url, data =>
         {
             if (_cfg.GetCVar(CCVars.FSDiscordStatusWebhook) != url)
