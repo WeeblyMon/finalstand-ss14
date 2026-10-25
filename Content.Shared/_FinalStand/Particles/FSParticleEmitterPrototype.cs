@@ -37,6 +37,18 @@ public sealed partial class FSParticleEmitterPrototype : IPrototype
     [DataField]
     public float Direction = 90f;
 
+    // Direction is measured from the attached entity's facing instead of the screen, so 90 is straight ahead.
+    [DataField]
+    public bool RotateWithEntity;
+
+    // Tiles along the emission direction from the origin where particles appear.
+    [DataField]
+    public float ForwardOffset;
+
+    // Each particle stops where a ray along its path first meets something on the Impassable layer.
+    [DataField]
+    public bool StopAtWalls;
+
     [DataField]
     public float Spread = 360f;
 
@@ -61,6 +73,10 @@ public sealed partial class FSParticleEmitterPrototype : IPrototype
 
     [DataField]
     public Color Color = Color.White;
+
+    // Colour by the end of its life, blended from Color; unset keeps Color throughout.
+    [DataField]
+    public Color? EndColor;
 
     // Multiply by the caller's colour, so one emitter serves every medic's beam colour.
     [DataField]
