@@ -3,6 +3,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSFireProjectile
+    fireStacks: 0.3
   - type: Sprite
     noRot: false
     drawdepth: Effects

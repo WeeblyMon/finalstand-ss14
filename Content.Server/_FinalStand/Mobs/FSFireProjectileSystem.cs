@@ -44,7 +44,7 @@ public sealed partial class FSFireProjectileSystem : EntitySystem
             {
                 if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
                 if (!comp.AlreadyIgnited.Add(targetUid)) continue;
-                flammable.FireStacks += 0.1f;
+                flammable.FireStacks += comp.FireStacks;
                 _flammable.Ignite(targetUid, uid, flammable);
             }
             _flammableSetPool.Return(candidates);

@@ -15,16 +15,22 @@
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/teslazombie.png
   - type: FSTeslaZombie
+    detectionRange: 9
+    chainRange: 5.5
+    attackCooldown: 3
+    maxChainTargets: 5
+    primaryDamageShock: 35
+    chainDamageShock: 20
   - type: Insulated
   - type: MobThresholds
     thresholds:
       0: Alive
-      175: Dead   # slightly lower than flamethrower (190) — ranged chain attack is the threat
+      600: Dead
   - type: MovementSpeedModifier
     baseWalkSpeed: 2.2    # FSZombieNormal (2.0) + 10%
     baseSprintSpeed: 2.7   # FSZombieNormal (2.5) + 8%
   - type: FSEnemyValue
-    killCredits: 500
+    killCredits: 1200
   - type: Sprite
     drawdepth: Mobs
     sprite: _FinalStand/Mobs/Zombies/Tesla/tesla_zombie.rsi
