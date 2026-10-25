@@ -1,0 +1,24 @@
+# A firing flamethrower zombie's fire, drawn by each client. Speed, lifetime and spread match the server's flames
+# (FSFlamethrowerComponent: 10 tiles/s for 0.6 s across a 20 degree cone), so the fire you see is the fire that burns.
+# Small, dense and pale at the nozzle, so the additive overlap reads as a hot core; wide, red and thin by the end of its
+# reach, so the stacked flames there stay fire-coloured instead of saturating to white.
+- type: fsParticleEmitter
+  id: FSFlamethrowerFlame
+  animation:
+    sprite: _FinalStand/Effects/Flamethrower/fire.rsi
+    state: fire
+  rate: 60
+  lifetime: 0.5, 0.6
+  speed: 9.5, 10.5
+  spread: 20
+  rotateWithEntity: true
+  forwardOffset: 0.3
+  stopAtWalls: true
+  size: 0.3, 1.2
+  sizeJitter: 0.25
+  spin: -180, 180
+  color: "#ffe8a0cc"
+  endColor: "#ff3c1040"
+  tinted: false
+  fadeIn: 0.05
+  fadeOut: 0.35

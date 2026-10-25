@@ -1,21 +1,17 @@
 using System.Numerics;
-using Microsoft.Extensions.ObjectPool;
-using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
+using Content.Server.Atmos.EntitySystems;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Mobs;
-using Content.Shared.Examine;
-using Content.Shared.Ghost;
+using Content.Shared.Atmos.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Components;
+using Content.Shared.Physics;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
-using Robust.Shared.Physics;
-using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
-using Robust.Shared.Player;
 using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Mobs;
@@ -26,13 +22,26 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private PointLightSystem _pointLight = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSTargetAcquisitionSystem _targeting = default!;
-
-    private const string GlowProto = "FSFlamethrowerGlow";
+    [Dependency] private RayCastSystem _rayCast = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
 
     private const float AcquireInterval = 0.25f;
+
+    // Flames leave this far in front of the zombie and are this thick; a wall stops their centre a radius short.
+    private const float FlameOffset = 0.3f;
+    private const float FlameRadius = 0.1f;
+    // Anything this close to a flame's path catches.
+    private const float HitRadius = 0.5f;
+    private const float CheckInterval = 0.05f;
+    private const float StacksPerHit = 0.1f;
+
+    // Flames stop at whatever a projectile on the Impassable mask would have hit: walls, windows, shut doors.
+    private static readonly QueryFilter WallFilter = new() { MaskBits = (int) CollisionGroup.Impassable };
+
+    private readonly HashSet<Entity<FlammableComponent>> _candidates = new();
 
     public override void Initialize()
     {
@@ -48,7 +57,6 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
             _audio.Stop(comp.FireSoundEntity.Value);
             comp.FireSoundEntity = null;
         }
-        DespawnGlow(comp);
         _pointLight.SetEnabled(uid, false);
     }
 
@@ -65,6 +73,12 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
                 UpdateWindup(uid, comp, frameTime);
             else
                 UpdateIdle(uid, comp, frameTime);
+        }
+
+        var streams = EntityQueryEnumerator<FSFlameStreamComponent>();
+        while (streams.MoveNext(out var uid, out var stream))
+        {
+            UpdateStream(uid, stream, frameTime);
         }
     }
 
@@ -128,8 +142,6 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
         comp.FireAccumulator = 0f;
         comp.ParticleAccumulator = 0f;
         comp.FireSoundEntity ??= _audio.PlayPvs(comp.FireLoopSound, uid)?.Entity;
-        comp.GlowEntity ??= Spawn(GlowProto, Transform(uid).Coordinates);
-        MoveGlow(uid, comp);
         Dirty(uid, comp);
     }
 
@@ -158,13 +170,11 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
 
         comp.FireAccumulator += frameTime;
 
-        MoveGlow(uid, comp);
-
         comp.ParticleAccumulator += frameTime;
         if (comp.ParticleAccumulator >= comp.ParticleSpawnRate)
         {
             comp.ParticleAccumulator = 0f;
-            SpawnFireBurst(uid, comp);
+            LaunchFlames(uid, comp);
         }
 
         if (comp.FireAccumulator >= comp.AttackDuration)
@@ -212,40 +222,147 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
                <= comp.TrackingRange * comp.TrackingRange;
     }
 
-    private void MoveGlow(EntityUid uid, FSFlamethrowerComponent comp)
+    // A burst of flames across the cone. Each gets its stopping distance from one ray now, so it can't pass a wall
+    // and nothing has to catch it touching one later.
+    private void LaunchFlames(EntityUid uid, FSFlamethrowerComponent comp)
     {
-        if (comp.GlowEntity is not { } glow || !Exists(glow))
+        var origin = _transform.GetMapCoordinates(uid);
+        if (origin.MapId == MapId.Nullspace)
             return;
 
-        var ahead = comp.FiringDirection * (comp.FlameRange * 0.5f);
-        _transform.SetCoordinates(glow, Transform(uid).Coordinates.Offset(ahead));
-    }
-
-    private void DespawnGlow(FSFlamethrowerComponent comp)
-    {
-        if (comp.GlowEntity is { } glow && Exists(glow))
-            QueueDel(glow);
-        comp.GlowEntity = null;
-    }
-
-    private void SpawnFireBurst(EntityUid uid, FSFlamethrowerComponent comp)
-    {
-        var coords = Transform(uid).Coordinates;
+        var stream = EnsureComp<FSFlameStreamComponent>(uid);
         var facingAngle = new Angle(comp.FiringDirection);
         var halfConeDeg = comp.ConeDegrees / 2f;
+        var range = comp.FireProjectileSpeed * comp.FlameLifetime;
 
         for (var i = 0; i < comp.ParticlesPerBurst; i++)
         {
             var spread = _random.NextFloat(-halfConeDeg, halfConeDeg);
-            var shotAngle = facingAngle + Angle.FromDegrees(spread);
-            var shotDir = shotAngle.ToVec();
-            var spawnCoords = coords.Offset(shotDir * 0.3f);
-            var projectile = Spawn("FSFireProjectile", spawnCoords);
+            var dir = (facingAngle + Angle.FromDegrees(spread)).ToVec();
 
-            var body = EnsureComp<PhysicsComponent>(projectile);
-            _physics.SetBodyStatus(projectile, body, BodyStatus.InAir);
-            _physics.SetLinearVelocity(projectile, shotDir * comp.FireProjectileSpeed, body: body);
+            // Cast from the zombie's centre: a flame starting inside a wall it is pressed against would miss it.
+            var reach = range;
+            var hit = _rayCast.CastRayClosest(origin.MapId, origin.Position, dir * (FlameOffset + range), WallFilter);
+            if (hit.Hit)
+                reach = MathF.Max(0f, hit.Results[0].Fraction * (FlameOffset + range) - FlameOffset - FlameRadius);
+
+            stream.Flames.Add(new FSFlame
+            {
+                Id = stream.NextId++,
+                Map = origin.MapId,
+                Origin = origin.Position + dir * FlameOffset,
+                Direction = dir,
+                Speed = comp.FireProjectileSpeed,
+                Reach = reach,
+                Life = comp.FlameLifetime,
+            });
         }
+    }
+
+    private void UpdateStream(EntityUid uid, FSFlameStreamComponent stream, float frameTime)
+    {
+        var flames = stream.Flames;
+        for (var i = flames.Count - 1; i >= 0; i--)
+        {
+            var flame = flames[i];
+            flame.Age += frameTime;
+            if (flame.Age >= flame.Life)
+            {
+                flames[i] = flames[^1];
+                flames.RemoveAt(flames.Count - 1);
+                continue;
+            }
+
+            flames[i] = flame;
+        }
+
+        if (flames.Count == 0)
+        {
+            RemCompDeferred<FSFlameStreamComponent>(uid);
+            return;
+        }
+
+        stream.CheckAccumulator += frameTime;
+        if (stream.CheckAccumulator < CheckInterval)
+            return;
+        stream.CheckAccumulator = 0f;
+
+        // One lookup over everything the flames swept since the last check, then each flame's path against each target.
+        var map = flames[0].Map;
+        var swept = Box2.Empty;
+        var first = true;
+        foreach (var flame in flames)
+        {
+            var from = flame.Origin + flame.Direction * flame.Checked;
+            var to = flame.Origin + flame.Direction * flame.Travelled;
+            var box = new Box2(Vector2.Min(from, to), Vector2.Max(from, to));
+            swept = first ? box : swept.Union(box);
+            first = false;
+        }
+
+        _candidates.Clear();
+        _lookup.GetEntitiesIntersecting(map, swept.Enlarged(HitRadius), _candidates);
+
+        foreach (var (target, flammable) in _candidates)
+        {
+            if (HasComp<WaveSpawnedTagComponent>(target))
+                continue;
+
+            var bounds = _lookup.GetWorldAABB(target).Enlarged(HitRadius);
+            foreach (var flame in flames)
+            {
+                var from = flame.Origin + flame.Direction * flame.Checked;
+                var to = flame.Origin + flame.Direction * flame.Travelled;
+                if (!SegmentHits(from, to, bounds) || !stream.Ignited.Add((flame.Id, target)))
+                    continue;
+
+                // Uncapped on purpose: a long hosing builds stacks past the usual maximum, which is the flamer's threat.
+                flammable.FireStacks += StacksPerHit;
+                _flammable.Ignite(target, uid, flammable);
+            }
+        }
+
+        for (var i = 0; i < flames.Count; i++)
+        {
+            var flame = flames[i];
+            flame.Checked = flame.Travelled;
+            flames[i] = flame;
+        }
+    }
+
+    // Slab test of the segment against the box.
+    private static bool SegmentHits(Vector2 from, Vector2 to, Box2 box)
+    {
+        var delta = to - from;
+        var enter = 0f;
+        var exit = 1f;
+
+        for (var axis = 0; axis < 2; axis++)
+        {
+            var start = axis == 0 ? from.X : from.Y;
+            var step = axis == 0 ? delta.X : delta.Y;
+            var min = axis == 0 ? box.Left : box.Bottom;
+            var max = axis == 0 ? box.Right : box.Top;
+
+            if (MathF.Abs(step) < 1e-6f)
+            {
+                if (start < min || start > max)
+                    return false;
+                continue;
+            }
+
+            var t1 = (min - start) / step;
+            var t2 = (max - start) / step;
+            if (t1 > t2)
+                (t1, t2) = (t2, t1);
+
+            enter = MathF.Max(enter, t1);
+            exit = MathF.Min(exit, t2);
+            if (enter > exit)
+                return false;
+        }
+
+        return true;
     }
 
     private void StopFiring(EntityUid uid, FSFlamethrowerComponent comp)
@@ -253,7 +370,6 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
         comp.IsFiring = false;
         comp.Target = null;
         comp.CooldownAccumulator = comp.AttackCooldown;
-        DespawnGlow(comp);
         _pointLight.SetEnabled(uid, false);
         Dirty(uid, comp);
 

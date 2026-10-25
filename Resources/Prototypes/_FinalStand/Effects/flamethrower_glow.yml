@@ -1,7 +1,7 @@
 - type: entity
   id: FSFlamethrowerGlow
   categories: [ HideSpawnMenu ]
-  description: Lights the flame cone. One per firing flamethrower, moved along the firing direction.
+  description: Lights the flame cone. Spawned by each client as a child of a firing flamethrower zombie.
   components:
   - type: Transform
     anchored: false
