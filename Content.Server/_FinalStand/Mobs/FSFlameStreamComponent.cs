@@ -27,6 +27,7 @@ public struct FSFlame
     public float Reach;
     public float Age;
     public float Life;
+    public float FireStacks;
     // Distance travelled at the last hit check.
     public float Checked;
 

@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.Stylesheets;
+using Content.Client._FinalStand.UI;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.Perks;
 using Robust.Client.Graphics;
@@ -18,7 +19,7 @@ public sealed partial class PerkShopWindow
     {
         if (_selectedId == null || !FSPerkDef.All.TryGetValue(_selectedId, out var def))
         {
-            SelectedPerkIcon.Texture = null;
+            SelectedPerkIcon.TexturePath = null;
             SelectedIconBox.PanelOverride = Box(FSUiPalette.BgRecess, FSUiPalette.BgTrack, new Thickness(1));
             CategoryTag.Visible = false;
             SelectedNameLabel.Text = Loc.GetString("fs-perk-shop-select");
@@ -37,7 +38,7 @@ public sealed partial class PerkShopWindow
         var maxed = level == FSPerkDef.MaxLevel;
         var accent = FSPerkPalette.Accent[def.Category];
 
-        SelectedPerkIcon.Texture = GetPerkIcon(def.Id);
+        SelectedPerkIcon.TexturePath = GetPerkIcon(def.Id);
         SelectedIconBox.PanelOverride = Box(FSPerkPalette.Background[def.Category], FSPerkPalette.Edge[def.Category], new Thickness(1));
 
         SelectedNameLabel.Text = def.Name;
@@ -253,7 +254,7 @@ public sealed partial class PerkShopWindow
         };
         var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 4 };
         if (GetPerkIcon(id) is { } icon)
-            row.AddChild(new TextureRect { Texture = icon, Stretch = TextureRect.StretchMode.Scale, SetSize = new Vector2(20, 20) });
+            row.AddChild(new FSMipmapRect { TexturePath = icon, SetSize = new Vector2(20, 20) });
         row.AddChild(new Label { Text = Loc.GetString("fs-perk-shop-level-short", ("level", level)), FontOverride = _fontSmallBold, FontColorOverride = FSUiPalette.TextPrimary, VerticalAlignment = VAlignment.Center });
         chip.AddChild(row);
         return chip;

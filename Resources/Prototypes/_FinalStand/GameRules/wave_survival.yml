@@ -13,16 +13,16 @@
     specialEnemyPool:
     - enemyId: FSZombieBloater
       fromWave: 7
-      spawnChance: 0.05
+      spawnChance: 0.025
     - enemyId: FSZombieFlamethrower
       fromWave: 9
-      spawnChance: 0.05
+      spawnChance: 0.025
     - enemyId: FSZombieTesla
       fromWave: 11
-      spawnChance: 0.05
+      spawnChance: 0.025
     - enemyId: FSZombieArmoured
       fromWave: 5
-      spawnChance: 0.05
+      spawnChance: 0.025
     - enemyId: FSZombieDevastator
       fromWave: 13
       spawnChance: 0.01

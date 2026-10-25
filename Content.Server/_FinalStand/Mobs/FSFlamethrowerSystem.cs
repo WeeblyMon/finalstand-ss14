@@ -36,7 +36,6 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
     // Anything this close to a flame's path catches.
     private const float HitRadius = 0.5f;
     private const float CheckInterval = 0.05f;
-    private const float StacksPerHit = 0.1f;
 
     // Flames stop at whatever a projectile on the Impassable mask would have hit: walls, windows, shut doors.
     private static readonly QueryFilter WallFilter = new() { MaskBits = (int) CollisionGroup.Impassable };
@@ -255,6 +254,7 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
                 Speed = comp.FireProjectileSpeed,
                 Reach = reach,
                 Life = comp.FlameLifetime,
+                FireStacks = comp.FireStacks,
             });
         }
     }
@@ -317,7 +317,7 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
                     continue;
 
                 // Uncapped on purpose: a long hosing builds stacks past the usual maximum, which is the flamer's threat.
-                flammable.FireStacks += StacksPerHit;
+                flammable.FireStacks += flame.FireStacks;
                 _flammable.Ignite(target, uid, flammable);
             }
         }

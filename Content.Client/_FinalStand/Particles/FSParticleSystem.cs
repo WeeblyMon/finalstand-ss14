@@ -59,6 +59,7 @@ public sealed partial class FSParticleSystem : EntitySystem
         public FSParticleEmitterPrototype Emitter = default!;
         public Color Tint;
         public float RateScale = 1f;
+        public float SpeedScale = 1f;
         public float Owed;
         public Vector2? Last;
         public float? Heading;
@@ -124,6 +125,12 @@ public sealed partial class FSParticleSystem : EntitySystem
             attachment.RateScale = scale;
     }
 
+    public void SetSpeedScale(int handle, float scale)
+    {
+        if (_attachments.TryGetValue(handle, out var attachment))
+            attachment.SpeedScale = scale;
+    }
+
     public void SetTint(int handle, Color tint)
     {
         if (_attachments.TryGetValue(handle, out var attachment))
@@ -166,7 +173,7 @@ public sealed partial class FSParticleSystem : EntitySystem
             while (attachment.Owed >= 1f)
             {
                 attachment.Owed -= 1f;
-                Spawn(attachment.Emitter, map, position, attachment.Tint, attachment.Heading, turn);
+                Spawn(attachment.Emitter, map, position, attachment.Tint, attachment.Heading, turn, attachment.SpeedScale);
             }
         }
 
@@ -223,14 +230,14 @@ public sealed partial class FSParticleSystem : EntitySystem
         }
     }
 
-    private void Spawn(FSParticleEmitterPrototype emitter, MapId map, Vector2 origin, Color tint, float? rotation = null, float turn = 0f)
+    private void Spawn(FSParticleEmitterPrototype emitter, MapId map, Vector2 origin, Color tint, float? rotation = null, float turn = 0f, float speedScale = 1f)
     {
         if (ParticleCount >= MaxParticles || GetFrames(emitter) is not { } frames)
             return;
 
         var angle = MathHelper.DegreesToRadians(emitter.Direction + turn + _random.NextFloat(-emitter.Spread, emitter.Spread) / 2f);
         var dir = new Vector2(MathF.Cos((float) angle), MathF.Sin((float) angle));
-        var speed = _random.NextFloat(emitter.Speed.X, MathF.Max(emitter.Speed.X, emitter.Speed.Y));
+        var speed = _random.NextFloat(emitter.Speed.X, MathF.Max(emitter.Speed.X, emitter.Speed.Y)) * speedScale;
         var offset = emitter.SpawnRadius > 0f
             ? _random.NextAngle().ToVec() * emitter.SpawnRadius * MathF.Sqrt(_random.NextFloat())
             : Vector2.Zero;

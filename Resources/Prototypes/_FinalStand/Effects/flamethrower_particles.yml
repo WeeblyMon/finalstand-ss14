@@ -1,5 +1,6 @@
-# A firing flamethrower zombie's fire, drawn by each client. Speed, lifetime and spread match the server's flames
-# (FSFlamethrowerComponent: 10 tiles/s for 0.6 s across a 20 degree cone), so the fire you see is the fire that burns.
+# A firing flamethrower zombie's fire, drawn by each client. Lifetime and spread match the server's flames
+# (FSFlamethrowerComponent: 0.6 s across a 20 degree cone); the speed is for a 10 tiles/s flame and each flamer scales
+# it to its own fireProjectileSpeed, so the fire you see is the fire that burns.
 # Small, dense and pale at the nozzle, so the additive overlap reads as a hot core; wide, red and thin by the end of its
 # reach, so the stacked flames there stay fire-coloured instead of saturating to white.
 - type: fsParticleEmitter

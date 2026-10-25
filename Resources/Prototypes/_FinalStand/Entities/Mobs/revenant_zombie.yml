@@ -7,6 +7,10 @@
   components:
   - type: FSSpecialZombie
   - type: FSRevenant
+    sliceDamage: 30
+    grabCooldown: 6
+    executeHealthThreshold: 0.35
+    resistanceBypass: 0.25
   - type: FSNoHealthBar
   - type: HTN
     rootTask:
@@ -44,7 +48,7 @@
   - type: MobThresholds
     thresholds:
       0: Alive
-      300: Dead
+      700: Dead
   - type: MovementSpeedModifier
     baseWalkSpeed: 7.5
     baseSprintSpeed: 9.6
@@ -59,7 +63,7 @@
     damagedState: damaged
     singleStageAt: 0.10
   - type: FSEnemyValue
-    killCredits: 1500
+    killCredits: 2200
   - type: FSMoneyOnHitCap
     maxMoneyPerPlayer: 1100
     researchCapMultiplier: 6

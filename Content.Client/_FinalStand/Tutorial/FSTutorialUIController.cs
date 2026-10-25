@@ -3,11 +3,13 @@ using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Client.Gameplay;
 using Content.Client._FinalStand.WaveHud;
+using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Tutorial;
 using Content.Shared.Input;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
+using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
@@ -22,6 +24,8 @@ public sealed partial class FSTutorialUIController : UIController, IOnStateExite
 {
     [Dependency] private IInputManager _input = default!;
     [Dependency] private IOverlayManager _overlays = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private IResourceCache _resources = default!;
 
     private static readonly TimeSpan ShowTime = TimeSpan.FromSeconds(25);
     private static readonly TimeSpan ReadyUpShowTime = TimeSpan.FromSeconds(40);
@@ -149,10 +153,19 @@ public sealed partial class FSTutorialUIController : UIController, IOnStateExite
 
         var icon = FSTutorialText.Icon(tip);
         _iconFrame!.Visible = icon != null;
-        _icon!.Texture = icon is { } proto
-            ? EntityManager.System<SpriteSystem>().Frame0(new SpriteSpecifier.EntityPrototype(proto))
-            : null;
+        _icon!.Texture = icon is { } proto ? IconTexture(proto) : null;
         _card!.Visible = true;
+    }
+
+    private Texture IconTexture(EntProtoId proto)
+    {
+        if (_prototypes.TryIndex(proto, out var entity)
+            && entity.TryGetComponent<FSEnemyIconComponent>(out var enemy, EntityManager.ComponentFactory)
+            && !string.IsNullOrEmpty(enemy.IconPath)
+            && _resources.TryGetResource<TextureResource>(new ResPath(enemy.IconPath), out var portrait))
+            return portrait.Texture;
+
+        return EntityManager.System<SpriteSystem>().Frame0(new SpriteSpecifier.EntityPrototype(proto));
     }
 
     private string Key(BoundKeyFunction function)

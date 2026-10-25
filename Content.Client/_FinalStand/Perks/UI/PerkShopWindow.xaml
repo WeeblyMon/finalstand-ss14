@@ -1,5 +1,6 @@
 <controls:FancyWindow xmlns="https://spacestation14.io"
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:fsui="clr-namespace:Content.Client._FinalStand.UI"
                       Title="{Loc 'fs-perk-shop-title'}"
                       Resizable="True"
                       SetSize="1060 700"
@@ -60,8 +61,8 @@
                         <BoxContainer Name="InfoBox" Orientation="Vertical" SeparationOverride="12">
                             <BoxContainer Orientation="Horizontal" SeparationOverride="14">
                                 <PanelContainer Name="SelectedIconBox" SetSize="84 84">
-                                    <TextureRect Name="SelectedPerkIcon" SetSize="60 60" Stretch="KeepAspectCentered"
-                                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <fsui:FSMipmapRect Name="SelectedPerkIcon" SetSize="60 60"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </PanelContainer>
                                 <BoxContainer Orientation="Vertical" VerticalAlignment="Center" SeparationOverride="6">
                                     <Label Name="SelectedNameLabel" Text="" />

@@ -12,6 +12,7 @@ namespace Content.Client._FinalStand.Visuals;
 public sealed partial class FSFlamethrowerVisualsSystem : EntitySystem
 {
     [Dependency] private FSParticleSystem _particles = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> FlameEmitter = "FSFlamethrowerFlame";
     private static readonly EntProtoId GlowProto = "FSFlamethrowerGlow";
@@ -68,6 +69,10 @@ public sealed partial class FSFlamethrowerVisualsSystem : EntitySystem
             return;
 
         var emitter = _particles.Attach(FlameEmitter, ent);
+        // The emitter is tuned for one flame speed; each flamer's own speed sets how far its fire reaches.
+        if (_prototypes.TryIndex(FlameEmitter, out var proto) && proto.Speed.X + proto.Speed.Y > 0f)
+            _particles.SetSpeedScale(emitter, ent.Comp.FireProjectileSpeed * 2f / (proto.Speed.X + proto.Speed.Y));
+
         // A child of the zombie half way along the flames; its local up is the way it aims, so the light swings with it.
         var glow = Spawn(GlowProto, new EntityCoordinates(ent, new Vector2(0f, ent.Comp.FlameRange * 0.5f)));
         _flames[ent] = (emitter, glow);

@@ -1,5 +1,7 @@
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -14,7 +16,10 @@ using Content.Shared.GameTicking;
 using Robust.Server;
 using Robust.Server.Player;
 using Robust.Shared;
+using Robust.Shared.Asynchronous;
 using Robust.Shared.Configuration;
+using Robust.Shared.Enums;
+using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Discord;
@@ -29,17 +34,25 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private FSPlayerDataStore _store = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private ITaskManager _tasks = default!;
 
     private const string MessageKeyPrefix = "discord_status_message:";
     private static readonly TimeSpan ShutdownWait = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan TimerPeriod = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan Heartbeat = TimeSpan.FromMinutes(5);
 
     private WebhookIdentifier? _webhook;
     private string? _messageKey;
     private ulong? _messageId;
     private string? _lastSent;
     private bool _sending;
+    private bool _refreshQueued;
     private TimeSpan _nextUpdate;
     private DateTime? _roundStarted;
+    private DateTime _lastPush;
+    private int _offlineSent;
+    private System.Threading.Timer? _timer;
+    private readonly List<PosixSignalRegistration> _signals = new();
 
     public override void Initialize()
     {
@@ -49,6 +62,22 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
 
         SubscribeLocalEvent<RoundStartingEvent>(_ => _roundStarted = DateTime.UtcNow);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _roundStarted = null);
+
+        _playerManager.PlayerStatusChanged += OnPlayerStatusChanged;
+
+        _timer = new System.Threading.Timer(_ => _tasks.RunOnMainThread(OnTimer), null, TimerPeriod, TimerPeriod);
+
+        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+        foreach (var signal in new[] { PosixSignal.SIGHUP, PosixSignal.SIGTERM })
+        {
+            try
+            {
+                _signals.Add(PosixSignalRegistration.Create(signal, _ => MarkOffline()));
+            }
+            catch (PlatformNotSupportedException)
+            {
+            }
+        }
     }
 
     public override void Shutdown()
@@ -56,13 +85,31 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         base.Shutdown();
 
         _cfg.UnsubValueChanged(CCVars.FSDiscordStatusWebhook, OnWebhookChanged);
+        _playerManager.PlayerStatusChanged -= OnPlayerStatusChanged;
+        AppDomain.CurrentDomain.ProcessExit -= OnProcessExit;
+        _timer?.Dispose();
+        _timer = null;
 
+        MarkOffline();
+
+        foreach (var signal in _signals)
+            signal.Dispose();
+        _signals.Clear();
+    }
+
+    private void OnProcessExit(object? sender, EventArgs e) => MarkOffline();
+
+    private void MarkOffline()
+    {
         if (_webhook is not { } webhook || _messageId is not { } id)
+            return;
+
+        if (Interlocked.Exchange(ref _offlineSent, 1) == 1)
             return;
 
         try
         {
-            var payload = FSDiscordMessages.ServerStatus(BuildReport(offline: true));
+            var payload = FSDiscordMessages.ServerStatus(BuildReport(offline: true) with { Updated = DateTime.UtcNow });
             Task.Run(() => _discord.EditMessage(webhook, id, payload)).Wait(ShutdownWait);
         }
         catch (Exception e)
@@ -93,19 +140,47 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         });
     }
 
-    public override void Update(float frameTime)
+    private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs e)
     {
-        base.Update(frameTime);
+        if (e.NewStatus is SessionStatus.Connected or SessionStatus.Disconnected)
+            Refresh();
+    }
 
-        if (_webhook is not { } webhook || _sending || _timing.RealTime < _nextUpdate)
+    private void OnTimer()
+    {
+        if (_offlineSent == 1)
             return;
 
+        if (DateTime.UtcNow - _lastPush >= Heartbeat)
+            Refresh(force: true);
+        else if (_timing.RealTime >= _nextUpdate)
+            Refresh();
+    }
+
+    private void Refresh(bool force = false)
+    {
+        if (_webhook is not { } webhook)
+            return;
+
+        if (_offlineSent == 1)
+            return;
+
+        if (_sending)
+        {
+            _refreshQueued = true;
+            return;
+        }
+
+        _refreshQueued = false;
         _nextUpdate = _timing.RealTime + TimeSpan.FromSeconds(Math.Max(10, _cfg.GetCVar(CCVars.FSDiscordStatusIntervalSeconds)));
 
-        var payload = FSDiscordMessages.ServerStatus(BuildReport(offline: false));
-        var json = JsonSerializer.Serialize(payload);
-        if (json == _lastSent && _messageId != null)
+        var report = BuildReport(offline: false);
+        var json = JsonSerializer.Serialize(FSDiscordMessages.ServerStatus(report));
+        if (json == _lastSent && _messageId != null && !force)
             return;
+
+        var payload = FSDiscordMessages.ServerStatus(report with { Updated = DateTime.UtcNow });
+        _lastPush = DateTime.UtcNow;
 
         _sending = true;
         _ = PushAsync(webhook, payload, json);
@@ -139,7 +214,7 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         return new FSDiscordMessages.StatusReport(
             _baseServer.ServerName,
             phase,
-            offline ? 0 : _playerManager.PlayerCount,
+            offline ? 0 : _playerManager.Sessions.Count(s => s.Status != SessionStatus.Disconnected),
             _cfg.GetCVar(CVars.GameMaxPlayers),
             wave,
             inRound && _waveRule.IsEndless(),
@@ -188,6 +263,8 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         finally
         {
             _sending = false;
+            if (_refreshQueued)
+                Refresh();
         }
     }
 }

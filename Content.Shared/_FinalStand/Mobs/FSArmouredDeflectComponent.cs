@@ -11,6 +11,8 @@ public sealed partial class FSArmouredDeflectComponent : Component
     [DataField] public float StartJitter = 4f;
     [DataField] public float ShrapnelRange = 3f;
     [DataField] public int ShrapnelCount = 6;
+    [DataField] public float ShrapnelSpeed = 18f;
+    [DataField] public float MaxShardDamage;
 
     [DataField] public float ShrapnelDamageFraction = 0.5f;
 

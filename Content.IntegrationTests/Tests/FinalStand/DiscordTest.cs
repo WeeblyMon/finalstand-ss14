@@ -163,4 +163,26 @@ public sealed class DiscordTest : GameTest
             Assert.That(report.Players, Is.GreaterThanOrEqualTo(0));
         });
     }
+
+    [Test]
+    public async Task TheStatusSaysWhenItWasLastCheckedOrWentOffline()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var stamp = $"<t:{new DateTimeOffset(At).ToUnixTimeSeconds()}:R>";
+            var live = FSDiscordMessages.ServerStatus(new FSDiscordMessages.StatusReport(
+                "Final Stand EU", FSDiscordMessages.StatusPhase.Lobby, 3, 40, 0, false, null,
+                Array.Empty<string>(), null, null, At)).Embeds!.Single();
+            var offline = FSDiscordMessages.ServerStatus(new FSDiscordMessages.StatusReport(
+                "Final Stand EU", FSDiscordMessages.StatusPhase.Offline, 0, 40, 0, false, null,
+                Array.Empty<string>(), null, null, At)).Embeds!.Single();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(live.Description, Does.Contain(stamp), "a stale message shows how long ago it was checked");
+                Assert.That(offline.Description, Does.Contain(stamp));
+                Assert.That(offline.Description, Is.Not.EqualTo(live.Description), "offline says when it went down, not when it was checked");
+            });
+        });
+    }
 }

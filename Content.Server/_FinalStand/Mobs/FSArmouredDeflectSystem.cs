@@ -26,7 +26,6 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
-    private const float ShrapnelSpeed = 18f;
     private static readonly ProtoId<DamageGroupPrototype> GeneticGroup = "Genetic";
 
     public override void Initialize()
@@ -84,7 +83,7 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
 
         var genetic = _prototypes.Index(GeneticGroup).DamageTypes;
         var coords = _transform.GetMapCoordinates(zombie);
-        var lifetime = comp.ShrapnelRange / ShrapnelSpeed;
+        var lifetime = comp.ShrapnelRange / comp.ShrapnelSpeed;
         var spin = _random.NextFloat(0f, MathF.Tau);
 
         for (var i = 0; i < comp.ShrapnelCount; i++)
@@ -103,6 +102,10 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
                         proj.Damage.DamageDict[type] = amount * comp.ShrapnelDamageFraction;
                 }
 
+                var total = proj.Damage.GetTotal().Float();
+                if (comp.MaxShardDamage > 0 && total > comp.MaxShardDamage)
+                    proj.Damage *= comp.MaxShardDamage / total;
+
                 proj.Shooter = zombie;
                 proj.IgnoreShooter = true;
             }
@@ -113,7 +116,7 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
             if (TryComp<PhysicsComponent>(piece, out var body))
             {
                 _physics.SetBodyStatus(piece, body, BodyStatus.InAir);
-                _physics.SetLinearVelocity(piece, dir * ShrapnelSpeed, body: body);
+                _physics.SetLinearVelocity(piece, dir * comp.ShrapnelSpeed, body: body);
             }
 
             var despawn = EnsureComp<TimedDespawnComponent>(piece);

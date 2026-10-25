@@ -34,6 +34,7 @@ public sealed class FlamethrowerVisualsTest : GameTest
         var map = await Pair.CreateTestMap();
 
         EntityUid flamer = default;
+        var flameSpeed = 0f;
         await Server.WaitPost(() =>
         {
             for (var x = -2; x <= 6; x++)
@@ -55,6 +56,7 @@ public sealed class FlamethrowerVisualsTest : GameTest
             comp.FiringDirection = Vector2.UnitX;
             comp.IsFiring = true;
             sEntMan.Dirty(flamer, comp);
+            flameSpeed = comp.FireProjectileSpeed;
         });
 
         await Pair.RunTicksSync(20);
@@ -71,6 +73,7 @@ public sealed class FlamethrowerVisualsTest : GameTest
             var particles = cEntMan.System<FSParticleSystem>();
             var count = 0;
             var furthest = float.MinValue;
+            var fastest = 0f;
             for (var i = 0; i < particles.ParticleCount; i++)
             {
                 ref var p = ref particles.Particles[i];
@@ -79,6 +82,7 @@ public sealed class FlamethrowerVisualsTest : GameTest
 
                 count++;
                 furthest = MathF.Max(furthest, p.Position.X);
+                fastest = MathF.Max(fastest, p.Velocity.Length());
             }
 
             Assert.Multiple(() =>
@@ -86,6 +90,8 @@ public sealed class FlamethrowerVisualsTest : GameTest
                 Assert.That(count, Is.GreaterThan(0), "no flame particles");
                 Assert.That(furthest, Is.GreaterThan(1.5f), "the flames never left the nozzle");
                 Assert.That(furthest, Is.LessThanOrEqualTo(WallFace), "flame particles went into the wall");
+                // The particles in flight move at the flamer's own flame speed, so they reach as far as its fire.
+                Assert.That(fastest, Is.InRange(flameSpeed * 0.9f, flameSpeed * 1.1f), "flame particles don't match the flamer's speed");
             });
         });
     }
