@@ -119,7 +119,5 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             if (_inventory.TryEquip(user, user, item, slot, silent: true))
                 return;
         }
-
-        _hands.TryPickupAnyHand(user, item);
     }
 }
