@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.GameTicking.Rules;
@@ -37,6 +38,7 @@ public sealed class HordeBenchmark : GameTest
     private static readonly EntProtoId WaveRule = "WaveSurvivalZombie";
     private static readonly EntProtoId[] Horde = ["FSZombieNormal", "FSZombieRunner"];
     private static readonly EntProtoId Defender = "MobHuman";
+    private static readonly EntProtoId Flamethrower = "FSZombieFlamethrower";
 
     private const int Wave = 30;
     private const int WarmupTicks = 120;
@@ -60,7 +62,6 @@ public sealed class HordeBenchmark : GameTest
         var timing = server.ResolveDependency<IGameTiming>();
         var mind = entMan.System<MindSystem>();
         var godmode = entMan.System<SharedGodmodeSystem>();
-        var client = Pair.Client;
 
         await server.WaitPost(() =>
         {
@@ -90,6 +91,62 @@ public sealed class HordeBenchmark : GameTest
 
             entMan.EntitySysManager.MetricsEnabled = true;
         });
+
+        await Measure(entMan, timing, $"{count} zombies, {defenders} defenders, wave {Wave}");
+    }
+
+    // Flamethrowers ringed round the client's defender, so they keep firing at it, optionally inside a horde.
+    [Test]
+    [TestCase(20, 0)]
+    [TestCase(20, 480)]
+    public async Task FlamethrowerTickCost(int flamers, int horde)
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var ticker = entMan.System<GameTicker>();
+        var waves = entMan.System<WaveGameRuleSystem>();
+        var spawning = entMan.System<WaveEnemySpawningSystem>();
+        var random = server.ResolveDependency<IRobustRandom>();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var mind = entMan.System<MindSystem>();
+        var godmode = entMan.System<SharedGodmodeSystem>();
+
+        await server.WaitPost(() =>
+        {
+            Assert.That(ticker.StartGameRule(WaveRule, out var rule));
+            Assert.That(waves.ForceNextWave(Wave), Is.EqualTo(Wave));
+
+            var spawners = new List<EntityCoordinates>();
+            var query = entMan.EntityQueryEnumerator<WaveEnemySpawnerComponent, TransformComponent>();
+            while (query.MoveNext(out _, out var xform))
+                spawners.Add(xform.Coordinates);
+            Assert.That(spawners, Is.Not.Empty, "the map has no wave spawners");
+
+            var at = spawners[0];
+            var defender = entMan.SpawnEntity(Defender, at);
+            godmode.EnableGodmode(defender);
+            mind.ControlMob(Pair.Player!.UserId, defender);
+
+            var comp = entMan.GetComponent<WaveGameRuleComponent>(rule);
+            for (var i = 0; i < flamers; i++)
+            {
+                var angle = MathF.Tau * i / flamers;
+                spawning.SpawnWaveEnemy(Flamethrower, at.Offset(new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * 3.5f), comp);
+            }
+
+            for (var i = 0; i < horde; i++)
+                spawning.SpawnWaveEnemy(random.Pick(Horde), random.Pick(spawners).Offset(random.NextVector2(2f)), comp);
+
+            entMan.EntitySysManager.MetricsEnabled = true;
+        });
+
+        await Measure(entMan, timing, $"{flamers} flamethrowers, {horde} other zombies, wave {Wave}");
+    }
+
+    private async Task Measure(IEntityManager entMan, IGameTiming timing, string label)
+    {
+        var server = Pair.Server;
+        var client = Pair.Client;
 
         await Pair.RunTicksSync(WarmupTicks);
 
@@ -138,7 +195,7 @@ public sealed class HordeBenchmark : GameTest
         serverChunks.Sort();
         clientChunks.Sort();
         var budget = 1000.0 / timing.TickRate;
-        TestContext.Out.WriteLine($"{count} zombies, {defenders} defenders, wave {Wave}: server median {serverChunks[Chunks / 2]:F2} ms/tick " +
+        TestContext.Out.WriteLine($"{label}: server median {serverChunks[Chunks / 2]:F2} ms/tick " +
                                   $"(best {serverChunks[0]:F2}, worst {serverChunks[^1]:F2}, budget {budget:F1} ms at {timing.TickRate} TPS), " +
                                   $"client median {clientChunks[Chunks / 2]:F2} ms/tick");
         TestContext.Out.WriteLine($"Allocated {allocatedPerTick:F0} KiB/tick (server and client), GCs: {gen0} gen0, {gen2} gen2");
