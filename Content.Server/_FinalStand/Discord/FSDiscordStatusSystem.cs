@@ -15,6 +15,8 @@ using Robust.Server;
 using Robust.Server.Player;
 using Robust.Shared;
 using Robust.Shared.Configuration;
+using Robust.Shared.Enums;
+using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Discord;
@@ -38,6 +40,7 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
     private ulong? _messageId;
     private string? _lastSent;
     private bool _sending;
+    private bool _refreshQueued;
     private TimeSpan _nextUpdate;
     private DateTime? _roundStarted;
 
@@ -49,6 +52,8 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
 
         SubscribeLocalEvent<RoundStartingEvent>(_ => _roundStarted = DateTime.UtcNow);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _roundStarted = null);
+
+        _playerManager.PlayerStatusChanged += OnPlayerStatusChanged;
     }
 
     public override void Shutdown()
@@ -56,6 +61,7 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         base.Shutdown();
 
         _cfg.UnsubValueChanged(CCVars.FSDiscordStatusWebhook, OnWebhookChanged);
+        _playerManager.PlayerStatusChanged -= OnPlayerStatusChanged;
 
         if (_webhook is not { } webhook || _messageId is not { } id)
             return;
@@ -93,13 +99,32 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         });
     }
 
+    private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs e)
+    {
+        if (e.NewStatus is SessionStatus.Connected or SessionStatus.Disconnected)
+            Refresh();
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        if (_webhook is not { } webhook || _sending || _timing.RealTime < _nextUpdate)
+        if (_timing.RealTime >= _nextUpdate)
+            Refresh();
+    }
+
+    private void Refresh()
+    {
+        if (_webhook is not { } webhook)
             return;
 
+        if (_sending)
+        {
+            _refreshQueued = true;
+            return;
+        }
+
+        _refreshQueued = false;
         _nextUpdate = _timing.RealTime + TimeSpan.FromSeconds(Math.Max(10, _cfg.GetCVar(CCVars.FSDiscordStatusIntervalSeconds)));
 
         var payload = FSDiscordMessages.ServerStatus(BuildReport(offline: false));
@@ -139,7 +164,7 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         return new FSDiscordMessages.StatusReport(
             _baseServer.ServerName,
             phase,
-            offline ? 0 : _playerManager.PlayerCount,
+            offline ? 0 : _playerManager.Sessions.Count(s => s.Status != SessionStatus.Disconnected),
             _cfg.GetCVar(CVars.GameMaxPlayers),
             wave,
             inRound && _waveRule.IsEndless(),
@@ -188,6 +213,8 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
         finally
         {
             _sending = false;
+            if (_refreshQueued)
+                Refresh();
         }
     }
 }
