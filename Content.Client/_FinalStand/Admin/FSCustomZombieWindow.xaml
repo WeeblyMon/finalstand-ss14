@@ -1,0 +1,57 @@
+<DefaultWindow
+    xmlns="https://spacestation14.io"
+    Title="Custom Zombie Spawner"
+    MinWidth="380"
+    SetHeight="560">
+
+    <BoxContainer Orientation="Vertical" Margin="10">
+
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
+            <Label Text="Zombie" MinSize="150 0" />
+            <OptionButton Name="ZombieOption" HorizontalExpand="True" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal">
+            <Label Text="Health" MinSize="150 0" />
+            <FloatSpinBox Name="HealthBox" HorizontalExpand="True" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal">
+            <Label Text="Melee damage mult" MinSize="150 0" />
+            <FloatSpinBox Name="DamageBox" HorizontalExpand="True" Value="1" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal">
+            <Label Text="Walk speed" MinSize="150 0" />
+            <FloatSpinBox Name="WalkBox" HorizontalExpand="True" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal">
+            <Label Text="Sprint speed" MinSize="150 0" />
+            <FloatSpinBox Name="SprintBox" HorizontalExpand="True" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal">
+            <Label Text="Sprite scale" MinSize="150 0" />
+            <FloatSpinBox Name="ScaleBox" HorizontalExpand="True" Value="1" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal">
+            <Label Text="Damage taken mult" MinSize="150 0" />
+            <FloatSpinBox Name="ResistBox" HorizontalExpand="True" Value="1" />
+        </BoxContainer>
+
+        <Label Text="Ability variables" Margin="0 10 0 2" />
+
+        <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+            <BoxContainer Name="FieldsContainer" Orientation="Vertical" />
+        </ScrollContainer>
+
+        <Label Name="StatusLabel" Text="Set values, then press Spawn and click a tile."
+               Margin="0 6 0 6" />
+
+        <Button Name="SpawnButton" Text="Spawn (click to place)" />
+
+    </BoxContainer>
+
+</DefaultWindow>
