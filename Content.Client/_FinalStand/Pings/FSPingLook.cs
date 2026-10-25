@@ -32,9 +32,9 @@ public sealed class FSPingLook
     public static readonly Color Back = FSPalette.PanelDeep;
 
     private const string IconDir = "/Textures/_FinalStand/Interface/Pings/";
+    public const string MutedIcon = IconDir + "muted.png";
 
     private readonly IResourceCache _cache;
-    private readonly Dictionary<string, Texture> _icons = new();
     private readonly Dictionary<int, Font> _fonts = new();
 
     public FSPingLook(IResourceCache cache)
@@ -47,16 +47,6 @@ public sealed class FSPingLook
         if (!_fonts.TryGetValue(size, out var font))
             _fonts[size] = font = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Bold.ttf"), size);
         return font;
-    }
-
-    public Texture Muted => _cache.GetResource<TextureResource>(IconDir + "muted.png").Texture;
-
-    public Texture Icon(FSPingType type, string? overridePath = null)
-    {
-        var path = overridePath is { Length: > 0 } custom ? custom : IconDir + IconName(type) + ".png";
-        if (!_icons.TryGetValue(path, out var tex))
-            _icons[path] = tex = _cache.GetResource<TextureResource>(path).Texture;
-        return tex;
     }
 
     public static string IconName(FSPingType type) => type switch
@@ -108,10 +98,11 @@ public sealed class FSPingLook
         var color = ColorOf(type);
         Shape(handle, center, size / 2f + 2f, ShapeOf(type), Back.WithAlpha(alpha * 0.9f));
         Shape(handle, center, size / 2f, ShapeOf(type), color.WithAlpha(alpha));
-        var icon = Icon(type, iconPath);
         var side = size * (iconPath != null ? 0.8f : 0.62f);
         var tint = iconPath != null ? Color.White.WithAlpha(alpha) : Back.WithAlpha(alpha);
-        handle.DrawTextureRect(icon, UIBox2.FromDimensions(center - new Vector2(side / 2f), new Vector2(side)), tint);
+        var path = iconPath is { Length: > 0 } custom ? custom : IconDir + IconName(type) + ".png";
+        if (FSMipmaps.Pick(path, side) is { } icon)
+            handle.DrawTextureRect(icon, UIBox2.FromDimensions(center - new Vector2(side / 2f), new Vector2(side)), tint);
     }
 
     public static void Shape(DrawingHandleScreen handle, Vector2 center, float r, FSPingShape shape, Color color)

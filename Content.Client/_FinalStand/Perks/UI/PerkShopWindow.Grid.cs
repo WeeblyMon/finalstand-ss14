@@ -1,13 +1,11 @@
 using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.Stylesheets;
+using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Perks;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using ISImage = SixLabors.ImageSharp.Image;
 
 namespace Content.Client._FinalStand.Perks.UI;
 
@@ -19,28 +17,15 @@ public sealed partial class PerkShopWindow
 
     private readonly List<GridContainer> _grids = new();
 
-    private Texture? GetPerkIcon(string perkId)
+    private string? GetPerkIcon(string perkId)
     {
         if (!FSPerkDef.All.TryGetValue(perkId, out var def))
             return null;
 
         var file = def.IconFile ?? def.Id.ToLowerInvariant();
         var path = $"/Textures/_FinalStand/Interface/Perks/Icons/{file}.png";
-
-        if (_iconCache.TryGetValue(path, out var cached))
-            return cached;
-
-        if (_res.TryContentFileRead(path, out var stream))
-        {
-            using (stream)
-            using (var img = ISImage.Load<Rgba32>(stream))
-            using (var resized = img.Clone(x => x.Resize(CellSize, CellSize)))
-            {
-                var tex = _clyde.LoadTextureFromImage(resized, path);
-                _iconCache[path] = tex;
-                return tex;
-            }
-        }
+        if (_res.ContentFileExists(path))
+            return path;
 
         Logger.Warning($"[PerkShop] No icon found for perk '{perkId}' (looked for {file}.png).");
         return null;
@@ -75,7 +60,7 @@ public sealed partial class PerkShopWindow
             var layers = new LayoutContainer();
             if (def != null && GetPerkIcon(def.Id) is { } icon)
             {
-                var tex = new TextureRect { Texture = icon, Stretch = TextureRect.StretchMode.Scale, SetSize = new Vector2(36, 36) };
+                var tex = new FSMipmapRect { TexturePath = icon, SetSize = new Vector2(36, 36) };
                 LayoutContainer.SetPosition(tex, new Vector2((SlotSize - 36) / 2f, (SlotSize - 36) / 2f));
                 layers.AddChild(tex);
             }
@@ -214,10 +199,9 @@ public sealed partial class PerkShopWindow
 
         if (GetPerkIcon(def.Id) is { } icon)
         {
-            content.AddChild(new TextureRect
+            content.AddChild(new FSMipmapRect
             {
-                Texture = icon,
-                Stretch = TextureRect.StretchMode.Scale,
+                TexturePath = icon,
                 SetSize = new Vector2(44, 44),
                 HorizontalAlignment = HAlignment.Center,
                 Modulate = locked ? FSPerkPalette.Accent[def.Category].WithAlpha(0.6f) : Color.White,

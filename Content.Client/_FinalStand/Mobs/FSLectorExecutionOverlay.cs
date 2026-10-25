@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -12,16 +13,15 @@ using Content.Shared.Mobs.Systems;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
-using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
-using Robust.Shared.Utility;
 using static Robust.Shared.Maths.Color;
 
 namespace Content.Client._FinalStand.Mobs;
 
 public sealed partial class FSLectorExecutionOverlay : Overlay
 {
-    [Dependency] private IResourceCache _resourceCache = default!;
+    private const string SkullIcon = "/Textures/_FinalStand/Interface/HUD/hud_enemies.png";
+    private const float SkullPx = 10f;
 
     private readonly IEntityManager _entManager;
     private readonly IPlayerManager _player;
@@ -32,15 +32,12 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
     private readonly DamageableSystem _damageable;
     private readonly SharedHandsSystem _handsSystem;
 
-    private Texture? _skullIcon;
-
     private static readonly Color BorderColor = new(0.82f, 0.16f, 0.17f, 0.9f);
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     public FSLectorExecutionOverlay(IEntityManager entManager, IPlayerManager player)
     {
-        IoCManager.InjectDependencies(this);
         _entManager  = entManager;
         _player      = player;
         _transform   = entManager.System<SharedTransformSystem>();
@@ -65,7 +62,7 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
         var scaleMatrix   = Matrix3Helpers.CreateScale(new Vector2(scale, scale));
         var rotationMatrix = Matrix3Helpers.CreateRotation(-rotation);
 
-        _skullIcon ??= TryLoadIcon();
+        var skull = FSMipmaps.PickInWorld(SkullIcon, args.Viewport, SkullPx / EyeManager.PixelsPerMeter);
 
         var query = _entManager.EntityQueryEnumerator<DamageableComponent, MobThresholdsComponent, MobStateComponent>();
         while (query.MoveNext(out var uid, out var dmg, out var thresholds, out var mobStateComp))
@@ -111,13 +108,12 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
             DrawBorder(handle, borderBox, BorderColor, 1f / ppm);
 
             // Skull icon centered above the bar
-            if (_skullIcon != null)
+            if (skull != null)
             {
-                const float iconPx = 10f;
-                var iconHalf = iconPx / 2f / ppm;
+                var iconHalf = SkullPx / 2f / ppm;
                 var iconBottom = barOrigin.Y + 4f / ppm + 2f / ppm;
-                var iconBox = new Box2(-iconHalf, iconBottom, iconHalf, iconBottom + iconPx / ppm);
-                handle.DrawTextureRect(_skullIcon, iconBox);
+                var iconBox = new Box2(-iconHalf, iconBottom, iconHalf, iconBottom + SkullPx / ppm);
+                handle.DrawTextureRect(skull, iconBox);
             }
         }
 
@@ -168,16 +164,5 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
         }
 
         return null;
-    }
-
-    private Texture? TryLoadIcon()
-    {
-        try
-        {
-            return _resourceCache
-                .GetResource<TextureResource>(new ResPath("/Textures/_FinalStand/Interface/HUD/hud_enemies.png"))
-                .Texture;
-        }
-        catch { return null; }
     }
 }
