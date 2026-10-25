@@ -50,13 +50,13 @@ public sealed partial class FSBulwarkSystem : EntitySystem
         var level = ev.Perks.GetSlottedLevel("Bulwark");
         if (level <= 0 || !ev.WasMeleeKill
             || !TryComp<FSRiotShieldUserComponent>(ev.Killer, out var marker)
-            || !TryComp<FSRiotShieldComponent>(marker.Shield, out var shield)
-            || shield.IsBroken)
+            || !TryComp<FSRiotShieldComponent>(marker.Shield, out var shield))
             return;
 
         var max = shield.BaseDurability * shield.DurabilityMultiplier;
         shield.CurrentDurability = MathF.Min(max,
             shield.CurrentDurability + max * level * FSPerkBonusConstants.BulwarkRepairPerKillPerLevel);
+        shield.IsBroken = shield.CurrentDurability <= 0f;
         Dirty(marker.Shield, shield);
     }
 
