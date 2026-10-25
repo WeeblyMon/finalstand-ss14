@@ -31,6 +31,9 @@
       - Material
       tags:
       - CableCoil
+    blacklist:
+      tags:
+      - Trash
   - type: Dumpable
 
 - type: entity
