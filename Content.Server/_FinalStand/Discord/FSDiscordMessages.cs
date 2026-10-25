@@ -119,7 +119,8 @@ public static class FSDiscordMessages
         FSDifficulty? Difficulty,
         IReadOnlyList<string> Modifiers,
         DateTime? RoundStarted,
-        string? Connect);
+        string? Connect,
+        DateTime? Updated = null);
 
     public static WebhookPayload ServerStatus(StatusReport report)
     {
@@ -149,6 +150,10 @@ public static class FSDiscordMessages
         var embed = new WebhookEmbed
         {
             Title = report.ServerName,
+            Description = report.Updated is { } updated
+                ? Loc.GetString(report.Phase == StatusPhase.Offline ? "fs-discord-status-went-offline" : "fs-discord-status-checked",
+                    ("time", $"<t:{new DateTimeOffset(updated).ToUnixTimeSeconds()}:R>"))
+                : "",
             Color = report.Phase switch
             {
                 StatusPhase.Offline => StatusOfflineColor,
