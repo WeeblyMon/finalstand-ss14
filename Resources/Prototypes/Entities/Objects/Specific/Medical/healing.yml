@@ -95,6 +95,8 @@
   - type: Tag
     tags:
     - Ointment
+  - type: FSAilmentCure
+    slot: Burn
   - type: Sprite
     state: ointment
   - type: Item
@@ -151,6 +153,8 @@
   - type: Tag
     tags:
     - Ointment
+  - type: FSAilmentCure
+    slot: Burn
   - type: Sprite
     state: regenerative-mesh
   - type: Item
@@ -262,6 +266,8 @@
   - type: Tag
     tags:
     - Brutepack
+  - type: FSAilmentCure
+    slot: Bleeding
   - type: Sprite
     state: medicated-suture
   - type: Item
@@ -405,6 +411,8 @@
   - type: Tag
     tags:
     - Gauze
+  - type: FSAilmentCure
+    slot: Bleeding
   - type: Sprite
     state: gauze
   - type: Item
@@ -419,6 +427,7 @@
       types:
         Slash: -10 # Was 5
         Piercing: -15 # Was 10, Buffed due to limb damage changes (Goobstation)
+        Bloodloss: -5
     bloodlossModifier: -10
     healingBeginSound:
       path: "/Audio/Items/Medical/brutepack_begin.ogg"

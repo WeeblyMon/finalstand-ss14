@@ -1,9 +1,12 @@
+using Content.Shared._FinalStand.Ailments;
+
 namespace Content.Server._FinalStand.Mobs;
 
 [RegisterComponent]
 public sealed partial class FSRevenantBoltComponent : Component
 {
     [DataField] public float Damage = 16f;
+    [DataField] public FSInjurySpec Injury = new() { Bleed = 2 };
     [DataField] public float PollInterval = 0.05f;
     [DataField] public float HitCooldown = 0.3f;
 

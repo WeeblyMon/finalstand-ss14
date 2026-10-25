@@ -26,4 +26,6 @@ public sealed partial class FSAilmentStateComponent : Component
     public int PeakBleed;
 
     public TimeSpan LastDamage;
+
+    public EntityUid? FireSource;
 }

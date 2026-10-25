@@ -7,7 +7,6 @@
   suffix: FinalStand
   components:
   - type: Body
-  - type: BodyWoundHealing
   # Override BaseMobAnimal's organs — LegsAnimal would call MovementBodyPart and reset all
   # zombie speeds to the 2.5/4.5 defaults.
   - type: InitialBody
@@ -41,9 +40,10 @@
     damage:
       types:
         Slash: 10
-      # Dismemberment/bone rolls need severity >9 per hit; this keeps every hit well under.
-      woundSeverityMultipliers:
-        Slash: 0.05
+  - type: FSInjuryOnHit
+    injury:
+      meters:
+        Bleed: 45
   - type: Sprite
     drawdepth: Mobs
     sprite: _FinalStand/Mobs/Zombies/zombie.rsi
@@ -125,6 +125,9 @@
   name: runner zombie
   components:
   - type: FSVaporiseWeak
+  - type: FSInjuryOnHit
+    injury:
+      bleed: 1
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/runner.png
   - type: Sprite

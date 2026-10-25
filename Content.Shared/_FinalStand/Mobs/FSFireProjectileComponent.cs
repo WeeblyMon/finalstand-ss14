@@ -5,5 +5,7 @@ public sealed partial class FSFireProjectileComponent : Component
 {
     public readonly HashSet<EntityUid> AlreadyIgnited = new();
 
+    public EntityUid? Shooter;
+
     public float CheckAccumulator;
 }

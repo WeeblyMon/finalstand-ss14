@@ -116,7 +116,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (!_damageableQuery.TryComp(healed, out var damageable))
             return false;
 
-        var clotted = _ailments.Clot(healed, comp.ClotPerSecond * comp.Frequency, wielder, automatic: true);
+        var clotted = _ailments.Clot(healed, comp.ClotPerSecond * comp.Frequency, wielder);
 
         var potency = new FSHealingPotencyEvent(1f, healed);
         RaiseLocalEvent(wielder, ref potency);
@@ -149,6 +149,8 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         if (comp.HealedEntities.Count > 1)
             scale *= comp.SplitLinkScale;
+
+        scale *= _ailments.GetIncomingHealScale(healed);
 
         // TryChangeDamage reports what was asked for, not what landed, so measure the real change.
         var before = _damageable.GetTotalDamage((healed, damageable)).Float();

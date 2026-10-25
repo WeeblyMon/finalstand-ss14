@@ -1,7 +1,5 @@
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
-using Content.Shared.Body;
-using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
@@ -13,7 +11,8 @@ namespace Content.Server._FinalStand.MedicalOps;
 
 public sealed partial class FSBoneStaplerSystem : EntitySystem
 {
-    [Dependency] private TraumaSystem _trauma = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -32,8 +31,10 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
 
     private void OnAfterInteract(Entity<FSBoneStaplerComponent> ent, ref AfterInteractEvent args)
     {
-        if (args.Handled || !args.CanReach || args.Target is not { } target)
+        if (args.Handled || !args.CanReach || args.Target is not { } target || !HasComp<FSAilmentStateComponent>(target))
             return;
+
+        args.Handled = true;
 
         if (_useDelay.IsDelayed(ent.Owner))
         {
@@ -41,36 +42,23 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
             return;
         }
 
-        if (!TryComp<BodyComponent>(target, out var body))
-            return;
-
-        args.Handled = true;
-
-        // Re-queries each pass: mending the worst bone changes which one is worst.
-        EntityUid? firstBone = null;
-        for (var i = 0; i < ent.Comp.Bones; i++)
+        string message;
+        if (_ailments.Cure(target, FSAilmentSlot.Bone, args.User))
+            message = "fs-bone-stapler-bone";
+        else if (_ailments.GetBleedLevel(target) >= _ailments.Rules.MajorBleedLevel && _ailments.StopBleeding(target, args.User))
+            message = "fs-bone-stapler-bleed";
+        else
         {
-            if (!_trauma.TryFindWorstBone(target, body, out var bone, out var boneComp))
-                break;
-
-            var repaired = FixedPoint2.Min(boneComp.IntegrityCap, boneComp.BoneIntegrity + ent.Comp.Repair);
-            _trauma.SetBoneIntegrity(bone, repaired, boneComp);
-            firstBone ??= bone;
-        }
-
-        if (firstBone is not { } mended)
-        {
-            _popup.PopupEntity(Loc.GetString("fs-bone-stapler-nothing-broken"), ent.Owner, args.User);
+            _popup.PopupEntity(Loc.GetString("fs-bone-stapler-nothing"), ent.Owner, args.User);
             _audio.PlayPvs(NothingToDoSound, ent.Owner);
             return;
         }
 
-        _trauma.UpdateBodyBoneAlert(target, body);
-
+        var cooldown = ent.Comp.Cooldown * _medicalBonus.GetDelayMultiplier(args.User, FSMedicalBonusCategory.DefibCooldown);
+        _useDelay.SetLength(ent.Owner, cooldown);
         _useDelay.TryResetDelay(ent.Owner);
 
-        var limb = Identity.Name(Transform(mended).ParentUid, EntityManager);
-        _popup.PopupEntity(Loc.GetString("fs-bone-stapler-used-limb", ("limb", limb)), target, args.User);
+        _popup.PopupEntity(Loc.GetString(message, ("target", Identity.Entity(target, EntityManager))), target, args.User);
         _audio.PlayPvs(StapleSound, target);
     }
 }

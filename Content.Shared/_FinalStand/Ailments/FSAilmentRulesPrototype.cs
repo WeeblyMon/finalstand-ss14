@@ -19,7 +19,19 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
     public EntProtoId Broken = "FSAilmentBroken";
 
     [DataField]
+    public EntProtoId Splinted = "FSAilmentSplinted";
+
+    [DataField]
     public EntProtoId Burned = "FSAilmentBurned";
+
+    [DataField]
+    public EntProtoId Soaked = "FSAilmentSoaked";
+
+    [DataField]
+    public float BurnMeterPerHeat = 20f;
+
+    [DataField]
+    public float HazardFractureBlunt = 30f;
 
     [DataField]
     public float WarningLow = 40f;

@@ -29,6 +29,9 @@
     damage:
       types:
         Slash: 14.4
+  - type: FSInjuryOnHit
+    injury:
+      bleed: 3
   - type: FSEnemyValue
     killCredits: 600
   - type: FSMoneyOnHitCap

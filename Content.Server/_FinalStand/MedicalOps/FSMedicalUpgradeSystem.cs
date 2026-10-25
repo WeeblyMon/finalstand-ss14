@@ -6,14 +6,12 @@ using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Medical;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
-using Content.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
 public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 {
     [Dependency] private FSMedicalResearchSystem _research = default!;
-    [Dependency] private UseDelaySystem _useDelay = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private FSMediGunVariantSystem _variants = default!;
 
@@ -234,13 +232,8 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 
     private void ApplyStapler(Entity<FSBoneStaplerComponent> ent)
     {
-        if (!TryComp<UseDelayComponent>(ent.Owner, out var delay))
-            return;
-
-        ent.Comp.BaseUseDelay ??= delay.Delay;
-
-        var scale = Unlocked(BoneWelder) ? 30f / 45f : 1f;
-        _useDelay.SetLength((ent.Owner, delay), ent.Comp.BaseUseDelay.Value * scale);
+        ent.Comp.BaseCooldown ??= ent.Comp.Cooldown;
+        ent.Comp.Cooldown = ent.Comp.BaseCooldown.Value * (Unlocked(BoneWelder) ? 2f / 3f : 1f);
     }
 
     private void ApplyFieldHospital(Entity<FSFieldHospitalComponent> ent)

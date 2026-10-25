@@ -26,7 +26,15 @@ public enum FSAilmentTier : byte
     Major,
 }
 
-public record struct FSAilmentMeterState(float Value, TimeSpan Updated);
+public enum FSCureKind : byte
+{
+    HandsOn,
+    Chemical,
+    Automatic,
+    Mass,
+}
+
+public record struct FSAilmentMeterState(float Value, TimeSpan Updated, bool Draining);
 
 [ByRefEvent]
 public record struct FSAilmentInflictAttemptEvent(FSAilmentSlot Slot, bool Cancelled = false);
@@ -35,7 +43,7 @@ public record struct FSAilmentInflictAttemptEvent(FSAilmentSlot Slot, bool Cance
 public readonly record struct FSAilmentInflictedEvent(EntityUid Patient, FSAilmentSlot Slot, EntityUid? Source);
 
 [ByRefEvent]
-public readonly record struct FSAilmentCuredEvent(EntityUid Patient, FSAilmentSlot Slot, FSAilmentTier Tier, EntityUid? Curer, bool Automatic);
+public readonly record struct FSAilmentCuredEvent(EntityUid Patient, FSAilmentSlot Slot, FSAilmentTier Tier, EntityUid? Curer, FSCureKind Kind);
 
 [ByRefEvent]
 public record struct FSIncomingHealScaleEvent(float Scale);

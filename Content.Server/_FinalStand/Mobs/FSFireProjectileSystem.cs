@@ -1,5 +1,6 @@
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Utility;
+using Content.Server._FinalStand.Ailments;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._FinalStand.Mobs;
@@ -12,6 +13,7 @@ public sealed partial class FSFireProjectileSystem : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FlammableSystem _flammable = default!;
+    [Dependency] private FSInjuryRulesSystem _injuryRules = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
     private const float HitRadius = 0.5f;
@@ -46,6 +48,7 @@ public sealed partial class FSFireProjectileSystem : EntitySystem
                 if (!comp.AlreadyIgnited.Add(targetUid)) continue;
                 flammable.FireStacks += 0.1f;
                 _flammable.Ignite(targetUid, uid, flammable);
+                _injuryRules.NoteIgnition(targetUid, comp.Shooter);
             }
             _flammableSetPool.Return(candidates);
         }

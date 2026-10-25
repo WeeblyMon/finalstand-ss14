@@ -21,7 +21,7 @@ public sealed partial class FSCargonianSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<FSCargonianBodyComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshSpeed);
+        SubscribeLocalEvent<FSCargonianBodyComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshSpeed, after: [typeof(FSPackMuleSystem)]);
     }
 
     public override void Update(float frameTime)

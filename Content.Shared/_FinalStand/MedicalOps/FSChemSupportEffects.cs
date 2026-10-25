@@ -19,7 +19,7 @@ public sealed partial class FSStaunchBleedingSystem : EntityEffectSystem<FSFrien
 
     protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSStaunchBleeding> args)
     {
-        _ailments.StopBleeding(entity, automatic: true);
+        _ailments.StopBleeding(entity, kind: FSCureKind.Mass);
     }
 }
 

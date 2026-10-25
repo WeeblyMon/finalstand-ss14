@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -13,6 +14,7 @@ namespace Content.Server._FinalStand.Mobs;
 public sealed partial class FSRevenantBoltSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -66,8 +68,9 @@ public sealed partial class FSRevenantBoltSystem : EntitySystem
                 bolt.LastHitTimes[targetUid] = now;
 
                 var pierced = bolt.Damage * Math.Clamp(bolt.ResistanceBypass, 0f, 1f);
-                ApplySlash(targetUid, bolt.Damage - pierced, false, bolt.Shooter);
-                ApplySlash(targetUid, pierced, true, bolt.Shooter);
+                var dealt = ApplySlash(targetUid, bolt.Damage - pierced, false, bolt.Shooter)
+                    + ApplySlash(targetUid, pierced, true, bolt.Shooter);
+                _ailments.InflictHit(targetUid, bolt.Injury, dealt, bolt.Shooter);
 
                 var flash = EnsureComp<FSRevenantHitFlashComponent>(targetUid);
                 if ((now - flash.LastFlash).TotalSeconds < FlashInterval)
@@ -84,14 +87,15 @@ public sealed partial class FSRevenantBoltSystem : EntitySystem
         SweepStaleFlashes(now);
     }
 
-    private void ApplySlash(EntityUid target, float amount, bool ignoreResistances, EntityUid origin)
+    private float ApplySlash(EntityUid target, float amount, bool ignoreResistances, EntityUid origin)
     {
         if (amount <= 0f)
-            return;
+            return 0f;
 
         var dmg = new DamageSpecifier();
         dmg.DamageDict["Slash"] = FixedPoint2.New(amount);
-        _damageable.TryChangeDamage(target, dmg, ignoreResistances: ignoreResistances, origin: origin);
+        _damageable.TryChangeDamage(target, dmg, out var landed, ignoreResistances: ignoreResistances, origin: origin);
+        return landed.GetTotal().Float();
     }
 
     private void SweepStaleFlashes(TimeSpan now)

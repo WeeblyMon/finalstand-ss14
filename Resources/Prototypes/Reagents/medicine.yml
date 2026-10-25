@@ -360,6 +360,11 @@
   metabolisms:
     Medicine:
       effects:
+      - !type:FSCureAilment
+        slot: Burn
+        conditions:
+        - !type:ReagentThreshold
+          min: 0.2
       - !type:SuppressPain
         amount: 2
         time: 7
@@ -688,6 +693,11 @@
   metabolisms:
     Medicine:
       effects:
+      - !type:FSCureAilment
+        slot: Burn
+        conditions:
+        - !type:ReagentThreshold
+          min: 0.2
       - !type:HealthChange
         damage:
           types:

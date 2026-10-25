@@ -23,13 +23,6 @@ public sealed partial class FSVitalsSystem : EntitySystem
     private readonly List<(string Type, FixedPoint2 Amount)> _types = new();
     private TimeSpan _nextTick;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<FSAilmentStateComponent, DamageChangedEvent>(OnDamageChanged);
-    }
-
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -84,6 +77,7 @@ public sealed partial class FSVitalsSystem : EntitySystem
             _ailments.ClearClock(patient);
 
         Regenerate(patient, rules, now);
+        _ailments.RefreshWarnings(patient);
     }
 
     private void Hurt(Entity<FSAilmentStateComponent, DamageableComponent> patient, DamageSpecifier damage)
@@ -177,11 +171,5 @@ public sealed partial class FSVitalsSystem : EntitySystem
         }
 
         return heal;
-    }
-
-    private void OnDamageChanged(Entity<FSAilmentStateComponent> ent, ref DamageChangedEvent args)
-    {
-        if (args.DamageIncreased)
-            ent.Comp.LastDamage = _timing.CurTime;
     }
 }

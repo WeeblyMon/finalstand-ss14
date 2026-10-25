@@ -1,7 +1,4 @@
-using Content.Server._FinalStand.Leveling;
-using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Sprint;
 using Content.Shared.Clothing;
 using Content.Shared.Damage.Systems;
@@ -15,8 +12,9 @@ using Content.Shared.StatusEffectNew;
 using Content.Shared.Stunnable;
 using Content.Shared.Temperature.Systems;
 using Content.Shared.Wieldable;
+using Robust.Shared.GameStates;
 
-namespace Content.Server._FinalStand.Perks;
+namespace Content.Shared._FinalStand.Perks;
 
 public sealed partial class FSPackMuleSystem : EntitySystem
 {
@@ -34,8 +32,7 @@ public sealed partial class FSPackMuleSystem : EntitySystem
             ],
             before:
             [
-                typeof(SharedFSSprintSystem), typeof(FSPerkBuffSystem), typeof(FSSpeedBonusSystem),
-                typeof(FSMedicalBonusSystem), typeof(HeldSpeedBonusSystem), typeof(FSCargonianSystem),
+                typeof(SharedFSSprintSystem), typeof(FSMedicalBonusSystem),
             ]);
     }
 
@@ -57,8 +54,9 @@ public sealed partial class FSPackMuleSystem : EntitySystem
     }
 }
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSPackMuleComponent : Component
 {
+    [AutoNetworkedField]
     public int Level;
 }

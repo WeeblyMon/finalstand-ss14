@@ -108,6 +108,9 @@
     sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/GiantBoulder.rsi
     state: boulder
   - type: FSGiantBoulder
+  - type: FSInjuryOnHit
+    injury:
+      fracture: true
   - type: Physics
     bodyType: Dynamic
     linearDamping: 0

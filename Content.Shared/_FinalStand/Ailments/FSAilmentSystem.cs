@@ -102,20 +102,35 @@ public sealed partial class FSAilmentSystem : EntitySystem
         return true;
     }
 
-    public void AddMeter(EntityUid patient, FSAilmentMeter meter, float amount, EntityUid? source = null)
+    public void InflictHit(EntityUid patient, FSInjurySpec injury, float dealt, EntityUid? source = null)
+    {
+        if (injury.IgnoreFloor || dealt >= Rules.InjuryFloor)
+            Inflict(patient, injury, source);
+    }
+
+    public void AddMeter(EntityUid patient, FSAilmentMeter meter, float amount, EntityUid? source = null, bool draining = true)
     {
         if (_net.IsClient || amount <= 0f || !_stateQuery.TryComp(patient, out var state) || _mobState.IsDead(patient))
             return;
 
-        if (!Rules.Meters.TryGetValue(meter, out var rule))
+        if (!Rules.Meters.TryGetValue(meter, out var rule) || !TryAttempt(patient, rule.Slot))
             return;
 
         var value = MeterValue(state, meter, rule) + amount;
-        state.Meters[meter] = new FSAilmentMeterState(value >= 100f ? 0f : value, _timing.CurTime);
-        SetWarning((patient, state), rule.Slot, value >= 100f ? 0f : value);
+        var stored = value >= 100f ? 0f : value;
+        state.Meters[meter] = new FSAilmentMeterState(stored, _timing.CurTime, draining);
+        SetWarning((patient, state), rule.Slot, stored);
 
         if (value >= 100f)
             Inflict(patient, rule.Injury, source);
+    }
+
+    public void DrainMeter(EntityUid patient, FSAilmentMeter meter)
+    {
+        if (!_stateQuery.TryComp(patient, out var state) || !state.Meters.TryGetValue(meter, out var current) || current.Draining)
+            return;
+
+        state.Meters[meter] = current with { Updated = _timing.CurTime, Draining = true };
     }
 
     public void RefreshWarnings(Entity<FSAilmentStateComponent> patient)
@@ -126,10 +141,10 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
     }
 
-    public bool Cure(EntityUid patient, FSAilmentSlot slot, EntityUid? curer = null, bool automatic = false)
+    public bool Cure(EntityUid patient, FSAilmentSlot slot, EntityUid? curer = null, FSCureKind kind = FSCureKind.HandsOn)
     {
         if (slot == FSAilmentSlot.Bleeding)
-            return StopBleeding(patient, curer, automatic);
+            return StopBleeding(patient, curer, kind);
 
         foreach (var effect in Active<FSAilmentComponent>(patient))
         {
@@ -138,25 +153,46 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
             var tier = effect.Comp2.Tier;
             _status.TryRemoveStatusEffect(patient, id);
-            RaiseCured(patient, slot, tier, curer, automatic);
+            RaiseCured(patient, slot, tier, curer, kind);
             return true;
         }
 
         return false;
     }
 
-    public bool StopBleeding(EntityUid patient, EntityUid? curer = null, bool automatic = false)
+    public bool StopBleeding(EntityUid patient, EntityUid? curer = null, FSCureKind kind = FSCureKind.HandsOn)
     {
         if (!_bloodQuery.TryComp(patient, out var blood) || blood.BleedAmount <= 0f)
             return false;
 
-        var tier = TakeBleedTier(patient, blood.BleedAmount);
+        var stopped = blood.BleedAmount;
         _bloodstream.TryModifyBleedAmount((patient, blood), -blood.BleedAmount);
-        RaiseCured(patient, FSAilmentSlot.Bleeding, tier, curer, automatic);
+        ReportBleedStopped(patient, stopped, curer, kind);
         return true;
     }
 
-    public bool Clot(EntityUid patient, float amount, EntityUid? curer = null, bool automatic = false)
+    public void ReportBleedStopped(EntityUid patient, float stopped, EntityUid? curer = null, FSCureKind kind = FSCureKind.HandsOn)
+    {
+        RaiseCured(patient, FSAilmentSlot.Bleeding, TakeBleedTier(patient, stopped), curer, kind);
+    }
+
+    public bool CanSplint(EntityUid patient)
+    {
+        return HasEffect(patient, Rules.Broken);
+    }
+
+    public bool Splint(EntityUid patient, TimeSpan? duration = null)
+    {
+        var rules = Rules;
+        if (!HasEffect(patient, rules.Broken) || GetAilment(rules.Splinted) is not { } splinted)
+            return false;
+
+        RemoveSlot(patient, FSAilmentSlot.Bone);
+        _status.TrySetStatusEffectDuration(patient, rules.Splinted, duration ?? splinted.Duration);
+        return true;
+    }
+
+    public bool Clot(EntityUid patient, float amount, EntityUid? curer = null, FSCureKind kind = FSCureKind.Automatic)
     {
         if (amount <= 0f || !_bloodQuery.TryComp(patient, out var blood) || blood.BleedAmount <= 0f)
             return false;
@@ -167,7 +203,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
             return true;
         }
 
-        return StopBleeding(patient, curer, automatic);
+        return StopBleeding(patient, curer, kind);
     }
 
     public void ClearAll(EntityUid patient)
@@ -365,9 +401,9 @@ public sealed partial class FSAilmentSystem : EntitySystem
         RaiseLocalEvent(patient, ref ev, true);
     }
 
-    private void RaiseCured(EntityUid patient, FSAilmentSlot slot, FSAilmentTier tier, EntityUid? curer, bool automatic)
+    private void RaiseCured(EntityUid patient, FSAilmentSlot slot, FSAilmentTier tier, EntityUid? curer, FSCureKind kind)
     {
-        var ev = new FSAilmentCuredEvent(patient, slot, tier, curer, automatic);
+        var ev = new FSAilmentCuredEvent(patient, slot, tier, curer, kind);
         RaiseLocalEvent(patient, ref ev, true);
     }
 
@@ -382,6 +418,9 @@ public sealed partial class FSAilmentSystem : EntitySystem
     {
         if (!state.Meters.TryGetValue(meter, out var current))
             return 0f;
+
+        if (!current.Draining)
+            return current.Value;
 
         var elapsed = (float) (_timing.CurTime - current.Updated).TotalSeconds;
         return MathF.Max(0f, current.Value - rule.DrainPerSecond * elapsed);

@@ -76,7 +76,7 @@ public sealed partial class FSBeaconOfLightSystem : EntitySystem
             if (!ally.Comp.HasMind || HasComp<WaveSpawnedTagComponent>(ally) || !_mobState.IsAlive(ally))
                 continue;
 
-            _ailments.StopBleeding(ally, user, automatic: true);
+            _ailments.StopBleeding(ally, user, FSCureKind.Mass);
             _damageable.HealEvenly(ally.Owner, FixedPoint2.New(-heal));
         }
     }

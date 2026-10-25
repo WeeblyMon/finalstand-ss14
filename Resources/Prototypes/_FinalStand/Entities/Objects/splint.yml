@@ -1,0 +1,35 @@
+- type: entity
+  parent: BaseItem
+  id: FSSplint
+  name: splint
+  description: Two padded slats and a cloth wrap. Sets a broken bone so it only slows you a little while it heals.
+  suffix: Full
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/splint.rsi
+    state: icon
+  - type: Item
+    size: Small
+    sprite: _FinalStand/Objects/Medical/splint.rsi
+  - type: FSSplint
+  - type: Stack
+    stackType: FSSplint
+    count: 4
+  - type: StackPrice
+    price: 10
+
+- type: entity
+  parent: FSSplint
+  id: FSSplint1
+  suffix: Single
+  components:
+  - type: Stack
+    count: 1
+
+- type: stack
+  parent: BaseSmallStack
+  id: FSSplint
+  name: stack-fs-splint
+  icon: { sprite: "/Textures/_FinalStand/Objects/Medical/splint.rsi", state: icon }
+  spawn: FSSplint1
+  maxCount: 4
