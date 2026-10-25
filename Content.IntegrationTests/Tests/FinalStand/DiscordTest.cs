@@ -101,4 +101,66 @@ public sealed class DiscordTest : GameTest
             Assert.That(discord.LastPayload!.Value.Embeds!.Single().Fields.Any(f => f.Value.Contains("Ada")), Is.True);
         });
     }
+
+    [Test]
+    public async Task TheStatusMessageShowsTheLivePopulationAndWave()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var payload = FSDiscordMessages.ServerStatus(new FSDiscordMessages.StatusReport(
+                "Final Stand EU", FSDiscordMessages.StatusPhase.Combat, 21, 40, 7, false, FSDifficulty.Hard,
+                new[] { "Frenzy" }, At, "ss14://finalstand.example"));
+
+            var embed = payload.Embeds!.Single();
+            var text = string.Join("\n", embed.Fields.Select(f => $"{f.Name}: {f.Value}"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(embed.Title, Is.EqualTo("Final Stand EU"));
+                Assert.That(text, Does.Contain("21/40"), "the player count reads like a server browser");
+                Assert.That(text, Does.Contain("7"), "the wave being fought is named");
+                Assert.That(text, Does.Contain("Hard"));
+                Assert.That(text, Does.Contain("Frenzy"));
+                Assert.That(text, Does.Contain($"<t:{new DateTimeOffset(At).ToUnixTimeSeconds()}:R>"),
+                    "the round age is a Discord timestamp so it ticks without edits");
+                Assert.That(text, Does.Contain("ss14://finalstand.example"));
+                Assert.That(embed.Color, Is.EqualTo(FSDiscordMessages.LiveColor));
+            });
+        });
+    }
+
+    [Test]
+    public async Task TheLobbyAndOfflineStatusLeaveOutRoundDetails()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var lobby = FSDiscordMessages.ServerStatus(new FSDiscordMessages.StatusReport(
+                "Final Stand EU", FSDiscordMessages.StatusPhase.Lobby, 3, 40, 0, false, FSDifficulty.Hard,
+                new[] { "Frenzy" }, At, "ss14://finalstand.example")).Embeds!.Single();
+            var offline = SEntMan.System<FSDiscordStatusSystem>().BuildReport(offline: true);
+            var offlineEmbed = FSDiscordMessages.ServerStatus(offline with { Connect = "ss14://finalstand.example" }).Embeds!.Single();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(lobby.Fields.Any(f => f.Value.Contains("Frenzy") || f.Value.Contains("Hard")), Is.False,
+                    "last round's settings are not shown while the lobby waits");
+                Assert.That(lobby.Color, Is.EqualTo(FSDiscordMessages.StatusLobbyColor));
+                Assert.That(offline.Players, Is.EqualTo(0));
+                Assert.That(offline.Phase, Is.EqualTo(FSDiscordMessages.StatusPhase.Offline));
+                Assert.That(offlineEmbed.Color, Is.EqualTo(FSDiscordMessages.StatusOfflineColor));
+                Assert.That(offlineEmbed.Fields.Any(f => f.Value.Contains("ss14://")), Is.False,
+                    "an offline server does not invite people to join");
+            });
+        });
+    }
+
+    [Test]
+    public async Task TheLiveReportFollowsTheRound()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var report = SEntMan.System<FSDiscordStatusSystem>().BuildReport(offline: false);
+            Assert.That(report.Phase, Is.Not.EqualTo(FSDiscordMessages.StatusPhase.Offline));
+            Assert.That(report.Players, Is.GreaterThanOrEqualTo(0));
+        });
+    }
 }
