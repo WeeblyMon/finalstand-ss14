@@ -97,7 +97,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private void SetActiveDirective(FSMedicalDirective? directive)
     {
         _activeDirective = directive;
-        RefreshDoctrine();
 
         var query = EntityQueryEnumerator<FSCmoPanelComponent>();
         while (query.MoveNext(out var uid, out var panel))
@@ -145,12 +144,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void RefreshDoctrine()
     {
-        if (!_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine))
-            return;
-
-        if (_activeDirective == null)
-            RemoveFromDepartment(DoctrineSource);
-        else
+        if (_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine))
             ApplyToDepartment(DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
     }
 
@@ -203,9 +197,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             Dirty(ev.Mob, panel);
         }
 
-        if (_activeDirective != null
-            && _upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine)
-            && _roster.IsMedical(ev.Mob))
+        if (_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine) && _roster.IsMedical(ev.Mob))
         {
             _bonus.ApplyBuff(ev.Mob, DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
         }
