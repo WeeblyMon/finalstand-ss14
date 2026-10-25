@@ -425,6 +425,12 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
                 return;
             }
 
+            if (!CanReachFromQueue(station, node, station.Comp.SharedQueue))
+            {
+                _popup.PopupEntity(Loc.GetString("fs-research-prereqs-not-met"), uid, player);
+                return;
+            }
+
             station.Comp.SharedQueue.Add(node.ID);
             AdvanceSharedQueue(station);
             Dirty(station);
@@ -448,6 +454,12 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             if (queue.Count >= MaxQueueLength)
             {
                 _popup.PopupEntity(Loc.GetString("fs-research-queue-full", ("max", MaxQueueLength)), uid, player);
+                return;
+            }
+
+            if (!CanReachFromQueue(station, node, queue))
+            {
+                _popup.PopupEntity(Loc.GetString("fs-research-prereqs-not-met"), uid, player);
                 return;
             }
 
@@ -542,6 +554,16 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         Start,
         Drop,
         Stall,
+    }
+
+    private bool CanReachFromQueue(Entity<FSStationResearchComponent> station, FSTechNodePrototype node,
+        List<ProtoId<FSTechNodePrototype>> queue)
+    {
+        return ArePrerequisitesMet(node, id => IsNodeUnlocked(station.Comp, id)
+            || station.Comp.ActiveResearch?.Id == id
+            || station.Comp.SharedQueue.Any(q => q.Id == id)
+            || station.Comp.PersonalPicks.Values.Any(p => p.Id == id)
+            || queue.Any(q => q.Id == id));
     }
 
     private QueueStep EvaluateQueued(Entity<FSStationResearchComponent> station, ProtoId<FSTechNodePrototype> id, out FSTechNodePrototype? node)
