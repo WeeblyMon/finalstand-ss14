@@ -7,35 +7,35 @@ fs-tutorial-escape-button = Role tutorial
 cmd-fstutorial-desc = Opens the tutorial for your current job.
 cmd-fstutorial-help = Usage: fstutorial [tutorial id]
 
-fs-tutorial-eng-1-title = Your job: hold the line
-fs-tutorial-eng-1-text = Zombies come in waves. Your barricades and sentries decide where they hit and how long it takes them. A barricade blocks the edge it faces, and bullets fly over it, so your team shoots from behind it.
-    Flames go over barricades too. They don't stop Flamethrowers.
+fs-tutorial-eng-1-title = Holding the line
+fs-tutorial-eng-1-text = Zombies come in waves, and your barricades and sentries decide where they hit and how long it takes them to get through. A barricade only blocks the side it faces. Bullets go right over it, so your team can shoot from behind it.
+    Fire goes over it too, so barricades won't stop Flamethrowers.
 fs-tutorial-eng-2-title = Build with the RCD
-fs-tutorial-eng-2-text = Press [bold]Z[/bold] to pick a piece, [bold]click[/bold] to build, [bold]R[/bold] to rotate. Costs come from the materials you carry, then from any silo within 20 tiles.
-    The middle of the menu shows what you have against what you need. If a spot is refused, the reason is written under the ghost. Prefer a hotbar? Switch to the belt layout from the menu.
+fs-tutorial-eng-2-text = Press [bold]Z[/bold] to pick a piece, [bold]click[/bold] to build and [bold]R[/bold] to rotate. It uses the materials you're carrying first, then any silo within 20 tiles.
+    The middle of the menu shows what you have next to what it costs. If it won't let you build somewhere, the reason shows up under the ghost. You can also switch to a hotbar-style belt layout from the menu.
 fs-tutorial-eng-3-title = Upgrade with the hammer
-fs-tutorial-eng-3-text = Click a barricade with your hammer (or press [bold]E[/bold] on it) to choose an upgrade. You start hammering it in right away; each hit pours in materials from your pack. Click it again to carry on if you stop.
-    Grades: [bold]steel[/bold], then [bold]plasteel[/bold], then [bold]depleted uranium[/bold] for the toughest barricades.
-    Branches, one per barricade: [bold]Bulwark[/bold] for chokepoints, [bold]Firing Step[/bold] for your gunline, [bold]Floodlit[/bold] for dark lanes. [bold]Barbed wire[/bold] goes on top: it cuts and slows zombies that hit it, but not next to a door. Hits don't count while it's under attack.
+fs-tutorial-eng-3-text = Click a barricade with your hammer (or press [bold]E[/bold] on it) and pick an upgrade. You start hammering right away, and each hit pulls materials from your pack. If you stop, click it again to pick up where you left off.
+    It goes [bold]steel[/bold], then [bold]plasteel[/bold], then [bold]depleted uranium[/bold] for the toughest barricades.
+    Each barricade can take one branch: [bold]Bulwark[/bold] for chokepoints, [bold]Firing Step[/bold] for your gunline or [bold]Floodlit[/bold] for dark lanes. [bold]Barbed wire[/bold] goes on top and cuts and slows anything that hits it, but it can't go next to a door. You can't keep upgrading a barricade while it's taking hits, so wait for things to calm down.
 fs-tutorial-eng-4-title = Keep it standing
-fs-tutorial-eng-4-text = Your [bold]rivet gun[/bold] repairs any barricade it hits, up to the red mark on its health bar, and feeds itself steel from your pack. It works mid-fight.
-    For the last stretch, [bold]fit plates and weld them in[/bold]. Engineers see a health bar over every damaged fortification; one that flashes is close to falling.
+fs-tutorial-eng-4-text = Your [bold]rivet gun[/bold] fixes any barricade it hits, up to the red mark on its health bar, and pulls steel from your pack by itself. It works mid-fight.
+    To top it off past that, [bold]fit plates and weld them in[/bold]. Engineers see a health bar over every damaged fortification. If one's flashing, it's about to go.
 fs-tutorial-eng-5-title = Sentries
-fs-tutorial-eng-5-text = Build sentries with the RCD. They run until their ammo is gone.
-    Use the hammer on a sentry to fit modules: longer belts, faster servos, better optics, and hardened or depleted uranium rounds. Modules are paid in the rare materials zombies drop.
+fs-tutorial-eng-5-text = Build sentries with the RCD. They keep firing until they run out of ammo.
+    Hit a sentry with the hammer to fit modules: longer belts, faster servos, better optics, and hardened or depleted uranium rounds. Modules cost the rare materials zombies drop.
 fs-tutorial-eng-hmg-title = Heavy machine guns
-fs-tutorial-eng-hmg-text = Build an HMG and an ammo crate with the RCD, then drag the crate next to the gun. Anyone can crew it: click the gun to take the seat.
-    It covers a 90° arc and overheats if you hold the trigger too long. A line shows which crate feeds which gun.
+fs-tutorial-eng-hmg-text = Build an HMG and an ammo crate with the RCD, then drag the crate next to the gun. Anyone can man it, just click the gun to hop on.
+    It covers a 90° arc and overheats if you hold the trigger too long. A line shows which crate is feeding which gun.
 fs-tutorial-eng-emplacement-title = The emplacement
-fs-tutorial-eng-emplacement-text = The Chief Engineer carries a [bold]defensive emplacement[/bold]: a sandbag ring with two sentries that never run dry while its crate has rounds, and a crate that refills magazines.
-    Press [bold]Z[/bold] with the kit, turn it with [bold]R[/bold] so the open side faces your team, then click. Anyone inside takes less melee damage. It folds back to the Chief Engineer when the wave ends.
+fs-tutorial-eng-emplacement-text = The Chief Engineer carries a [bold]defensive emplacement[/bold]. It's a ring of sandbags with two sentries that never run dry while the crate has rounds, and the crate refills magazines too.
+    Press [bold]Z[/bold] with the kit, rotate it with [bold]R[/bold] so the open side faces your team, then click to place it. Anyone inside takes less melee damage. It packs itself back up to the Chief Engineer when the wave ends.
 fs-tutorial-eng-broadsword-title = The Broadsword
-fs-tutorial-eng-broadsword-text = Once Science researches the [bold]Mech Bay[/bold], build one with the RCD away from the line. Engineering welds the frame, limbs and armour in from your pack; Science fits the control core and targeting module between your stages. Examine the bay to see whose turn it is.
-    Build guns at the bay with alt-click. The Broadsword takes three: light and medium guns in any mix, and at most one heavy. Park the Broadsword on the bay to recharge and repair it. In a fight, use [bold]siege mode[/bold] to plant it: it can't move, but it takes far less damage, especially from the front, and your rivet gun can patch it.
+fs-tutorial-eng-broadsword-text = Once Science researches the [bold]Mech Bay[/bold], build one with the RCD somewhere away from the line. Engineers weld in the frame, limbs and armour from their packs, and Science fits the control core and targeting module in between. Examine the bay to see whose turn it is.
+    Alt-click the bay to build guns. The Broadsword holds three: any mix of light and medium, with at most one heavy. Park it on the bay to recharge and repair it. In a fight, use [bold]siege mode[/bold] to plant it. It can't move, but it takes far less damage, especially from the front, and your rivet gun can patch it up.
 fs-tutorial-eng-6-title = Getting paid
-fs-tutorial-eng-6-text = You earn credits when your structures soak wave damage and when you repair that damage. Rivet hits on zombies pay too.
-    Bring the materials you pick up to the silo so every engineer can build from them. The silo is also restocked at the start of every prep. Your Fortify score is on the leaderboard.
-    Ask Science for the Engineering research branch: faster rivets, cooler HMGs, razor wire and the field tools all come from there.
+fs-tutorial-eng-6-text = You get credits when your structures soak up wave damage and when you repair it. Hitting zombies with the rivet gun pays too.
+    Drop the materials you pick up at the silo so every engineer can build with them. The silo also gets restocked at the start of every prep. Your Fortify score shows up on the leaderboard.
+    Ask Science to research the Engineering branch. That's where faster rivets, cooler HMGs, razor wire and the field tools come from.
 
 fs-tutorial-welcome-title = Welcome to Final Stand
 fs-tutorial-welcome-body = Zombies attack in waves. Keep the [bold]Central Command Console[/bold] alive, and yourself too. Hold out to wave 30 and you win.
