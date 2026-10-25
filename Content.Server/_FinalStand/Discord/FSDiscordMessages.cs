@@ -96,6 +96,81 @@ public static class FSDiscordMessages
         return new WebhookPayload { Embeds = [embed] };
     }
 
+    public const int StatusLobbyColor = 0xFFB300;
+    public const int StatusOfflineColor = 0x616161;
+
+    public enum StatusPhase : byte
+    {
+        Offline,
+        Lobby,
+        InRound,
+        Prep,
+        Combat,
+        RoundOver,
+    }
+
+    public readonly record struct StatusReport(
+        string ServerName,
+        StatusPhase Phase,
+        int Players,
+        int MaxPlayers,
+        int Wave,
+        bool Endless,
+        FSDifficulty? Difficulty,
+        IReadOnlyList<string> Modifiers,
+        DateTime? RoundStarted,
+        string? Connect);
+
+    public static WebhookPayload ServerStatus(StatusReport report)
+    {
+        var fields = new List<WebhookEmbedField>
+        {
+            Field(Loc.GetString("fs-discord-status-players"), report.MaxPlayers > 0
+                ? $"{report.Players}/{report.MaxPlayers}"
+                : report.Players.ToString()),
+            Field(Loc.GetString("fs-discord-status-state"), DescribeStatus(report)),
+        };
+
+        if (report.Phase is StatusPhase.InRound or StatusPhase.Prep or StatusPhase.Combat)
+        {
+            if (report.Difficulty is { } difficulty)
+                fields.Add(Field(Loc.GetString("fs-discord-field-difficulty"), Loc.GetString(FSDifficultyRules.NameLocId(difficulty))));
+
+            if (report.Modifiers.Count > 0)
+                fields.Add(Field(Loc.GetString("fs-discord-status-modifiers"), string.Join(", ", report.Modifiers)));
+
+            if (report.RoundStarted is { } started)
+                fields.Add(Field(Loc.GetString("fs-discord-status-started"), $"<t:{new DateTimeOffset(started).ToUnixTimeSeconds()}:R>"));
+        }
+
+        if (report.Phase != StatusPhase.Offline && !string.IsNullOrWhiteSpace(report.Connect))
+            fields.Add(Field(Loc.GetString("fs-discord-status-connect"), $"`{report.Connect}`", inline: false));
+
+        var embed = new WebhookEmbed
+        {
+            Title = report.ServerName,
+            Color = report.Phase switch
+            {
+                StatusPhase.Offline => StatusOfflineColor,
+                StatusPhase.Lobby or StatusPhase.RoundOver => StatusLobbyColor,
+                _ => LiveColor,
+            },
+            Fields = fields,
+            Footer = new WebhookEmbedFooter { Text = Loc.GetString("fs-discord-status-footer") },
+        };
+        return new WebhookPayload { Embeds = [embed] };
+    }
+
+    private static string DescribeStatus(StatusReport report) => report.Phase switch
+    {
+        StatusPhase.Offline => Loc.GetString("fs-discord-status-offline"),
+        StatusPhase.Lobby => Loc.GetString("fs-discord-status-lobby"),
+        StatusPhase.InRound => Loc.GetString("fs-discord-status-in-round"),
+        StatusPhase.Prep => Loc.GetString(report.Endless ? "fs-discord-status-prep-endless" : "fs-discord-status-prep", ("wave", report.Wave)),
+        StatusPhase.Combat => Loc.GetString(report.Endless ? "fs-discord-status-combat-endless" : "fs-discord-status-combat", ("wave", report.Wave)),
+        _ => Loc.GetString("fs-discord-status-round-over"),
+    };
+
     public const int WeeklyColor = 0xFFB300;
 
     public static WebhookPayload WeeklyPost(bool lastCall, string name, string description, int clearWave, FSRunRecord? leader)

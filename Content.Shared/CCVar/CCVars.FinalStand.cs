@@ -66,4 +66,13 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<int> FSDiscordLiveCooldownMinutes =
         CVarDef.Create("fs.discord_live_cooldown_minutes", 120, CVar.SERVERONLY);
+
+    public static readonly CVarDef<string> FSDiscordStatusWebhook =
+        CVarDef.Create("fs.discord_status_webhook", string.Empty, CVar.SERVERONLY | CVar.CONFIDENTIAL);
+
+    public static readonly CVarDef<int> FSDiscordStatusIntervalSeconds =
+        CVarDef.Create("fs.discord_status_interval_seconds", 30, CVar.SERVERONLY);
+
+    public static readonly CVarDef<string> FSDiscordStatusConnect =
+        CVarDef.Create("fs.discord_status_connect", string.Empty, CVar.SERVERONLY);
 }
