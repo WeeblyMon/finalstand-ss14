@@ -9,7 +9,7 @@ using Robust.Shared.Map;
 namespace Content.Client._FinalStand.Admin;
 
 [UsedImplicitly]
-public sealed class FSCustomZombieEui : BaseEui
+public sealed partial class FSCustomZombieEui : BaseEui
 {
     [Dependency] private IEntityManager _entManager = default!;
     [Dependency] private IPlacementManager _placement = default!;

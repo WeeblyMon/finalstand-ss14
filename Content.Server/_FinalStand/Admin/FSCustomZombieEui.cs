@@ -21,7 +21,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.Admin;
 
 [UsedImplicitly]
-public sealed class FSCustomZombieEui : BaseEui
+public sealed partial class FSCustomZombieEui : BaseEui
 {
     [Dependency] private IEntityManager _entManager = default!;
     [Dependency] private IPrototypeManager _protoManager = default!;
