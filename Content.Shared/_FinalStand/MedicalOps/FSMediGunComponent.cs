@@ -78,8 +78,10 @@ public sealed partial class FSMediGunComponent : Component
     [DataField]
     public float BatteryWithdraw = 0.5f;
 
+    public const float DefaultSoftCap = 0.7f;
+
     [DataField]
-    public float SoftCapRatio = 0.7f;
+    public float SoftCapRatio = DefaultSoftCap;
 
     [DataField]
     public float SoftCapFalloff = 4.5f;

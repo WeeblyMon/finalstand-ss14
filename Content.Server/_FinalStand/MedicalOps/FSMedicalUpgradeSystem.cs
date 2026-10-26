@@ -101,6 +101,8 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 
     public bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);
 
+    public float SoftCapBonus => Unlocked(FocusedNanites) ? 0.1f : 0f;
+
     private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
     {
         if (!NodeSet.Contains(ev.NodeId))
@@ -184,7 +186,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
                             * (Unlocked(CellEfficiency2) ? 0.75f : 1f);
 
         c.BaseSoftCapRatio ??= c.SoftCapRatio;
-        c.SoftCapRatio = c.BaseSoftCapRatio.Value + (Unlocked(FocusedNanites) ? 0.1f : 0f);
+        c.SoftCapRatio = c.BaseSoftCapRatio.Value + SoftCapBonus;
 
         var drone = HasComp<FSMediDroneComponent>(ent);
         c.CanSetBones = !drone && Unlocked(BoneKnitter);
