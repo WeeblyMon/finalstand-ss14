@@ -109,6 +109,10 @@
   - FSSyringePackLarge
   - FSMedicalDispenserRestock
   - FSFieldHospitalItem
+  - FSDefibrillatorCompact
+  - FSMedicatedSuture
+  - FSRegenerativeMesh
+  - FSSplint
   - CryostasisBeaker
   - SyringeCryostasis
   - BluespaceBeaker

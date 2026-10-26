@@ -176,15 +176,57 @@ public sealed partial class FSAilmentSystem : EntitySystem
         RaiseCured(patient, FSAilmentSlot.Bleeding, TakeBleedTier(patient, stopped), curer, kind);
     }
 
-    public bool CanSplint(EntityUid patient)
+    public bool ApplyWard(EntityUid patient, EntProtoId ward, float durationScale = 1f)
+    {
+        if (_net.IsClient || !_stateQuery.HasComp(patient) || _mobState.IsDead(patient))
+            return false;
+
+        if (!_proto.TryIndex(ward, out var proto) || !proto.TryGetComponent<FSAilmentWardComponent>(out var wardComp, Factory))
+            return false;
+
+        if (_status.HasStatusEffect(patient, ward))
+            return false;
+
+        return _status.TrySetStatusEffectDuration(patient, ward, wardComp.Duration * durationScale);
+    }
+
+    public bool IsBroken(EntityUid patient)
     {
         return HasEffect(patient, Rules.Broken);
+    }
+
+    public bool AddMend(EntityUid patient, FSAilmentSlot slot, float fraction, EntityUid? curer = null, FSCureKind kind = FSCureKind.Automatic)
+    {
+        if (_net.IsClient || fraction <= 0f || !_stateQuery.TryComp(patient, out var state) || !Has(patient, slot))
+            return false;
+
+        var progress = state.MendProgress.GetValueOrDefault(slot) + fraction;
+        if (progress < 1f)
+        {
+            state.MendProgress[slot] = progress;
+            SetMendFill((patient, state), slot, progress);
+            return false;
+        }
+
+        return Cure(patient, slot, curer, kind);
+    }
+
+    public void PruneMend(Entity<FSAilmentStateComponent> patient)
+    {
+        if (patient.Comp.MendProgress.Count == 0)
+            return;
+
+        foreach (var slot in Enum.GetValues<FSAilmentSlot>())
+        {
+            if (patient.Comp.MendProgress.ContainsKey(slot) && !Has(patient, slot))
+                ClearMend(patient, slot);
+        }
     }
 
     public bool Splint(EntityUid patient, TimeSpan? duration = null)
     {
         var rules = Rules;
-        if (!HasEffect(patient, rules.Broken) || GetAilment(rules.Splinted) is not { } splinted)
+        if (!IsBroken(patient) || GetAilment(rules.Splinted) is not { } splinted)
             return false;
 
         RemoveSlot(patient, FSAilmentSlot.Bone);
@@ -403,6 +445,9 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     private void RaiseCured(EntityUid patient, FSAilmentSlot slot, FSAilmentTier tier, EntityUid? curer, FSCureKind kind)
     {
+        if (_stateQuery.TryComp(patient, out var state))
+            ClearMend((patient, state), slot);
+
         var ev = new FSAilmentCuredEvent(patient, slot, tier, curer, kind);
         RaiseLocalEvent(patient, ref ev, true);
     }
@@ -442,11 +487,38 @@ public sealed partial class FSAilmentSystem : EntitySystem
         DirtyField(patient.AsNullable(), nameof(FSAilmentStateComponent.Warnings));
     }
 
+    private void SetMendFill(Entity<FSAilmentStateComponent> patient, FSAilmentSlot slot, float progress)
+    {
+        var fill = (byte) Math.Clamp((int) (progress * 10f), 0, 10);
+        if (fill == patient.Comp.Mend.GetValueOrDefault(slot))
+            return;
+
+        if (fill == 0)
+            patient.Comp.Mend.Remove(slot);
+        else
+            patient.Comp.Mend[slot] = fill;
+
+        DirtyField(patient.AsNullable(), nameof(FSAilmentStateComponent.Mend));
+    }
+
+    private void ClearMend(Entity<FSAilmentStateComponent> patient, FSAilmentSlot slot)
+    {
+        patient.Comp.MendProgress.Remove(slot);
+        SetMendFill(patient, slot, 0f);
+    }
+
     private void ResetState(Entity<FSAilmentStateComponent> patient)
     {
         patient.Comp.Meters.Clear();
         patient.Comp.Causes.Clear();
+        patient.Comp.MendProgress.Clear();
         patient.Comp.PeakBleed = 0;
+        if (patient.Comp.Mend.Count > 0)
+        {
+            patient.Comp.Mend.Clear();
+            DirtyField(patient.AsNullable(), nameof(FSAilmentStateComponent.Mend));
+        }
+
         if (patient.Comp.Warnings.Count == 0)
             return;
 

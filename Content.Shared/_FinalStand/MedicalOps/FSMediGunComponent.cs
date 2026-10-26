@@ -49,6 +49,21 @@ public sealed partial class FSMediGunComponent : Component
     public float ClotPerSecond = 0.5f;
 
     [DataField]
+    public bool CanSetBones;
+
+    [DataField]
+    public float BoneSetSeconds = 6f;
+
+    [DataField]
+    public float SplintedSetSeconds = 3f;
+
+    [DataField]
+    public bool CanClearBurns;
+
+    [DataField]
+    public float BurnClearSeconds = 6f;
+
+    [DataField]
     public float Frequency = 0.5f;
 
     [DataField]

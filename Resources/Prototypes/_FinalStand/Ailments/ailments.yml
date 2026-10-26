@@ -121,3 +121,33 @@
         Shock: 2
         Slash: 2
         Structural: 2
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSWardClotted
+  name: clotted
+  components:
+  - type: FSAilmentWard
+    blocks: Bleeding
+    name: fs-ward-clotted
+    duration: 20
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSWardBraced
+  name: braced
+  components:
+  - type: FSAilmentWard
+    blocks: Bone
+    name: fs-ward-braced
+    duration: 60
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSWardCharred
+  name: warded
+  components:
+  - type: FSAilmentWard
+    blocks: Burn
+    name: fs-ward-warded
+    duration: 45

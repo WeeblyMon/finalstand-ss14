@@ -1,11 +1,13 @@
 using System.Collections.Frozen;
 using Content.Server._FinalStand.Research;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Medical;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -27,7 +29,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     public const string CapacitorBank = "FSMedicalCapacitorBank";
     public const string RapidRecharge = "FSMedicalRapidRecharge";
     public const string BoneKnitter = "FSMedicalBoneKnitter";
-    public const string LimbMender = "FSMedicalLimbMender";
+    public const string DermalLattice = "FSMedicalDermalLattice";
     public const string SplitBeamTuning = "FSMedicalSplitBeamTuning";
     public const string BackfeederNanites = "FSMedicalBackfeederNanites";
     public const string RefinedEmitters = "FSMedicalRefinedEmitters";
@@ -58,17 +60,25 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     public const string MassCasualtyReadiness = "FSMedicalMassCasualtyReadiness";
     public const string DepartmentDividend = "FSMedicalDepartmentDividend";
 
+    public const string FieldSplints = "FSMedicalFieldSplints";
+    public const string ClottingGauze = "FSMedicalClottingGauze";
+    public const string TraumaScanners = "FSMedicalTraumaScanners";
+    public const string RestartProtocol = "FSMedicalRestartProtocol";
+
+    private static readonly EntProtoId ClottedWard = "FSWardClotted";
+
     public static readonly string[] AllNodes =
     [
         ExtendedOptics, HaemostaticBeam, FocusedEmitters, RapidCycling, CapacitorRecovery,
         CellEfficiency, DefibrillatorOutput, FocusedNanites,
-        CellEfficiency2, CapacitorBank, RapidRecharge, BoneKnitter, LimbMender, SplitBeamTuning, BackfeederNanites,
+        CellEfficiency2, CapacitorBank, RapidRecharge, BoneKnitter, DermalLattice, SplitBeamTuning, BackfeederNanites,
         RefinedEmitters, UberCycling, PerfectedEmitters, PolishedEmitters, UltraCycling, EfficientCycling,
         AutoclaveKit, ReinforcedCanvas, BoneWelder, RecoveryUplink, SterileField,
         VolatileSuspension, StabilisedAerosol,
         LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
         StandingOrders, RapidMobilisation, ExtendedProtocol, TriageDoctrine, MassCasualtyReadiness,
         DepartmentDividend,
+        FieldSplints, ClottingGauze, TraumaScanners, RestartProtocol,
     ];
 
     private static readonly FrozenSet<string> NodeSet = AllNodes.ToFrozenSet();
@@ -86,6 +96,8 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSFieldHospitalComponent, MapInitEvent>(OnFieldHospitalInit);
         SubscribeLocalEvent<FSEmergencyDefibComponent, MapInitEvent>(OnDefibInit);
         SubscribeLocalEvent<FSSyringeFillerComponent, MapInitEvent>(OnFillerInit);
+        SubscribeLocalEvent<FSSplintComponent, MapInitEvent>(OnSplintInit);
+        SubscribeLocalEvent<FSAilmentCureComponent, MapInitEvent>(OnCureInit);
     }
 
     public bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);
@@ -130,6 +142,14 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         var fillers = EntityQueryEnumerator<FSSyringeFillerComponent>();
         while (fillers.MoveNext(out var uid, out var filler))
             ApplyFiller((uid, filler));
+
+        var splints = EntityQueryEnumerator<FSSplintComponent>();
+        while (splints.MoveNext(out var uid, out var splint))
+            ApplySplint((uid, splint));
+
+        var cures = EntityQueryEnumerator<FSAilmentCureComponent>();
+        while (cures.MoveNext(out var uid, out var cure))
+            ApplyCure((uid, cure));
     }
 
     private void OnMediGunInit(Entity<FSMediGunComponent> ent, ref MapInitEvent args)
@@ -143,6 +163,8 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     private void OnFieldHospitalInit(Entity<FSFieldHospitalComponent> ent, ref MapInitEvent args) => ApplyFieldHospital(ent);
     private void OnDefibInit(Entity<FSEmergencyDefibComponent> ent, ref MapInitEvent args) => ApplyDefib(ent);
     private void OnFillerInit(Entity<FSSyringeFillerComponent> ent, ref MapInitEvent args) => ApplyFiller(ent);
+    private void OnSplintInit(Entity<FSSplintComponent> ent, ref MapInitEvent args) => ApplySplint(ent);
+    private void OnCureInit(Entity<FSAilmentCureComponent> ent, ref MapInitEvent args) => ApplyCure(ent);
 
     private void ApplyMediGun(Entity<FSMediGunComponent> ent)
     {
@@ -164,6 +186,10 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 
         c.BaseSoftCapRatio ??= c.SoftCapRatio;
         c.SoftCapRatio = c.BaseSoftCapRatio.Value + (Unlocked(FocusedNanites) ? 0.1f : 0f);
+
+        var drone = HasComp<FSMediDroneComponent>(ent);
+        c.CanSetBones = !drone && Unlocked(BoneKnitter);
+        c.CanClearBurns = !drone && Unlocked(DermalLattice);
 
         c.BaseSplitLinkScale ??= c.SplitLinkScale;
         c.SplitLinkScale = c.BaseSplitLinkScale.Value * (Unlocked(SplitBeamTuning) ? 1.25f : 1f);
@@ -228,6 +254,25 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         c.Duration = c.BaseDuration.Value * (Unlocked(StabilisedAerosol) ? 1.8f : 1f);
 
         Dirty(ent);
+    }
+
+    private void ApplySplint(Entity<FSSplintComponent> ent)
+    {
+        var c = ent.Comp;
+        c.BaseDelay ??= c.Delay;
+        c.BaseSelfDelay ??= c.SelfDelay;
+
+        var field = Unlocked(FieldSplints);
+        c.Delay = c.BaseDelay.Value * (field ? 0.5f : 1f);
+        c.SelfDelay = c.BaseSelfDelay.Value * (field ? 0.5f : 1f);
+        c.SplintedDuration = field ? TimeSpan.FromSeconds(45) : null;
+        Dirty(ent);
+    }
+
+    private void ApplyCure(Entity<FSAilmentCureComponent> ent)
+    {
+        if (ent.Comp.Slot == FSAilmentSlot.Bleeding)
+            ent.Comp.Ward = Unlocked(ClottingGauze) ? ClottedWard : (EntProtoId?) null;
     }
 
     private void ApplyStapler(Entity<FSBoneStaplerComponent> ent)

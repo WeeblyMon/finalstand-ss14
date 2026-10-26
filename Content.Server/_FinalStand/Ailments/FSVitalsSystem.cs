@@ -78,6 +78,7 @@ public sealed partial class FSVitalsSystem : EntitySystem
 
         Regenerate(patient, rules, now);
         _ailments.RefreshWarnings(patient);
+        _ailments.PruneMend(patient);
     }
 
     private void Hurt(Entity<FSAilmentStateComponent, DamageableComponent> patient, DamageSpecifier damage)

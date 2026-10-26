@@ -15,6 +15,7 @@ public sealed partial class FSUberSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private FSMediGunSystem _mediGun = default!;
 
     public const float FullCharge = 100f;
 
@@ -101,8 +102,12 @@ public sealed partial class FSUberSystem : EntitySystem
         Dirty(ent);
 
         Cover(ent, medic);
+        _mediGun.ClearTreatable(comp, medic, medic);
         foreach (var patient in comp.HealedEntities)
+        {
             Cover(ent, patient);
+            _mediGun.ClearTreatable(comp, patient, medic);
+        }
 
         _audio.PlayPvs(DeploySound, medic);
         comp.UberLoop = _audio.PlayPvs(LoopSound, medic, AudioParams.Default.WithLoop(true).WithVolume(-12f))?.Entity;

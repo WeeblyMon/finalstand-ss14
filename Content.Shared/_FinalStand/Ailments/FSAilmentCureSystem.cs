@@ -38,6 +38,9 @@ public sealed partial class FSAilmentCureSystem : EntitySystem
         if (!TryComp<FSAilmentCureComponent>(item, out var cure))
             return;
 
+        if (cure.Ward is { } ward)
+            _ailments.ApplyWard(patient, ward);
+
         if (cure.Slot != FSAilmentSlot.Bleeding)
             _ailments.Cure(patient, cure.Slot, user);
         else if (stoppedBleed > 0f)
@@ -73,7 +76,7 @@ public sealed partial class FSAilmentCureSystem : EntitySystem
         if (user != patient && !_interaction.InRangeUnobstructed(user, patient, popup: true))
             return false;
 
-        if (!_ailments.CanSplint(patient))
+        if (!_ailments.IsBroken(patient))
         {
             _popup.PopupClient(Loc.GetString("fs-splint-nothing", ("target", Identity.Entity(patient, EntityManager))), patient, user);
             return true;

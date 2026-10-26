@@ -1,6 +1,7 @@
 using Content.Shared.DoAfter;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Ailments;
@@ -10,6 +11,9 @@ public sealed partial class FSAilmentCureComponent : Component
 {
     [DataField(required: true)]
     public FSAilmentSlot Slot;
+
+    [DataField]
+    public EntProtoId? Ward;
 }
 
 [RegisterComponent, NetworkedComponent]

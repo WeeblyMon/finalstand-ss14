@@ -1063,6 +1063,12 @@
       # but still technically stop your bleeding.
       - !type:ModifyBleedAmount
         amount: -1.5
+      - !type:FSApplyWard
+        ward: FSWardClotted
+        requiresNode: FSMedicalClottingGauze
+        conditions:
+        - !type:ReagentThreshold
+          min: 0.2
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold

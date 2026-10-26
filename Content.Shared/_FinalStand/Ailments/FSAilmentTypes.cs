@@ -32,6 +32,7 @@ public enum FSCureKind : byte
     Chemical,
     Automatic,
     Mass,
+    Rider,
 }
 
 public record struct FSAilmentMeterState(float Value, TimeSpan Updated, bool Draining);

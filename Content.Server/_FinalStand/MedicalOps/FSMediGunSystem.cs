@@ -117,6 +117,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
             return false;
 
         var clotted = _ailments.Clot(healed, comp.ClotPerSecond * comp.Frequency, wielder);
+        MendAilments(comp, healed, wielder);
 
         var potency = new FSHealingPotencyEvent(1f, healed);
         RaiseLocalEvent(wielder, ref potency);
@@ -164,6 +165,29 @@ public sealed partial class FSMediGunSystem : EntitySystem
         var restored = before - _damageable.GetTotalDamage((healed, damageable)).Float();
         _uber.AddCharge(ent, restored * comp.UberChargePerHp);
         return true;
+    }
+
+    private void MendAilments(FSMediGunComponent comp, EntityUid healed, EntityUid wielder)
+    {
+        var speed = _medicalBonus.GetDelayMultiplier(wielder, FSMedicalBonusCategory.TreatmentSpeed);
+        if (comp.CanSetBones && _ailments.Has(healed, FSAilmentSlot.Bone))
+        {
+            var seconds = _ailments.IsBroken(healed) ? comp.BoneSetSeconds : comp.SplintedSetSeconds;
+            _ailments.AddMend(healed, FSAilmentSlot.Bone, comp.Frequency / (seconds * speed), wielder);
+        }
+
+        if (comp.CanClearBurns && _ailments.Has(healed, FSAilmentSlot.Burn))
+            _ailments.AddMend(healed, FSAilmentSlot.Burn, comp.Frequency / (comp.BurnClearSeconds * speed), wielder);
+    }
+
+    public void ClearTreatable(FSMediGunComponent comp, EntityUid patient, EntityUid medic)
+    {
+        _ailments.StopBleeding(patient, medic, FSCureKind.Mass);
+        if (comp.CanSetBones)
+            _ailments.Cure(patient, FSAilmentSlot.Bone, medic, FSCureKind.Mass);
+
+        if (comp.CanClearBurns)
+            _ailments.Cure(patient, FSAilmentSlot.Burn, medic, FSCureKind.Mass);
     }
 
     public float GetHealScale(Entity<DamageableComponent> patient, FSMediGunComponent comp)

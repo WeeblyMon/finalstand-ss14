@@ -6,4 +6,7 @@ fs-ailment-splinted-examine = [color=#e8e2d0]{ CAPITALIZE(SUBJECT($target)) } { 
 fs-ailment-burned = BURNED
 fs-ailment-burned-examine = [color=#ff8c2e]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } fresh burns.[/color]
 fs-ailment-soaked = SOAKED
+fs-ward-clotted = CLOTTED
+fs-ward-braced = BRACED
+fs-ward-warded = WARDED
 fs-ailment-soaked-examine = [color=#a8d44a]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-BE($target) } dripping with bloater bile.[/color]

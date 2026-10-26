@@ -487,6 +487,7 @@
     - MedicalClothingStatic
     - EmptyMedkitsStatic
     - SurgeryStatic
+    - FSMedicalInjectorsStatic
     dynamicPacks:
     - Chemistry
     - Surgery

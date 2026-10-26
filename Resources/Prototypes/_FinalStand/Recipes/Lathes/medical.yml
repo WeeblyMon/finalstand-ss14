@@ -1,0 +1,101 @@
+- type: latheRecipe
+  id: FSDefibrillatorCompact
+  result: DefibrillatorCompact
+  completetime: 5
+  materials:
+    Steel: 250
+    Plastic: 100
+    Silver: 50
+
+- type: latheRecipe
+  id: FSMedicatedSuture
+  result: BrutepackAdvanced1
+  completetime: 2
+  materials:
+    Cloth: 100
+    Plastic: 50
+
+- type: latheRecipe
+  id: FSRegenerativeMesh
+  result: OintmentAdvanced1
+  completetime: 2
+  materials:
+    Glass: 50
+    Plastic: 50
+
+- type: latheRecipe
+  id: FSSplint
+  result: FSSplint1
+  completetime: 2
+  materials:
+    Plastic: 50
+    Cloth: 50
+
+- type: latheRecipe
+  abstract: true
+  id: FSBaseAutoInjectorRecipe
+  completetime: 3
+  materials:
+    Plastic: 100
+    Steel: 50
+
+- type: latheRecipe
+  parent: FSBaseAutoInjectorRecipe
+  id: FSBruteAutoInjector
+  result: BruteAutoInjector
+
+- type: latheRecipe
+  parent: FSBaseAutoInjectorRecipe
+  id: FSBurnAutoInjector
+  result: BurnAutoInjector
+
+- type: latheRecipe
+  parent: FSBaseAutoInjectorRecipe
+  id: FSAirlossAutoInjector
+  result: AirlossAutoInjector
+
+- type: latheRecipe
+  parent: FSBaseAutoInjectorRecipe
+  id: FSRadAutoInjector
+  result: RadAutoInjector
+
+- type: latheRecipe
+  parent: FSBaseAutoInjectorRecipe
+  id: FSPunctAutoInjector
+  result: PunctAutoInjector
+
+- type: latheRecipe
+  parent: FSBaseAutoInjectorRecipe
+  id: FSLacerinolAutoInjector
+  result: LacerinolAutoInjector
+
+- type: latheRecipe
+  parent: FSBaseAutoInjectorRecipe
+  id: FSBruizineAutoInjector
+  result: BruizineAutoInjector
+
+- type: latheRecipe
+  parent: FSBaseAutoInjectorRecipe
+  id: FSAntiPoisonMedipen
+  result: AntiPoisonMedipen
+
+- type: latheRecipe
+  id: FSEmergencyMedipen
+  result: EmergencyMedipen
+  completetime: 4
+  materials:
+    Plastic: 150
+    Steel: 50
+
+- type: latheRecipePack
+  id: FSMedicalInjectorsStatic
+  recipes:
+  - FSBruteAutoInjector
+  - FSBurnAutoInjector
+  - FSAirlossAutoInjector
+  - FSRadAutoInjector
+  - FSPunctAutoInjector
+  - FSLacerinolAutoInjector
+  - FSBruizineAutoInjector
+  - FSAntiPoisonMedipen
+  - FSEmergencyMedipen

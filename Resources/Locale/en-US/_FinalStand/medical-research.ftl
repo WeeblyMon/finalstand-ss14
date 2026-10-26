@@ -10,6 +10,7 @@ fs-medical-research-locked = Requires { $name }
 fs-medical-research-funds-text = [color=#4FA3D1][bold]${$points}[/bold][/color] department funds
 
 research-technology-fs-adrenal-chemistry = Adrenal Chemistry
+research-technology-fs-advanced-treatment = Advanced Treatment
 research-technology-fs-analgesic-chemistry = Analgesic Chemistry
 research-technology-fs-heavy-glassware = Heavy Glassware
 research-technology-fs-extended-magazines = Extended Magazines
