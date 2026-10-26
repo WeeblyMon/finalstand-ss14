@@ -3,10 +3,6 @@
   parent: [SolutionHypospraySmall, BaseItem]
   id: BaseHypoInjector
   components:
-  - type: Hypospray
-    solutionName: hypospray
-    transferAmount: 5
-    onlyAffectsMobs: true
   - type: Injector
     solutionName: hypospray
     ignoreClosed: false
@@ -222,8 +218,6 @@
     activeModeProtoId: HyposprayInjectMode
     allowedModes:
     - HyposprayInjectMode
-  - type: Hypospray
-    transferAmount: 100
   - type: SolutionContainerVisuals
     maxFillLevels: 1
     changeColor: false
