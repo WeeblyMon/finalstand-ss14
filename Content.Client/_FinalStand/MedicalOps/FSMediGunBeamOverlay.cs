@@ -1,6 +1,9 @@
 using System.Numerics;
+using Content.Client._FinalStand.Ailments;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using Robust.Client.Graphics;
+using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
 using Robust.Shared.Prototypes;
@@ -14,6 +17,9 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private readonly IEntityManager _entManager;
     private readonly IGameTiming _timing;
     private readonly SharedTransformSystem _transform;
+    private readonly IPlayerManager _player;
+    private readonly FSAilmentSystem _ailments;
+    private readonly FSAilmentVisualsSystem _ailmentVisuals;
 
     private readonly Texture? _beam;
     private readonly Texture? _dot;
@@ -57,6 +63,10 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private const float ParticleOrbit = 0.13f;
     private const float ParticleOrbitSpeed = 2.4f;
 
+    private const float PipMeters = 0.28f;
+    private const float PipLift = 0.72f;
+    private const float MendRadius = 0.5f;
+
     private readonly List<DrawVertexUV2D> _verts = new();
     private DrawVertexUV2D[] _vertBuffer = new DrawVertexUV2D[64];
     private readonly Vector2[] _quad = new Vector2[6];
@@ -71,6 +81,9 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _entManager = entManager;
         _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
+        _player = IoCManager.Resolve<IPlayerManager>();
+        _ailments = _entManager.System<FSAilmentSystem>();
+        _ailmentVisuals = _entManager.System<FSAilmentVisualsSystem>();
 
         _beam = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/medigun_beam.png");
         _dot = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/Particles/dot.png");
@@ -153,6 +166,36 @@ public sealed class FSMediGunBeamOverlay : Overlay
         handle.UseShader(null);
 
         DrawParticles(handle, start, control, end, time, gun.BeamColor);
+
+        if (gun.ParentEntity == _player.LocalEntity)
+            DrawPatientStatus(handle, patient, end);
+    }
+
+    private void DrawPatientStatus(DrawingHandleWorld handle, EntityUid patient, Vector2 end)
+    {
+        var pips = _ailments.GetPips(patient);
+        if (pips != FSAilmentPips.None)
+        {
+            var origin = end + new Vector2(-FSAilmentVisualsSystem.Count(pips) * PipMeters / 2f, PipLift);
+            _ailmentVisuals.DrawWorldPips(handle, origin, pips, PipMeters);
+        }
+
+        if (!_entManager.TryGetComponent(patient, out FSAilmentStateComponent? vitals))
+            return;
+
+        FSAilmentSlot? mending = null;
+        byte fill = 0;
+        foreach (var (slot, value) in vitals.Mend)
+        {
+            if (value <= fill)
+                continue;
+
+            mending = slot;
+            fill = value;
+        }
+
+        if (mending is { } mendSlot)
+            FSAilmentVisualsSystem.DrawArc(handle, end, MendRadius, fill / 10f, FSAilmentVisualsSystem.SlotColor(mendSlot));
     }
 
     private void DrawRibbon(DrawingHandleWorld handle, Texture beam, Vector2 start, Vector2 control, Vector2 end,

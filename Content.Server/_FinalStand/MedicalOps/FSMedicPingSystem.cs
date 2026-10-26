@@ -1,4 +1,5 @@
 using Content.Server.Chat.Systems;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Actions;
 using Content.Shared.Damage.Components;
@@ -26,6 +27,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private IPlayerManager _players = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
 
     private static readonly EntProtoId PingActionProto = "FSMedicPingAction";
     private const string ScreamEmote = "Scream";
@@ -83,7 +85,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
 
     private bool IsHurt(EntityUid uid)
     {
-        if (_mobState.IsIncapacitated(uid))
+        if (_mobState.IsIncapacitated(uid) || _ailments.GetPips(uid) != FSAilmentPips.None)
             return true;
 
         if (!TryComp<DamageableComponent>(uid, out var damageable)

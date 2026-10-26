@@ -1,4 +1,7 @@
 using System.Numerics;
+using Content.Client._FinalStand.Ailments;
+using Content.Client._FinalStand.Interface;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Mind.Components;
@@ -29,6 +32,9 @@ public sealed class FSReviveIndicatorOverlay : Overlay
 
     private const float BobAmplitude = 0.05f;
     private const float BobSpeed = 2.6f;
+
+    private const float FullClockSeconds = 100f;
+    private const float RingRadius = 0.56f;
 
     public FSReviveIndicatorOverlay(IEntityManager entManager, IGameTiming timing, IResourceCache cache)
     {
@@ -81,8 +87,33 @@ public sealed class FSReviveIndicatorOverlay : Overlay
 
             handle.DrawTextureRect(icon,
                 new Box2(-halfWidth, centre - halfHeight, halfWidth, centre + halfHeight));
+
+            if (_mobState.IsCritical(uid, mobState) && _entManager.TryGetComponent(uid, out FSAilmentStateComponent? vitals))
+                DrawClock(handle, new Vector2(0f, centre), vitals);
         }
 
         handle.SetTransform(Matrix3x2.Identity);
+    }
+
+    private void DrawClock(DrawingHandleWorld handle, Vector2 centre, FSAilmentStateComponent vitals)
+    {
+        float fraction;
+        Color color;
+        if (vitals.Held)
+        {
+            fraction = 1f;
+            color = FSPalette.Ok;
+        }
+        else if (vitals.DownEnd is { } end)
+        {
+            fraction = Math.Clamp((float) (end - _timing.CurTime).TotalSeconds / FullClockSeconds, 0f, 1f);
+            color = FSPalette.Danger;
+        }
+        else
+        {
+            return;
+        }
+
+        FSAilmentVisualsSystem.DrawArc(handle, centre, RingRadius, fraction, color);
     }
 }

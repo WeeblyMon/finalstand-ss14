@@ -1,3 +1,5 @@
+using Content.Client._FinalStand.Ailments;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Mobs.Systems;
 using System.Numerics;
@@ -17,6 +19,8 @@ public sealed class FSMedicPingOverlay : Overlay
     private readonly SharedTransformSystem _transform;
     private readonly MobStateSystem _mobState;
     private readonly SpriteSystem _sprite;
+    private readonly FSAilmentSystem _ailments;
+    private readonly FSAilmentVisualsSystem _ailmentVisuals;
 
     private readonly Texture? _normal;
     private readonly Texture? _hurt;
@@ -28,6 +32,7 @@ public sealed class FSMedicPingOverlay : Overlay
     private const float Lifetime = 2.5f;
     private const float BubbleMeters = 1.0f;
     private const float BuffFlashSeconds = 1f;
+    private const float PipMeters = 0.28f;
 
     private readonly record struct Ping(EntityUid Target, bool IsHurt, float Life, FSPingKind Kind);
     private readonly List<Ping> _pings = new();
@@ -39,6 +44,8 @@ public sealed class FSMedicPingOverlay : Overlay
         _transform = _entManager.System<SharedTransformSystem>();
         _sprite = _entManager.System<SpriteSystem>();
         _mobState = _entManager.System<MobStateSystem>();
+        _ailments = _entManager.System<FSAilmentSystem>();
+        _ailmentVisuals = _entManager.System<FSAilmentVisualsSystem>();
 
         _normal = TryLoad(cache, "normal");
         _hurt = TryLoad(cache, "hurt");
@@ -120,6 +127,12 @@ public sealed class FSMedicPingOverlay : Overlay
             var box = new Box2(-half, yOffset - half, half, yOffset + half);
 
             handle.DrawTextureRect(texture, box, Color.White.WithAlpha(alpha));
+
+            if (ping.Kind == FSPingKind.Medic && _ailments.GetPips(ping.Target) is var pips and not FSAilmentPips.None)
+            {
+                var origin = new Vector2(-FSAilmentVisualsSystem.Count(pips) * PipMeters / 2f, yOffset + half);
+                _ailmentVisuals.DrawWorldPips(handle, origin, pips, PipMeters);
+            }
         }
 
         handle.SetTransform(Matrix3x2.Identity);
