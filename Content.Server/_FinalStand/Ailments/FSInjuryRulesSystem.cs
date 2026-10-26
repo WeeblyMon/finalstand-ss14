@@ -3,6 +3,7 @@ using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Melee.Events;
 using Robust.Shared.Timing;
@@ -24,7 +25,7 @@ public sealed partial class FSInjuryRulesSystem : EntitySystem
 
         SubscribeLocalEvent<FSInjuryOnHitComponent, MeleeHitEvent>(OnMeleeHit);
         SubscribeLocalEvent<FSInjuryOnHitComponent, ProjectileHitEvent>(OnProjectileHit);
-        SubscribeLocalEvent<FSAilmentStateComponent, DamageChangedEvent>(OnDamageChanged);
+        SubscribeLocalEvent<FSAilmentStateComponent, DamageChangedEvent>(OnDamageChanged, after: [typeof(MobThresholdSystem)]);
         SubscribeLocalEvent<FSAilmentStateComponent, ExtinguishedEvent>(OnExtinguished);
     }
 
