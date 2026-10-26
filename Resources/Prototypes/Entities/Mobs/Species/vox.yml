@@ -172,13 +172,13 @@
     damage:
       types:
         Poison: -0.2
-  #  - type: DamageVisuals
-  #    damageOverlayGroups:
-  #      Brute:
-  #      sprite: _Shitmed/Mobs/Effects/brute_damage.rsi
-  #      color: "#7a8bf2"
-  #    Burn:
-  #      sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
+  - type: DamageVisuals
+    damageOverlayGroups:
+      Brute:
+        sprite: Mobs/Effects/brute_damage.rsi
+        color: "#7a8bf2"
+      Burn:
+        sprite: Mobs/Effects/burn_damage.rsi
   - type: Bloodstream
     bloodReferenceSolution:
       reagents:

@@ -166,13 +166,13 @@
       reagents:
       - ReagentId: InsectBlood
         Quantity: 600
-#  - type: DamageVisuals
-#    damageOverlayGroups:
-#      Brute:
-#        sprite: _Shitmed/Mobs/Effects/brute_damage.rsi
-#        color: "#808A51"
-#      Burn:
-#        sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
+  - type: DamageVisuals
+    damageOverlayGroups:
+      Brute:
+        sprite: Mobs/Effects/brute_damage.rsi
+        color: "#808A51"
+      Burn:
+        sprite: Mobs/Effects/burn_damage.rsi
   - type: MothAccent
   - type: Vocal
     wilhelmProbability: 0.1 # Goobstation
