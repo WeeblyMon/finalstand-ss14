@@ -1692,13 +1692,7 @@
   - type: SentienceTarget
     flavorKind: station-event-random-sentience-flavor-primate
   - type: AlwaysRevolutionaryConvertible
-  - type: GhostRole
-    prob: 0.05
-    makeSentient: true
-    name: ghost-role-information-monkey-name
-    description: ghost-role-information-monkey-description
-    rules: ghost-role-information-nonantagonist-rules
-  - type: GhostTakeoverAvailable
+  # FINALSTAND: no monkey ghost role.
   - type: Clumsy
     gunShootFailDamage:
       types:
@@ -1929,16 +1923,7 @@
   id: MobMouse
   description: Squeak!
   components:
-  - type: GhostRole
-    makeSentient: true
-    allowSpeech: true
-    allowMovement: true
-    name: ghost-role-information-mouse-name
-    description: ghost-role-information-mouse-description
-    rules: ghost-role-information-freeagent-rules
-    mindRoles:
-    - MindRoleGhostRoleFreeAgentHarmless
-  - type: GhostTakeoverAvailable
+  # FINALSTAND: no mouse ghost role.
   - type: Speech
     speechSounds: Squeak
     speechVerb: SmallMob

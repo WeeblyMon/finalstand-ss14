@@ -87,6 +87,9 @@ public sealed partial class FSOnboardingSystem : EntitySystem
         if (!rookie && record.WasRookie && !record.Graduated)
             record = Graduate(session, mindId, record);
 
+        if (!rookie)
+            _titles.Grant(userId, FSRookieRules.GraduationTitle);
+
         _store.SaveOnboarding(userId.UserId, record);
         ApplyRookieState(mindId, body, rookie);
     }

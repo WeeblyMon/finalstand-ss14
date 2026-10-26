@@ -12,6 +12,7 @@ public sealed partial class FSPerkLockSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
     private void OnCombatStarted(ref WaveCombatStartedEvent args)
@@ -19,6 +20,13 @@ public sealed partial class FSPerkLockSystem : EntitySystem
         var query = EntityQueryEnumerator<FSPerkLevelsComponent>();
         while (query.MoveNext(out var mindId, out var perks))
             LockSlotted(mindId, perks);
+    }
+
+    private void OnPrepStarted(ref WavePrepStartedEvent args)
+    {
+        var query = EntityQueryEnumerator<FSPerkLockComponent>();
+        while (query.MoveNext(out _, out var locks))
+            locks.Locked.Clear();
     }
 
     public void LockSlotted(EntityUid mindId, FSPerkLevelsComponent perks)

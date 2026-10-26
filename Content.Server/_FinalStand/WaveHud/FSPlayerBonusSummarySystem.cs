@@ -49,6 +49,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private FSStylePointsSystem _stylePoints = default!;
+    [Dependency] private Shop.FSPlayerUpgradesSystem _upgrades = default!;
     [Dependency] private FSSmokingKillsSystem _smokingKills = default!;
     [Dependency] private FSAggravatorSystem _aggravator = default!;
     [Dependency] private FSDrunkPerkSystem _drunk = default!;
@@ -317,7 +318,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             magSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-ordnance-research"), magPct));
 
         var bandolierLevel = perks?.GetSlottedLevel("Bandolier") ?? 0;
-        if (bandolierLevel > 0)
+        if (bandolierLevel > 0 && _upgrades.TryGetMagazineTarget(heldUid, out _))
         {
             var pct = bandolierLevel * FSPerkBonusConstants.BandolierPerLevel * 100f;
             magPct += pct;
@@ -521,7 +522,8 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         if (underdog > 1f)
         {
             taken *= 1f / underdog;
-            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-underdog"), (1f - 1f / underdog) * 100f));
+            points += underdog - 1f;
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-underdog"), (underdog - 1f) * 100f));
         }
 
         if (sources.Count == 0)

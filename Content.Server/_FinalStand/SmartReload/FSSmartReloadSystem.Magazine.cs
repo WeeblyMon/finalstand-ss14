@@ -80,8 +80,12 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (args.Cancelled || !args.User.IsValid())
             return;
 
-        if (_slots.TryEject(gun, SharedGunSystem.MagazineSlot, null, out var oldMag) && oldMag != null)
-            TryStoreItemInInventory(args.User, oldMag.Value);
+        EntityUid? oldMag = null;
+        if (_slots.TryEject(gun, SharedGunSystem.MagazineSlot, null, out var ejected) && ejected != null)
+        {
+            oldMag = ejected;
+            TryStoreItemInInventory(args.User, ejected.Value);
+        }
 
         EntityUid? newMag = null;
         if (args.Chosen is { } chosenNet)
@@ -91,7 +95,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
                 newMag = chosen;
         }
 
-        newMag ??= FindBestMagazine(args.User, gun);
+        newMag ??= FindBestMagazine(args.User, gun, oldMag) ?? oldMag;
         if (newMag == null)
             return;
 
@@ -119,7 +123,5 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             if (_inventory.TryEquip(user, user, item, slot, silent: true))
                 return;
         }
-
-        _hands.TryPickupAnyHand(user, item);
     }
 }

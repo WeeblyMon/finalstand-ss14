@@ -598,17 +598,17 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
                     HandLocation.Right => Loc.GetString("fs-weapon-shop-carry-right-hand"),
                     _                  => Loc.GetString("fs-weapon-shop-carry-hand"),
                 };
-            case CarryKind.Equipped:
+            default:
                 return item.Where switch
                 {
                     "belt"        => Loc.GetString("fs-weapon-shop-carry-belt"),
                     "suitstorage" => Loc.GetString("fs-weapon-shop-carry-suit-storage"),
                     "pocket1"     => Loc.GetString("fs-weapon-shop-carry-pocket", ("number", 1)),
                     "pocket2"     => Loc.GetString("fs-weapon-shop-carry-pocket", ("number", 2)),
+                    "shoes"       => Loc.GetString("fs-weapon-shop-carry-boots"),
+                    "back"        => Loc.GetString("fs-weapon-shop-carry-backpack"),
                     _             => Capitalize(item.Where),
                 };
-            default:
-                return Loc.GetString("fs-weapon-shop-carry-backpack");
         }
     }
 

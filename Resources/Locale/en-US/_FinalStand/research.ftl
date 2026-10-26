@@ -69,6 +69,7 @@ fs-research-menu-cost-research = Research
 fs-research-menu-rp = { $amount } RP
 fs-research-menu-queued = QUEUED #{ $position }
 fs-research-menu-queue-full = QUEUE FULL
+fs-research-menu-queue-requirements = QUEUE ITS REQUIREMENTS FIRST
 fs-research-menu-queue-add = ADD TO QUEUE
 fs-research-menu-queue-shared = SHARED QUEUE { $count } / { $max }
 fs-research-menu-queue-mine = MY QUEUE { $count } / { $max }

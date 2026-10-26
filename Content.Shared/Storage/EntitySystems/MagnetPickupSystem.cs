@@ -117,7 +117,8 @@ public sealed partial class MagnetPickupSystem : EntitySystem
 
             foreach (var near in _nearby)
             {
-                if (_whitelistSystem.IsWhitelistFail(storage.Whitelist, near))
+                if (_whitelistSystem.IsWhitelistFail(storage.Whitelist, near)
+                    || _whitelistSystem.IsWhitelistPass(storage.Blacklist, near)) // FINALSTAND
                     continue;
 
                 if (!_physicsQuery.TryGetComponent(near, out var physics) || physics.BodyStatus != BodyStatus.OnGround)

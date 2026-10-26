@@ -146,6 +146,8 @@
   - type: PressureProtection
     highPressureMultiplier: 0.6
     lowPressureMultiplier: 1000
+  - type: TemperatureProtection # FINALSTAND
+    coefficient: 0.01
   - type: ClothingSpeedModifier
     walkModifier: 0.8
     sprintModifier: 0.8

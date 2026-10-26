@@ -330,6 +330,13 @@ public abstract partial class SharedGunSystem
 
     private bool TryInsertChamber(EntityUid uid, EntityUid ammo)
     {
+        // FINALSTAND: a predicted client-side round never goes in the chamber, where it jammed the gun.
+        if (IsClientSide(ammo))
+        {
+            Del(ammo);
+            return false;
+        }
+
         return Containers.TryGetContainer(uid, ChamberSlot, out var container) &&
                container is ContainerSlot slot &&
                Containers.Insert(ammo, slot);

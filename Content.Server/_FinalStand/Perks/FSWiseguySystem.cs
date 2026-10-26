@@ -32,6 +32,13 @@ public sealed partial class FSWiseguySystem : EntitySystem
             FSPerkBonusConstants.WiseguyCap[level - 1]);
     }
 
+    public static int PaidStreak(int streak, int level)
+    {
+        var perWave = FSPerkBonusConstants.WiseguyPerWave[level - 1];
+        var paying = (int) MathF.Ceiling(FSPerkBonusConstants.WiseguyCap[level - 1] / perWave);
+        return Math.Min(streak, paying);
+    }
+
     private void OnMobStateChanged(MobStateChangedEvent args)
     {
         if (args.NewMobState is not (MobState.Critical or MobState.Dead)
@@ -49,14 +56,15 @@ public sealed partial class FSWiseguySystem : EntitySystem
         var query = EntityQueryEnumerator<FSPerkLevelsComponent, MindComponent>();
         while (query.MoveNext(out var mindId, out var perks, out var mind))
         {
-            if (perks.GetSlottedLevel("Wiseguy") <= 0 || mind.CurrentEntity is not { } body)
+            var level = perks.GetSlottedLevel("Wiseguy");
+            if (level <= 0 || mind.CurrentEntity is not { } body)
                 continue;
 
             var wiseguy = EnsureComp<FSWiseguyComponent>(mindId);
             if (!wiseguy.DownedThisWave)
                 wiseguy.Streak++;
             wiseguy.DownedThisWave = false;
-            _notify.SendStacksToBody(body, "Wiseguy", wiseguy.Streak);
+            _notify.SendStacksToBody(body, "Wiseguy", PaidStreak(wiseguy.Streak, level));
         }
     }
 

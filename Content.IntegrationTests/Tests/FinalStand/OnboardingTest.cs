@@ -174,7 +174,7 @@ public sealed class OnboardingTest : GameTest
     }
 
     [Test]
-    public async Task AVeteranSeenForTheFirstTimeGetsNoRookieRewards()
+    public async Task AVeteranSeenForTheFirstTimeGetsThePlaytimeTitleButNoRookieRewards()
     {
         var map = await Pair.CreateTestMap();
 
@@ -197,8 +197,9 @@ public sealed class OnboardingTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(onboarding.TryPayFirstRound(session, mindId), Is.False);
-                Assert.That(titles.GetOwned(session.UserId), Is.Empty,
-                    "players who were already veterans when this shipped must not get rookie or graduation titles");
+                Assert.That(titles.GetOwned(session.UserId).Select(t => t.Id),
+                    Is.EquivalentTo(new[] { FSRookieRules.GraduationTitle }),
+                    "the playtime title is earned by the hours played, not by being tracked from the start");
                 Assert.That(SEntMan.GetComponent<FSPlayerBadgeComponent>(body).Rookie, Is.False);
                 Assert.That(SEntMan.GetComponent<FSPlayerLevelComponent>(mindId).CatchUpMultiplier, Is.EqualTo(1f));
             });

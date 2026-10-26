@@ -35,6 +35,7 @@ fs-weapon-shop-carry-belt = Belt
 fs-weapon-shop-carry-suit-storage = Suit Storage
 fs-weapon-shop-carry-pocket = Pocket { $number }
 fs-weapon-shop-carry-backpack = Backpack
+fs-weapon-shop-carry-boots = Boots
 
 fs-weapon-shop-stat-damage = Damage
 fs-weapon-shop-stat-fire-rate = Fire Rate

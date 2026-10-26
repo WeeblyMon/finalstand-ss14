@@ -9,3 +9,6 @@ examine-verb-name = Basic
 examinable-anchored = It is [color=darkgreen]anchored[/color] to the floor.
 
 examinable-unanchored = It is [color=darkred]unanchored[/color] from the floor.
+
+# FINALSTAND: the string examine borders use was missing.
+examine-border-line = ═════════════════════

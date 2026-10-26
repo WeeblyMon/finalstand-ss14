@@ -247,7 +247,7 @@ fs-perk-man-on-fire-desc = Reduces fire damage taken.
 fs-perk-man-on-fire-level = -{ $value }% Fire Damage
 
 fs-perk-bandolier-name = Bandolier
-fs-perk-bandolier-desc = Increases the magazine size of your guns.
+fs-perk-bandolier-desc = Increases the magazine size of your guns. Does not apply to charge weapons.
 fs-perk-bandolier-level = +{ $value }% Magazine Size
 
 fs-perk-shadow-rounds-name = Shadow Rounds
