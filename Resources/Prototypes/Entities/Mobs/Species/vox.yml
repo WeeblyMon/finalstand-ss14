@@ -164,14 +164,6 @@
     damageContainer: Biological
   - type: Damageable
     damageModifierSet: Vox
-  - type: PassiveDamage
-    # Augment normal health regen to be able to tank some Poison damage
-    # This allows Vox to take their mask off temporarily to eat something without needing a trip to medbay afterwards.
-    allowedStates:
-    - Alive
-    damage:
-      types:
-        Poison: -0.2
   - type: DamageVisuals
     damageOverlayGroups:
       Brute:
