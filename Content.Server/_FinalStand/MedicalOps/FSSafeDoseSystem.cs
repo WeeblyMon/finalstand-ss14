@@ -6,6 +6,7 @@ using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.EntityConditions.Conditions;
 using Content.Shared.FixedPoint;
+using Content.Shared.MedicalScanner;
 using Content.Shared.Projectiles;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -73,6 +74,28 @@ public sealed partial class FSSafeDoseSystem : EntitySystem
             var excess = quantity.Quantity - FixedPoint2.Max(room, FixedPoint2.Zero);
             _solutions.RemoveReagent(soln.Value, quantity.Reagent, excess);
         }
+    }
+
+    public List<HealthAnalyzerReagent>? DescribeBlood(EntityUid patient)
+    {
+        if (!TryComp<BloodstreamComponent>(patient, out var bloodstream)
+            || !_solutions.ResolveSolution(patient, bloodstream.BloodSolutionName, ref bloodstream.BloodSolution, out var blood))
+        {
+            return null;
+        }
+
+        var reference = bloodstream.BloodReferenceSolution;
+        var reagents = new List<HealthAnalyzerReagent>();
+        foreach (var (reagent, quantity) in blood.Contents)
+        {
+            var id = reagent.Prototype;
+            if (reference.ContainsPrototype(id))
+                continue;
+
+            reagents.Add(new HealthAnalyzerReagent(id, quantity, HarmfulAt(id) is not { } harmful || quantity < harmful));
+        }
+
+        return reagents;
     }
 
     private FixedPoint2? HarmfulAt(string reagentId)

@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.MedicalOps;
 using Content.Server.Medical.Components;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.EntitySystems;
@@ -35,6 +36,7 @@ public sealed partial class HealthAnalyzerSystem : EntitySystem
     [Dependency] private TransformSystem _transformSystem = default!;
     [Dependency] private SharedPopupSystem _popupSystem = default!;
     [Dependency] private BloodstreamSystem _bloodstreamSystem = default!;
+    [Dependency] private FSSafeDoseSystem _safeDose = default!;
 
     public override void Initialize()
     {
@@ -256,6 +258,9 @@ public sealed partial class HealthAnalyzerSystem : EntitySystem
             null,
             bleeding,
             unrevivable
-        );
+        )
+        {
+            Reagents = _safeDose.DescribeBlood(entity),
+        };
     }
 }
