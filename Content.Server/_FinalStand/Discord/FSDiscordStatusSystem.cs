@@ -39,7 +39,7 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
     private const string MessageKeyPrefix = "discord_status_message:";
     private static readonly TimeSpan ShutdownWait = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan TimerPeriod = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan Heartbeat = TimeSpan.FromMinutes(5);
+    public static readonly TimeSpan Heartbeat = TimeSpan.FromMinutes(5);
 
     private WebhookIdentifier? _webhook;
     private string? _messageKey;
@@ -50,6 +50,7 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
     private TimeSpan _nextUpdate;
     private DateTime? _roundStarted;
     private DateTime _lastPush;
+    private FSDiscordMessages.StatusReport? _lastReport;
     private int _offlineSent;
     private System.Threading.Timer? _timer;
     private readonly List<PosixSignalRegistration> _signals = new();
@@ -127,7 +128,7 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
 
         try
         {
-            var payload = FSDiscordMessages.ServerStatus(BuildReport(offline: true) with { Updated = DateTime.UtcNow });
+            var payload = FSDiscordMessages.ServerStatus(OfflineReport() with { Updated = DateTime.UtcNow });
             Task.Run(() => _discord.EditMessage(webhook, id, payload)).Wait(ShutdownWait);
         }
         catch (Exception e)
@@ -155,12 +156,33 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
             if (_cfg.GetCVar(CCVars.FSDiscordStatusWebhook) != url)
                 return;
 
+            var port = _cfg.GetCVar(CVars.NetPort);
             _webhook = data.ToIdentifier();
-            _messageKey = MessageKeyPrefix + data.Id;
-            _messageId = ulong.TryParse(_store.GetMeta(_messageKey), out var stored) ? stored : null;
+            _messageKey = MessageKey(data.Id, port);
+            _messageId = LoadMessageId(data.Id, port);
             _nextUpdate = TimeSpan.Zero;
         });
     }
+
+    // Servers started from one folder share its database, so each keeps its own message under its port. Keyed by
+    // webhook alone, they all edited the same message and the channel only ever showed whichever wrote last.
+    public ulong? LoadMessageId(string webhookId, int port)
+    {
+        var key = MessageKey(webhookId, port);
+        if (ulong.TryParse(_store.GetMeta(key), out var own))
+            return own;
+
+        // The message from before the port was part of the key: the first server to start keeps it.
+        var shared = MessageKeyPrefix + webhookId;
+        if (!ulong.TryParse(_store.GetMeta(shared), out var id))
+            return null;
+
+        _store.SetMeta(shared, "");
+        _store.SetMeta(key, id.ToString());
+        return id;
+    }
+
+    private static string MessageKey(string webhookId, int port) => $"{MessageKeyPrefix}{webhookId}:{port}";
 
     private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs e)
     {
@@ -233,7 +255,7 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
 
         var inRound = phase is FSDiscordMessages.StatusPhase.InRound or FSDiscordMessages.StatusPhase.Prep or FSDiscordMessages.StatusPhase.Combat;
 
-        return new FSDiscordMessages.StatusReport(
+        var report = new FSDiscordMessages.StatusReport(
             _baseServer.ServerName,
             phase,
             offline ? 0 : _playerManager.Sessions.Count(s => s.Status != SessionStatus.Disconnected),
@@ -244,6 +266,30 @@ public sealed partial class FSDiscordStatusSystem : EntitySystem
             inRound ? _waveRule.GetActiveModifiers().Select(m => Loc.GetString(m.Name)).ToList() : [],
             inRound ? _roundStarted : null,
             _cfg.GetCVar(CCVars.FSDiscordStatusConnect));
+
+        if (!offline)
+            _lastReport = report;
+
+        return report;
+    }
+
+    // The last live report, turned offline. When the process exits the server has already cleared its settings, so
+    // building the report then threw on the server name and the message kept saying it was in the lobby.
+    public FSDiscordMessages.StatusReport OfflineReport()
+    {
+        if (_lastReport is not { } last)
+            return BuildReport(offline: true);
+
+        return last with
+        {
+            Phase = FSDiscordMessages.StatusPhase.Offline,
+            Players = 0,
+            Wave = 0,
+            Endless = false,
+            Difficulty = null,
+            Modifiers = [],
+            RoundStarted = null,
+        };
     }
 
     private async Task PushAsync(WebhookIdentifier webhook, WebhookPayload payload, string json)

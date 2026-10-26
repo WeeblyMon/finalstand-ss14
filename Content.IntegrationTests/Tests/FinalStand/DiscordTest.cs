@@ -1,10 +1,13 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.Discord;
+using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Ladder;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
 using Content.Shared.GameTicking;
+using Robust.Shared;
+using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
@@ -21,6 +24,66 @@ public sealed class DiscordTest : GameTest
     {
         await Server.WaitAssertion(() =>
             Assert.That(SEntMan.System<FSDiscordStatusSystem>().HoldsProcessHooks, Is.False));
+    }
+
+    // Two servers run from one folder share a database. Keyed by webhook alone, both edited one message, so the
+    // channel only showed whichever server wrote last.
+    [Test]
+    public async Task EachServerKeepsItsOwnStatusMessage()
+    {
+        var status = SEntMan.System<FSDiscordStatusSystem>();
+        var store = SEntMan.System<FSPlayerDataStore>();
+        const string webhook = "test-webhook";
+
+        await Server.WaitAssertion(() =>
+        {
+            store.SetMeta("discord_status_message:" + webhook, "123");
+            try
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.That(status.LoadMessageId(webhook, 1212), Is.EqualTo(123ul), "the first server keeps the old shared message");
+                    Assert.That(status.LoadMessageId(webhook, 1213), Is.Null, "the second server posts a message of its own");
+                    Assert.That(status.LoadMessageId(webhook, 1212), Is.EqualTo(123ul), "the first server's message is stored under its port");
+                });
+            }
+            finally
+            {
+                store.SetMeta("discord_status_message:" + webhook, "");
+                store.SetMeta($"discord_status_message:{webhook}:1212", "");
+                store.SetMeta($"discord_status_message:{webhook}:1213", "");
+            }
+        });
+    }
+
+    // At process exit the server has already cleared its settings, so the offline message is built from the last
+    // live report instead of reading them again.
+    [Test]
+    public async Task TheOfflineReportKeepsWhatTheLastLiveReportSaid()
+    {
+        var status = SEntMan.System<FSDiscordStatusSystem>();
+        var cfg = Server.ResolveDependency<IConfigurationManager>();
+
+        await Server.WaitAssertion(() =>
+        {
+            var name = cfg.GetCVar(CVars.GameHostName);
+            var live = status.BuildReport(offline: false);
+            cfg.SetCVar(CVars.GameHostName, "renamed after the last report");
+            try
+            {
+                var offline = status.OfflineReport();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(offline.Phase, Is.EqualTo(FSDiscordMessages.StatusPhase.Offline));
+                    Assert.That(offline.ServerName, Is.EqualTo(live.ServerName), "the offline report read the settings again");
+                    Assert.That(offline.Players, Is.Zero);
+                });
+            }
+            finally
+            {
+                cfg.SetCVar(CVars.GameHostName, name);
+            }
+        });
     }
 
     [Test]

@@ -151,7 +151,8 @@ public static class FSDiscordMessages
             Title = report.ServerName,
             Description = report.Updated is { } updated
                 ? Loc.GetString(report.Phase == StatusPhase.Offline ? "fs-discord-status-went-offline" : "fs-discord-status-checked",
-                    ("time", $"<t:{new DateTimeOffset(updated).ToUnixTimeSeconds()}:R>"))
+                    ("time", $"<t:{new DateTimeOffset(updated).ToUnixTimeSeconds()}:R>"),
+                    ("minutes", (int) FSDiscordStatusSystem.Heartbeat.TotalMinutes))
                 : "",
             Color = report.Phase switch
             {
