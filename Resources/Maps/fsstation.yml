@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 10/23/2026 07:32:51
-  entityCount: 11097
+  entityCount: 11085
 maps:
 - 259
 grids:
@@ -6065,7 +6065,7 @@ entities:
     - type: Transform
       parent: 1
       pos: 43.23585,-1.2739131
-- proto: BoneGel
+- proto: FSSplint1
   entities:
   - uid: 10766
     components:
@@ -21907,13 +21907,6 @@ entities:
     - type: Transform
       parent: 1
       pos: -2.4926229,-29.459406
-- proto: ChestSkeleton
-  entities:
-  - uid: 1101
-    components:
-    - type: Transform
-      parent: 1
-      pos: -16.512081,-19.419523
 - proto: ChunkEntity
   entities:
   - uid: 1556
@@ -27945,18 +27938,6 @@ entities:
       parent: 1
       rot: -1.5707963267948966 rad
       pos: 59.5,7.5
-- proto: ClothingBackpackDuffelSurgeryFilled
-  entities:
-  - uid: 712
-    components:
-    - type: Transform
-      parent: 1
-      pos: -11.493706,-19.191877
-  - uid: 4686
-    components:
-    - type: Transform
-      parent: 1
-      pos: -8.523002,-2.298595
 - proto: ClothingBeltUtilityEngineering
   entities:
   - uid: 476
@@ -28765,23 +28746,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 29.5,-6.5
-- proto: CrateMedicalSurgery
-  entities:
-  - uid: 1714
-    components:
-    - type: Transform
-      parent: 1
-      pos: 6.5,-10.5
-  - uid: 4085
-    components:
-    - type: Transform
-      parent: 1
-      pos: -6.5,-19.5
-  - uid: 9710
-    components:
-    - type: Transform
-      parent: 1
-      pos: -9.5,-19.5
 - proto: CrateRCD
   entities:
   - uid: 3664
@@ -51437,14 +51401,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 17.5,38.5
-- proto: GroinSkeleton
-  entities:
-  - uid: 145
-    components:
-    - type: Transform
-      parent: 1
-      rot: -1.5707963267948966 rad
-      pos: -16.512081,-19.47501
 - proto: HandheldGPSBasic
   entities:
   - uid: 10413
@@ -51464,13 +51420,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 8.229582,26.477634
-- proto: Hemostat
-  entities:
-  - uid: 9394
-    components:
-    - type: Transform
-      parent: 1
-      pos: -6.447528,-18.093756
 - proto: HighSecArmoryLocked
   entities:
   - uid: 1362
@@ -52027,14 +51976,6 @@ entities:
       parent: 1
       rot: 3.141592653589793 rad
       pos: -41.638668,-1.25408
-- proto: LeftHandSkeleton
-  entities:
-  - uid: 784
-    components:
-    - type: Transform
-      parent: 1
-      rot: -1.5707963267948966 rad
-      pos: -16.623196,-19.031115
 - proto: LockableButtonCargo
   entities:
   - uid: 9441
@@ -52509,13 +52450,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 13.188249,1.5937084
-- proto: MedicalAssembler
-  entities:
-  - uid: 3062
-    components:
-    - type: Transform
-      parent: 1
-      pos: -18.5,-0.5
 - proto: MedicalBed
   entities:
   - uid: 777
@@ -56874,14 +56808,6 @@ entities:
       parent: 9973
     - type: Physics
       canCollide: False
-- proto: RightLegSkeleton
-  entities:
-  - uid: 628
-    components:
-    - type: Transform
-      parent: 1
-      rot: -1.5707963267948966 rad
-      pos: -16.326897,-19.327044
 - proto: RiotBulletShield
   entities:
   - uid: 1212
@@ -56971,13 +56897,6 @@ entities:
     - type: Transform
       parent: 1
       pos: -3.5,51.5
-- proto: ScalpelLaser
-  entities:
-  - uid: 9392
-    components:
-    - type: Transform
-      parent: 1
-      pos: -6.5913324,-17.867939
 - proto: ScrapCamera
   entities:
   - uid: 9877

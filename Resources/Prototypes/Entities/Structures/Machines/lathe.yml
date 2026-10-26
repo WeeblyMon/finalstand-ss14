@@ -197,7 +197,6 @@
     unlitRunningState: unlit-building
     staticPacks:
     - ChemistryStatic
-    - SurgeryStatic
     dynamicPacks:
     - AdvancedTools
     - ScienceEquipment
@@ -480,7 +479,6 @@
     - RollerBedsStatic
     - MedicalClothingStatic
     - EmptyMedkitsStatic
-    - SurgeryStatic
     - FSMedicalInjectorsStatic
     dynamicPacks:
     - Chemistry
