@@ -29,6 +29,22 @@
   - type: Stack
     count: 1
 
+- type: entity
+  parent: FSSplint
+  id: FSSplint2
+  suffix: 2
+  components:
+  - type: Stack
+    count: 2
+
+- type: entity
+  parent: FSSplint
+  id: FSSplint3
+  suffix: 3
+  components:
+  - type: Stack
+    count: 3
+
 - type: stack
   parent: BaseSmallStack
   id: FSSplint

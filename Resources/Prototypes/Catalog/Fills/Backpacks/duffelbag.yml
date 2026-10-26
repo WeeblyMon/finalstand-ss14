@@ -366,7 +366,7 @@
         - id: DefibrillatorSyndicate
         - id: MedkitCombatFilled
           amount: 4
-        - id: Tourniquet
+        - id: FSSplint1
           amount: 4
         - id: CombatMedipen
           amount: 4
