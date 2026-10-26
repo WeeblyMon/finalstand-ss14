@@ -29,18 +29,10 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
-  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Sprite
     sprite: Mobs/Species/Arachnid/organs.rsi
   - type: Organ
-  - type: OrganIntegrity
-    intCap: 28
-    integrity: 28
-    integrityThresholds:
-      Normal: 28
-      Damaged: 16
-      Destroyed: 0
   - type: Food
   - type: Extractable
     grindableSolutionName: organ
@@ -74,13 +66,6 @@
     sprite: Mobs/Species/Arachnid/organs.rsi
     state: stomach
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 44
-    integrity: 44
-    integrityThresholds:
-      Normal: 44
-      Damaged: 21
-      Destroyed: 0
   - type: Item
     size: Small
     heldPrefix: stomach
@@ -113,13 +98,6 @@
       - state: lung-l
       - state: lung-r
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 28
-    integrity: 28
-    integrityThresholds:
-      Normal: 28
-      Damaged: 16
-      Destroyed: 0
   - type: Lung
   - type: Metabolizer
     updateInterval: 1.5
@@ -159,14 +137,6 @@
     metabolizerTypes: [Arachnid]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 21
-    integrity: 21
-    integrityThresholds:
-      Normal: 21
-      Damaged: 12
-      Destroyed: 0
-  - type: Heart # Shitmed: Lets you transplant spider hearts into other species
   - type: Tag # goob edit
     tags:
     - Meat
@@ -190,14 +160,6 @@
     metabolizerTypes: [Animal]
     stages: [ Alcohol, Metabolites ]
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 28
-    integrity: 28
-    integrityThresholds:
-      Normal: 28
-      Damaged: 16
-      Destroyed: 0
-  - type: Liver # Shitmed
   - type: Tag # goob edit
     tags:
     - Meat
@@ -212,13 +174,6 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 21
-    integrity: 21
-    integrityThresholds:
-      Normal: 21
-      Damaged: 12
-      Destroyed: 0
   - type: Sprite
     layers:
       - state: kidney-l
@@ -248,14 +203,6 @@
       - state: eyeball-l
       - state: eyeball-r
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 17
-    integrity: 17
-    integrityThresholds:
-      Normal: 17
-      Damaged: 8
-      Destroyed: 0
-  - type: Eyes # Shitmed
   - type: Tag # goob edit
     tags:
     - Meat

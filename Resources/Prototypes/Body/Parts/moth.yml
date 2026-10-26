@@ -17,13 +17,6 @@
   name: "moth body part"
   abstract: true
   components:
-  - type: WoundableVisuals
-    damageOverlayGroups:
-      Brute:
-        sprite: _Shitmed/Mobs/Effects/brute_damage.rsi
-        color: "#808A51"
-      Burn:
-        sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
   - type: Icon # Shitmed Change
     sprite: Mobs/Species/Moth/parts.rsi
   - type: Organ # Shitmed Change

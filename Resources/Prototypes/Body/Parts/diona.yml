@@ -35,13 +35,6 @@
   name: "diona body part"
   abstract: true
   components:
-  - type: WoundableVisuals
-    damageOverlayGroups:
-      Brute:
-        sprite: _Shitmed/Mobs/Effects/brute_damage.rsi
-        color: "#cd7314"
-      Burn:
-        sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
   - type: Sprite
     sprite: Mobs/Species/Diona/parts.rsi
   - type: Icon # Shitmed Change

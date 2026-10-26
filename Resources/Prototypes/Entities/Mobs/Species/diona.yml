@@ -58,9 +58,6 @@
     sprite: Mobs/Species/Diona/parts.rsi
     state: full
   - type: Body
-  - type: BodyWoundHealing
-  - type: BodyLocomotion
-    requiredLegs: 2
   - type: Injurable
     damageContainer: Biological
   - type: Damageable
@@ -165,7 +162,6 @@
           32:
             sprite: Mobs/Species/Human/displacement.rsi
             state: jumpsuit-female
-  - type: StepTriggerImmune # Goobstation
   - type: Rootable
 
 - type: entity

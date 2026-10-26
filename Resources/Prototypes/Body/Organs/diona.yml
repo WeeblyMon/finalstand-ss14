@@ -33,18 +33,10 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
-  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Sprite
     sprite: Mobs/Species/Diona/organs.rsi
   - type: Organ
-  - type: OrganIntegrity
-    intCap: 24
-    integrity: 24
-    integrityThresholds:
-      Normal: 24
-      Damaged: 15
-      Destroyed: 0
   - type: Food
   - type: Extractable
     grindableSolutionName: organ
@@ -97,13 +89,6 @@
   - type: Sprite
     state: brain
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 28
-    integrity: 28
-    integrityThresholds:
-      Normal: 28
-      Damaged: 16
-      Destroyed: 0
   - type: Brain # Shitmed
   - type: SolutionContainerManager
     solutions:
@@ -127,9 +112,6 @@
     - Meat
     - Organ
     - Brain
-  - type: NerveSystem # backmen: wounding
-  - type: ConsciousnessRequired
-    identifier: "nerveSystem"
 
 - type: entity
   id: OrganDionaEyes
@@ -142,13 +124,6 @@
       - state: eyeball-l
       - state: eyeball-r
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 17 # dionas will have better eyes. :fort:
-    integrity: 17
-    integrityThresholds:
-      Normal: 17
-      Damaged: 8
-      Destroyed: 0
   - type: Tag # goob edit
     tags:
     - Meat
@@ -173,13 +148,6 @@
         - ReagentId: UncookedAnimalProteins
           Quantity: 5
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 35
-    integrity: 35
-    integrityThresholds:
-      Normal: 35
-      Damaged: 19
-      Destroyed: 0
   - type: Stomach
   - type: Metabolizer
     metabolizerTypes: [ Plant ]
@@ -202,13 +170,6 @@
   - type: Sprite
     state: lungs
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 21
-    integrity: 21
-    integrityThresholds:
-      Normal: 21
-      Damaged: 12
-      Destroyed: 0
   - type: Item
     size: Small
     heldPrefix: lungs
@@ -289,7 +250,6 @@
   description: Contains the brain of a formerly fully-formed Diona. Killing this would kill the Diona forever. You monster.
   components:
   - type: IsDeadIC
-  - type: VentCrawler # goob
 
 - type: entity
   id: OrganDionaNymphStomach
@@ -300,7 +260,6 @@
   description: Contains the stomach of a formerly fully-formed Diona. It doesn't taste any better for it.
   components:
   - type: IsDeadIC
-  - type: VentCrawler # goob
 
 - type: entity
   id: OrganDionaNymphLungs
@@ -311,4 +270,3 @@
   description: Contains the lungs of a formerly fully-formed Diona. Breathtaking.
   components:
   - type: IsDeadIC
-  - type: VentCrawler # goob

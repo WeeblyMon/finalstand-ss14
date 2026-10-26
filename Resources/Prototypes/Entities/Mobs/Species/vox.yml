@@ -143,9 +143,6 @@
     sprite: Mobs/Species/Vox/parts.rsi
     state: vox_m
   - type: Body
-  - type: BodyWoundHealing
-  - type: BodyLocomotion
-    requiredLegs: 2
     #- type: VoxAccent # Not yet coded
   - type: Speech
     speechVerb: Vox
@@ -298,7 +295,6 @@
             sprite: Mobs/Species/Vox/displacement.rsi
             state: outerClothing
   # Goobstation start - voxes are uncloneable but do not rot - all the stuff from BaseMobSpeciesOrganic
-  - type: Absorbable # Goobstation - changelings
   - type: Barotrauma
     damage:
       types:
@@ -356,8 +352,6 @@
         Asphyxiation: -1.0
   - type: FireVisuals
     alternateState: Standing
-  - type: GrabIntent # wilted rose
-  - type: Grabbable 
   # Goobstation end
   - type: Hands
     leftHandDisplacement:
@@ -393,7 +387,6 @@
             sprite: Mobs/Species/Vox/displacement.rsi
             state: hair
   - type: Body
-  - type: BodyWoundHealing
   - type: Inventory
     speciesId: vox
     displacements:

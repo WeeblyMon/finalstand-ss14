@@ -8,48 +8,6 @@
   id: Abductor
 
 - type: Tag
-  id: AbductorScientist
-
-- type: Tag
-  id: AugmentRechargerBoard
-
-- type: Tag
-  id: AugmentBotanyToolElectronics
-
-- type: Tag
-  id: AugmentCellCasing
-
-- type: Tag
-  id: AugmentPaperworkToolElectronics
-
-- type: Tag
-  id: AugmentRechargerCasing
-
-- type: Tag
-  id: AugmentStationBoard
-
-- type: Tag
-  id: AugmentSurgeryToolElectronics
-
-- type: Tag
-  id: AugmentToolPanelCasing
-
-- type: Tag
-  id: AugmentUtilityToolElectronics
-
-- type: Tag
-  id: AugmentStrengthElectronics
-
-- type: Tag
-  id: AugmentStrengthCasing
-
-- type: Tag
-  id: CantInteract
-
-- type: Tag
-  id: ShowWires
-
-- type: Tag
   id: Eyes
 
 - type: Tag
@@ -79,5 +37,3 @@
 - type: Tag
   id: Debug
 
-- type: Tag
-  id: PlantSampleTaker

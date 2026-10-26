@@ -17,12 +17,10 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
-  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Injurable
     damageContainer: Biological # Shitmed Change
-  - type: Nerve
   - type: Extractable
     juiceSolution:
       reagents:
@@ -41,11 +39,8 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
-  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
-  - type: Woundable
-    damageContainer: Biological
   - type: Destructible
     thresholds:
     - trigger:
@@ -70,16 +65,6 @@
         Quantity: 10
       - ReagentId: Blood
         Quantity: 20
-  - type: WoundableVisuals
-    thresholds: [ 10, 20, 30, 50, 70, 100 ]
-    occupiedLayer: Chest
-    damageOverlayGroups:
-      Brute:
-        sprite: _Shitmed/Mobs/Effects/brute_damage.rsi
-        color: "#FF0000"
-      Burn:
-        sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
-    bleedingOverlay: _Shitmed/Mobs/Effects/bleeding_damage.rsi
 
 - type: entity
   abstract: true
@@ -88,17 +73,5 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
-  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
-  - type: Woundable
-    damageContainer: Biological
-  - type: WoundableVisuals
-    thresholds: [ 10, 20, 30, 50, 70, 100 ]
-    occupiedLayer: Groin
-    damageOverlayGroups:
-      Brute:
-        sprite: _Shitmed/Mobs/Effects/brute_damage.rsi
-        color: "#FF0000"
-      Burn:
-        sprite: _Shitmed/Mobs/Effects/burn_damage.rsi

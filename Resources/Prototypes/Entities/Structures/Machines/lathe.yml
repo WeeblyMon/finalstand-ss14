@@ -313,12 +313,6 @@
     - BorgModules
     - MechParts
     - MechEquipment
-    - BasicCybernetics
-    - MedicalCybernetics
-    - AdvancedCybernetics
-    - PowerAugments
-    - ToolAugments
-    - BorgModulesGoob
   - type: MaterialStorage
     whitelist: *StandardMaterialWhitelist
   - type: OreSiloClient
@@ -490,9 +484,6 @@
     - FSMedicalInjectorsStatic
     dynamicPacks:
     - Chemistry
-    - Surgery
-    - MedicalMiscRestricted
-    - MedicalBoardsGoob
   - type: Machine
     board: MedicalTechFabCircuitboard
   - type: StealTarget

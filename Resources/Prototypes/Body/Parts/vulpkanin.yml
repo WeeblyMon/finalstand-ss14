@@ -18,7 +18,6 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
-  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Sprite
     sprite: _DV/Mobs/Species/Vulpkanin/parts.rsi

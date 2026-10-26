@@ -38,13 +38,6 @@
       state: brain-slime
     - type: Stomach
     - type: Organ
-    - type: OrganIntegrity
-      intCap: 60 # to prevent slimes from getting oneshot
-      integrity: 60
-      integrityThresholds:
-        Normal: 60
-        Damaged: 27
-        Destroyed: 0
     - type: Metabolizer
       metabolizerTypes: [ Slime ]
       stages: [ Food, Drink, Digestion, Medicine, Poison, Narcotic, Alcohol, Metabolites ]
@@ -82,13 +75,6 @@
       - state: lung-l-slime
       - state: lung-r-slime
   - type: Organ # Shitmed
-  - type: OrganIntegrity
-    intCap: 21 #
-    integrity: 21
-    integrityThresholds:
-      Normal: 21
-      Damaged: 14
-      Destroyed: 0
   - type: Lung
     alert: LowNitrogen
   - type: Metabolizer

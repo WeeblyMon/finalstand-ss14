@@ -152,9 +152,6 @@
     sprite: Mobs/Species/Reptilian/parts.rsi
     state: full
   - type: Body
-  - type: BodyWoundHealing
-  - type: BodyLocomotion
-    requiredLegs: 2
   - type: Butcherable
     butcheringType: Spike
     spawned:
@@ -237,9 +234,6 @@
             sprite: _White/Mobs/Species/displacement.rsi
             state: shoes
     # WWDP-Edit-End
-  - type: Consciousness # Idk they are kinda more resistant to pain
-    threshold: 105
-    cap: 210
   # Goobstation
   - type: Tag
     tags:

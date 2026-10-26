@@ -84,9 +84,6 @@
         layer:
         - MobLayer
   - type: Body
-  - type: BodyWoundHealing
-  - type: BodyLocomotion
-    requiredLegs: 2
   - type: Butcherable
     butcheringType: Spike
     spawned:

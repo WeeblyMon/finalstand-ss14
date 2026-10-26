@@ -17,5 +17,3 @@
     - FSMedicalTool
   - type: UseDelay
     delay: 30
-  - type: GuideHelp
-    guides: [ Surgery ]

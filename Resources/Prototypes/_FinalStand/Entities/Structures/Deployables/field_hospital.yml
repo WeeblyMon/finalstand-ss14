@@ -17,8 +17,6 @@
   - type: FSPlaceable
     previewProtoId: FSFieldHospitalDeployed
     range: 6
-  - type: GuideHelp
-    guides: [ Surgery ]
 
 - type: entity
   parent: BaseStructure
@@ -64,8 +62,6 @@
     noRot: true
   - type: Anchorable
   - type: FSRecoveryZone
-  - type: GuideHelp
-    guides: [ Surgery ]
   - type: FSFieldHospital
   - type: FSArmingDelay
     delay: 6

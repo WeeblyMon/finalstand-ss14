@@ -17,9 +17,6 @@
   - type: HumanoidProfile
     species: Monkey
   - type: Body
-  - type: BodyWoundHealing
-  - type: BodyLocomotion
-    requiredLegs: 2
   - type: UserInterface
     interfaces:
       enum.HumanoidMarkingModifierKey.Key: # sure, this can go here too
@@ -39,9 +36,6 @@
   - type: HumanoidProfile
     species: Kobold
   - type: Body
-  - type: BodyWoundHealing
-  - type: BodyLocomotion
-    requiredLegs: 2
   - type: UserInterface
     interfaces:
       enum.HumanoidMarkingModifierKey.Key: # sure, this can go here too

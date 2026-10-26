@@ -138,9 +138,6 @@
     sprite: Mobs/Species/Moth/parts.rsi
     state: full
   - type: Body
-  - type: BodyWoundHealing
-  - type: BodyLocomotion
-    requiredLegs: 2
   - type: Injurable
     damageContainer: Biological
   - type: Damageable

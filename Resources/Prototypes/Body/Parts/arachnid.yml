@@ -45,13 +45,6 @@
         Quantity: 3
       - ReagentId: CopperBlood
         Quantity: 10
-  - type: WoundableVisuals
-    damageOverlayGroups:
-      Brute:
-        sprite: _Shitmed/Mobs/Effects/brute_damage.rsi
-        color: "#162581"
-      Burn:
-        sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
 
 - type: entity
   id: PartArachnid2

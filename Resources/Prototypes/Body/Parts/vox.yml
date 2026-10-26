@@ -38,13 +38,6 @@
   - type: Icon
     sprite: Mobs/Species/Vox/parts.rsi
   - type: Organ # Shitmed Change
-  - type: WoundableVisuals
-    damageOverlayGroups:
-      Brute:
-        sprite: _Shitmed/Mobs/Effects/brute_damage.rsi
-        color: "#7a8bf2"
-      Burn:
-        sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
 
 - type: entity
   parent: [ PartVoxBase, BaseChest ]

@@ -15,13 +15,6 @@
       sprite: Mobs/Species/Slime/organs.rsi
       state: brain-slime
     - type: Organ
-    - type: OrganIntegrity
-      intCap: 60 # to prevent slimes from getting oneshot
-      integrity: 60
-      integrityThresholds:
-        Normal: 60
-        Damaged: 27
-        Destroyed: 0
     - type: Stomach
     - type: Metabolizer
       metabolizerTypes: [ Slime ]
@@ -57,13 +50,6 @@
         - state: lung-l-slime
         - state: lung-r-slime
     - type: Organ
-    - type: OrganIntegrity
-      intCap: 28
-      integrity: 28
-      integrityThresholds:
-        Normal: 28
-        Damaged: 16
-        Destroyed: 0
     - type: Lung
       alert: LowNitrogen
     - type: Metabolizer

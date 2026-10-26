@@ -12,9 +12,6 @@
   - type: HumanoidProfile
     species: Scurret
   - type: Body
-  - type: BodyWoundHealing
-  - type: BodyLocomotion
-    requiredLegs: 2
   - type: UserInterface
     interfaces:
       enum.HumanoidMarkingModifierKey.Key:
