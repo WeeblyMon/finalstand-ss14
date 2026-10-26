@@ -1,5 +1,5 @@
-# FinalStand station — same as StandardNanotrasenStation but without BaseStationArrivals.
-# Players spawn exclusively via cryo pods.
+# FinalStand station: StandardNanotrasenStation without arrivals (players spawn via cryo pods) and without the ruins,
+# debris and asteroid field the vanilla shuttles base scatters round the station, which cost server time all round.
 - type: entity
   parent:
     - BaseStation
@@ -7,7 +7,7 @@
     - BaseStationCargo
     - BaseStationJobsSpawning
     - BaseStationRecords
-    - BaseStationShuttles
+    - FSBaseStationShuttles
     - BaseStationCentcomm
     - BaseStationEvacuation
     - BaseStationAlertLevels
@@ -20,3 +20,19 @@
     - BaseStationDeliveries
   id: FinalStandStation
   categories: [ HideSpawnMenu ]
+
+# Cargo still gets its shuttle and the Automated Trading Station to fly it to.
+- type: entity
+  id: FSBaseStationShuttles
+  abstract: true
+  components:
+  - type: StationCargoShuttle
+    path: /Maps/Shuttles/cargo.yml
+  - type: GridSpawn
+    groups:
+      trade: !type:GridSpawnGroup
+        addComponents:
+        - type: ProtectedGrid
+        - type: TradeStation
+        paths:
+        - /Maps/Shuttles/trading_outpost.yml
