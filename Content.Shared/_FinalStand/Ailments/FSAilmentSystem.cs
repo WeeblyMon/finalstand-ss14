@@ -31,6 +31,8 @@ public sealed partial class FSAilmentSystem : EntitySystem
     private readonly List<(EntityUid Patient, EntProtoId Next)> _pendingExpiry = new();
     private readonly List<FSAilmentView> _examineViews = new();
     private int _internalDepth;
+    private bool _fieldOps;
+    private float _wardScale = 1f;
 
     public FSAilmentRulesPrototype Rules => _proto.Index(RulesId);
 
@@ -48,9 +50,9 @@ public sealed partial class FSAilmentSystem : EntitySystem
         SubscribeLocalEvent<FSAilmentStateComponent, BleedModifierEvent>(OnBleedModifier);
         SubscribeLocalEvent<FSAilmentStateComponent, FSAilmentInflictAttemptEvent>(OnInflictAttempt);
         SubscribeLocalEvent<FSAilmentStateComponent, FSIncomingHealScaleEvent>(OnIncomingHealScale);
+        SubscribeLocalEvent<FSAilmentStateComponent, HealthBeingExaminedEvent>(OnHealthExamined);
         SubscribeLocalEvent<FSAilmentComponent, StatusEffectRemovedEvent>(OnAilmentRemoved);
     }
-        SubscribeLocalEvent<FSAilmentStateComponent, HealthBeingExaminedEvent>(OnHealthExamined);
 
     public override void Update(float frameTime)
     {
@@ -62,7 +64,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         foreach (var (patient, next) in _pendingExpiry)
         {
             if (!TerminatingOrDeleted(patient))
-                ApplyUnchecked(patient, next);
+                ApplyUnchecked(patient, next == Rules.Splinted ? SplintedEffect : next);
         }
 
         _pendingExpiry.Clear();
@@ -181,7 +183,12 @@ public sealed partial class FSAilmentSystem : EntitySystem
         RaiseCured(patient, FSAilmentSlot.Bleeding, TakeBleedTier(patient, stopped), curer, kind);
     }
 
-    public bool ApplyWard(EntityUid patient, EntProtoId ward, float durationScale = 1f)
+    public void SetWardScale(float scale)
+    {
+        _wardScale = scale;
+    }
+
+    public bool ApplyWard(EntityUid patient, EntProtoId ward)
     {
         if (_net.IsClient || !_stateQuery.HasComp(patient) || _mobState.IsDead(patient))
             return false;
@@ -192,7 +199,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         if (_status.HasStatusEffect(patient, ward))
             return false;
 
-        return _status.TrySetStatusEffectDuration(patient, ward, wardComp.Duration * durationScale);
+        return _status.TrySetStatusEffectDuration(patient, ward, wardComp.Duration * _wardScale);
     }
 
     public bool IsBroken(EntityUid patient)
@@ -228,15 +235,51 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
     }
 
+    public EntProtoId SplintedEffect => _fieldOps ? Rules.SplintedFieldOps : Rules.Splinted;
+
     public bool Splint(EntityUid patient, TimeSpan? duration = null)
     {
-        var rules = Rules;
-        if (!IsBroken(patient) || GetAilment(rules.Splinted) is not { } splinted)
+        var effect = SplintedEffect;
+        if (!IsBroken(patient) || GetAilment(effect) is not { } splinted)
             return false;
 
+        if (_net.IsClient)
+            return true;
+
         RemoveSlot(patient, FSAilmentSlot.Bone);
-        _status.TrySetStatusEffectDuration(patient, rules.Splinted, duration ?? splinted.Duration);
+        _status.TrySetStatusEffectDuration(patient, effect, duration ?? splinted.Duration);
         return true;
+    }
+
+    public void SetFieldOps(bool active)
+    {
+        if (_fieldOps == active)
+            return;
+
+        _fieldOps = active;
+        var from = active ? Rules.Splinted : Rules.SplintedFieldOps;
+        var to = SplintedEffect;
+        var now = _timing.CurTime;
+
+        var swaps = new List<(EntityUid Patient, EntityUid Effect, TimeSpan? Left)>();
+        var query = EntityQueryEnumerator<FSAilmentStateComponent>();
+        while (query.MoveNext(out var uid, out _))
+        {
+            foreach (var effect in Active<FSAilmentComponent>(uid))
+            {
+                if (Prototype(effect)?.ID != from.Id)
+                    continue;
+
+                swaps.Add((uid, effect, effect.Comp1.EndEffectTime - now));
+                break;
+            }
+        }
+
+        foreach (var (patient, effect, left) in swaps)
+        {
+            RemoveEffect(effect);
+            _status.TrySetStatusEffectDuration(patient, to, left);
+        }
     }
 
     public bool Clot(EntityUid patient, float amount, EntityUid? curer = null, FSCureKind kind = FSCureKind.Automatic)
@@ -294,6 +337,37 @@ public sealed partial class FSAilmentSystem : EntitySystem
         return false;
     }
 
+    public void GetViews(EntityUid patient, List<FSAilmentView> views)
+    {
+        views.Clear();
+
+        var bleed = GetBleedLevel(patient);
+        if (bleed > 0 && Rules.Slots.TryGetValue(FSAilmentSlot.Bleeding, out var bleeding))
+            views.Add(new FSAilmentView(FSAilmentSlot.Bleeding, bleeding.Label, bleed, null, bleeding.Effect, bleeding.FixHint, null, false));
+
+        foreach (var effect in Active<FSAilmentComponent>(patient))
+        {
+            var ailment = effect.Comp2;
+            views.Add(new FSAilmentView(ailment.Slot, ailment.Name, 0, effect.Comp1.EndEffectTime, ailment.Effect, ailment.FixHint, ailment.Examine, false));
+        }
+
+        foreach (var ward in Active<FSAilmentWardComponent>(patient))
+        {
+            views.Add(new FSAilmentView(ward.Comp2.Blocks, ward.Comp2.Name, 0, ward.Comp1.EndEffectTime, ward.Comp2.Effect, null, null, true));
+        }
+    }
+
+    public FSAilmentPips GetPips(EntityUid patient)
+    {
+        var pips = GetBleedLevel(patient) > 0 ? FSAilmentPips.Bleeding : FSAilmentPips.None;
+        foreach (var effect in Active<FSAilmentComponent>(patient))
+        {
+            pips |= (FSAilmentPips) (1 << (int) effect.Comp2.Slot);
+        }
+
+        return pips;
+    }
+
     public bool BlocksRegen(EntityUid patient)
     {
         if (GetBleedLevel(patient) > 0)
@@ -340,37 +414,6 @@ public sealed partial class FSAilmentSystem : EntitySystem
     {
         patient.Comp.RecoveringSince = since;
         var recovering = since != null;
-    public void GetViews(EntityUid patient, List<FSAilmentView> views)
-    {
-        views.Clear();
-
-        var bleed = GetBleedLevel(patient);
-        if (bleed > 0 && Rules.Slots.TryGetValue(FSAilmentSlot.Bleeding, out var bleeding))
-            views.Add(new FSAilmentView(FSAilmentSlot.Bleeding, bleeding.Label, bleed, null, bleeding.Effect, bleeding.FixHint, null, false));
-
-        foreach (var effect in Active<FSAilmentComponent>(patient))
-        {
-            var ailment = effect.Comp2;
-            views.Add(new FSAilmentView(ailment.Slot, ailment.Name, 0, effect.Comp1.EndEffectTime, ailment.Effect, ailment.FixHint, ailment.Examine, false));
-        }
-
-        foreach (var ward in Active<FSAilmentWardComponent>(patient))
-        {
-            views.Add(new FSAilmentView(ward.Comp2.Blocks, ward.Comp2.Name, 0, ward.Comp1.EndEffectTime, ward.Comp2.Effect, null, null, true));
-        }
-    }
-
-    public FSAilmentPips GetPips(EntityUid patient)
-    {
-        var pips = GetBleedLevel(patient) > 0 ? FSAilmentPips.Bleeding : FSAilmentPips.None;
-        foreach (var effect in Active<FSAilmentComponent>(patient))
-        {
-            pips |= (FSAilmentPips) (1 << (int) effect.Comp2.Slot);
-        }
-
-        return pips;
-    }
-
         if (patient.Comp.Recovering == recovering)
             return;
 
@@ -645,6 +688,19 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
     }
 
+    private void OnHealthExamined(Entity<FSAilmentStateComponent> ent, ref HealthBeingExaminedEvent args)
+    {
+        GetViews(ent, _examineViews);
+        foreach (var view in _examineViews)
+        {
+            if (view.Ward || view.Examine is not { } examine)
+                continue;
+
+            args.Message.PushNewline();
+            args.Message.AddMarkupOrThrow(Loc.GetString(examine, ("target", ent.Owner)));
+        }
+    }
+
     private void OnAilmentRemoved(Entity<FSAilmentComponent> ent, ref StatusEffectRemovedEvent args)
     {
         if (_net.IsClient || ent.Comp.BecomesOnExpire is not { } next)
@@ -664,16 +720,3 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
     }
 }
-    private void OnHealthExamined(Entity<FSAilmentStateComponent> ent, ref HealthBeingExaminedEvent args)
-    {
-        GetViews(ent, _examineViews);
-        foreach (var view in _examineViews)
-        {
-            if (view.Ward || view.Examine is not { } examine)
-                continue;
-
-            args.Message.PushNewline();
-            args.Message.AddMarkupOrThrow(Loc.GetString(examine, ("target", ent.Owner)));
-        }
-    }
-

@@ -24,6 +24,9 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
     public EntProtoId Splinted = "FSAilmentSplinted";
 
     [DataField]
+    public EntProtoId SplintedFieldOps = "FSAilmentSplintedFieldOps";
+
+    [DataField]
     public EntProtoId Burned = "FSAilmentBurned";
 
     [DataField]
@@ -64,9 +67,6 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
 
     [DataField]
     public float RegenCap = 0.5f;
-}
-
-[DataDefinition]
 
     [DataField]
     public Dictionary<FSAilmentSlot, FSAilmentSlotInfo> Slots = new();
@@ -101,6 +101,9 @@ public sealed partial class FSAilmentSlotInfo
 
     [DataField]
     public bool Fixed;
+}
+
+[DataDefinition]
 public sealed partial class FSAilmentMeterRule
 {
     [DataField(required: true)]
