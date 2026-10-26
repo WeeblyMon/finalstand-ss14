@@ -1,5 +1,5 @@
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Actions;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -33,7 +33,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
     private static readonly SoundSpecifier RespondSound =
         new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
 
-    private const float MedicalSurgerySpeed = 4f;
     private static readonly TimeSpan CallLifetime = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan BroadcastInterval = TimeSpan.FromSeconds(1);
 
@@ -71,14 +70,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (!_roster.IsMedicalJob(ev.JobId))
-            return;
-
-        var speed = EnsureComp<SurgerySpeedModifierComponent>(ev.Mob);
-        speed.SpeedModifier = MedicalSurgerySpeed;
-        Dirty(ev.Mob, speed);
-
-        EnsureComp<SurgeryIgnoreClothingComponent>(ev.Mob);
+        if (ev.JobId == FSMedicalRosterSystem.DoctorJob)
+            EnsureComp<FSSteadyHandsComponent>(ev.Mob);
     }
 
     private void OnBoardAction(FSCasualtyBoardActionEvent args)
