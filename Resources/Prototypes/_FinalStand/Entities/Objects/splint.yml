@@ -12,6 +12,9 @@
     size: Small
     sprite: _FinalStand/Objects/Medical/splint.rsi
   - type: FSSplint
+  - type: Tag
+    tags:
+    - FSMedicalTool
   - type: Stack
     stackType: FSSplint
     count: 4

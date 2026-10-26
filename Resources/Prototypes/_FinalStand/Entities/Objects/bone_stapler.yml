@@ -12,6 +12,9 @@
     sprite: _FinalStand/Objects/Medical/bone_stapler.rsi
   - type: FSBoneStapler
   - type: FSMedicalOnly
+  - type: Tag
+    tags:
+    - FSMedicalTool
   - type: UseDelay
     delay: 30
   - type: GuideHelp
