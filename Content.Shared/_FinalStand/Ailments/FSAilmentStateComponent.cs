@@ -20,6 +20,9 @@ public sealed partial class FSAilmentStateComponent : Component
     [AutoNetworkedField]
     public bool Regenerating;
 
+    [AutoNetworkedField]
+    public bool Recovering;
+
     public readonly Dictionary<FSAilmentMeter, FSAilmentMeterState> Meters = new();
 
     public readonly Dictionary<FSAilmentSlot, string> Causes = new();
@@ -33,4 +36,6 @@ public sealed partial class FSAilmentStateComponent : Component
     public TimeSpan LastDamage;
 
     public EntityUid? FireSource;
+
+    public TimeSpan? RecoveringSince;
 }

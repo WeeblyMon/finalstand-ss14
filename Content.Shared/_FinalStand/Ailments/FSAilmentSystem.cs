@@ -321,6 +321,17 @@ public sealed partial class FSAilmentSystem : EntitySystem
         SetClock(patient, null, false);
     }
 
+    public void SetRecovering(Entity<FSAilmentStateComponent> patient, TimeSpan? since)
+    {
+        patient.Comp.RecoveringSince = since;
+        var recovering = since != null;
+        if (patient.Comp.Recovering == recovering)
+            return;
+
+        patient.Comp.Recovering = recovering;
+        DirtyField(patient.AsNullable(), nameof(FSAilmentStateComponent.Recovering));
+    }
+
     public void SetRegenerating(Entity<FSAilmentStateComponent> patient, bool regenerating)
     {
         if (patient.Comp.Regenerating == regenerating)

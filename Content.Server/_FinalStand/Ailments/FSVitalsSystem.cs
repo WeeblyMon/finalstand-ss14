@@ -123,30 +123,31 @@ public sealed partial class FSVitalsSystem : EntitySystem
 
     private void Regenerate(Entity<FSAilmentStateComponent, DamageableComponent> patient, FSAilmentRulesPrototype rules, TimeSpan now)
     {
-        if (!_mobState.IsAlive(patient)
-            || now - patient.Comp1.LastDamage < rules.RegenDelay
-            || _ailments.BlocksRegen(patient)
-            || !_thresholds.TryGetThresholdForState(patient, MobState.Critical, out var crit))
-        {
-            _ailments.SetRegenerating(patient, false);
-            return;
-        }
+        var regenerating = !patient.Comp1.Recovering
+            && _mobState.IsAlive(patient)
+            && now - patient.Comp1.LastDamage >= rules.RegenDelay
+            && !_ailments.BlocksRegen(patient)
+            && Regen(patient, rules.RegenPerSecond * (float) TickInterval.TotalSeconds, rules.RegenCap);
 
-        var excess = patient.Comp2.TotalDamage.Float() - crit.Value.Float() * (1f - rules.RegenCap);
+        _ailments.SetRegenerating(patient, regenerating);
+    }
+
+    public bool Regen(Entity<FSAilmentStateComponent, DamageableComponent> patient, float amount, float cap)
+    {
+        if (!_thresholds.TryGetThresholdForState(patient, MobState.Critical, out var crit))
+            return false;
+
+        var excess = patient.Comp2.TotalDamage.Float() - crit.Value.Float() * (1f - cap);
         if (excess <= 0f)
-        {
-            _ailments.SetRegenerating(patient, false);
-            return;
-        }
+            return false;
 
-        var amount = MathF.Min(rules.RegenPerSecond * (float) TickInterval.TotalSeconds, excess);
         _damageable.TryChangeDamage((patient.Owner, patient.Comp2),
-            LargestFirst(patient.Comp2, FixedPoint2.New(amount)),
+            LargestFirst(patient.Comp2, FixedPoint2.New(MathF.Min(amount, excess))),
             ignoreResistances: true,
             interruptsDoAfters: false,
             origin: patient.Owner);
 
-        _ailments.SetRegenerating(patient, true);
+        return true;
     }
 
     private DamageSpecifier LargestFirst(DamageableComponent damageable, FixedPoint2 amount)

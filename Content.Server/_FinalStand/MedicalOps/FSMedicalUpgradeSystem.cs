@@ -3,7 +3,6 @@ using Content.Server._FinalStand.Research;
 using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Medical;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
@@ -297,11 +296,14 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
             Dirty(ent.Owner, lifetime);
         }
 
-        if (TryComp<OperatingTableComponent>(ent.Owner, out var table))
+        if (TryComp<FSRecoveryZoneComponent>(ent.Owner, out var zone))
         {
-            ent.Comp.BaseSurgerySpeed ??= table.SpeedModifier;
-            table.SpeedModifier = ent.Comp.BaseSurgerySpeed.Value * (Unlocked(SterileField) ? 1.5f : 1f);
-            Dirty(ent.Owner, table);
+            ent.Comp.BaseCureSeconds ??= zone.CureSeconds;
+            ent.Comp.BaseRegenCap ??= zone.RegenCap;
+
+            var sterile = Unlocked(SterileField);
+            zone.CureSeconds = ent.Comp.BaseCureSeconds.Value * (sterile ? 0.5f : 1f);
+            zone.RegenCap = sterile ? 1f : ent.Comp.BaseRegenCap.Value;
         }
     }
 
