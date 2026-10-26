@@ -15,7 +15,7 @@ using Robust.Shared.Map.Components;
 namespace Content.IntegrationTests.Tests.FinalStand;
 
 // The station brings only what cargo needs: its shuttle and the Automated Trading Station to fly it to. The ruins,
-// debris and asteroid field of the vanilla shuttles base would sit round the station costing server time.
+// debris and asteroid field of the vanilla shuttles base, CentComm and the emergency shuttle would only cost server time.
 [TestFixture]
 public sealed class StationGridsTest : GameTest
 {
@@ -69,6 +69,10 @@ public sealed class StationGridsTest : GameTest
                 Assert.That(stationGrids.Count(g => SEntMan.HasComponent<ShuttleComponent>(g)
                     && !SEntMan.HasComponent<TradeStationComponent>(g)), Is.GreaterThanOrEqualTo(1), "no cargo shuttle");
                 Assert.That(gridsOnMap, Is.SubsetOf(stationGrids), "other grids were spawned round the station");
+                Assert.That(SEntMan.EntityQueryEnumerator<StationCentcommComponent>().MoveNext(out _), Is.False,
+                    "CentComm was loaded");
+                Assert.That(SEntMan.EntityQueryEnumerator<StationEmergencyShuttleComponent>().MoveNext(out _), Is.False,
+                    "a station has an emergency shuttle");
             });
         });
     }

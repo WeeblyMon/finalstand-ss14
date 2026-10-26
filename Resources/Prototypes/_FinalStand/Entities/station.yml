@@ -1,5 +1,6 @@
-# FinalStand station: StandardNanotrasenStation without arrivals (players spawn via cryo pods) and without the ruins,
-# debris and asteroid field the vanilla shuttles base scatters round the station, which cost server time all round.
+# FinalStand station: StandardNanotrasenStation without arrivals (players spawn via cryo pods), CentComm or an emergency
+# shuttle (rounds end at the CCC), and without the ruins, debris and asteroid field the vanilla shuttles base scatters
+# round the station, which cost server time all round.
 - type: entity
   parent:
     - BaseStation
@@ -8,8 +9,6 @@
     - BaseStationJobsSpawning
     - BaseStationRecords
     - FSBaseStationShuttles
-    - BaseStationCentcomm
-    - BaseStationEvacuation
     - BaseStationAlertLevels
     - BaseStationMagnet
     - BaseStationExpeditions

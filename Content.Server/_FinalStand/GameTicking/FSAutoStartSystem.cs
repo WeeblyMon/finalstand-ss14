@@ -48,6 +48,8 @@ public sealed partial class FSAutoStartSystem : EntitySystem
 
         _cfg.SetCVar(CCVars.GameMap, Map.Id);
         _cfg.SetCVar(CCVars.ArrivalsShuttles, false); // Arrivals shuttle not used, players spawn via cryo
+        // Grid fill brings the cargo shuttle and trading station; the station spawns nothing else.
+        _cfg.SetCVar(CCVars.GridFill, true);
         _ticker.SetGamePreset(preset);
         Log.Info("FinalStand preset and map applied. Waiting for startround.");
     }
