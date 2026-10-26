@@ -77,8 +77,9 @@
                             <RichTextLabel Name="SelectedDescLabel" />
                         </BoxContainer>
                         <BoxContainer Name="ActionsBox" Orientation="Vertical" VerticalExpand="True" SeparationOverride="8">
-                            <BoxContainer Name="LevelEffectsBox" Orientation="Vertical" SeparationOverride="4" />
-                            <Control VerticalExpand="True" MinHeight="8" />
+                            <ScrollContainer Name="LevelEffectsScroll" VerticalExpand="True" HorizontalExpand="True" HScrollEnabled="False">
+                                <BoxContainer Name="LevelEffectsBox" Orientation="Vertical" HorizontalExpand="True" SeparationOverride="4" />
+                            </ScrollContainer>
                             <Label Name="ShortfallLabel" Text="" Visible="False" />
                             <Button Name="UpgradeButton" MinHeight="42" />
                             <Button Name="EquipButton" MinHeight="38" />

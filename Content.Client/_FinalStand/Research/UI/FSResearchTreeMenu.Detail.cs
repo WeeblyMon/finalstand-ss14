@@ -301,6 +301,15 @@ public sealed partial class FSResearchTreeMenu
             ? Database?.SharedQueue.Select(n => n.Id).ToList() ?? new List<string>()
             : _fsResearch.MyPersonalQueue;
 
+    private bool CanReachFromQueue(FSResearchNodeView node, List<string> queue)
+    {
+        var shared = Database?.SharedQueue;
+        return _fsResearch.ArePrerequisitesMet(node.Proto, id => IsIdUnlocked(id)
+            || ActiveResearchId() == id
+            || queue.Contains(id)
+            || shared?.Any(q => q.Id == id) == true);
+    }
+
     private void UpdateQueueButton(FSResearchNodeView node)
     {
         if (node.IsDone || node.State == FSResearchNodeState.ExclusivelyBlocked)
@@ -311,9 +320,13 @@ public sealed partial class FSResearchTreeMenu
         var queue = MyQueue();
         var queued = queue.IndexOf(node.Id);
         var full = queue.Count >= SharedFSResearchSystem.MaxQueueLength;
+        var reachable = CanReachFromQueue(node, queue);
         QueueButton.Visible = true;
-        QueueButton.Text = queued >= 0 ? $"QUEUED #{queued + 1}" : full ? "QUEUE FULL" : "ADD TO QUEUE";
-        QueueButton.Disabled = queued >= 0 || full;
+        QueueButton.Text = queued >= 0 ? $"QUEUED #{queued + 1}"
+            : full ? "QUEUE FULL"
+            : !reachable ? "QUEUE ITS REQUIREMENTS FIRST"
+            : "ADD TO QUEUE";
+        QueueButton.Disabled = queued >= 0 || full || !reachable;
     }
 
     private void RebuildQueueList()

@@ -30,19 +30,31 @@ public sealed partial class FSPlayerUpgradesSystem
         }
     }
 
-    public void ReconcileMagazinePercent(EntityUid gun, EntityUid? holder)
+    public bool TryGetMagazineTarget(EntityUid gun, out Entity<BallisticAmmoProviderComponent> target)
     {
-        var target = gun;
-        if (!HasComp<BallisticAmmoProviderComponent>(gun))
+        target = default;
+
+        if (TryComp<BallisticAmmoProviderComponent>(gun, out var own))
         {
-            if (!FSItemSlots.TryGetSlot(EntityManager, _itemSlots, gun, SharedGunSystem.MagazineSlot, out var slot)
-                || slot.Item is not { } mag)
-                return;
-            target = mag;
+            target = (gun, own);
+            return true;
         }
 
-        if (!TryComp<BallisticAmmoProviderComponent>(target, out var bal))
+        if (!FSItemSlots.TryGetSlot(EntityManager, _itemSlots, gun, SharedGunSystem.MagazineSlot, out var slot)
+            || slot.Item is not { } mag
+            || !TryComp<BallisticAmmoProviderComponent>(mag, out var loaded))
+            return false;
+
+        target = (mag, loaded);
+        return true;
+    }
+
+    public void ReconcileMagazinePercent(EntityUid gun, EntityUid? holder)
+    {
+        if (!TryGetMagazineTarget(gun, out var magazine))
             return;
+
+        var (target, bal) = magazine;
 
         var percent = CompOrNull<FSWeaponUpgradeStateComponent>(gun)?.ResearchMagazinePercent ?? 0f;
         percent += BandolierPercent(holder);

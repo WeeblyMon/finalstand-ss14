@@ -564,17 +564,17 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
                     HandLocation.Right => "Right Hand",
                     _                  => "Hand",
                 };
-            case CarryKind.Equipped:
+            default:
                 return item.Where switch
                 {
                     "belt"        => "Belt",
                     "suitstorage" => "Suit Storage",
                     "pocket1"     => "Pocket 1",
                     "pocket2"     => "Pocket 2",
+                    "shoes"       => "Boots",
+                    "back"        => "Backpack",
                     _             => Capitalize(item.Where),
                 };
-            default:
-                return "Backpack";
         }
     }
 

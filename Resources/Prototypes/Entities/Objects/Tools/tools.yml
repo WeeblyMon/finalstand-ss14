@@ -350,6 +350,8 @@
     - ReinforcedWindow
     - Airlock
     - AirlockGlass
+    - TubeLight # FS
+    - BulbLight # FS
     - Deconstruct
   - type: LimitedCharges
     maxCharges: 30

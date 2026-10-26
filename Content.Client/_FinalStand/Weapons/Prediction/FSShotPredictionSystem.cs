@@ -10,6 +10,7 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Effects;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Physics;
 using Content.Shared.Projectiles;
 using Content.Shared.Vehicle.Components;
 using Content.Shared.Weapons.Hitscan.Components;
@@ -212,10 +213,17 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
     public void PredictHitscan(Entity<GunComponent> gun, EntityUid? ammo, EntityUid user, EntityCoordinates fromCoordinates, Vector2 direction)
     {
-        if (ammo is not { } hitscan
-            || !_lagCompensation.CanPredictHitscan(hitscan)
-            || !TryComp<HitscanBasicRaycastComponent>(hitscan, out var raycast)
-            || direction.LengthSquared() < 0.0001f)
+        if (ammo is not { } hitscan || direction.LengthSquared() < 0.0001f)
+            return;
+
+        if (TryComp<FSXrayRaycastComponent>(hitscan, out var xray))
+        {
+            PredictXray(gun, hitscan, xray, user, fromCoordinates, direction.Normalized());
+            return;
+        }
+
+        if (!_lagCompensation.CanPredictHitscan(hitscan)
+            || !TryComp<HitscanBasicRaycastComponent>(hitscan, out var raycast))
         {
             return;
         }
@@ -266,6 +274,38 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
             var (coords, angle) = _hitscanCoords.ToGridRelative(origin, direction.ToAngle());
             RaiseLocalEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(coords), (float) angle.Theta, distance, GetNetEntity(user)));
             return;
+        }
+
+        if (_hitscanRaycast.BuildEffects(fromCoordinates, distance, direction.ToAngle(), hitscan, user) is { } effects)
+            RaiseLocalEvent(effects);
+    }
+
+    private void PredictXray(Entity<GunComponent> gun, EntityUid hitscan, FSXrayRaycastComponent xray, EntityUid user,
+        EntityCoordinates fromCoordinates, Vector2 direction)
+    {
+        var from = _transform.ToMapCoordinates(fromCoordinates);
+        var ray = new CollisionRay(from.Position, direction, (int) CollisionGroup.Opaque);
+        var results = _physics.IntersectRay(from.MapId, ray, xray.MaxDistance, user, false);
+
+        var friendly = _friendlyQuery.HasComp(user);
+        var pierce = TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgrade)
+            ? (int) Math.Round(upgrade.PierceThreshold.Float())
+            : 0;
+
+        var distance = xray.MaxDistance;
+        foreach (var result in results)
+        {
+            if (!_mobQuery.HasComp(result.HitEntity))
+                continue;
+
+            if (friendly && _friendlyQuery.HasComp(result.HitEntity))
+                continue;
+
+            distance = result.Distance;
+            if (pierce <= 0)
+                break;
+
+            pierce--;
         }
 
         if (_hitscanRaycast.BuildEffects(fromCoordinates, distance, direction.ToAngle(), hitscan, user) is { } effects)
