@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Ailments;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -22,6 +23,22 @@ public sealed partial class FSVitalsSystem : EntitySystem
     private readonly List<Entity<FSAilmentStateComponent, DamageableComponent>> _patients = new();
     private readonly List<(string Type, FixedPoint2 Amount)> _types = new();
     private TimeSpan _nextTick;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
+    }
+
+    private void OnPrepStarted(WavePrepStartedEvent ev)
+    {
+        var query = EntityQueryEnumerator<FSAilmentStateComponent>();
+        while (query.MoveNext(out var uid, out _))
+        {
+            _ailments.ClearAll(uid);
+        }
+    }
 
     public override void Update(float frameTime)
     {
@@ -57,9 +74,8 @@ public sealed partial class FSVitalsSystem : EntitySystem
             return;
         }
 
+        TrackBleedEnd(patient);
         var bleed = _ailments.GetBleedLevel(patient);
-        if (bleed == 0 && patient.Comp1.PeakBleed > 0)
-            _ailments.EndBleed(patient);
 
         var critical = _mobState.IsCritical(patient);
         using (_ailments.Internal())
@@ -79,6 +95,21 @@ public sealed partial class FSVitalsSystem : EntitySystem
         Regenerate(patient, rules, now);
         _ailments.RefreshWarnings(patient);
         _ailments.PruneMend(patient);
+    }
+
+    private void TrackBleedEnd(Entity<FSAilmentStateComponent, DamageableComponent> patient)
+    {
+        var state = patient.Comp1;
+        var amount = _ailments.GetBleedAmount(patient);
+        if (amount <= 0f && state.PeakBleed > 0)
+        {
+            if (state.LastBleedAmount > _ailments.GetClotStep(patient) + 0.01f)
+                _ailments.ReportBleedStopped(patient, state.LastBleedAmount, kind: FSCureKind.Chemical);
+            else
+                _ailments.EndBleed(patient);
+        }
+
+        state.LastBleedAmount = amount;
     }
 
     private void Hurt(Entity<FSAilmentStateComponent, DamageableComponent> patient, DamageSpecifier damage)

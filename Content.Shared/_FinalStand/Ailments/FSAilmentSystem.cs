@@ -6,6 +6,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Rejuvenate;
 using Content.Shared.StatusEffectNew;
 using Content.Shared.StatusEffectNew.Components;
+using Robust.Shared.Containers;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -15,6 +16,7 @@ namespace Content.Shared._FinalStand.Ailments;
 public sealed partial class FSAilmentSystem : EntitySystem
 {
     [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -148,11 +150,11 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
         foreach (var effect in Active<FSAilmentComponent>(patient))
         {
-            if (effect.Comp2.Slot != slot || Prototype(effect)?.ID is not { } id)
+            if (effect.Comp2.Slot != slot)
                 continue;
 
             var tier = effect.Comp2.Tier;
-            _status.TryRemoveStatusEffect(patient, id);
+            RemoveEffect(effect);
             RaiseCured(patient, slot, tier, curer, kind);
             return true;
         }
@@ -262,7 +264,17 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     public int GetBleedLevel(EntityUid patient)
     {
-        return _bloodQuery.TryComp(patient, out var blood) ? (int) MathF.Ceiling(blood.BleedAmount) : 0;
+        return (int) MathF.Ceiling(GetBleedAmount(patient));
+    }
+
+    public float GetBleedAmount(EntityUid patient)
+    {
+        return _bloodQuery.TryComp(patient, out var blood) ? blood.BleedAmount : 0f;
+    }
+
+    public float GetClotStep(EntityUid patient)
+    {
+        return _bloodQuery.TryComp(patient, out var blood) ? blood.BleedReductionAmount : 0f;
     }
 
     public bool Has(EntityUid patient, FSAilmentSlot slot)
@@ -395,9 +407,9 @@ public sealed partial class FSAilmentSystem : EntitySystem
     {
         foreach (var effect in Active<FSAilmentComponent>(patient))
         {
-            if (effect.Comp2.Slot == slot && Prototype(effect)?.ID is { } id)
+            if (effect.Comp2.Slot == slot)
             {
-                _status.TryRemoveStatusEffect(patient, id);
+                RemoveEffect(effect);
                 return;
             }
         }
@@ -405,17 +417,24 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     private void RemoveAll(EntityUid patient)
     {
-        var ids = new List<EntProtoId>();
+        var effects = new List<EntityUid>();
         foreach (var effect in Active<FSAilmentComponent>(patient))
         {
-            if (Prototype(effect)?.ID is { } id)
-                ids.Add(id);
+            effects.Add(effect);
         }
 
-        foreach (var id in ids)
+        foreach (var effect in effects)
         {
-            _status.TryRemoveStatusEffect(patient, id);
+            RemoveEffect(effect);
         }
+    }
+
+    private void RemoveEffect(EntityUid effect)
+    {
+        if (!_net.IsClient && _container.TryGetContainingContainer((effect, null, null), out var container))
+            _container.Remove(effect, container);
+
+        PredictedQueueDel(effect);
     }
 
     private IEnumerable<Entity<StatusEffectComponent, T>> Active<T>(EntityUid patient) where T : Component

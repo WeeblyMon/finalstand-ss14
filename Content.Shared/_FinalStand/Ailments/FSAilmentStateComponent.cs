@@ -33,6 +33,8 @@ public sealed partial class FSAilmentStateComponent : Component
 
     public int PeakBleed;
 
+    public float LastBleedAmount;
+
     public TimeSpan LastDamage;
 
     public EntityUid? FireSource;
