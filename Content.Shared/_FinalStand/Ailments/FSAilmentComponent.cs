@@ -15,6 +15,12 @@ public sealed partial class FSAilmentComponent : Component
     public LocId? Examine;
 
     [DataField]
+    public LocId? FixHint;
+
+    [DataField]
+    public LocId? Effect;
+
+    [DataField]
     public TimeSpan Duration = TimeSpan.FromSeconds(30);
 
     [DataField]
@@ -38,6 +44,9 @@ public sealed partial class FSAilmentWardComponent : Component
 
     [DataField(required: true)]
     public LocId Name;
+
+    [DataField]
+    public LocId? Effect;
 
     [DataField]
     public TimeSpan Duration = TimeSpan.FromSeconds(20);

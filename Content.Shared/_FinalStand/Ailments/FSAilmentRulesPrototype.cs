@@ -1,5 +1,7 @@
 using Content.Shared.Damage;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Ailments;
 
@@ -65,6 +67,40 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
 }
 
 [DataDefinition]
+
+    [DataField]
+    public Dictionary<FSAilmentSlot, FSAilmentSlotInfo> Slots = new();
+
+    [DataField]
+    public SoundSpecifier? ClearedSound;
+}
+
+[DataDefinition]
+public sealed partial class FSAilmentSlotInfo
+{
+    [DataField(required: true)]
+    public LocId Label;
+
+    [DataField]
+    public LocId? Need;
+
+    [DataField]
+    public LocId? Effect;
+
+    [DataField]
+    public LocId? FixHint;
+
+    [DataField]
+    public SpriteSpecifier? FixIcon;
+
+    [DataField]
+    public SpriteSpecifier? Pip;
+
+    [DataField]
+    public SoundSpecifier? Sound;
+
+    [DataField]
+    public bool Fixed;
 public sealed partial class FSAilmentMeterRule
 {
     [DataField(required: true)]

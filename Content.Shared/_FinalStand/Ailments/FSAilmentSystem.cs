@@ -337,6 +337,37 @@ public sealed partial class FSAilmentSystem : EntitySystem
     {
         patient.Comp.RecoveringSince = since;
         var recovering = since != null;
+    public void GetViews(EntityUid patient, List<FSAilmentView> views)
+    {
+        views.Clear();
+
+        var bleed = GetBleedLevel(patient);
+        if (bleed > 0 && Rules.Slots.TryGetValue(FSAilmentSlot.Bleeding, out var bleeding))
+            views.Add(new FSAilmentView(FSAilmentSlot.Bleeding, bleeding.Label, bleed, null, bleeding.Effect, bleeding.FixHint, null, false));
+
+        foreach (var effect in Active<FSAilmentComponent>(patient))
+        {
+            var ailment = effect.Comp2;
+            views.Add(new FSAilmentView(ailment.Slot, ailment.Name, 0, effect.Comp1.EndEffectTime, ailment.Effect, ailment.FixHint, ailment.Examine, false));
+        }
+
+        foreach (var ward in Active<FSAilmentWardComponent>(patient))
+        {
+            views.Add(new FSAilmentView(ward.Comp2.Blocks, ward.Comp2.Name, 0, ward.Comp1.EndEffectTime, ward.Comp2.Effect, null, null, true));
+        }
+    }
+
+    public FSAilmentPips GetPips(EntityUid patient)
+    {
+        var pips = GetBleedLevel(patient) > 0 ? FSAilmentPips.Bleeding : FSAilmentPips.None;
+        foreach (var effect in Active<FSAilmentComponent>(patient))
+        {
+            pips |= (FSAilmentPips) (1 << (int) effect.Comp2.Slot);
+        }
+
+        return pips;
+    }
+
         if (patient.Comp.Recovering == recovering)
             return;
 

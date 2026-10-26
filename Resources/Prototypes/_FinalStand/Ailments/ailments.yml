@@ -21,6 +21,56 @@
       drainPerSecond: 10
       injury:
         burn: true
+  slots:
+    Bleeding:
+      label: fs-ailment-bleeding
+      pip:
+        sprite: _FinalStand/Interface/Ailments/pips.rsi
+        state: drop
+      need: fs-need-gauze
+      effect: fs-ailment-bleeding-effect
+      fixHint: fs-ailment-bleeding-fix
+      fixIcon:
+        sprite: Objects/Specific/Medical/medical.rsi
+        state: gauze
+      sound:
+        path: /Audio/Effects/Fluids/blood1.ogg
+      fixed: true
+    Bone:
+      label: fs-slot-bone
+      pip:
+        sprite: _FinalStand/Interface/Ailments/pips.rsi
+        state: bone
+      need: fs-need-stapler
+      fixIcon:
+        sprite: _FinalStand/Objects/Medical/splint.rsi
+        state: icon
+      sound:
+        collection: FSMeleeBoneBreak
+      fixed: true
+    Burn:
+      label: fs-slot-burn
+      pip:
+        sprite: _FinalStand/Interface/Ailments/pips.rsi
+        state: flame
+      need: fs-need-ointment
+      fixIcon:
+        sprite: Objects/Specific/Medical/medical.rsi
+        state: ointment
+      sound:
+        path: /Audio/Effects/sizzle.ogg
+      fixed: true
+    Bloater:
+      label: fs-slot-bloat
+      pip:
+        sprite: _FinalStand/Interface/Ailments/pips.rsi
+        state: drop
+      sound:
+        path: /Audio/Effects/Fluids/splat.ogg
+  clearedSound:
+    path: /Audio/Effects/chime.ogg
+    params:
+      volume: -4
 
 - type: entity
   parent: MobStatusEffectDebuff
@@ -43,6 +93,8 @@
     slot: Bone
     name: fs-ailment-broken
     examine: fs-ailment-broken-examine
+    effect: fs-ailment-broken-effect
+    fixHint: fs-ailment-broken-fix
     duration: 30
     tier: Major
     becomesOnExpire: FSAilmentSplinted
@@ -59,6 +111,8 @@
     slot: Bone
     name: fs-ailment-splinted
     examine: fs-ailment-splinted-examine
+    effect: fs-ailment-splinted-effect
+    fixHint: fs-ailment-splinted-fix
     duration: 90
     tier: Minor
   - type: MovementModStatusEffect
@@ -74,6 +128,8 @@
     slot: Bone
     name: fs-ailment-splinted
     examine: fs-ailment-splinted-examine
+    effect: fs-ailment-splinted-fieldops-effect
+    fixHint: fs-ailment-splinted-fix
     duration: 90
 
 - type: entity
@@ -85,6 +141,8 @@
     slot: Burn
     name: fs-ailment-burned
     examine: fs-ailment-burned-examine
+    effect: fs-ailment-burned-effect
+    fixHint: fs-ailment-burned-fix
     duration: 45
     tier: Minor
     blocksRegen: true
@@ -99,6 +157,7 @@
     slot: Bloater
     name: fs-ailment-soaked
     examine: fs-ailment-soaked-examine
+    effect: fs-ailment-soaked-effect
     duration: 5
   - type: MovementModStatusEffect
     walkSpeedModifier: 0.775
@@ -130,6 +189,7 @@
   - type: FSAilmentWard
     blocks: Bleeding
     name: fs-ward-clotted
+    effect: fs-ward-clotted-effect
     duration: 20
 
 - type: entity
@@ -140,6 +200,7 @@
   - type: FSAilmentWard
     blocks: Bone
     name: fs-ward-braced
+    effect: fs-ward-braced-effect
     duration: 60
 
 - type: entity
@@ -150,4 +211,5 @@
   - type: FSAilmentWard
     blocks: Burn
     name: fs-ward-warded
+    effect: fs-ward-warded-effect
     duration: 45
