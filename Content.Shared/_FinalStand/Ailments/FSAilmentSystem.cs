@@ -1,6 +1,7 @@
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Systems;
+using Content.Shared.HealthExaminable;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Rejuvenate;
@@ -28,6 +29,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
     private EntityQuery<BloodstreamComponent> _bloodQuery;
     private EntityQuery<FSAilmentStateComponent> _stateQuery;
     private readonly List<(EntityUid Patient, EntProtoId Next)> _pendingExpiry = new();
+    private readonly List<FSAilmentView> _examineViews = new();
     private int _internalDepth;
 
     public FSAilmentRulesPrototype Rules => _proto.Index(RulesId);
@@ -48,6 +50,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         SubscribeLocalEvent<FSAilmentStateComponent, FSIncomingHealScaleEvent>(OnIncomingHealScale);
         SubscribeLocalEvent<FSAilmentComponent, StatusEffectRemovedEvent>(OnAilmentRemoved);
     }
+        SubscribeLocalEvent<FSAilmentStateComponent, HealthBeingExaminedEvent>(OnHealthExamined);
 
     public override void Update(float frameTime)
     {
@@ -661,3 +664,16 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
     }
 }
+    private void OnHealthExamined(Entity<FSAilmentStateComponent> ent, ref HealthBeingExaminedEvent args)
+    {
+        GetViews(ent, _examineViews);
+        foreach (var view in _examineViews)
+        {
+            if (view.Ward || view.Examine is not { } examine)
+                continue;
+
+            args.Message.PushNewline();
+            args.Message.AddMarkupOrThrow(Loc.GetString(examine, ("target", ent.Owner)));
+        }
+    }
+
