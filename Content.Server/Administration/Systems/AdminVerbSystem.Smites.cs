@@ -1,4 +1,3 @@
-using Content.Shared._FinalStand.Medical;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -68,7 +67,7 @@ public sealed partial class AdminVerbSystem
     private readonly ProtoId<PolymorphPrototype> LizardSmite = "AdminLizardSmite";
     private readonly ProtoId<PolymorphPrototype> VulpkaninSmite = "AdminVulpSmite";
 
-    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private BodySystem _body = default!;
 
     [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private IRobustRandom _random = default!;
@@ -323,7 +322,7 @@ public sealed partial class AdminVerbSystem
                 Act = () =>
                 {
                     _vomitSystem.Vomit(args.Target, -1000, -1000); // You feel hollow!
-                    _lookup.TryGetBodyOrgans<TransformComponent>(args.Target, out var organs);
+                    _body.TryGetOrgansWithComponent<TransformComponent>((args.Target, body), out var organs);
                     var baseXform = Transform(args.Target);
                     foreach (var organ in organs)
                     {
@@ -352,7 +351,12 @@ public sealed partial class AdminVerbSystem
                 Act = () =>
                 {
                     var baseXform = Transform(args.Target);
-                    // Goob port: OrganCategoryPrototype removed; hand-organ filter no longer available.
+                    var parts = new HashSet<ProtoId<OrganCategoryPrototype>>() { "HandRight", "HandLeft" };
+                    _body.TryGetOrgansWithComponent<OrganComponent>((args.Target, body), out var organs);
+                    foreach (var organ in organs.Where(it => it.Comp.Category is { } category && parts.Contains(category)))
+                    {
+                        _transformSystem.AttachToGridOrMap(organ);
+                    }
                     _popupSystem.PopupEntity(Loc.GetString("admin-smite-remove-hands-self"), args.Target,
                         args.Target, PopupType.LargeCaution);
                     _popupSystem.PopupCoordinates(Loc.GetString("admin-smite-remove-hands-other", ("name", args.Target)), baseXform.Coordinates,
@@ -372,7 +376,13 @@ public sealed partial class AdminVerbSystem
                 Act = () =>
                 {
                     var baseXform = Transform(args.Target);
-                    // Goob port: OrganCategoryPrototype removed; hand-organ filter no longer available.
+                    var parts = new HashSet<ProtoId<OrganCategoryPrototype>>() { "HandRight", "HandLeft" };
+                    _body.TryGetOrgansWithComponent<OrganComponent>((args.Target, body), out var organs);
+                    foreach (var organ in organs.Where(it => it.Comp.Category is { } category && parts.Contains(category)))
+                    {
+                        _transformSystem.AttachToGridOrMap(organ);
+                        break;
+                    }
                     _popupSystem.PopupEntity(Loc.GetString("admin-smite-remove-hands-self"), args.Target,
                         args.Target, PopupType.LargeCaution);
                     _popupSystem.PopupCoordinates(Loc.GetString("admin-smite-remove-hands-other", ("name", args.Target)), baseXform.Coordinates,
@@ -391,7 +401,7 @@ public sealed partial class AdminVerbSystem
                 Icon = new SpriteSpecifier.Rsi(new("/Textures/Mobs/Species/Human/organs.rsi"), "stomach"),
                 Act = () =>
                 {
-                    _lookup.TryGetBodyOrgans<StomachComponent>(args.Target, out var organs);
+                    _body.TryGetOrgansWithComponent<StomachComponent>((args.Target, body), out var organs);
                     foreach (var entity in organs)
                     {
                         QueueDel(entity.Owner);
@@ -413,7 +423,7 @@ public sealed partial class AdminVerbSystem
                 Icon = new SpriteSpecifier.Rsi(new("/Textures/Mobs/Species/Human/organs.rsi"), "lung-r"),
                 Act = () =>
                 {
-                    _lookup.TryGetBodyOrgans<LungComponent>(args.Target, out var organs);
+                    _body.TryGetOrgansWithComponent<LungComponent>((args.Target, body), out var organs);
                     foreach (var entity in organs)
                     {
                         QueueDel(entity.Owner);

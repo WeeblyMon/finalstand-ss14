@@ -1,14 +1,11 @@
 // Resolves the local player's health and stamina for the vitals block on the wave HUD.
-using Content.Shared._Shitmed.Medical.Surgery.Traumas;
-using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
-using Content.Shared.Body.Components;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
-using Robust.Shared.Containers;
 
 namespace Content.Client._FinalStand.WaveHud;
 
@@ -16,6 +13,7 @@ public sealed partial class WaveHudSystem
 {
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
 
     private void UpdateVitals(WaveHudOverlay overlay)
     {
@@ -65,29 +63,10 @@ public sealed partial class WaveHudSystem
 
     private void UpdateStatusPills(EntityUid player, WaveHudOverlay overlay)
     {
-        if (TryComp<BloodstreamComponent>(player, out var blood) && blood.BleedAmount > 0f)
+        if (_ailments.GetBleedLevel(player) > 0)
             overlay.StatusPills.Add(("BLEEDING", true));
 
-        var broken = 0;
-        CountBrokenBones(player, ref broken, 0);
-        if (broken > 0)
-            overlay.StatusPills.Add((broken == 1 ? "BROKEN BONE" : $"{broken} BROKEN BONES", true));
-    }
-
-    private void CountBrokenBones(EntityUid root, ref int broken, int depth)
-    {
-        if (depth > 4 || !TryComp<ContainerManagerComponent>(root, out var mgr))
-            return;
-
-        foreach (var container in mgr.Containers.Values)
-        {
-            foreach (var item in container.ContainedEntities)
-            {
-                if (TryComp<BoneComponent>(item, out var bone) && bone.BoneSeverity == BoneSeverity.Broken)
-                    broken++;
-
-                CountBrokenBones(item, ref broken, depth + 1);
-            }
-        }
+        if (_ailments.Has(player, FSAilmentSlot.Bone))
+            overlay.StatusPills.Add(("BROKEN BONE", true));
     }
 }

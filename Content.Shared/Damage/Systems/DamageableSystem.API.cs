@@ -1,5 +1,4 @@
 using System.Linq;
-using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
@@ -61,8 +60,7 @@ public sealed partial class DamageableSystem
         bool ignoreResistances = false,
         bool interruptsDoAfters = true,
         EntityUid? origin = null,
-        bool ignoreGlobalModifiers = false,
-        TargetBodyPart? targetPart = null
+        bool ignoreGlobalModifiers = false
     )
     {
         //! Empty just checks if the DamageSpecifier is _literally_ empty, as in, is internal dictionary of damage types is empty.

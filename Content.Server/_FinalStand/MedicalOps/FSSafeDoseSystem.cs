@@ -1,9 +1,10 @@
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared._Shitmed.EntityConditions;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared.EntityConditions.Conditions;
 using Content.Shared.FixedPoint;
 using Content.Shared.Projectiles;
 using Robust.Shared.Audio;
@@ -88,14 +89,16 @@ public sealed partial class FSSafeDoseSystem : EntitySystem
             {
                 foreach (var effect in entry.Effects)
                 {
+                    if (effect is FSCureAilment or FSApplyWard)
+                        continue;
+
                     foreach (var condition in effect.Conditions ?? [])
                     {
-                        if (condition is not ReagentThreshold { Min: > 0f } gate)
+                        if (condition is not ReagentCondition gate || gate.Reagent != reagentId || gate.Min <= FixedPoint2.Zero)
                             continue;
 
-                        var value = FixedPoint2.New(gate.Min);
-                        if (lowest == null || value < lowest)
-                            lowest = value;
+                        if (lowest == null || gate.Min < lowest)
+                            lowest = gate.Min;
                     }
                 }
             }

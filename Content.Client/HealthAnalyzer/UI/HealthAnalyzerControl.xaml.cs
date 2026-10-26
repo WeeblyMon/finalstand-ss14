@@ -1,8 +1,5 @@
 using System.Linq;
 using System.Numerics;
-using Content.Shared._Shitmed.Medical.HealthAnalyzer;
-using Content.Shared._Shitmed.Medical.Surgery.Wounds;
-using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Atmos;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
@@ -142,7 +139,8 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
                 .OrderByDescending(damage => damage.Value)
                 .ToDictionary(x => x.Key, x => x.Value);
 
-        var damagePerType = _damageable.GetAllDamage(target.Value).DamageDict;
+        var damagePerType = _damageable.GetAllDamage(target.Value).DamageDict
+            .ToDictionary(x => (ProtoId<DamageTypePrototype>) x.Key, x => x.Value);
 
         DrawDiagnosticGroups(damageSortedGroups, damagePerType);
     }
@@ -160,7 +158,7 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
 
     private void DrawDiagnosticGroups(
         Dictionary<ProtoId<DamageGroupPrototype>, FixedPoint2> groups,
-        IReadOnlyDictionary<string, FixedPoint2> damageDict)
+        IReadOnlyDictionary<ProtoId<DamageTypePrototype>, FixedPoint2> damageDict)
     {
         GroupsContainer.RemoveAllChildren();
 
@@ -202,97 +200,6 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
                 groupContainer.AddChild(CreateDiagnosticItemLabel(damageString.Insert(0, " · ")));
             }
         }
-    }
-
-    public void PopulateWounds(HealthAnalyzerBodyMessage msg)
-    {
-        if (msg.Body == null || msg.Body.Count == 0)
-        {
-            WoundsDivider.Visible = false;
-            WoundsContainer.Visible = false;
-            return;
-        }
-
-        var hasNonHealthy = msg.Body.Any(kvp => kvp.Value != WoundableSeverity.Healthy)
-            || msg.Bleeding.Any(kvp => kvp.Value);
-
-        WoundsDivider.Visible = hasNonHealthy;
-        WoundsContainer.Visible = hasNonHealthy;
-
-        if (!hasNonHealthy)
-            return;
-
-        WoundsContainer.RemoveAllChildren();
-
-        if (msg.VitalDamage > FixedPoint2.Zero)
-        {
-            WoundsContainer.AddChild(new Label
-            {
-                Text = $"Critical Damage: {msg.VitalDamage}",
-                FontColorOverride = Color.OrangeRed,
-            });
-        }
-
-        WoundsContainer.AddChild(new Label
-        {
-            Text = "Wounds:",
-            Margin = new Thickness(0, 2, 0, 0),
-        });
-
-        foreach (var (part, severity) in msg.Body.OrderBy(kv => kv.Key.ToString()))
-        {
-            var bleeding = msg.Bleeding.TryGetValue(part, out var isBleed) && isBleed;
-            if (severity == WoundableSeverity.Healthy && !bleeding)
-                continue;
-
-            var partName = GetBodyPartDisplayName(part);
-            var color = GetSeverityColor(severity, bleeding);
-            var bleedMarker = bleeding ? " ♦" : "";
-            var severityText = severity == WoundableSeverity.Healthy ? "" : $" [{severity}]";
-
-            WoundsContainer.AddChild(new Label
-            {
-                Text = $"  {partName}{severityText}{bleedMarker}",
-                FontColorOverride = color,
-            });
-        }
-    }
-
-    private static string GetBodyPartDisplayName(TargetBodyPart part)
-    {
-        return part switch
-        {
-            TargetBodyPart.Head => "Head",
-            TargetBodyPart.Chest => "Chest",
-            TargetBodyPart.Groin => "Groin",
-            TargetBodyPart.LeftArm => "Left Arm",
-            TargetBodyPart.LeftHand => "Left Hand",
-            TargetBodyPart.RightArm => "Right Arm",
-            TargetBodyPart.RightHand => "Right Hand",
-            TargetBodyPart.LeftLeg => "Left Leg",
-            TargetBodyPart.LeftFoot => "Left Foot",
-            TargetBodyPart.RightLeg => "Right Leg",
-            TargetBodyPart.RightFoot => "Right Foot",
-            _ => part.ToString(),
-        };
-    }
-
-    private static Color GetSeverityColor(WoundableSeverity severity, bool bleeding)
-    {
-        if (bleeding && severity == WoundableSeverity.Healthy)
-            return Color.LightBlue;
-
-        return severity switch
-        {
-            WoundableSeverity.Healthy => Color.Green,
-            WoundableSeverity.Minor => Color.Yellow,
-            WoundableSeverity.Moderate => Color.Orange,
-            WoundableSeverity.Severe => Color.OrangeRed,
-            WoundableSeverity.Critical => Color.Red,
-            WoundableSeverity.Mangled => new Color(0.8f, 0.1f, 0.1f),
-            WoundableSeverity.Severed => Color.Gray,
-            _ => Color.White,
-        };
     }
 
     private Texture GetTexture(string texture)

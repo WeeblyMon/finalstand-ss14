@@ -8,7 +8,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
-using Content.Shared._FinalStand.Medical;
 using Content.Shared.Body.Components;
 using Content.Shared.Body;
 using Content.Shared._Shitmed.Body.Part;
@@ -73,7 +72,7 @@ public partial class SharedBodyAppearanceSystem
         }
 
         // I HATE HARDCODED CHECKS I HATE HARDCODED CHECKS I HATE HARDCODED CHECKS
-        if (part.Category == OrganCategories.Head)
+        if (part.Category == "Head")
             component.EyeColor = bodyAppearance.EyeColor;
 
         var markingsByLayer = new Dictionary<HumanoidVisualLayers, List<Marking>>();

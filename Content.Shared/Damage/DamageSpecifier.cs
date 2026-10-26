@@ -41,12 +41,6 @@ namespace Content.Shared.Damage
         public Dictionary<string, FixedPoint2> DamageDict { get; set; } = new();
 
         /// <summary>
-        ///     Goobstation: Wound severity multipliers per damage type, used by the wound system.
-        /// </summary>
-        [DataField]
-        public Dictionary<string, FixedPoint2> WoundSeverityMultipliers { get; set; } = new();
-
-        /// <summary>
         ///     Returns a sum of the damage values.
         /// </summary>
         /// <remarks>
@@ -107,10 +101,6 @@ namespace Content.Shared.Damage
         public DamageSpecifier(DamageSpecifier damageSpec)
         {
             DamageDict = new(damageSpec.DamageDict);
-            // FINALSTAND: without this, every copy/derive of a DamageSpecifier (this constructor,
-            // Clone(), the arithmetic operators below) silently resets wound severity to the
-            // default of 1 for that damage type, making the field unusable anywhere past the first hop.
-            WoundSeverityMultipliers = damageSpec.WoundSeverityMultipliers;
         }
 
         /// <summary>
@@ -152,7 +142,7 @@ namespace Content.Shared.Damage
             // Make a copy of the given data. Don't modify the one passed to this function. I did this before, and weapons became
             // duller as you hit walls. Neat, but not FixedPoint2ended. And confusing, when you realize your fists don't work no
             // more cause they're just bloody stumps.
-            DamageSpecifier newDamage = new() { WoundSeverityMultipliers = damageSpec.WoundSeverityMultipliers };
+            DamageSpecifier newDamage = new();
             newDamage.DamageDict.EnsureCapacity(damageSpec.DamageDict.Count);
 
             foreach (var (key, value) in damageSpec.DamageDict)
@@ -365,9 +355,7 @@ namespace Content.Shared.Damage
         #region Operators
         public static DamageSpecifier operator *(DamageSpecifier damageSpec, FixedPoint2 factor)
         {
-            // FINALSTAND: a scalar on the amount of damage does not change the wound-severity
-            // ratio per point of that damage, so it carries over unscaled rather than resetting.
-            DamageSpecifier newDamage = new() { WoundSeverityMultipliers = damageSpec.WoundSeverityMultipliers };
+            DamageSpecifier newDamage = new();
             foreach (var entry in damageSpec.DamageDict)
             {
                 newDamage.DamageDict.Add(entry.Key, entry.Value * factor);
@@ -377,7 +365,7 @@ namespace Content.Shared.Damage
 
         public static DamageSpecifier operator *(DamageSpecifier damageSpec, float factor)
         {
-            DamageSpecifier newDamage = new() { WoundSeverityMultipliers = damageSpec.WoundSeverityMultipliers };
+            DamageSpecifier newDamage = new();
             foreach (var entry in damageSpec.DamageDict)
             {
                 newDamage.DamageDict.Add(entry.Key, entry.Value * factor);

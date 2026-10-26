@@ -16,7 +16,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared._FinalStand.Medical;
 using Content.Shared.Body;
 using Robust.Shared.Prototypes;
 
@@ -111,18 +110,18 @@ namespace Content.Shared.Humanoid
         private static readonly Dictionary<ProtoId<OrganCategoryPrototype>, HumanoidVisualLayers> CategoryLayers = new()
         {
             // Head uses the Sublayers method to hide the rest of the face parts.
-            [OrganCategories.Torso] = HumanoidVisualLayers.Chest,
-            [OrganCategories.Groin] = HumanoidVisualLayers.Groin,
-            [OrganCategories.Tail] = HumanoidVisualLayers.Tail,
-            [OrganCategories.Head] = HumanoidVisualLayers.Head,
-            [OrganCategories.ArmLeft] = HumanoidVisualLayers.LArm,
-            [OrganCategories.ArmRight] = HumanoidVisualLayers.RArm,
-            [OrganCategories.HandLeft] = HumanoidVisualLayers.LHand,
-            [OrganCategories.HandRight] = HumanoidVisualLayers.RHand,
-            [OrganCategories.LegLeft] = HumanoidVisualLayers.LLeg,
-            [OrganCategories.LegRight] = HumanoidVisualLayers.RLeg,
-            [OrganCategories.FootLeft] = HumanoidVisualLayers.LFoot,
-            [OrganCategories.FootRight] = HumanoidVisualLayers.RFoot,
+            ["Torso"] = HumanoidVisualLayers.Chest,
+            ["Groin"] = HumanoidVisualLayers.Groin,
+            ["Tail"] = HumanoidVisualLayers.Tail,
+            ["Head"] = HumanoidVisualLayers.Head,
+            ["ArmLeft"] = HumanoidVisualLayers.LArm,
+            ["ArmRight"] = HumanoidVisualLayers.RArm,
+            ["HandLeft"] = HumanoidVisualLayers.LHand,
+            ["HandRight"] = HumanoidVisualLayers.RHand,
+            ["LegLeft"] = HumanoidVisualLayers.LLeg,
+            ["LegRight"] = HumanoidVisualLayers.RLeg,
+            ["FootLeft"] = HumanoidVisualLayers.LFoot,
+            ["FootRight"] = HumanoidVisualLayers.RFoot,
         };
 
         public static HumanoidVisualLayers? ToHumanoidLayers(this OrganComponent organ)

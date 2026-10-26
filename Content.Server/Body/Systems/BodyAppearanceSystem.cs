@@ -74,8 +74,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared._FinalStand.Medical;
-using Content.Shared._Shitmed.Body.Organ;
 using System.Linq;
 using System.Numerics;
 using Content.Server.Body.Components;
@@ -100,7 +98,6 @@ namespace Content.Server.Body.Systems;
 
 public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem // Shitmed change: made partial
 {
-    [Dependency] private OrganLookupSystem _lookup = default!;
     [Dependency] private Content.Shared.Body.Systems.BloodstreamSystem _bloodstream = default!; // Shitmed Change
     [Dependency] private GhostSystem _ghostSystem = default!;
     [Dependency] private IGameTiming _gameTiming = default!;
