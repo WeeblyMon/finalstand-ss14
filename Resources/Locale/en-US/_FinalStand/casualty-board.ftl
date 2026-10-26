@@ -23,3 +23,5 @@ fs-casualty-pull-panel-title = RECOVERY
 fs-casualty-pull-panel-ready = ready
 fs-casualty-pull-panel-cooldown = { $seconds }s
 fs-casualty-pull-none = Nobody is down to recover.
+fs-casualty-state-held = DOWN HELD
+fs-casualty-state-clock = DOWN {$time}

@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared.Actions;
 using Robust.Shared.Map;
 using Robust.Shared.Serialization;
@@ -22,6 +23,12 @@ public struct FSCasualtyEntry
     public FSCasualtyState State;
     public NetCoordinates Position;
     public string? Responder;
+    public TimeSpan? DownEnd;
+    public bool Held;
+    public FSAilmentPips Pips;
+    public FSAilmentPips Needs;
+    public bool NeedsDefib;
+    public bool Silent;
 }
 
 [Serializable, NetSerializable]
