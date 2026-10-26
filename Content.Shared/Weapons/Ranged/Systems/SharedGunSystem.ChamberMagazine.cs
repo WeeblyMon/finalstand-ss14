@@ -330,6 +330,12 @@ public abstract partial class SharedGunSystem
 
     private bool TryInsertChamber(EntityUid uid, EntityUid ammo)
     {
+        if (IsClientSide(ammo))
+        {
+            Del(ammo);
+            return false;
+        }
+
         return Containers.TryGetContainer(uid, ChamberSlot, out var container) &&
                container is ContainerSlot slot &&
                Containers.Insert(ammo, slot);
