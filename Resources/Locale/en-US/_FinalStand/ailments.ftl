@@ -77,3 +77,6 @@ fs-ailment-arrhythmia-fix = cardiovert with the emergency defib, Epinephrine, te
 fs-forecast-advice-heart = Epinephrine, the emergency defib
 fs-hint-heart = [color=#4fb3d9]ARRHYTHMIA:[/color] your heart skips a beat every 6 seconds, slowing you for a moment, and you die faster while down. A medic's emergency defib or a dose of Epinephrine fixes it. Spread out from teslas.
 fs-signature-tesla = [color=#4fb3d9]Its lightning knocks hearts out of rhythm.[/color]
+fs-cardiovert-fine = Their heart rhythm is fine.
+fs-cardiovert-recharging = The cardioversion charge is recharging.
+fs-cardiovert-done = You shock {THE($target)}'s heart back into rhythm.
