@@ -72,10 +72,9 @@ public sealed partial class FSRecoveryZoneSystem : EntitySystem
 
         var deployer = CompOrNull<FSDeployedByComponent>(zone)?.DeployedBy;
         var fraction = (float) TickInterval.TotalSeconds / zone.Comp.CureSeconds;
-        foreach (var slot in Enum.GetValues<FSAilmentSlot>())
+        foreach (var slot in FSAilmentSystem.Slots)
         {
-            if (_ailments.Has(patient, slot))
-                _ailments.AddMend(patient, slot, fraction, deployer);
+            _ailments.AddMend(patient, slot, fraction, deployer);
         }
 
         var quiet = patient.Comp1.LastDamage > since ? patient.Comp1.LastDamage : since;

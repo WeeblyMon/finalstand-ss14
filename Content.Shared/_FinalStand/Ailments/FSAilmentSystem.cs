@@ -43,6 +43,8 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     public bool InInternalDamage => _internalDepth > 0;
 
+    public static readonly FSAilmentSlot[] Slots = Enum.GetValues<FSAilmentSlot>();
+
     private const float BleedEpsilon = 0.001f;
 
     public override void Initialize()
@@ -254,14 +256,14 @@ public sealed partial class FSAilmentSystem : EntitySystem
         if (patient.Comp.MendProgress.Count == 0)
             return;
 
-        foreach (var slot in Enum.GetValues<FSAilmentSlot>())
+        foreach (var slot in Slots)
         {
             if (patient.Comp.MendProgress.ContainsKey(slot) && !Has(patient, slot))
                 ClearMend(patient, slot);
         }
     }
 
-    public EntProtoId SplintedEffect => _fieldOps ? Rules.SplintedFieldOps : Rules.Splinted;
+    private EntProtoId SplintedEffect => _fieldOps ? Rules.SplintedFieldOps : Rules.Splinted;
 
     public bool Splint(EntityUid patient, TimeSpan? duration = null)
     {
