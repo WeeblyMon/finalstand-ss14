@@ -17,7 +17,7 @@ fs-casualty-pull-not-down = They are still on their feet.
 fs-casualty-pull-busy = Someone is already treating them.
 fs-casualty-pull-unreachable = No signal from that far away.
 fs-casualty-pull-no-room = No safe ground to receive them.
-fs-casualty-pull-arrived = You are pulled to the surgeon.
+fs-casualty-pull-arrived = You are pulled to the doctor.
 
 fs-casualty-pull-panel-title = RECOVERY
 fs-casualty-pull-panel-ready = ready
