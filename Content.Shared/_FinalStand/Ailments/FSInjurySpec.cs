@@ -13,6 +13,9 @@ public sealed partial class FSInjurySpec
     public bool Burn;
 
     [DataField]
+    public bool Arrhythmia;
+
+    [DataField]
     public bool IgnoreFloor;
 
     [DataField]

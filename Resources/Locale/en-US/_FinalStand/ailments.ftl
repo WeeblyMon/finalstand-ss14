@@ -69,3 +69,11 @@ fs-hint-bleeding = [color=#b3402f]BLEEDING:[/color] you lose health every second
 fs-hint-bone = [color=#dfdcd7]BROKEN BONE:[/color] -35% speed. Splint it, or it sets itself in 30 s. A doctor's stapler fixes it now.
 fs-hint-burn = [color=#d9702e]BURNED:[/color] no regeneration, and bandages and the medigun heal you at half speed. Ointment or a Kelotane dart clears it.
 fs-hint-bloat = [color=#a8b83a]SOAKED:[/color] bloater bile slows you and doubles the damage you take for a few seconds. Kill bloaters from range and spread out.
+fs-slot-heart = HEART
+fs-ailment-arrhythmia = ARRHYTHMIA
+fs-ailment-arrhythmia-examine = [color=#4fb3d9]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } an uneven pulse.[/color]
+fs-ailment-arrhythmia-effect = the heart skips every 6 s; dying 50% faster while down, {$seconds} s left
+fs-ailment-arrhythmia-fix = cardiovert with the emergency defib, Epinephrine, tent
+fs-forecast-advice-heart = Epinephrine, the emergency defib
+fs-hint-heart = [color=#4fb3d9]ARRHYTHMIA:[/color] your heart skips a beat every 6 seconds, slowing you for a moment, and you die faster while down. A medic's emergency defib or a dose of Epinephrine fixes it. Spread out from teslas.
+fs-signature-tesla = [color=#4fb3d9]Its lightning knocks hearts out of rhythm.[/color]

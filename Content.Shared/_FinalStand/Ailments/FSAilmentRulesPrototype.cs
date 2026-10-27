@@ -33,6 +33,9 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
     public EntProtoId Soaked = "FSAilmentSoaked";
 
     [DataField]
+    public EntProtoId Arrhythmia = "FSAilmentArrhythmia";
+
+    [DataField]
     public float BurnMeterPerHeat = 20f;
 
     [DataField]

@@ -49,6 +49,18 @@ Three slots always sit under your health bar: [color=#b3402f]BLEEDING[/color], [
 
 [bold]Fix:[/bold] ointment, aloe cream or regenerative mesh. A kelotane or dermaline dart clears it on the first dose.
 
+## Arrhythmia
+
+<Box>
+<GuideEntityEmbed Entity="FSEmergencyDefibrillator"/>
+</Box>
+
+[bold]Cause:[/bold] tesla lightning. Two direct bolts close together, or several chained arcs, knock your heart out of rhythm. Insulated gloves halve the build-up.
+
+[bold]Effect:[/bold] every 6 seconds your heart skips a beat and you slow for a moment. While you are down you die half as fast again.
+
+[bold]Fix:[/bold] a medic cardioverts you with the emergency defibrillator, or a dose of epinephrine clears it. A defibrillator revive clears it too.
+
 ## Soaked
 
 [bold]Cause:[/bold] a bloater bursting within 3 metres.

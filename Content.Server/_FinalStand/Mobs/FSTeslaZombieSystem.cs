@@ -4,12 +4,15 @@ using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.CCC;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Electrocution;
 using Content.Shared.Examine;
 using Content.Shared.Ghost;
+using Content.Shared.Inventory;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Components;
@@ -30,6 +33,8 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSTargetAcquisitionSystem _targeting = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
+    [Dependency] private InventorySystem _inventory = default!;
 
     private readonly ObjectPool<HashSet<Entity<FSFriendlyFireComponent>>> _chainSetPool =
         new DefaultObjectPool<HashSet<Entity<FSFriendlyFireComponent>>>(
@@ -145,7 +150,8 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
 
         var primaryDmg = new DamageSpecifier();
         primaryDmg.DamageDict["Shock"] = comp.PrimaryDamageShock;
-        _damageable.TryChangeDamage(primaryTarget.Value, primaryDmg, ignoreResistances: false, origin: uid);
+        _damageable.TryChangeDamage(primaryTarget.Value, primaryDmg, out var primaryDealt, ignoreResistances: false, origin: uid);
+        Shock(primaryTarget.Value, comp.PrimaryShockMeter, primaryDealt, uid, comp);
 
         DrawTeslaBeam(uid, primaryTarget.Value);
         Spawn(HitEffect, new EntityCoordinates(primaryTarget.Value, Vector2.Zero));
@@ -165,7 +171,8 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
             if (chainMobState.CurrentState != MobState.Alive) continue;
             if (!_examine.InRangeUnOccluded(primaryTarget.Value, chainUid, comp.ChainRange, null)) continue;
 
-            _damageable.TryChangeDamage(chainUid, chainDmg, ignoreResistances: false, origin: uid);
+            _damageable.TryChangeDamage(chainUid, chainDmg, out var chainDealt, ignoreResistances: false, origin: uid);
+            Shock(chainUid, comp.ChainShockMeter, chainDealt, uid, comp);
             DrawTeslaBeam(primaryTarget.Value, chainUid);
             Spawn(HitEffect, new EntityCoordinates(chainUid, Vector2.Zero));
             chainCount++;
@@ -173,6 +180,17 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
         _chainSetPool.Return(chainCandidates);
 
         _audio.PlayPvs(comp.FireSound, uid);
+    }
+
+    private void Shock(EntityUid target, float meter, DamageSpecifier dealt, EntityUid tesla, FSTeslaZombieComponent comp)
+    {
+        if (dealt.GetTotal().Float() < _ailments.Rules.InjuryFloor)
+            return;
+
+        if (_inventory.TryGetSlotEntity(target, "gloves", out var gloves) && HasComp<InsulatedComponent>(gloves))
+            meter *= comp.InsulatedShockScale;
+
+        _ailments.AddMeter(target, FSAilmentMeter.Shock, meter, tesla);
     }
 
     private void DrawTeslaBeam(EntityUid from, EntityUid to)

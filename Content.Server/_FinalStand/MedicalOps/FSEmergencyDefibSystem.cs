@@ -35,6 +35,9 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
     private void OnDefibrillated(EntityUid patient, DamageableComponent damageable, ref TargetDefibrillatedEvent args)
     {
         var wasDead = _wasDead.Remove(patient);
+        if (wasDead)
+            _ailments.Cure(patient, FSAilmentSlot.Heart, args.User, FSCureKind.Rider);
+
         if (!TryComp<FSEmergencyDefibComponent>(args.Defibrillator.Owner, out var emergency))
             return;
 

@@ -13,6 +13,9 @@ public sealed partial class FSTeslaZombieComponent : Component
     [DataField] public int MaxChainTargets = 2;
     [DataField] public float PrimaryDamageShock = 15f;
     [DataField] public float ChainDamageShock = 9f;
+    [DataField] public float PrimaryShockMeter = 65f;
+    [DataField] public float ChainShockMeter = 35f;
+    [DataField] public float InsulatedShockScale = 0.5f;
     [DataField] public SoundSpecifier FireSound =
         new SoundPathSpecifier("/Audio/Effects/Lightning/lightningshock.ogg")
         {

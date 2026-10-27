@@ -88,7 +88,9 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     private bool NeedsSilentRow(EntityUid patient)
     {
-        return _ailments.IsBroken(patient) || _ailments.GetBleedLevel(patient) >= _ailments.Rules.MajorBleedLevel;
+        return _ailments.IsBroken(patient)
+               || _ailments.GetBleedLevel(patient) >= _ailments.Rules.MajorBleedLevel
+               || _ailments.Has(patient, FSAilmentSlot.Heart);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
@@ -313,7 +315,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
                 Held = vitals?.Held ?? false,
                 Pips = pips,
                 Needs = NeedsOf(patient, state, pips),
-                NeedsDefib = state == FSCasualtyState.Dead,
+                NeedsDefib = state == FSCasualtyState.Dead || (pips & FSAilmentPips.Heart) != 0,
                 Silent = call.Silent,
                 Priority = IsPriority(patient),
             });

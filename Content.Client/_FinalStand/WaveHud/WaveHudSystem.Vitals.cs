@@ -33,6 +33,7 @@ public sealed partial class WaveHudSystem
         overlay.HealthCurrent = 0;
         overlay.HealthMax = 0;
         overlay.DownText = null;
+        overlay.DownBadge = null;
         overlay.HealthTicks.Clear();
         overlay.StatusPills.Clear();
 
@@ -79,6 +80,8 @@ public sealed partial class WaveHudSystem
                 overlay.DownText = Loc.GetString("fs-casualty-state-clock", ("time", FSCasualtyBoardSystem.FormatClock(end - _timing.CurTime)));
 
             overlay.DownHeld = vitals.Held;
+            if (_ailments.Has(player, FSAilmentSlot.Heart))
+                overlay.DownBadge = _ailmentVisuals.Pip(FSAilmentSlot.Heart);
         }
 
         if (TryComp<StaminaComponent>(player, out var stamina) && stamina.CritThreshold > 0f)

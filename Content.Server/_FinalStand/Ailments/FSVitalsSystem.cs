@@ -84,7 +84,7 @@ public sealed partial class FSVitalsSystem : EntitySystem
                 Hurt(patient, rules.BleedDamage * bleed);
 
             if (critical)
-                Hurt(patient, rules.DownDrain);
+                Hurt(patient, rules.DownDrain * _ailments.GetDownDrainScale(patient));
         }
 
         if (_mobState.IsCritical(patient))
@@ -139,7 +139,7 @@ public sealed partial class FSVitalsSystem : EntitySystem
         var span = (float) (now - oldest.Time).TotalSeconds;
         var rate = span > 0f
             ? (damage - oldest.Damage) / span
-            : (rules.DownDrain.GetTotal() + rules.BleedDamage.GetTotal() * bleed).Float();
+            : (rules.DownDrain.GetTotal() * _ailments.GetDownDrainScale(patient) + rules.BleedDamage.GetTotal() * bleed).Float();
 
         if (rate <= 0f)
         {

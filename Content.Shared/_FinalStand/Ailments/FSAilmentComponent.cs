@@ -37,6 +37,9 @@ public sealed partial class FSAilmentComponent : Component
     public float IncomingHealScale = 1f;
 
     [DataField]
+    public float DownDrainScale = 1f;
+
+    [DataField]
     public EntProtoId? BecomesOnExpire;
 }
 

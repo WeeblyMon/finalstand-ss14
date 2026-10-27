@@ -21,6 +21,8 @@
   - Inaprovaline
   - Epinephrine
   - Dylovene
+  notes:
+    Epinephrine: fs-chem-guide-note-heart
 
 - type: fsChemGuide
   id: FSChemGuidePotions

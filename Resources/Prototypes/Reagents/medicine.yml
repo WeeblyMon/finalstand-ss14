@@ -331,6 +331,12 @@
   metabolisms:
     Bloodstream:
       effects:
+      - !type:FSCureAilment
+        slot: Heart
+        conditions:
+        - !type:ReagentCondition
+          reagent: Epinephrine
+          min: 0.2
       - !type:AdjustReagent
         conditions:
         - !type:ReagentCondition

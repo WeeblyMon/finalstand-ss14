@@ -6,6 +6,10 @@
   suffix: Tesla
   name: tesla zombie
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Heart: 0
+    examine: fs-signature-tesla
   - type: FSMaterialDrop
     materials:
     - IngotSilver1
