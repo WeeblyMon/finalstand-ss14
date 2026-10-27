@@ -3,7 +3,6 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking;
 using Robust.Shared.Prototypes;
@@ -23,8 +22,6 @@ public sealed partial class FSMedicalForecastSystem : EntitySystem
     private readonly List<string> _lines = new();
     private readonly List<string> _advice = new();
 
-    public string? Current { get; private set; }
-
     public override void Initialize()
     {
         base.Initialize();
@@ -37,34 +34,27 @@ public sealed partial class FSMedicalForecastSystem : EntitySystem
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
         _firstWave.Clear();
-        Current = null;
     }
 
     private void OnPrepStarted(WavePrepStartedEvent ev)
     {
-        if (!_waves.TryGetActiveState(out var wave))
-            return;
-
-        var forecast = Build(wave.WaveNumber, wave.NextWaveEnemyTypes);
-        _chat.DispatchServerMarkupAnnouncement(forecast);
-        SetPanels(forecast);
+        if (_waves.TryGetActiveState(out var wave) && Build(wave.WaveNumber, wave.NextWaveEnemyTypes) is { } forecast)
+            _chat.DispatchServerMarkupAnnouncement(forecast);
     }
 
     private void OnDarkWaveWarning(FSDarkWaveWarningEvent ev)
     {
-        if (!_waves.TryGetActiveState(out var wave))
-            return;
-
-        _chat.DispatchServerMarkupAnnouncement(Build(wave.WaveNumber, [DarkRevenant]));
-        SetPanels(Build(wave.WaveNumber, [..wave.NextWaveEnemyTypes, DarkRevenant]));
+        if (_waves.TryGetActiveState(out var wave) && Build(wave.WaveNumber, [DarkRevenant]) is { } forecast)
+            _chat.DispatchServerMarkupAnnouncement(forecast);
     }
 
-    public string Build(int wave, IEnumerable<string> enemies)
+    public string? Build(int wave, IEnumerable<string> enemies)
     {
         _lines.Clear();
         _advice.Clear();
 
         var seen = new HashSet<string>();
+        var anyNew = false;
         foreach (var id in enemies)
         {
             if (!seen.Add(id)
@@ -82,6 +72,8 @@ public sealed partial class FSMedicalForecastSystem : EntitySystem
                 if (!_firstWave.TryGetValue((slot, level), out var first))
                     _firstWave[(slot, level)] = first = wave;
 
+                anyNew |= first == wave;
+
                 var ailment = level > 0
                     ? Loc.GetString("fs-ailment-name-level", ("name", Loc.GetString(name)), ("level", level))
                     : Loc.GetString(name);
@@ -93,19 +85,8 @@ public sealed partial class FSMedicalForecastSystem : EntitySystem
             }
         }
 
-        return _lines.Count == 0
-            ? Loc.GetString("fs-forecast-none", ("wave", wave))
-            : Loc.GetString("fs-forecast-header", ("wave", wave), ("lines", string.Join(", ", _lines)), ("advice", string.Join(", ", _advice)));
-    }
-
-    private void SetPanels(string forecast)
-    {
-        Current = forecast;
-        var query = EntityQueryEnumerator<FSCmoPanelComponent>();
-        while (query.MoveNext(out var uid, out var panel))
-        {
-            panel.Forecast = forecast;
-            Dirty(uid, panel);
-        }
+        return anyNew
+            ? Loc.GetString("fs-forecast-header", ("wave", wave), ("lines", string.Join(", ", _lines)), ("advice", string.Join(", ", _advice)))
+            : null;
     }
 }

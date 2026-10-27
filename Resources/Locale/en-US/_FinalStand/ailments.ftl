@@ -65,7 +65,6 @@ fs-forecast-line = {$new ->
    *[false] {$enemy}
 } → {$ailment}
 fs-forecast-header = [color=#d2a44e]Medical forecast, wave {$wave}:[/color] {$lines}. Bring {$advice}.
-fs-forecast-none = [color=#d2a44e]Medical forecast, wave {$wave}:[/color] nothing new beyond crowd bleeding.
 fs-hint-bleeding = [color=#b3402f]BLEEDING:[/color] you lose health every second and you cannot regenerate. Gauze stops it at once; a doctor's stapler closes heavy wounds. It clots by itself slowly, but not while you are down.
 fs-hint-bone = [color=#dfdcd7]BROKEN BONE:[/color] -35% speed. Splint it, or it sets itself in 30 s. A doctor's stapler fixes it now.
 fs-hint-burn = [color=#d9702e]BURNED:[/color] no regeneration, and bandages and the medigun heal you at half speed. Ointment or a Kelotane dart clears it.

@@ -34,7 +34,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSAilmentSystem _ailments = default!;
-    [Dependency] private FSMedicalForecastSystem _forecast = default!;
 
     private static readonly SoundSpecifier DirectiveSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/directive.ogg");
@@ -216,7 +215,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             var panel = EnsureComp<FSCmoPanelComponent>(ev.Mob);
             panel.ActiveDirective = _activeDirective;
             panel.DividendUnlocked = _upgrades.Unlocked(FSMedicalUpgradeSystem.DepartmentDividend);
-            panel.Forecast = _forecast.Current;
             Dirty(ev.Mob, panel);
         }
 
