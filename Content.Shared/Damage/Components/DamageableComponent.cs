@@ -62,9 +62,6 @@ public sealed partial class DamageableComponent : Component
     // ReSharper disable once UseCollectionExpression - Cannot refactor this as it's a potential sandbox violation.
     public List<ProtoId<DamageTypePrototype>> RadiationDamageTypeIDs = new() { "Radiation" };
 
-    [ViewVariables]
-    public TimeSpan LastModifiedTime = TimeSpan.Zero;
-
     /// <summary>
     /// Sets the displacement map used for any of the DamageVisuals sprites for this entity.
     /// TODO: The entirety of DamageVisualsSystem needs to be rewritten.
