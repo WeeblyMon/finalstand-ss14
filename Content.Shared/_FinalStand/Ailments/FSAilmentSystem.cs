@@ -399,16 +399,21 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     public bool BlocksRegen(EntityUid patient)
     {
+        return RegenBlocker(patient) != null;
+    }
+
+    public LocId? RegenBlocker(EntityUid patient)
+    {
         if (GetBleedLevel(patient) > 0)
-            return true;
+            return Rules.Slots[FSAilmentSlot.Bleeding].Label;
 
         foreach (var effect in Active<FSAilmentComponent>(patient))
         {
             if (effect.Comp2.BlocksRegen)
-                return true;
+                return effect.Comp2.Name;
         }
 
-        return false;
+        return null;
     }
 
     public DamageSpecifier? GetTickDamage(EntityUid patient)

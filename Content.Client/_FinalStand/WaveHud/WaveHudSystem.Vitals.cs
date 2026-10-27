@@ -21,8 +21,6 @@ public sealed partial class WaveHudSystem
     [Dependency] private FSHealthBarSystem _healthBars = default!;
     [Dependency] private MobStateSystem _mobState = default!;
 
-    private const float RegenTick = 0.5f;
-
     private readonly List<FSAilmentView> _views = new();
 
     private void UpdateVitals(WaveHudOverlay overlay)
@@ -55,7 +53,7 @@ public sealed partial class WaveHudSystem
                 if (total < crit)
                 {
                     overlay.HealthRatio = Math.Clamp(1f - ((FixedPoint2) (total / crit.Value)).Float(), 0f, 1f);
-                    overlay.HealthTicks.Add(RegenTick);
+                    overlay.HealthTicks.Add(_ailments.Rules.RegenCap);
                     overlay.HealthTicks.Add(_healthBars.SoftCap);
                 }
                 else if (_thresholds.TryGetThresholdForState(player, MobState.Dead, out var dead, thresholds))

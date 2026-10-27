@@ -196,7 +196,7 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
                 ("color", color.ToHex()), ("name", name), ("effect", effect), ("fix", fix)));
         }
 
-        AddLine(Loc.GetString("fs-analyzer-regen", ("state", RegenState(vitals, mobState))));
+        AddLine(Loc.GetString("fs-analyzer-regen", ("state", RegenState(target, vitals, mobState))));
 
         if (state.Reagents is not { Count: > 0 } reagents)
             return;
@@ -206,27 +206,30 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
         {
             var name = _prototypes.TryIndex<ReagentPrototype>(reagent.Reagent, out var proto) ? proto.LocalizedName : reagent.Reagent;
             parts.Add(Loc.GetString(reagent.Safe ? "fs-analyzer-reagent-safe" : "fs-analyzer-reagent-unsafe",
+        var rules = _ailments.Rules;
+        var percent = (int) MathF.Round(rules.RegenCap * 100f);
+
+        if (vitals.Recovering)
+            return Loc.GetString("fs-analyzer-regen-recovering");
+
                 ("name", name), ("amount", reagent.Quantity)));
         }
 
         AddLine(Loc.GetString("fs-analyzer-chemicals", ("list", string.Join(" · ", parts))));
     }
 
-    private string RegenState(FSAilmentStateComponent vitals, MobStateComponent? mobState)
+    private string RegenState(EntityUid target, FSAilmentStateComponent vitals, MobStateComponent? mobState)
     {
         if (vitals.Regenerating)
-            return Loc.GetString("fs-analyzer-regen-active");
+            return Loc.GetString("fs-analyzer-regen-active", ("percent", percent));
 
         if (mobState?.CurrentState != MobState.Alive)
             return Loc.GetString("fs-analyzer-regen-down");
 
-        foreach (var view in _views)
-        {
-            if (!view.Ward && view.Slot is FSAilmentSlot.Bleeding or FSAilmentSlot.Burn)
-                return Loc.GetString("fs-analyzer-regen-blocked", ("ailment", Loc.GetString(view.Name)));
-        }
+        if (_ailments.RegenBlocker(target) is { } blocker)
+            return Loc.GetString("fs-analyzer-regen-blocked", ("ailment", Loc.GetString(blocker)));
 
-        return Loc.GetString("fs-analyzer-regen-waiting");
+        return Loc.GetString("fs-analyzer-regen-waiting", ("seconds", (int) rules.RegenDelay.TotalSeconds), ("percent", percent));
     }
 
     private int HealthPercent(EntityUid target)

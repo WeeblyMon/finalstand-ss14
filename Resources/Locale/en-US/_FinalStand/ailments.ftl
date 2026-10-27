@@ -41,10 +41,11 @@ fs-analyzer-ailments = [bold]Ailments[/bold]
 fs-analyzer-ailment-line = [color={$color}]{$name}[/color]  {$effect}  {$fix}
 fs-analyzer-fix = [color=#96938d]Fix: {$fix}[/color]
 fs-analyzer-regen = [bold]Regen[/bold]  {$state}
-fs-analyzer-regen-active = healing up to half health
+fs-analyzer-regen-active = healing up to {$percent}% health
+fs-analyzer-regen-recovering = recovering at the field hospital
 fs-analyzer-regen-down = stopped while down
 fs-analyzer-regen-blocked = blocked by {$ailment}
-fs-analyzer-regen-waiting = starts after 6 s without damage
+fs-analyzer-regen-waiting = starts after {$seconds} s without damage, up to {$percent}% health
 fs-analyzer-chemicals = [bold]Chemicals[/bold]  {$list}
 fs-analyzer-reagent-safe = {$name} {$amount}u (safe)
 fs-analyzer-reagent-unsafe = [color=#c08a3e]{$name} {$amount}u (overdose)[/color]
