@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.Mapping;
 using Content.Shared._FinalStand.Mapping;
+using Content.Client.Decals.UI;
 using Content.Shared.Decals;
 using Content.Shared.Maps;
 using Robust.Client.Graphics;
@@ -33,6 +34,21 @@ public sealed class FSMapPaletteWindow : DefaultWindow
     private Button _eraseEntity = default!;
     private Button _eraseTile = default!;
     private OptionButton _placementMode = default!;
+
+    private BoxContainer _decalControls = default!;
+    private ColorSelectorSliders _decalColorPicker = default!;
+    private CheckBox _decalAutoBox = default!;
+    private CheckBox _decalSnapBox = default!;
+    private CheckBox _decalCleanableBox = default!;
+    private PaletteColorPicker? _picker;
+
+    private ProtoId<DecalPrototype>? _decalId;
+    private Color _decalColor = Color.White;
+    private float _decalRotation;
+    private bool _decalSnap = true;
+    private int _decalZIndex;
+    private bool _decalCleanable;
+    private bool _decalAuto;
 
     public FSMapPaletteWindow()
     {
@@ -116,6 +132,148 @@ public sealed class FSMapPaletteWindow : DefaultWindow
         _placementMode.SelectId(0);
         _placementMode.OnItemSelected += OnPlacementModeSelected;
         root.AddChild(_placementMode);
+
+        BuildDecalControls(root);
+    }
+
+    private void BuildDecalControls(BoxContainer root)
+    {
+        _decalControls = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+            Visible = false,
+        };
+
+        var left = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            HorizontalExpand = true,
+        };
+
+        _decalColorPicker = new ColorSelectorSliders { IsAlphaVisible = true };
+        _decalColorPicker.OnColorChanged += OnDecalColorPicked;
+
+        var palette = new Button
+        {
+            Text = Loc.GetString("decal-placer-window-palette"),
+            StyleClasses = { "ButtonSquare" },
+        };
+        palette.OnPressed += OnDecalPalettePressed;
+
+        left.AddChild(_decalColorPicker);
+        left.AddChild(palette);
+
+        var right = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            HorizontalExpand = true,
+        };
+
+        _decalAutoBox = new CheckBox { Text = Loc.GetString("decal-placer-window-enable-auto") };
+        _decalSnapBox = new CheckBox { Text = Loc.GetString("decal-placer-window-enable-snap"), Pressed = true };
+        _decalCleanableBox = new CheckBox { Text = Loc.GetString("decal-placer-window-enable-cleanable") };
+
+        _decalAutoBox.OnToggled += args =>
+        {
+            _decalAuto = args.Pressed;
+            if (_decalId is { } id)
+                SelectDecal(id);
+        };
+        _decalSnapBox.OnToggled += args =>
+        {
+            _decalSnap = args.Pressed;
+            UpdateDecal();
+        };
+        _decalCleanableBox.OnToggled += args =>
+        {
+            _decalCleanable = args.Pressed;
+            UpdateDecal();
+        };
+
+        var rotationRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
+        var rotation = new FloatSpinBox(90.0f, 0) { HorizontalExpand = true };
+        rotation.OnValueChanged += args =>
+        {
+            _decalRotation = args.Value;
+            UpdateDecal();
+        };
+        rotationRow.AddChild(new Label { Text = Loc.GetString("decal-placer-window-rotation") });
+        rotationRow.AddChild(rotation);
+
+        var zRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
+        var zIndex = new SpinBox { HorizontalExpand = true };
+        zIndex.ValueChanged += args =>
+        {
+            _decalZIndex = args.Value;
+            UpdateDecal();
+        };
+        zRow.AddChild(new Label { Text = Loc.GetString("decal-placer-window-zindex") });
+        zRow.AddChild(zIndex);
+
+        right.AddChild(_decalAutoBox);
+        right.AddChild(_decalSnapBox);
+        right.AddChild(_decalCleanableBox);
+        right.AddChild(rotationRow);
+        right.AddChild(zRow);
+
+        _decalControls.AddChild(left);
+        _decalControls.AddChild(right);
+        root.AddChild(_decalControls);
+    }
+
+    private void OnDecalColorPicked(Color color)
+    {
+        _decalColor = color;
+        _decalColorPicker.Color = color;
+        UpdateDecal();
+    }
+
+    private void OnDecalPalettePressed(ButtonEventArgs args)
+    {
+        if (_picker == null)
+        {
+            _picker = new PaletteColorPicker();
+            _picker.OpenToLeft();
+            _picker.PaletteList.OnItemSelected += selected =>
+            {
+                var color = ((Color?) selected.ItemList.GetSelected().First().Metadata)!.Value;
+                OnDecalColorPicked(color);
+            };
+
+            return;
+        }
+
+        if (_picker.IsOpen)
+            _picker.Close();
+        else
+            _picker.Open();
+    }
+
+    private void UpdateDecal()
+    {
+        if (_decalId is { } id)
+            _decal.UpdateDecalInfo(id, _decalColor, _decalRotation, _decalSnap, _decalZIndex, _decalCleanable);
+    }
+
+    private void SelectDecal(string decalId)
+    {
+        if (!_protos.TryIndex<DecalPrototype>(decalId, out var decal))
+            return;
+
+        _decalId = decalId;
+
+        if (_decalAuto)
+        {
+            _decalColor = Color.White;
+            _decalCleanable = decal.DefaultCleanable;
+            _decalSnap = decal.DefaultSnap;
+
+            _decalColorPicker.Color = _decalColor;
+            _decalCleanableBox.Pressed = _decalCleanable;
+            _decalSnapBox.Pressed = _decalSnap;
+        }
+
+        UpdateDecal();
     }
 
     private void OnPlacementModeSelected(OptionButton.ItemSelectedEventArgs args)
@@ -343,6 +501,7 @@ public sealed class FSMapPaletteWindow : DefaultWindow
         {
             _placement.Clear();
             _decal.SetActive(false);
+            _decalControls.Visible = false;
             return;
         }
 
@@ -352,6 +511,7 @@ public sealed class FSMapPaletteWindow : DefaultWindow
         {
             case EntityPrototype entity:
                 _decal.SetActive(false);
+                _decalControls.Visible = false;
                 _placement.BeginPlacing(new PlacementInformation
                 {
                     PlacementOption = _placementMode.SelectedId > 0
@@ -363,6 +523,7 @@ public sealed class FSMapPaletteWindow : DefaultWindow
                 break;
             case ContentTileDefinition tile:
                 _decal.SetActive(false);
+                _decalControls.Visible = false;
                 _placement.BeginPlacing(new PlacementInformation
                 {
                     PlacementOption = "AlignTileAny",
@@ -373,7 +534,8 @@ public sealed class FSMapPaletteWindow : DefaultWindow
             case DecalPrototype decal:
                 _placement.Clear();
                 _decal.SetActive(true);
-                _decal.UpdateDecalInfo(decal.ID, Color.White, 0, true, 0, false);
+                _decalControls.Visible = true;
+                SelectDecal(decal.ID);
                 break;
             default:
                 return;
