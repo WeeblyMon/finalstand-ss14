@@ -140,8 +140,7 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
                 .OrderByDescending(damage => damage.Value)
                 .ToDictionary(x => x.Key, x => x.Value);
 
-        var damagePerType = _damageable.GetAllDamage(target.Value).DamageDict
-            .ToDictionary(x => (ProtoId<DamageTypePrototype>) x.Key, x => x.Value);
+        var damagePerType = _damageable.GetAllDamage(target.Value).DamageDict;
 
         DrawDiagnosticGroups(damageSortedGroups, damagePerType);
     }

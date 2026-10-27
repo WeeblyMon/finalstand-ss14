@@ -221,10 +221,16 @@
           max: 24
         ignoreResistances: true
         damage:
-          groups:
-            Burn: -2
-            Toxin: -5
-            Brute: -2
+          types:
+            Heat: -0.5
+            Shock: -0.5
+            Cold: -0.5
+            Caustic: -0.5
+            Poison: -2.5
+            Radiation: -2.5
+            Blunt: -0.67
+            Slash: -0.67
+            Piercing: -0.66
       - !type:HealthChange
         conditions:
         - !type:ReagentCondition
@@ -232,10 +238,16 @@
           min: 24
         ignoreResistances: true
         damage:
-          groups:
-            Burn: -20
-            Toxin: -50
-            Brute: -20
+          types:
+            Heat: -5
+            Shock: -5
+            Cold: -5
+            Caustic: -5
+            Poison: -25
+            Radiation: -25
+            Blunt: -6.67
+            Slash: -6.67
+            Piercing: -6.66
       - !type:PopupMessage
         conditions:
         - !type:ReagentCondition
@@ -275,10 +287,16 @@
           max: 24
         ignoreResistances: true
         damage:
-          groups:
-            Burn: -2
-            Toxin: -5
-            Brute: -2
+          types:
+            Heat: -0.5
+            Shock: -0.5
+            Cold: -0.5
+            Caustic: -0.5
+            Poison: -2.5
+            Radiation: -2.5
+            Blunt: -0.67
+            Slash: -0.67
+            Piercing: -0.66
       - !type:HealthChange
         conditions:
         - !type:ReagentCondition
@@ -286,10 +304,16 @@
           min: 24
         ignoreResistances: true
         damage:
-          groups:
-            Burn: -20
-            Toxin: -50
-            Brute: -20
+          types:
+            Heat: -5
+            Shock: -5
+            Cold: -5
+            Caustic: -5
+            Poison: -25
+            Radiation: -25
+            Blunt: -6.67
+            Slash: -6.67
+            Piercing: -6.66
       - !type:PopupMessage
         conditions:
         - !type:ReagentCondition
