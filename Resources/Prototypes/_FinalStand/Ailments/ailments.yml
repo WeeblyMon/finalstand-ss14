@@ -198,10 +198,10 @@
       state: soaked
     effect: fs-ailment-soaked-effect
     suffix: fs-ailment-soaked-suffix
-    duration: 5
+    duration: 6
   - type: MovementModStatusEffect
-    walkSpeedModifier: 0.775
-    sprintSpeedModifier: 0.775
+    walkSpeedModifier: 0.6
+    sprintSpeedModifier: 0.6
   - type: DamageModifierStatusEffect
     modifiers:
       coefficients:

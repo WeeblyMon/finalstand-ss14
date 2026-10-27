@@ -68,9 +68,9 @@ Each ailment you have shows under your health bar with its timer and the item th
 <GuideEntityEmbed Entity="FireExtinguisher"/>
 </Box>
 
-[bold]Cause:[/bold] a bloater bursting within 3 metres.
+[bold]Cause:[/bold] a bloater bursting within 4.5 metres.
 
-[bold]Effect:[/bold] 1 poison damage a second for 20 seconds and no passive healing. The medigun cannot heal poison. For the first 5 seconds you are also [bold]soaked[/bold]: slower, and you take double damage.
+[bold]Effect:[/bold] 1 poison damage a second for 20 seconds and no passive healing. The medigun cannot heal poison. For the first 6 seconds you are also [bold]soaked[/bold]: slower, and you take double damage.
 
 [bold]Fix:[/bold] a dylovene dart clears it, and so does a good spray of water from an extinguisher or spray bottle. Kill bloaters from range and spread out.
 
