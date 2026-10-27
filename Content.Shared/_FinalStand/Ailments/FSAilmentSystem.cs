@@ -117,8 +117,13 @@ public sealed partial class FSAilmentSystem : EntitySystem
         if (!TryAttempt(patient, ailment.Slot))
             return false;
 
-        ApplyUnchecked(patient, effect);
-        Inflicted(patient, ailment.Slot, source);
+        var fresh = !HasAilment(patient, effect);
+        if (!ApplyUnchecked(patient, effect))
+            return false;
+
+        if (fresh)
+            Inflicted(patient, ailment.Slot, source, effect);
+
         return true;
     }
 
@@ -529,14 +534,13 @@ public sealed partial class FSAilmentSystem : EntitySystem
             return;
 
         RemoveSlot(patient, FSAilmentSlot.Bone);
-        ApplyUnchecked(patient, broken);
-        Inflicted(patient, FSAilmentSlot.Bone, source);
+        if (ApplyUnchecked(patient, broken))
+            Inflicted(patient, FSAilmentSlot.Bone, source, broken);
     }
 
-    private void ApplyUnchecked(EntityUid patient, EntProtoId effect)
+    private bool ApplyUnchecked(EntityUid patient, EntProtoId effect)
     {
-        if (GetAilment(effect) is { } ailment)
-            _status.TrySetStatusEffectDuration(patient, effect, ailment.Duration);
+        return GetAilment(effect) is { } ailment && _status.TrySetStatusEffectDuration(patient, effect, ailment.Duration);
     }
 
     private void RemoveSlot(EntityUid patient, FSAilmentSlot slot)
@@ -600,12 +604,9 @@ public sealed partial class FSAilmentSystem : EntitySystem
         return !ev.Cancelled;
     }
 
-    private void Inflicted(EntityUid patient, FSAilmentSlot slot, EntityUid? source)
+    private void Inflicted(EntityUid patient, FSAilmentSlot slot, EntityUid? source, EntProtoId? effect = null)
     {
-        if (_stateQuery.TryComp(patient, out var state) && source is { } cause && !TerminatingOrDeleted(cause))
-            state.Causes[slot] = Name(cause);
-
-        var ev = new FSAilmentInflictedEvent(patient, slot, source);
+        var ev = new FSAilmentInflictedEvent(patient, slot, source, effect);
         RaiseLocalEvent(patient, ref ev, true);
     }
 
@@ -618,7 +619,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         RaiseLocalEvent(patient, ref ev, true);
     }
 
-    private FSAilmentComponent? GetAilment(EntProtoId effect)
+    public FSAilmentComponent? GetAilment(EntProtoId effect)
     {
         return _proto.TryIndex(effect, out var proto) && proto.TryGetComponent<FSAilmentComponent>(out var ailment, Factory)
             ? ailment
@@ -676,7 +677,6 @@ public sealed partial class FSAilmentSystem : EntitySystem
     private void ResetState(Entity<FSAilmentStateComponent> patient)
     {
         patient.Comp.Meters.Clear();
-        patient.Comp.Causes.Clear();
         patient.Comp.MendProgress.Clear();
         patient.Comp.PeakBleed = 0;
         if (patient.Comp.Mend.Count > 0)

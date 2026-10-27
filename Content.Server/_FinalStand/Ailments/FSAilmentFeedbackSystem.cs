@@ -37,12 +37,8 @@ public sealed partial class FSAilmentFeedbackSystem : EntitySystem
 
     private void OnInflicted(ref FSAilmentInflictedEvent ev)
     {
-        if (!_ailments.Rules.Slots.TryGetValue(ev.Slot, out var info) || !TryGetView(ev.Patient, ev.Slot, out var view))
+        if (!_ailments.Rules.Slots.TryGetValue(ev.Slot, out var info) || AnnouncedName(ev) is not { } name)
             return;
-
-        var name = view.Level > 0
-            ? Loc.GetString("fs-ailment-name-level", ("name", Loc.GetString(view.Name)), ("level", view.Level))
-            : Loc.GetString(view.Name);
 
         var text = ev.Source is { } source && !TerminatingOrDeleted(source)
             ? Loc.GetString("fs-ailment-inflicted-by", ("ailment", name), ("source", Identity.Name(source, EntityManager)))
@@ -70,19 +66,34 @@ public sealed partial class FSAilmentFeedbackSystem : EntitySystem
             _audio.PlayEntity(sound, curer, ev.Patient);
     }
 
-    private bool TryGetView(EntityUid patient, FSAilmentSlot slot, out FSAilmentView view)
+    private string? AnnouncedName(FSAilmentInflictedEvent ev)
     {
-        _ailments.GetViews(patient, _views);
-        foreach (var candidate in _views)
+        _ailments.GetViews(ev.Patient, _views);
+        if (ev.Effect is { } effect && _ailments.GetAilment(effect) is { } ailment)
+            return ailment.Suffix != null && CountInSlot(ev.Slot) > 1 ? null : Loc.GetString(ailment.Name);
+
+        foreach (var view in _views)
         {
-            if (candidate.Slot != slot || candidate.Ward)
+            if (view.Slot != ev.Slot || view.Ward)
                 continue;
 
-            view = candidate;
-            return true;
+            return view.Level > 0
+                ? Loc.GetString("fs-ailment-name-level", ("name", Loc.GetString(view.Name)), ("level", view.Level))
+                : Loc.GetString(view.Name);
         }
 
-        view = default;
-        return false;
+        return null;
+    }
+
+    private int CountInSlot(FSAilmentSlot slot)
+    {
+        var count = 0;
+        foreach (var view in _views)
+        {
+            if (view.Slot == slot && !view.Ward)
+                count++;
+        }
+
+        return count;
     }
 }

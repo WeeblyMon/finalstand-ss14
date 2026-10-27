@@ -146,8 +146,8 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
                 continue;
 
             _damageable.TryChangeDamage(targetUid, blastDamage, out var dealt, ignoreResistances: false, origin: uid);
-            _ailments.Apply(targetUid, soaked, uid);
             _ailments.InflictHit(targetUid, comp.Injury, dealt.GetTotal().Float(), uid);
+            _ailments.Apply(targetUid, soaked, uid);
         }
         _damageableSetPool.Return(inRange);
     }

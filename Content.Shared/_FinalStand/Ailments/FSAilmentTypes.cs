@@ -68,7 +68,7 @@ public readonly record struct FSAilmentView(
 public record struct FSAilmentInflictAttemptEvent(FSAilmentSlot Slot, bool Cancelled = false);
 
 [ByRefEvent]
-public readonly record struct FSAilmentInflictedEvent(EntityUid Patient, FSAilmentSlot Slot, EntityUid? Source);
+public readonly record struct FSAilmentInflictedEvent(EntityUid Patient, FSAilmentSlot Slot, EntityUid? Source, EntProtoId? Effect = null);
 
 [ByRefEvent]
 public readonly record struct FSAilmentCuredEvent(EntityUid Patient, FSAilmentSlot Slot, FSAilmentTier Tier, EntityUid? Curer, FSCureKind Kind);

@@ -25,8 +25,6 @@ public sealed partial class FSAilmentStateComponent : Component
 
     public readonly Dictionary<FSAilmentMeter, FSAilmentMeterState> Meters = new();
 
-    public readonly Dictionary<FSAilmentSlot, string> Causes = new();
-
     public readonly Dictionary<FSAilmentSlot, float> MendProgress = new();
 
     public readonly Queue<(TimeSpan Time, float Damage)> DownSamples = new();
