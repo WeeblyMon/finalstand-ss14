@@ -85,6 +85,9 @@ public sealed partial class FSVitalsSystem : EntitySystem
 
             if (critical)
                 Hurt(patient, rules.DownDrain * _ailments.GetDownDrainScale(patient));
+
+            if (_ailments.GetTickDamage(patient) is { } tick)
+                Hurt(patient, tick);
         }
 
         if (_mobState.IsCritical(patient))

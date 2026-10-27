@@ -29,6 +29,12 @@
   metabolisms:
     Bloodstream:
       effects:
+      - !type:FSCureAilment
+        slot: Bloater
+        conditions:
+        - !type:ReagentCondition
+          reagent: Dylovene
+          min: 0.2
       - !type:HealthChange
         damage:
           types:

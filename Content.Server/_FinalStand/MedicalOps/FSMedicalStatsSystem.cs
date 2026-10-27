@@ -229,7 +229,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private void OnAilmentCured(ref FSAilmentCuredEvent args)
     {
-        if (args.Kind == FSCureKind.Rider)
+        if (args.Kind is FSCureKind.Rider or FSCureKind.Wash)
             return;
 
         if (args.Curer is { } curer)

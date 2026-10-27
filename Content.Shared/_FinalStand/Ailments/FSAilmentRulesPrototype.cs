@@ -1,4 +1,6 @@
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage;
+using Content.Shared.FixedPoint;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
@@ -34,6 +36,18 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
 
     [DataField]
     public EntProtoId Arrhythmia = "FSAilmentArrhythmia";
+
+    [DataField]
+    public EntProtoId Poisoned = "FSAilmentPoisoned";
+
+    [DataField]
+    public List<ProtoId<ReagentPrototype>> WashReagents = new();
+
+    [DataField]
+    public FixedPoint2 WashMinimum = FixedPoint2.New(3);
+
+    [DataField]
+    public FSAilmentSlot WashSlot = FSAilmentSlot.Bloater;
 
     [DataField]
     public float BurnMeterPerHeat = 20f;

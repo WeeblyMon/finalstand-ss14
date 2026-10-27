@@ -110,7 +110,7 @@ public sealed partial class WaveHudSystem
 
                 if (view.Ward)
                     ward = view;
-                else
+                else if (ailment is not { } current || Outlasts(view, current))
                     ailment = view;
             }
 
@@ -122,9 +122,9 @@ public sealed partial class WaveHudSystem
             if (ailment is { } shown)
             {
                 overlay.StatusPills.Add(new WaveHudOverlay.VitalPill(
-                    Timed(Loc.GetString(shown.Name), shown.End, now),
+                    Timed(PillName(shown), shown.End, now),
                     color,
-                    _ailmentVisuals.FixIcon(slot),
+                    _ailmentVisuals.FixIcon(shown),
                     slot == FSAilmentSlot.Bleeding ? _ailments.GetBleedAmount(player) : 0f,
                     vitals.Mend.GetValueOrDefault(slot) / 10f,
                     warning,
@@ -150,6 +150,23 @@ public sealed partial class WaveHudSystem
         if (vitals.Recovering)
             overlay.StatusPills.Add(new WaveHudOverlay.VitalPill(Loc.GetString("fs-vitals-recovering"), FSPalette.Ok,
                 null, 0f, 0f, 0, WaveHudOverlay.VitalPillStyle.Status));
+    }
+
+    private static bool Outlasts(FSAilmentView view, FSAilmentView other)
+    {
+        return other.End is { } otherEnd && (view.End is not { } end || end > otherEnd);
+    }
+
+    private string PillName(FSAilmentView shown)
+    {
+        var name = Loc.GetString(shown.Name);
+        foreach (var view in _views)
+        {
+            if (view.Slot == shown.Slot && !view.Ward && view != shown && view.Suffix is { } suffix)
+                name = Loc.GetString("fs-ailment-with-suffix", ("name", name), ("suffix", Loc.GetString(suffix)));
+        }
+
+        return name;
     }
 
     private static string Timed(string name, TimeSpan? end, TimeSpan now)

@@ -21,6 +21,8 @@
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/boomer.png
   - type: FSBoomOnDeath
+    injury:
+      poison: true
   - type: MobThresholds
     thresholds:
       0: Alive

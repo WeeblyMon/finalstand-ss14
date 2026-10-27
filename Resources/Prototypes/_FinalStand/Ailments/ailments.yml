@@ -4,6 +4,8 @@
   majorBleedLevel: 2
   broken: FSAilmentBroken
   burned: FSAilmentBurned
+  washReagents:
+  - Water
   bleedDamage:
     types:
       Bloodloss: 0.5
@@ -76,7 +78,8 @@
       fixed: true
     Bloater:
       label: fs-slot-bloat
-      name: fs-ailment-soaked
+      name: fs-ailment-poisoned
+      need: fs-need-dylovene
       advice: fs-forecast-advice-bloat
       hint: fs-hint-bloat
       pip:
@@ -198,6 +201,7 @@
       sprite: _FinalStand/Mobs/ailment_overlays.rsi
       state: soaked
     effect: fs-ailment-soaked-effect
+    suffix: fs-ailment-soaked-suffix
     duration: 5
   - type: MovementModStatusEffect
     walkSpeedModifier: 0.775
@@ -277,3 +281,27 @@
   parent: StatusEffectSlowdown
   id: FSSkippedBeatStatusEffect
   name: skipped beat
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentPoisoned
+  name: poisoned
+  components:
+  - type: FSAilment
+    slot: Bloater
+    name: fs-ailment-poisoned
+    examine: fs-ailment-poisoned-examine
+    effect: fs-ailment-poisoned-effect
+    fixHint: fs-ailment-poisoned-fix
+    fixIcon:
+      sprite: Objects/Specific/Chemistry/syringe.rsi
+      state: syringeproj
+    overlay:
+      sprite: _FinalStand/Mobs/ailment_overlays.rsi
+      state: poisoned
+    duration: 20
+    tier: Minor
+    blocksRegen: true
+    tickDamage:
+      types:
+        Poison: 1

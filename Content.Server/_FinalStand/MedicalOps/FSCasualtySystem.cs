@@ -334,6 +334,9 @@ public sealed partial class FSCasualtySystem : EntitySystem
         if (_ailments.IsBroken(patient))
             needs |= FSAilmentPips.Bone;
 
+        if (_ailments.HasAilment(patient, _ailments.Rules.Poisoned))
+            needs |= FSAilmentPips.Bloater;
+
         return needs | (pips & FSAilmentPips.Burn);
     }
 

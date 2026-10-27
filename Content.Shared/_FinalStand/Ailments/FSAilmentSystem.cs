@@ -1,6 +1,9 @@
+using System.Linq;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Systems;
+using Content.Shared.Chemistry;
+using Content.Shared.Damage;
 using Content.Shared.Examine;
 using Content.Shared.HealthExaminable;
 using Content.Shared.Mobs;
@@ -54,6 +57,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         SubscribeLocalEvent<FSAilmentStateComponent, FSIncomingHealScaleEvent>(OnIncomingHealScale);
         SubscribeLocalEvent<FSAilmentStateComponent, HealthBeingExaminedEvent>(OnHealthExamined);
         SubscribeLocalEvent<FSSignatureAilmentComponent, ExaminedEvent>(OnSignatureExamined);
+        SubscribeLocalEvent<FSAilmentStateComponent, ReactionEntityEvent>(OnReaction);
         SubscribeLocalEvent<FSAilmentComponent, StatusEffectRemovedEvent>(OnAilmentRemoved);
     }
 
@@ -95,6 +99,9 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
         if (injury.Arrhythmia)
             Apply(patient, Rules.Arrhythmia, source);
+
+        if (injury.Poison)
+            Apply(patient, Rules.Poisoned, source);
 
         foreach (var (meter, amount) in injury.Meters)
         {
@@ -159,18 +166,24 @@ public sealed partial class FSAilmentSystem : EntitySystem
         if (slot == FSAilmentSlot.Bleeding)
             return StopBleeding(patient, curer, kind);
 
-        foreach (var effect in Active<FSAilmentComponent>(patient))
+        var cured = false;
+        var tier = FSAilmentTier.None;
+        foreach (var effect in Active<FSAilmentComponent>(patient).ToList())
         {
             if (effect.Comp2.Slot != slot)
                 continue;
 
-            var tier = effect.Comp2.Tier;
+            if (effect.Comp2.Tier > tier)
+                tier = effect.Comp2.Tier;
+
             RemoveEffect(effect);
-            RaiseCured(patient, slot, tier, curer, kind);
-            return true;
+            cured = true;
         }
 
-        return false;
+        if (cured)
+            RaiseCured(patient, slot, tier, curer, kind);
+
+        return cured;
     }
 
     public bool StopBleeding(EntityUid patient, EntityUid? curer = null, FSCureKind kind = FSCureKind.HandsOn)
@@ -210,7 +223,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     public bool IsBroken(EntityUid patient)
     {
-        return HasEffect(patient, Rules.Broken);
+        return HasAilment(patient, Rules.Broken);
     }
 
     public bool AddMend(EntityUid patient, FSAilmentSlot slot, float fraction, EntityUid? curer = null, FSCureKind kind = FSCureKind.Automatic)
@@ -354,7 +367,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         foreach (var effect in Active<FSAilmentComponent>(patient))
         {
             var ailment = effect.Comp2;
-            views.Add(new FSAilmentView(ailment.Slot, ailment.Name, 0, effect.Comp1.EndEffectTime, ailment.Effect, ailment.FixHint, ailment.Examine, false));
+            views.Add(new FSAilmentView(ailment.Slot, ailment.Name, 0, effect.Comp1.EndEffectTime, ailment.Effect, ailment.FixHint, ailment.Examine, false, ailment.Suffix, ailment.FixIcon));
         }
 
         foreach (var ward in Active<FSAilmentWardComponent>(patient))
@@ -396,6 +409,20 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
 
         return false;
+    }
+
+    public DamageSpecifier? GetTickDamage(EntityUid patient)
+    {
+        DamageSpecifier? total = null;
+        foreach (var effect in Active<FSAilmentComponent>(patient))
+        {
+            if (effect.Comp2.TickDamage is not { } tick)
+                continue;
+
+            total = total == null ? new DamageSpecifier(tick) : total + tick;
+        }
+
+        return total;
     }
 
     public float GetDownDrainScale(EntityUid patient)
@@ -493,7 +520,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
     private void Fracture(EntityUid patient, EntityUid? source)
     {
         var broken = Rules.Broken;
-        if (HasEffect(patient, broken) || !TryAttempt(patient, FSAilmentSlot.Bone))
+        if (HasAilment(patient, broken) || !TryAttempt(patient, FSAilmentSlot.Bone))
             return;
 
         RemoveSlot(patient, FSAilmentSlot.Bone);
@@ -550,7 +577,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
     }
 
-    private bool HasEffect(EntityUid patient, EntProtoId effect)
+    public bool HasAilment(EntityUid patient, EntProtoId effect)
     {
         foreach (var active in Active<FSAilmentComponent>(patient))
         {
@@ -726,6 +753,20 @@ public sealed partial class FSAilmentSystem : EntitySystem
             args.Message.PushNewline();
             args.Message.AddMarkupOrThrow(Loc.GetString(examine, ("target", ent.Owner)));
         }
+    }
+
+    private void OnReaction(Entity<FSAilmentStateComponent> ent, ref ReactionEntityEvent args)
+    {
+        var rules = Rules;
+        if (_net.IsClient
+            || args.Method != ReactionMethod.Touch
+            || args.ReagentQuantity.Quantity < rules.WashMinimum
+            || !rules.WashReagents.Contains(args.Reagent.ID))
+        {
+            return;
+        }
+
+        Cure(ent, rules.WashSlot, kind: FSCureKind.Wash);
     }
 
     private void OnSignatureExamined(Entity<FSSignatureAilmentComponent> ent, ref ExaminedEvent args)

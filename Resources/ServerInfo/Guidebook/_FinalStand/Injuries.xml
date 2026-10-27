@@ -61,11 +61,18 @@ Three slots always sit under your health bar: [color=#b3402f]BLEEDING[/color], [
 
 [bold]Fix:[/bold] a medic cardioverts you with the emergency defibrillator, or a dose of epinephrine clears it. A defibrillator revive clears it too.
 
-## Soaked
+## Poisoned
+
+<Box>
+<GuideEntityEmbed Entity="FSChemistSyringe"/>
+<GuideEntityEmbed Entity="FireExtinguisher"/>
+</Box>
 
 [bold]Cause:[/bold] a bloater bursting within 3 metres.
 
-[bold]Effect:[/bold] slower, and you take double damage for 5 seconds. It cannot be treated; spread out and kill bloaters from range.
+[bold]Effect:[/bold] 1 poison damage a second for 20 seconds and no passive healing. The medigun cannot heal poison. For the first 5 seconds you are also [bold]soaked[/bold]: slower, and you take double damage.
+
+[bold]Fix:[/bold] a dylovene dart clears it, and so does a good spray of water from an extinguisher or spray bottle. Kill bloaters from range and spread out.
 
 ## Down
 

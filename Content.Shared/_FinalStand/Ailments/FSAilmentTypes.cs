@@ -1,5 +1,6 @@
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
+using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Ailments;
 
@@ -35,6 +36,7 @@ public enum FSCureKind : byte
     Automatic,
     Mass,
     Rider,
+    Wash,
 }
 
 [Flags, Serializable, NetSerializable]
@@ -58,7 +60,9 @@ public readonly record struct FSAilmentView(
     LocId? Effect,
     LocId? FixHint,
     LocId? Examine,
-    bool Ward);
+    bool Ward,
+    LocId? Suffix = null,
+    SpriteSpecifier? FixIcon = null);
 
 [ByRefEvent]
 public record struct FSAilmentInflictAttemptEvent(FSAilmentSlot Slot, bool Cancelled = false);

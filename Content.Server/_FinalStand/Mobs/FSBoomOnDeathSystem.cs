@@ -145,8 +145,9 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
             if (Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid)) > comp.ExplosionRadius)
                 continue;
 
-            _damageable.TryChangeDamage(targetUid, blastDamage, ignoreResistances: false, origin: uid);
+            _damageable.TryChangeDamage(targetUid, blastDamage, out var dealt, ignoreResistances: false, origin: uid);
             _ailments.Apply(targetUid, soaked, uid);
+            _ailments.InflictHit(targetUid, comp.Injury, dealt.GetTotal().Float(), uid);
         }
         _damageableSetPool.Return(inRange);
     }

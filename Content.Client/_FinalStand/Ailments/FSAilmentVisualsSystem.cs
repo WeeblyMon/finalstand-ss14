@@ -135,6 +135,11 @@ public sealed partial class FSAilmentVisualsSystem : EntitySystem
         return _ailments.Rules.Slots.TryGetValue(slot, out var info) && info.Pip is { } pip ? _sprite.Frame0(pip) : null;
     }
 
+    public Texture? FixIcon(FSAilmentView view)
+    {
+        return view.FixIcon is { } icon ? _sprite.Frame0(icon) : FixIcon(view.Slot);
+    }
+
     public Texture? FixIcon(FSAilmentSlot slot)
     {
         return _ailments.Rules.Slots.TryGetValue(slot, out var info) && info.FixIcon is { } icon ? _sprite.Frame0(icon) : null;

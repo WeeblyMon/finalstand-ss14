@@ -50,7 +50,7 @@ fs-analyzer-reagent-safe = {$name} {$amount}u (safe)
 fs-analyzer-reagent-unsafe = [color=#c08a3e]{$name} {$amount}u (overdose)[/color]
 fs-signature-runner = [color=#b3402f]Its claws open a wound with every hit.[/color]
 fs-signature-giant = [color=#dfdcd7]Its slam, charge and boulders break bones.[/color]
-fs-signature-bloater = [color=#a8b83a]When it bursts, its bile soaks everyone close by.[/color]
+fs-signature-bloater = [color=#a8b83a]When it bursts, its bile poisons everyone close by.[/color]
 fs-signature-flamethrower = [color=#d9702e]Its fire leaves burns that stop you healing.[/color]
 fs-signature-devastator = [color=#b3402f]Its chainsaw causes severe bleeding.[/color]
 fs-signature-revenant = [color=#b3402f]Its blades cause heavy bleeding, and its grab breaks bones.[/color]
@@ -58,7 +58,7 @@ fs-signature-revenant-dark = [color=#b3402f]Its blades cause heavy bleeding.[/co
 fs-forecast-advice-bleeding = gauze
 fs-forecast-advice-bone = splints, Bone Brace
 fs-forecast-advice-burn = ointment, Kelotane darts, Char Ward
-fs-forecast-advice-bloat = spread out
+fs-forecast-advice-bloat = Dylovene darts, water sprays, spread out
 fs-forecast-line = {$new ->
     [true] NEW {$enemy}
    *[false] {$enemy}
@@ -68,7 +68,7 @@ fs-forecast-none = [color=#d2a44e]Medical forecast, wave {$wave}:[/color] nothin
 fs-hint-bleeding = [color=#b3402f]BLEEDING:[/color] you lose health every second and you cannot regenerate. Gauze stops it at once; a doctor's stapler closes heavy wounds. It clots by itself slowly, but not while you are down.
 fs-hint-bone = [color=#dfdcd7]BROKEN BONE:[/color] -35% speed. Splint it, or it sets itself in 30 s. A doctor's stapler fixes it now.
 fs-hint-burn = [color=#d9702e]BURNED:[/color] no regeneration, and bandages and the medigun heal you at half speed. Ointment or a Kelotane dart clears it.
-fs-hint-bloat = [color=#a8b83a]SOAKED:[/color] bloater bile slows you and doubles the damage you take for a few seconds. Kill bloaters from range and spread out.
+fs-hint-bloat = [color=#a8b83a]POISONED:[/color] bloater bile burns you for 20 seconds and stops you healing; for the first few seconds it also slows you and doubles the damage you take. A Dylovene dart or a spray of water washes it off. Kill bloaters from range and spread out.
 fs-slot-heart = HEART
 fs-ailment-arrhythmia = ARRHYTHMIA
 fs-ailment-arrhythmia-examine = [color=#4fb3d9]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } an uneven pulse.[/color]
@@ -80,3 +80,10 @@ fs-signature-tesla = [color=#4fb3d9]Its lightning knocks hearts out of rhythm.[/
 fs-cardiovert-fine = Their heart rhythm is fine.
 fs-cardiovert-recharging = The cardioversion charge is recharging.
 fs-cardiovert-done = You shock {THE($target)}'s heart back into rhythm.
+fs-ailment-poisoned = POISONED
+fs-ailment-poisoned-examine = [color=#a8b83a]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-BE($target) } covered in reeking bile.[/color]
+fs-ailment-poisoned-effect = 1 poison damage a second, no regen, {$seconds} s left
+fs-ailment-poisoned-fix = Dylovene, a water spray, tent
+fs-ailment-soaked-suffix = slowed
+fs-ailment-with-suffix = {$name}, {$suffix}
+fs-need-dylovene = DYLOVENE

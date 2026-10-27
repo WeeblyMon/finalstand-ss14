@@ -1,3 +1,4 @@
+using Content.Shared.Damage;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -23,6 +24,15 @@ public sealed partial class FSAilmentComponent : Component
 
     [DataField]
     public SpriteSpecifier? Overlay;
+
+    [DataField]
+    public SpriteSpecifier? FixIcon;
+
+    [DataField]
+    public LocId? Suffix;
+
+    [DataField]
+    public DamageSpecifier? TickDamage;
 
     [DataField]
     public TimeSpan Duration = TimeSpan.FromSeconds(30);
