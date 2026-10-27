@@ -76,7 +76,7 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
 
     public static string FormatClock(TimeSpan left)
     {
-        var seconds = Math.Max(0, (int) Math.Ceiling(left.TotalSeconds));
+        var seconds = FSAilmentVisualsSystem.Seconds(left);
         return $"{seconds / 60}:{seconds % 60:00}";
     }
 

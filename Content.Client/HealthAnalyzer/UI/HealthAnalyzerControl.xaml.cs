@@ -168,7 +168,7 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
             StatusLabel.Text = vitals.Held
                 ? Loc.GetString("fs-analyzer-down-held")
                 : vitals.DownEnd is { } end
-                    ? Loc.GetString("fs-analyzer-down-clock", ("seconds", Seconds(end - now)))
+                    ? Loc.GetString("fs-analyzer-down-clock", ("seconds", FSAilmentVisualsSystem.Seconds(end - now)))
                     : StatusLabel.Text;
         }
         else if (mobState?.CurrentState == MobState.Alive)
@@ -187,7 +187,7 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
             if (view.Level > 0)
                 name = Loc.GetString("fs-ailment-name-level", ("name", name), ("level", view.Level));
 
-            var seconds = view.End is { } until ? Seconds(until - now) : 0;
+            var seconds = view.End is { } until ? FSAilmentVisualsSystem.Seconds(until - now) : 0;
             var rate = (_ailments.Rules.BleedDamage.GetTotal() * view.Level).Float();
             var effect = view.Effect is { } effectId ? Loc.GetString(effectId, ("seconds", seconds), ("rate", rate)) : string.Empty;
             var fix = view.FixHint is { } fixId ? Loc.GetString("fs-analyzer-fix", ("fix", Loc.GetString(fixId))) : string.Empty;
@@ -237,11 +237,6 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
 
         var damage = _damageable.GetTotalDamage(target);
         return Math.Clamp((int) MathF.Round((1f - (damage / critical).Float()) * 100f), 0, 100);
-    }
-
-    private static int Seconds(TimeSpan span)
-    {
-        return Math.Max(0, (int) Math.Ceiling(span.TotalSeconds));
     }
 
     private void AddLine(string markup)

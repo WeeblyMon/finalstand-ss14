@@ -130,6 +130,11 @@ public sealed partial class FSAilmentVisualsSystem : EntitySystem
         }
     }
 
+    public static int Seconds(TimeSpan left)
+    {
+        return Math.Max(0, (int) Math.Ceiling(left.TotalSeconds));
+    }
+
     public Texture? Pip(FSAilmentSlot slot)
     {
         return _ailments.Rules.Slots.TryGetValue(slot, out var info) && info.Pip is { } pip ? _sprite.Frame0(pip) : null;

@@ -174,7 +174,6 @@ public sealed partial class WaveHudSystem
         if (end is not { } until)
             return name;
 
-        var seconds = Math.Max(0, (int) Math.Ceiling((until - now).TotalSeconds));
-        return $"{name} {seconds}s";
+        return $"{name} {FSAilmentVisualsSystem.Seconds(until - now)}s";
     }
 }
