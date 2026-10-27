@@ -24,10 +24,3 @@ public sealed partial class FSInjurySpec
     [DataField]
     public Dictionary<FSAilmentMeter, float> Meters = new();
 }
-
-[RegisterComponent]
-public sealed partial class FSInjuryOnHitComponent : Component
-{
-    [DataField(required: true)]
-    public FSInjurySpec Injury = new();
-}
