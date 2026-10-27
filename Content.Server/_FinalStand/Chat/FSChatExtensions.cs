@@ -1,5 +1,6 @@
 using Content.Server.Chat.Managers;
 using Content.Shared.Chat;
+using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Chat;
@@ -11,5 +12,12 @@ public static class FSChatExtensions
         var plain = FormattedMessage.RemoveMarkupPermissive(markup);
         var wrapped = Loc.GetString("chat-manager-server-wrap-message", ("message", markup));
         chat.ChatMessageToAll(ChatChannel.Server, plain, wrapped, EntityUid.Invalid, hideChat: false, recordReplay: true, colorOverride: colorOverride);
+    }
+
+    public static void DispatchServerMarkupMessage(this IChatManager chat, ICommonSession session, string markup)
+    {
+        var plain = FormattedMessage.RemoveMarkupPermissive(markup);
+        var wrapped = Loc.GetString("chat-manager-server-wrap-message", ("message", markup));
+        chat.ChatMessageToOne(ChatChannel.Server, plain, wrapped, EntityUid.Invalid, false, session.Channel);
     }
 }
