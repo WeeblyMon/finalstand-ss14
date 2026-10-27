@@ -25,6 +25,7 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FSChemCreditSystem _credit = default!;
+    [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -70,13 +71,18 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
         _smoke.StartSmoke(cloud, payload, ent.Comp.Duration, ent.Comp.SpreadAmount);
         _audio.PlayPvs(BurstSound, coords);
 
-        if (args.User is { } thrower && AppliesCombatBuff(payload))
+        if (args.User is { } thrower)
         {
             _crewBuffer.Clear();
             _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
 
+            var buff = AppliesCombatBuff(payload);
             foreach (var crew in _crewBuffer)
-                _credit.RegisterDelivery(crew, thrower, FSMedicalPayoutRates.SplashClaimBudget);
+            {
+                _attribution.RecordTreatment(crew, thrower, ent);
+                if (buff)
+                    _credit.RegisterDelivery(crew, thrower, FSMedicalPayoutRates.SplashClaimBudget);
+            }
         }
 
         QueueDel(ent);
