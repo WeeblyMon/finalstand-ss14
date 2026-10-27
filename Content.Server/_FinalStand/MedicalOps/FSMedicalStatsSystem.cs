@@ -51,6 +51,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _curesPaid = new();
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), FSMedicalLine> _linesThisTick = new();
     private readonly Dictionary<EntityUid, int> _massPaidThisTick = new();
+    private readonly Dictionary<(string Job, string Source), (int Credits, int Fund)> _waveIncome = new();
     private GameTick _payTick;
 
     public FSMedicalRoundStats GetStats(EntityUid mindId) => _roundStats.GetValueOrDefault(mindId);
@@ -86,6 +87,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         _curesPaid.Clear();
         _linesThisTick.Clear();
         _massPaidThisTick.Clear();
+        _waveIncome.Clear();
     }
 
     private void OnPrepStarted(WavePrepStartedEvent ev)
@@ -246,7 +248,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             || (args.Kind == FSCureKind.Mass && !TakeMassSlot(medicMind)))
             return;
 
-        if (!PayLine(medicMind, args.Patient, line, "ailment-cured", treated: 1))
+        var source = args.Kind is FSCureKind.Automatic or FSCureKind.Mass ? "cure-automatic" : "cure-hands-on";
+        if (!PayLine(medicMind, args.Patient, line, source, treated: 1))
             return;
 
         CountCap(_curesPaid, medicMind, args.Patient);
@@ -366,9 +369,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         }
     }
 
-    private void OnWaveEnded(ref WaveEndedEvent args)
-    {
-        var query = EntityQueryEnumerator<FSMedicalPatientComponent, MobStateComponent>();
     private FSMedicalLine Prioritised(EntityUid patient, FSMedicalLine line)
     {
         return _casualty.IsPriority(patient)
@@ -376,6 +376,9 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             : line;
     }
 
+    private void OnWaveEnded(ref WaveEndedEvent args)
+    {
+        var query = EntityQueryEnumerator<FSMedicalPatientComponent, MobStateComponent>();
         while (query.MoveNext(out var uid, out var comp, out _))
         {
             if (comp.PendingSaveCredit is not { } reviver)
@@ -395,6 +398,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             _adminLogger.Add(LogType.Healed, LogImpact.Low,
                 $"{ToPrettyString(uid):patient} survived wave {args.WaveNumber} — patient saved credited to {ToPrettyString(reviver):reviver}");
         }
+
+        LogIncome(args.WaveNumber);
     }
 
     private int Award(EntityUid mindId, string source, FSMedicalLine line, float hpHealed = 0f,
@@ -409,23 +414,39 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             cur.PatientsSaved + patientsSaved,
             cur.AilmentsTreated + treated);
 
-        var credits = (int) MathF.Round(line.Credits * JobMultiplier(mindId));
+        var job = JobOf(mindId);
+        var multiplier = job != null && FSMedicalPayoutRates.JobMultipliers.TryGetValue(job, out var jobScale) ? jobScale : 1f;
+        var credits = (int) MathF.Round(line.Credits * multiplier);
         if (credits > 0)
             _wallet.GiveCredits(mindId, credits);
 
         if (line.Fund > 0)
             _medFund.GrantMedicalFunds(line.Fund, source, mindId);
 
+        var key = (job ?? "None", source);
+        var income = _waveIncome.GetValueOrDefault(key);
+        _waveIncome[key] = (income.Credits + credits, income.Fund + Math.Max(0, line.Fund));
+
         return credits;
     }
 
-    private float JobMultiplier(EntityUid mindId)
+    private string? JobOf(EntityUid mindId)
     {
-        return CompOrNull<MindComponent>(mindId)?.OwnedEntity is { } body
-               && _roster.JobOf(body) is { } job
-               && FSMedicalPayoutRates.JobMultipliers.TryGetValue(job, out var multiplier)
-            ? multiplier
-            : 1f;
+        return CompOrNull<MindComponent>(mindId)?.OwnedEntity is { } body ? _roster.JobOf(body) : null;
+    }
+
+    private void LogIncome(int wave)
+    {
+        if (_waveIncome.Count == 0)
+            return;
+
+        var lines = _waveIncome
+            .OrderBy(kv => kv.Key.Job)
+            .ThenBy(kv => kv.Key.Source)
+            .Select(kv => $"{kv.Key.Job}/{kv.Key.Source} {kv.Value.Credits}c {kv.Value.Fund}f");
+
+        Log.Info($"[FSMedParity] wave {wave}: {string.Join(", ", lines)}");
+        _waveIncome.Clear();
     }
 
     private void OnRoundEnd(RoundEndTextAppendEvent args)
