@@ -2,7 +2,6 @@ using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.Ailments;
 using Content.Client._FinalStand.Interface;
-using Content.Client._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Ailments;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Atmos;
@@ -118,7 +117,7 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
 
         // Alerts
 
-        var showAlerts = state.Unrevivable == true || state.Bleeding == true;
+        var showAlerts = state.Unrevivable == true;
 
         AlertsDivider.Visible = showAlerts;
         AlertsContainer.Visible = showAlerts;
@@ -130,14 +129,6 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
             AlertsContainer.AddChild(new RichTextLabel
             {
                 Text = Loc.GetString("health-analyzer-window-entity-unrevivable-text"),
-                Margin = new Thickness(0, 4),
-                MaxWidth = 300
-            });
-
-        if (state.Bleeding == true)
-            AlertsContainer.AddChild(new RichTextLabel
-            {
-                Text = Loc.GetString("health-analyzer-window-entity-bleeding-text"),
                 Margin = new Thickness(0, 4),
                 MaxWidth = 300
             });
@@ -205,13 +196,8 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
         foreach (var reagent in reagents)
         {
             var name = _prototypes.TryIndex<ReagentPrototype>(reagent.Reagent, out var proto) ? proto.LocalizedName : reagent.Reagent;
+            name = FormattedMessage.EscapeText(name);
             parts.Add(Loc.GetString(reagent.Safe ? "fs-analyzer-reagent-safe" : "fs-analyzer-reagent-unsafe",
-        var rules = _ailments.Rules;
-        var percent = (int) MathF.Round(rules.RegenCap * 100f);
-
-        if (vitals.Recovering)
-            return Loc.GetString("fs-analyzer-regen-recovering");
-
                 ("name", name), ("amount", reagent.Quantity)));
         }
 
@@ -220,6 +206,12 @@ public sealed partial class HealthAnalyzerControl : BoxContainer
 
     private string RegenState(EntityUid target, FSAilmentStateComponent vitals, MobStateComponent? mobState)
     {
+        var rules = _ailments.Rules;
+        var percent = (int) MathF.Round(rules.RegenCap * 100f);
+
+        if (vitals.Recovering)
+            return Loc.GetString("fs-analyzer-regen-recovering");
+
         if (vitals.Regenerating)
             return Loc.GetString("fs-analyzer-regen-active", ("percent", percent));
 
