@@ -49,9 +49,17 @@ public sealed class FSMapPaletteWindow : DefaultWindow
         SetSize = new Vector2(420, 720);
 
         _list = new MappingPrototypeList { VerticalExpand = true };
-        Contents.AddChild(_list);
 
-        BuildToolStrip();
+        var root = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            HorizontalExpand = true,
+            VerticalExpand = true,
+        };
+
+        root.AddChild(_list);
+        BuildToolStrip(root);
+        Contents.AddChild(root);
 
         _list.GetPrototypeData += OnGetData;
         _list.SelectionChanged += OnSelectionChanged;
@@ -65,7 +73,7 @@ public sealed class FSMapPaletteWindow : DefaultWindow
         Reload();
     }
 
-    private void BuildToolStrip()
+    private void BuildToolStrip(BoxContainer root)
     {
         var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
 
@@ -89,7 +97,7 @@ public sealed class FSMapPaletteWindow : DefaultWindow
 
         row.AddChild(_eraseEntity);
         row.AddChild(_eraseTile);
-        Contents.AddChild(row);
+        root.AddChild(row);
 
         _placementMode = new OptionButton
         {
@@ -107,7 +115,7 @@ public sealed class FSMapPaletteWindow : DefaultWindow
 
         _placementMode.SelectId(0);
         _placementMode.OnItemSelected += OnPlacementModeSelected;
-        Contents.AddChild(_placementMode);
+        root.AddChild(_placementMode);
     }
 
     private void OnPlacementModeSelected(OptionButton.ItemSelectedEventArgs args)
