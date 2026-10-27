@@ -30,6 +30,10 @@ public sealed class FSMapPaletteWindow : DefaultWindow
     private readonly MappingPrototypeList _list;
     private readonly List<MappingPrototype> _leaves = new();
 
+    private Button _eraseEntity = default!;
+    private Button _eraseTile = default!;
+    private OptionButton _placementMode = default!;
+
     public FSMapPaletteWindow()
     {
         _protos = IoCManager.Resolve<IPrototypeManager>();
@@ -47,6 +51,8 @@ public sealed class FSMapPaletteWindow : DefaultWindow
         _list = new MappingPrototypeList { VerticalExpand = true };
         Contents.AddChild(_list);
 
+        BuildToolStrip();
+
         _list.GetPrototypeData += OnGetData;
         _list.SelectionChanged += OnSelectionChanged;
         _list.CollapseToggled += OnCollapseToggled;
@@ -57,6 +63,122 @@ public sealed class FSMapPaletteWindow : DefaultWindow
         _protos.PrototypesReloaded += OnPrototypesReloaded;
 
         Reload();
+    }
+
+    private void BuildToolStrip()
+    {
+        var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
+
+        _eraseEntity = new Button
+        {
+            Text = Loc.GetString("fs-map-palette-erase-entity"),
+            ToggleMode = true,
+            HorizontalExpand = true,
+            StyleClasses = { "ButtonSquare" },
+        };
+        _eraseTile = new Button
+        {
+            Text = Loc.GetString("fs-map-palette-erase-tile"),
+            ToggleMode = true,
+            HorizontalExpand = true,
+            StyleClasses = { "ButtonSquare" },
+        };
+
+        _eraseEntity.OnToggled += OnEraseEntityToggled;
+        _eraseTile.OnToggled += OnEraseTileToggled;
+
+        row.AddChild(_eraseEntity);
+        row.AddChild(_eraseTile);
+        Contents.AddChild(row);
+
+        _placementMode = new OptionButton
+        {
+            HorizontalExpand = true,
+            StyleClasses = { "ButtonSquare" },
+            ToolTip = Loc.GetString("entity-spawn-window-override-menu-tooltip"),
+            TooltipDelay = 0,
+        };
+
+        var modes = _placement.AllModeNames.ToList();
+        for (var i = 0; i < modes.Count; i++)
+        {
+            _placementMode.AddItem(modes[i], i);
+        }
+
+        _placementMode.SelectId(0);
+        _placementMode.OnItemSelected += OnPlacementModeSelected;
+        Contents.AddChild(_placementMode);
+    }
+
+    private void OnPlacementModeSelected(OptionButton.ItemSelectedEventArgs args)
+    {
+        _placementMode.SelectId(args.Id);
+
+        if (_placement.CurrentPermission is not { } permission)
+            return;
+
+        _placement.BeginPlacing(new PlacementInformation
+        {
+            PlacementOption = _placement.AllModeNames[args.Id],
+            EntityType = permission.EntityType,
+            TileType = permission.TileType,
+            Range = permission.Range,
+            IsTile = permission.IsTile,
+        });
+    }
+
+    private void OnEraseEntityToggled(ButtonToggledEventArgs args)
+    {
+        if (args.Pressed == _placement.Eraser)
+            return;
+
+        _eraseTile.Pressed = false;
+        _decal.SetActive(false);
+        Deselect();
+
+        _placement.Clear();
+        _placement.ToggleEraser();
+    }
+
+    private void OnEraseTileToggled(ButtonToggledEventArgs args)
+    {
+        if (_placement.Eraser)
+        {
+            _eraseEntity.Pressed = false;
+            _placement.ToggleEraser();
+        }
+
+        _decal.SetActive(false);
+        Deselect();
+        _placement.Clear();
+
+        if (!args.Pressed)
+            return;
+
+        _placement.BeginPlacing(new PlacementInformation
+        {
+            PlacementOption = "AlignTileAny",
+            TileType = 0,
+            IsTile = true,
+        });
+    }
+
+    private void Deselect()
+    {
+        if (_list.Selected is not { } selected)
+            return;
+
+        selected.Button.Pressed = false;
+        _list.Selected = null;
+    }
+
+    private void ClearErasers()
+    {
+        if (_placement.Eraser)
+            _placement.ToggleEraser();
+
+        _eraseEntity.Pressed = false;
+        _eraseTile.Pressed = false;
     }
 
     private void OnPrototypesReloaded(PrototypesReloadedEventArgs args)
@@ -216,13 +338,17 @@ public sealed class FSMapPaletteWindow : DefaultWindow
             return;
         }
 
+        ClearErasers();
+
         switch (prototype)
         {
             case EntityPrototype entity:
                 _decal.SetActive(false);
                 _placement.BeginPlacing(new PlacementInformation
                 {
-                    PlacementOption = entity.PlacementMode,
+                    PlacementOption = _placementMode.SelectedId > 0
+                        ? _placement.AllModeNames[_placementMode.SelectedId]
+                        : entity.PlacementMode,
                     EntityType = entity.ID,
                     IsTile = false,
                 });
