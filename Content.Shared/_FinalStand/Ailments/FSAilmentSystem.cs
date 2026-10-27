@@ -43,6 +43,8 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     public bool InInternalDamage => _internalDepth > 0;
 
+    private const float BleedEpsilon = 0.001f;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -334,7 +336,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
     public int GetBleedLevel(EntityUid patient)
     {
-        return (int) MathF.Ceiling(GetBleedAmount(patient));
+        return (int) MathF.Ceiling(GetBleedAmount(patient) - BleedEpsilon);
     }
 
     public float GetBleedAmount(EntityUid patient)
