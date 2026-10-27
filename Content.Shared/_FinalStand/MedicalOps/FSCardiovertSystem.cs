@@ -20,7 +20,7 @@ public sealed partial class FSCardiovertSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
 
-    public const string DelayId = "cardiovert";
+    private const string DelayId = "cardiovert";
 
     public override void Initialize()
     {
