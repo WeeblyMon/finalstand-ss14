@@ -45,7 +45,7 @@ public sealed partial class FSAilmentFeedbackSystem : EntitySystem
             : name;
 
         _popup.PopupEntity(text, ev.Patient, ev.Patient, PopupType.MediumCaution);
-        _audio.PlayEntity(info.Sound, ev.Patient, ev.Patient);
+        _audio.PlayGlobal(info.Sound, ev.Patient);
 
         if (info.Hint is { } hint
             && TryComp<ActorComponent>(ev.Patient, out var actor)

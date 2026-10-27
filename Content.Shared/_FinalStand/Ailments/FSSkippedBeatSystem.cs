@@ -52,8 +52,11 @@ public sealed partial class FSSkippedBeatSystem : EntitySystem
                 continue;
 
             _movementMod.TryUpdateMovementSpeedModDuration(patient, beat.Slowdown, beat.Duration, beat.SpeedScale);
-            _audio.PlayLocal(beat.Sound, patient, patient);
-            if (_net.IsServer && beat.Spark is { } spark)
+            if (_net.IsClient)
+                continue;
+
+            _audio.PlayGlobal(beat.Sound, patient);
+            if (beat.Spark is { } spark)
                 Spawn(spark, Transform(patient).Coordinates);
         }
     }
