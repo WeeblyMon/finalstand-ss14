@@ -316,7 +316,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
                 Pips = pips,
                 Needs = NeedsOf(patient, state, pips),
                 NeedsDefib = state == FSCasualtyState.Dead || (pips & FSAilmentPips.Heart) != 0,
-                Silent = call.Silent,
                 Priority = IsPriority(patient),
             });
         }

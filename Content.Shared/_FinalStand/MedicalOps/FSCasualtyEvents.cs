@@ -28,7 +28,6 @@ public struct FSCasualtyEntry
     public FSAilmentPips Pips;
     public FSAilmentPips Needs;
     public bool NeedsDefib;
-    public bool Silent;
     public bool Priority;
 }
 
