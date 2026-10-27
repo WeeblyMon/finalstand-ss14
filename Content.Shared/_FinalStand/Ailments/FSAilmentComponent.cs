@@ -1,4 +1,5 @@
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Ailments;
 
@@ -19,6 +20,9 @@ public sealed partial class FSAilmentComponent : Component
 
     [DataField]
     public LocId? Effect;
+
+    [DataField]
+    public SpriteSpecifier? Overlay;
 
     [DataField]
     public TimeSpan Duration = TimeSpan.FromSeconds(30);

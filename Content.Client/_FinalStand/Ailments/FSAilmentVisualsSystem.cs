@@ -3,6 +3,8 @@ using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Ailments;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Ailments;
 
@@ -10,8 +12,76 @@ public sealed partial class FSAilmentVisualsSystem : EntitySystem
 {
     [Dependency] private FSAilmentSystem _ailments = default!;
     [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public static readonly FSAilmentSlot[] Slots = Enum.GetValues<FSAilmentSlot>();
+
+    private static readonly TimeSpan OverlaySyncInterval = TimeSpan.FromSeconds(0.25);
+    private static readonly Dictionary<FSAilmentSlot, string> OverlayKeys = new();
+
+    private readonly Dictionary<FSAilmentSlot, SpriteSpecifier> _overlays = new();
+    private readonly Dictionary<(EntityUid Patient, FSAilmentSlot Slot), SpriteSpecifier> _shown = new();
+    private readonly List<(EntityUid Patient, FSAilmentSlot Slot)> _stale = new();
+    private TimeSpan _nextOverlaySync;
+
+    static FSAilmentVisualsSystem()
+    {
+        foreach (var slot in Slots)
+            OverlayKeys[slot] = $"fs-ailment-{slot}";
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        base.FrameUpdate(frameTime);
+
+        if (_timing.CurTime < _nextOverlaySync)
+            return;
+
+        _nextOverlaySync = _timing.CurTime + OverlaySyncInterval;
+        SyncOverlays();
+    }
+
+    private void SyncOverlays()
+    {
+        _stale.Clear();
+        foreach (var (key, _) in _shown)
+        {
+            if (TerminatingOrDeleted(key.Patient))
+                _stale.Add(key);
+        }
+
+        foreach (var key in _stale)
+            _shown.Remove(key);
+
+        var query = EntityQueryEnumerator<FSAilmentStateComponent, SpriteComponent>();
+        while (query.MoveNext(out var uid, out _, out var sprite))
+        {
+            _ailments.GetOverlays(uid, _overlays);
+            foreach (var slot in Slots)
+            {
+                var key = (uid, slot);
+                var wanted = _overlays.GetValueOrDefault(slot);
+                var shown = _shown.GetValueOrDefault(key);
+                if (Equals(wanted, shown))
+                    continue;
+
+                if (wanted != null)
+                {
+                    var layer = _sprite.LayerMapReserve((uid, sprite), OverlayKeys[slot]);
+                    _sprite.LayerSetSprite((uid, sprite), layer, wanted);
+                    _sprite.LayerSetVisible((uid, sprite), layer, true);
+                    _shown[key] = wanted;
+                }
+                else
+                {
+                    if (_sprite.LayerMapTryGet((uid, sprite), OverlayKeys[slot], out var layer, false))
+                        _sprite.LayerSetVisible((uid, sprite), layer, false);
+
+                    _shown.Remove(key);
+                }
+            }
+        }
+    }
 
     public static Color SlotColor(FSAilmentSlot slot) => slot switch
     {

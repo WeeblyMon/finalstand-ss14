@@ -12,6 +12,7 @@ using Robust.Shared.Containers;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Ailments;
 
@@ -52,8 +53,8 @@ public sealed partial class FSAilmentSystem : EntitySystem
         SubscribeLocalEvent<FSAilmentStateComponent, FSAilmentInflictAttemptEvent>(OnInflictAttempt);
         SubscribeLocalEvent<FSAilmentStateComponent, FSIncomingHealScaleEvent>(OnIncomingHealScale);
         SubscribeLocalEvent<FSAilmentStateComponent, HealthBeingExaminedEvent>(OnHealthExamined);
-        SubscribeLocalEvent<FSAilmentComponent, StatusEffectRemovedEvent>(OnAilmentRemoved);
         SubscribeLocalEvent<FSSignatureAilmentComponent, ExaminedEvent>(OnSignatureExamined);
+        SubscribeLocalEvent<FSAilmentComponent, StatusEffectRemovedEvent>(OnAilmentRemoved);
     }
 
     public override void Update(float frameTime)
@@ -356,6 +357,16 @@ public sealed partial class FSAilmentSystem : EntitySystem
         foreach (var ward in Active<FSAilmentWardComponent>(patient))
         {
             views.Add(new FSAilmentView(ward.Comp2.Blocks, ward.Comp2.Name, 0, ward.Comp1.EndEffectTime, ward.Comp2.Effect, null, null, true));
+        }
+    }
+
+    public void GetOverlays(EntityUid patient, Dictionary<FSAilmentSlot, SpriteSpecifier> overlays)
+    {
+        overlays.Clear();
+        foreach (var effect in Active<FSAilmentComponent>(patient))
+        {
+            if (effect.Comp2.Overlay is { } overlay)
+                overlays[effect.Comp2.Slot] = overlay;
         }
     }
 
@@ -703,6 +714,11 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
     }
 
+    private void OnSignatureExamined(Entity<FSSignatureAilmentComponent> ent, ref ExaminedEvent args)
+    {
+        args.PushMarkup(Loc.GetString(ent.Comp.Examine));
+    }
+
     private void OnAilmentRemoved(Entity<FSAilmentComponent> ent, ref StatusEffectRemovedEvent args)
     {
         if (_net.IsClient || ent.Comp.BecomesOnExpire is not { } next)
@@ -712,11 +728,6 @@ public sealed partial class FSAilmentSystem : EntitySystem
             return;
 
         _pendingExpiry.Add((args.Target, next));
-    }
-
-    private void OnSignatureExamined(Entity<FSSignatureAilmentComponent> ent, ref ExaminedEvent args)
-    {
-        args.PushMarkup(Loc.GetString(ent.Comp.Examine));
     }
 
     public readonly struct InternalDamageScope(FSAilmentSystem system) : IDisposable

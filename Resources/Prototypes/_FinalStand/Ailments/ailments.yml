@@ -123,6 +123,9 @@
     slot: Bone
     name: fs-ailment-splinted
     examine: fs-ailment-splinted-examine
+    overlay:
+      sprite: _FinalStand/Mobs/ailment_overlays.rsi
+      state: splint
     effect: fs-ailment-splinted-effect
     fixHint: fs-ailment-splinted-fix
     duration: 90
@@ -140,6 +143,9 @@
     slot: Bone
     name: fs-ailment-splinted
     examine: fs-ailment-splinted-examine
+    overlay:
+      sprite: _FinalStand/Mobs/ailment_overlays.rsi
+      state: splint
     effect: fs-ailment-splinted-fieldops-effect
     fixHint: fs-ailment-splinted-fix
     duration: 90
@@ -169,6 +175,9 @@
     slot: Bloater
     name: fs-ailment-soaked
     examine: fs-ailment-soaked-examine
+    overlay:
+      sprite: _FinalStand/Mobs/ailment_overlays.rsi
+      state: soaked
     effect: fs-ailment-soaked-effect
     duration: 5
   - type: MovementModStatusEffect
