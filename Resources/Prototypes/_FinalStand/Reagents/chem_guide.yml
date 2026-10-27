@@ -7,6 +7,10 @@
   - Kelotane
   - Dermaline
   - TranexamicAcid
+  notes:
+    Kelotane: fs-chem-guide-note-burn
+    Dermaline: fs-chem-guide-note-burn
+    TranexamicAcid: fs-chem-guide-note-txa
 
 - type: fsChemGuide
   id: FSChemGuideSupport
@@ -29,3 +33,9 @@
   - FSWeakeningAgent
   - FSCoagulantMist
   - FSEtchant
+  - FSBoneBrace
+  - FSCharWard
+  notes:
+    FSCoagulantMist: fs-chem-guide-note-coagulant
+    FSBoneBrace: fs-chem-guide-note-bone-brace
+    FSCharWard: fs-chem-guide-note-char-ward

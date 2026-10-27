@@ -59,3 +59,23 @@
   carried:
   - FSBiomass
   reaction: FSCorrosive
+
+- type: fsFieldKit
+  id: FSFieldKitBoneBrace
+  name: fs-field-kit-bone-brace
+  purpose: fs-field-kit-bone-brace-purpose
+  delivery: fs-field-kit-delivery-either
+  priority: 7
+  carried:
+  - FSBiomass
+  reaction: FSBoneBrace
+
+- type: fsFieldKit
+  id: FSFieldKitCharWard
+  name: fs-field-kit-char-ward
+  purpose: fs-field-kit-char-ward-purpose
+  delivery: fs-field-kit-delivery-either
+  priority: 8
+  carried:
+  - FSBiomass
+  reaction: FSCharWard

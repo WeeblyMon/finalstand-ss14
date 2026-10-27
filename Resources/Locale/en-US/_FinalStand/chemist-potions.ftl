@@ -71,3 +71,7 @@ fs-bonus-stat-interruptionresistance = interruption resistance
 fs-bonus-stat-meleespeed = melee attack speed
 fs-bonus-stat-firerate = fire rate
 fs-bonus-stat-damage = damage
+reagent-name-fs-bone-brace = bone brace
+reagent-desc-fs-bone-brace = Stiffens the skeleton for 60 seconds: no new broken bones, not even from a revenant's grab.
+reagent-name-fs-char-ward = char ward
+reagent-desc-fs-char-ward = Coats the skin for 45 seconds: fire cannot leave burns.
