@@ -37,10 +37,10 @@ public static class FSMedicalPayoutRates
 
     public static readonly IReadOnlyDictionary<string, float> JobMultipliers = new Dictionary<string, float>
     {
-        ["ChiefMedicalOfficer"] = 1f,
-        ["MedicalDoctor"] = 1f,
-        ["CombatMedic"] = 1f,
-        ["Chemist"] = 1f,
+        [FSMedicalRosterSystem.CmoJob] = 1f,
+        [FSMedicalRosterSystem.DoctorJob] = 1f,
+        [FSMedicalRosterSystem.CombatMedicJob] = 1f,
+        [FSMedicalRosterSystem.ChemistJob] = 1f,
     };
 }
 
