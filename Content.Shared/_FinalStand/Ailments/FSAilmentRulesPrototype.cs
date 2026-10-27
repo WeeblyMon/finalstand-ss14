@@ -125,8 +125,6 @@ public sealed partial class FSAilmentSlotInfo
     [DataField]
     public SoundSpecifier? Sound;
 
-    [DataField]
-    public bool Fixed;
 }
 
 [DataDefinition]

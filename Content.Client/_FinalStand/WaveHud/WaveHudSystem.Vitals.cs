@@ -113,7 +113,7 @@ public sealed partial class WaveHudSystem
             }
 
             var warning = vitals.Warnings.GetValueOrDefault(slot);
-            if (ailment == null && ward == null && warning == 0 && !info.Fixed)
+            if (ailment == null && ward == null && warning == 0)
                 continue;
 
             var color = FSAilmentVisualsSystem.SlotColor(slot);

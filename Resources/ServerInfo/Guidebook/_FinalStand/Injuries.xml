@@ -5,9 +5,9 @@ You have one health bar and, on top of it, a few named injuries called [bold]ail
 
 ## Reading your HUD
 
-Three slots always sit under your health bar: [color=#b3402f]BLEEDING[/color], [color=#dfdcd7]BONE[/color] and [color=#d9702e]BURN[/color]. A dim slot is empty. Each lit slot shows the item that fixes it.
+Each ailment you have shows under your health bar with its timer and the item that fixes it. Nothing shows while you are unhurt.
 
-- An outline filling a slot means that ailment is building up. Get out of the crowd or the fire before it fills.
+- A slot that appears with a filling outline means that ailment is building up. Get out of the crowd or the fire before it fills.
 - A [color=#7e9464]green-edged[/color] slot is a ward: that ailment cannot land while it lasts.
 - [color=#7e9464]REGEN[/color] shows while you heal on your own. [color=#7e9464]RECOVERING[/color] shows inside a field hospital tent.
 - The two ticks on your health bar mark where passive healing stops (50%) and where the medigun and the tent stop (70%).

@@ -45,7 +45,6 @@
         state: gauze
       sound:
         path: /Audio/Effects/Fluids/blood1.ogg
-      fixed: true
     Bone:
       label: fs-slot-bone
       name: fs-ailment-broken
@@ -60,7 +59,6 @@
         state: icon
       sound:
         collection: FSMeleeBoneBreak
-      fixed: true
     Burn:
       label: fs-slot-burn
       name: fs-ailment-burned
@@ -75,7 +73,6 @@
         state: ointment
       sound:
         path: /Audio/Effects/sizzle.ogg
-      fixed: true
     Bloater:
       label: fs-slot-bloat
       name: fs-ailment-poisoned
