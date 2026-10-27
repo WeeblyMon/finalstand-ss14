@@ -24,6 +24,7 @@ public sealed partial class FSCasualtyBoardWindow : DefaultWindow
     [Dependency] private IEntityManager _entityManager = default!;
 
     public event Action<NetEntity>? OnRespond;
+    public event Action<NetEntity>? OnTag;
 
     private readonly Dictionary<NetEntity, Bearing> _bearings = new();
 
@@ -33,7 +34,7 @@ public sealed partial class FSCasualtyBoardWindow : DefaultWindow
         IoCManager.InjectDependencies(this);
     }
 
-    public void Populate(List<FSCasualtyRow> rows)
+    public void Populate(List<FSCasualtyRow> rows, bool canTag)
     {
         Entries.DisposeAllChildren();
         _bearings.Clear();
@@ -48,6 +49,17 @@ public sealed partial class FSCasualtyBoardWindow : DefaultWindow
                 HorizontalExpand = true,
                 Margin = new Thickness(0, 2),
             };
+
+            if (entry.Priority)
+            {
+                line.AddChild(new Label
+                {
+                    Text = Loc.GetString("fs-casualty-priority"),
+                    Modulate = NeedsColor,
+                    Margin = new Thickness(0, 0, 4, 0),
+                    VerticalAlignment = VAlignment.Center,
+                });
+            }
 
             line.AddChild(new Label
             {
@@ -131,6 +143,18 @@ public sealed partial class FSCasualtyBoardWindow : DefaultWindow
                 };
                 button.OnPressed += _ => OnRespond?.Invoke(patient);
                 line.AddChild(button);
+            }
+
+            if (canTag)
+            {
+                var tagged = entry.Patient;
+                var tag = new Button
+                {
+                    Text = Loc.GetString(entry.Priority ? "fs-casualty-board-untag" : "fs-casualty-board-tag"),
+                    MinWidth = 70,
+                };
+                tag.OnPressed += _ => OnTag?.Invoke(tagged);
+                line.AddChild(tag);
             }
 
             Entries.AddChild(line);

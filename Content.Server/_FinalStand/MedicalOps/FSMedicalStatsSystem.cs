@@ -38,6 +38,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSAilmentSystem _ailments = default!;
+    [Dependency] private FSCasualtySystem _casualty = default!;
 
     private static readonly TimeSpan MinSurvivalForSave = TimeSpan.FromSeconds(60);
 
@@ -342,7 +343,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         if (args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive)
         {
-            PayLine(healerMind, uid, FSMedicalPayoutRates.Revive, "revive", revives: 1);
+            PayLine(healerMind, uid, Prioritised(uid, FSMedicalPayoutRates.Revive), "revive", revives: 1);
 
             var revived = new FSAllyRevivedEvent(healerMind, uid);
             RaiseLocalEvent(ref revived);
@@ -358,7 +359,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         if (args.OldMobState == MobState.Critical && args.NewMobState == MobState.Alive)
         {
-            PayLine(healerMind, uid, FSMedicalPayoutRates.Stabilise, "stabilise", stabilises: 1);
+            PayLine(healerMind, uid, Prioritised(uid, FSMedicalPayoutRates.Stabilise), "stabilise", stabilises: 1);
 
             _adminLogger.Add(LogType.Healed, LogImpact.Low,
                 $"{ToPrettyString(healerMind):healer} stabilised {ToPrettyString(uid):patient} for {FSMedicalPayoutRates.Stabilise.Credits} credits");
@@ -368,6 +369,13 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private void OnWaveEnded(ref WaveEndedEvent args)
     {
         var query = EntityQueryEnumerator<FSMedicalPatientComponent, MobStateComponent>();
+    private FSMedicalLine Prioritised(EntityUid patient, FSMedicalLine line)
+    {
+        return _casualty.IsPriority(patient)
+            ? line.Scale(FSMedicalPayoutRates.PriorityMultiplier, FSMedicalPayoutRates.PriorityMultiplier)
+            : line;
+    }
+
         while (query.MoveNext(out var uid, out var comp, out _))
         {
             if (comp.PendingSaveCredit is not { } reviver)

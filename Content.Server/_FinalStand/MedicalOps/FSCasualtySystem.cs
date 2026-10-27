@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Actions;
@@ -37,8 +38,14 @@ public sealed partial class FSCasualtySystem : EntitySystem
     private static readonly TimeSpan CallLifetime = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan BroadcastInterval = TimeSpan.FromSeconds(1);
 
+    private const int MaxPriorityTags = 2;
+    private static readonly TimeSpan PriorityDuration = TimeSpan.FromSeconds(45);
+    private static readonly TimeSpan PriorityCooldown = TimeSpan.FromSeconds(10);
+
     private readonly Dictionary<EntityUid, Call> _calls = new();
     private readonly List<EntityUid> _finished = new();
+    private readonly Dictionary<EntityUid, TimeSpan> _priority = new();
+    private readonly Dictionary<EntityUid, TimeSpan> _tagReadyAt = new();
     private TimeSpan _nextBroadcast;
 
     public override void Initialize()
@@ -51,6 +58,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSAilmentInflictedEvent>(OnAilmentInflicted);
         SubscribeNetworkEvent<FSRespondToCasualtyEvent>(OnRespond);
+        SubscribeNetworkEvent<FSPriorityTagRequestEvent>(OnPriorityTag);
     }
 
     private void OnMobStateChanged(MobStateChangedEvent ev)
@@ -86,6 +94,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
         _calls.Clear();
+        _priority.Clear();
+        _tagReadyAt.Clear();
         _nextBroadcast = TimeSpan.Zero;
     }
 
@@ -136,6 +146,49 @@ public sealed partial class FSCasualtySystem : EntitySystem
             return;
 
         Respond(medic, GetEntity(ev.Patient));
+    }
+
+    public bool IsPriority(EntityUid patient)
+    {
+        return _priority.TryGetValue(patient, out var until) && until > _timing.CurTime;
+    }
+
+    private void OnPriorityTag(FSPriorityTagRequestEvent ev, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } cmo || !HasComp<FSCmoPanelComponent>(cmo))
+            return;
+
+        TogglePriority(cmo, GetEntity(ev.Patient));
+    }
+
+    public void TogglePriority(EntityUid cmo, EntityUid patient)
+    {
+        if (!_calls.ContainsKey(patient))
+            return;
+
+        if (_priority.Remove(patient))
+        {
+            Broadcast();
+            return;
+        }
+
+        var now = _timing.CurTime;
+        if (_tagReadyAt.GetValueOrDefault(cmo) > now)
+        {
+            _popup.PopupEntity(Loc.GetString("fs-casualty-priority-cooldown"), cmo, cmo);
+            return;
+        }
+
+        if (_priority.Count >= MaxPriorityTags)
+        {
+            var oldest = _priority.MinBy(tag => tag.Value).Key;
+            _priority.Remove(oldest);
+        }
+
+        _priority[patient] = now + PriorityDuration;
+        _tagReadyAt[cmo] = now + PriorityCooldown;
+        _popup.PopupEntity(Loc.GetString("fs-casualty-priority-tagged", ("patient", Identity.Name(patient, EntityManager))), cmo, cmo);
+        Broadcast();
     }
 
     public void Respond(EntityUid medic, EntityUid patient)
@@ -201,7 +254,17 @@ public sealed partial class FSCasualtySystem : EntitySystem
                 RemComp<FSCasualtyStatusComponent>(patient);
 
             _calls.Remove(patient);
+            _priority.Remove(patient);
         }
+
+        foreach (var (patient, until) in _priority)
+        {
+            if (until <= now)
+                _finished.Add(patient);
+        }
+
+        foreach (var patient in _finished)
+            _priority.Remove(patient);
 
         if (_finished.Count > 0)
         {
@@ -252,6 +315,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
                 Needs = NeedsOf(patient, state, pips),
                 NeedsDefib = state == FSCasualtyState.Dead,
                 Silent = call.Silent,
+                Priority = IsPriority(patient),
             });
         }
 

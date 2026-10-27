@@ -28,6 +28,8 @@ public static class FSMedicalPayoutRates
 
     public const float AutomaticMultiplier = 0.5f;
 
+    public const float PriorityMultiplier = 1.25f;
+
     public const int TopicalsPaidPerPatientPerWave = 6;
     public const int CuresPaidPerPatientPerWave = 4;
     public const int MassClearPatientsPaid = 4;

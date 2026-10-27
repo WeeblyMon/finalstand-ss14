@@ -29,6 +29,7 @@ public struct FSCasualtyEntry
     public FSAilmentPips Needs;
     public bool NeedsDefib;
     public bool Silent;
+    public bool Priority;
 }
 
 [Serializable, NetSerializable]
@@ -51,6 +52,17 @@ public sealed class FSRespondToCasualtyEvent : EntityEventArgs
     public NetEntity Patient;
 
     public FSRespondToCasualtyEvent(NetEntity patient)
+    {
+        Patient = patient;
+    }
+}
+
+[Serializable, NetSerializable]
+public sealed class FSPriorityTagRequestEvent : EntityEventArgs
+{
+    public NetEntity Patient;
+
+    public FSPriorityTagRequestEvent(NetEntity patient)
     {
         Patient = patient;
     }

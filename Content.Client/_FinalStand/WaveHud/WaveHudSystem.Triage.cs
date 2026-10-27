@@ -47,7 +47,8 @@ public sealed partial class WaveHudSystem
                 entry.Responder,
                 dir,
                 entry.Pips,
-                _board.NeedsLabel(entry)));
+                _board.NeedsLabel(entry),
+                entry.Priority));
         }
     }
 

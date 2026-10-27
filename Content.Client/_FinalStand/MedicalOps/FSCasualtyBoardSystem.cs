@@ -31,6 +31,10 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
 
     public static int Compare(FSCasualtyEntry a, float? rangeA, FSCasualtyEntry b, float? rangeB, TimeSpan now)
     {
+        var priority = b.Priority.CompareTo(a.Priority);
+        if (priority != 0)
+            return priority;
+
         var rank = Rank(a).CompareTo(Rank(b));
         if (rank != 0)
             return rank;
@@ -128,6 +132,7 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
         {
             _window = new FSCasualtyBoardWindow();
             _window.OnRespond += patient => RaiseNetworkEvent(new FSRespondToCasualtyEvent(patient));
+            _window.OnTag += patient => RaiseNetworkEvent(new FSPriorityTagRequestEvent(patient));
         }
 
         Refresh();
@@ -150,7 +155,7 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
         }
 
         rows.Sort((a, b) => Compare(a.Entry, a.Distance, b.Entry, b.Distance, now));
-        _window.Populate(rows);
+        _window.Populate(rows, HasComp<FSCmoPanelComponent>(_player.LocalEntity));
     }
 
     public override void FrameUpdate(float frameTime)

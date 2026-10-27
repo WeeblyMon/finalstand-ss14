@@ -11,7 +11,7 @@ namespace Content.Client._FinalStand.WaveHud;
 public sealed partial class WaveHudOverlay
 {
     public readonly record struct TriageRow(string Name, string State, Color StateColor, string Range,
-        string? Responder, Vector2? Direction, FSAilmentPips Pips, string Needs);
+        string? Responder, Vector2? Direction, FSAilmentPips Pips, string Needs, bool Priority);
 
     public readonly List<TriageRow> TriageRows = new();
 
@@ -84,12 +84,23 @@ public sealed partial class WaveHudOverlay
         foreach (var row in TriageRows)
         {
             var textY = y + 1f;
+            var chipX = innerX;
+
+            if (row.Priority)
+            {
+                const string priority = "P1";
+                var priorityW = screen.GetDimensions(_labelFont!, priority, 1f).X + TriageChipPad * 2f;
+                var priorityChip = new UIBox2(chipX, y, chipX + priorityW, y + lineH);
+                DrawRounded(screen, priorityChip, FSPalette.Money, 2f);
+                screen.DrawString(_labelFont!, new Vector2(chipX + TriageChipPad, textY), priority, Color.Black);
+                chipX = priorityChip.Right + 3f;
+            }
 
             var chipW = screen.GetDimensions(_labelFont!, row.State, 1f).X + TriageChipPad * 2f;
-            var chip = new UIBox2(innerX, y, innerX + chipW, y + lineH);
+            var chip = new UIBox2(chipX, y, chipX + chipW, y + lineH);
             DrawRounded(screen, chip, FSPalette.CellBack, 2f);
             screen.DrawRect(chip, row.StateColor.WithAlpha(0.6f), filled: false);
-            screen.DrawString(_labelFont!, new Vector2(innerX + TriageChipPad, textY), row.State, row.StateColor);
+            screen.DrawString(_labelFont!, new Vector2(chipX + TriageChipPad, textY), row.State, row.StateColor);
 
             var tail = row.Range;
             var tailW = screen.GetDimensions(_labelFont!, tail, 1f).X;
