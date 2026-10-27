@@ -101,7 +101,7 @@ public sealed partial class HealingSystem : EntitySystem
             && !curing)
             return;
 
-        var appliedEv = new FSTopicalAppliedEvent(args.Args.User, target.Owner, args.Used.Value, stoppedBleed > 0f);
+        var appliedEv = new FSTopicalAppliedEvent(args.Args.User, target.Owner);
         RaiseLocalEvent(target.Owner, ref appliedEv);
         _cures.Treated(args.Used.Value, target.Owner, args.User, stoppedBleed);
 
