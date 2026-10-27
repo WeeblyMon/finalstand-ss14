@@ -6,6 +6,10 @@
   suffix: Devastator
   name: devastator zombie
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Bleeding: 3
+    examine: fs-signature-devastator
   - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/devastatorzombie.png

@@ -23,6 +23,9 @@ public sealed partial class FSCmoPanelComponent : Component
 
     [DataField, AutoNetworkedField]
     public bool DividendUnlocked;
+
+    [DataField, AutoNetworkedField]
+    public string? Forecast;
 }
 
 [Serializable, NetSerializable]

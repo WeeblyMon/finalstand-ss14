@@ -63,6 +63,8 @@ public sealed partial class FSCmoPanelController : UIController
     private PanelContainer? _frame;
     private BoxContainer? _directiveRow;
     private BoxContainer? _abilityRow;
+    private RichTextLabel? _forecast;
+    private string? _shownForecast;
     private InventoryGui? _inventory;
     private HotbarGui? _hotbar;
     private bool _narrow;
@@ -108,6 +110,13 @@ public sealed partial class FSCmoPanelController : UIController
             StyleClasses = { "LabelSubText" },
             HorizontalAlignment = Control.HAlignment.Center,
         });
+        _forecast = new RichTextLabel
+        {
+            MaxWidth = 300,
+            Margin = new Thickness(2, 3, 2, 0),
+            Visible = false,
+        };
+        rows.AddChild(_forecast);
         rows.AddChild(_directiveRow);
         rows.AddChild(_abilityRow);
 
@@ -230,6 +239,8 @@ public sealed partial class FSCmoPanelController : UIController
         _frame = null;
         _directiveRow = null;
         _abilityRow = null;
+        _forecast = null;
+        _shownForecast = null;
         _inventory = null;
         _hotbar = null;
         _buttons.Clear();
@@ -255,7 +266,19 @@ public sealed partial class FSCmoPanelController : UIController
         _frame.Visible = true;
 
         UpdateButtons(panel);
+        UpdateForecast(panel.Forecast);
         UpdatePlacement();
+    }
+
+    private void UpdateForecast(string? forecast)
+    {
+        if (_forecast == null || forecast == _shownForecast)
+            return;
+
+        _shownForecast = forecast;
+        _forecast.Visible = forecast != null;
+        if (forecast != null)
+            _forecast.SetMessage(FormattedMessage.FromMarkupPermissive(forecast));
     }
 
     private void UpdateButtons(FSCmoPanelComponent panel)

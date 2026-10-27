@@ -48,3 +48,20 @@ fs-analyzer-regen-waiting = starts after 6 s without damage
 fs-analyzer-chemicals = [bold]Chemicals[/bold]  {$list}
 fs-analyzer-reagent-safe = {$name} {$amount}u (safe)
 fs-analyzer-reagent-unsafe = [color=#c08a3e]{$name} {$amount}u (overdose)[/color]
+fs-signature-runner = [color=#b3402f]Its claws open a wound with every hit.[/color]
+fs-signature-giant = [color=#dfdcd7]Its slam, charge and boulders break bones.[/color]
+fs-signature-bloater = [color=#a8b83a]When it bursts, its bile soaks everyone close by.[/color]
+fs-signature-flamethrower = [color=#d9702e]Its fire leaves burns that stop you healing.[/color]
+fs-signature-devastator = [color=#b3402f]Its chainsaw causes severe bleeding.[/color]
+fs-signature-revenant = [color=#b3402f]Its blades cause heavy bleeding, and its grab breaks bones.[/color]
+fs-signature-revenant-dark = [color=#b3402f]Its blades cause heavy bleeding.[/color]
+fs-forecast-advice-bleeding = gauze
+fs-forecast-advice-bone = splints, Bone Brace
+fs-forecast-advice-burn = ointment, Kelotane darts, Char Ward
+fs-forecast-advice-bloat = spread out
+fs-forecast-line = {$new ->
+    [true] NEW {$enemy}
+   *[false] {$enemy}
+} → {$ailment}
+fs-forecast-header = [color=#d2a44e]Medical forecast, wave {$wave}:[/color] {$lines}. Bring {$advice}.
+fs-forecast-none = [color=#d2a44e]Medical forecast, wave {$wave}:[/color] nothing new beyond crowd bleeding.

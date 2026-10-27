@@ -6,6 +6,10 @@
   suffix: Bloater
   name: bloater
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Bloater: 0
+    examine: fs-signature-bloater
   - type: FSMaterialDrop
     materials:
     - SheetPlasma1

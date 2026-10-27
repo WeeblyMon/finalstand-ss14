@@ -1,6 +1,7 @@
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Systems;
+using Content.Shared.Examine;
 using Content.Shared.HealthExaminable;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
@@ -52,6 +53,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         SubscribeLocalEvent<FSAilmentStateComponent, FSIncomingHealScaleEvent>(OnIncomingHealScale);
         SubscribeLocalEvent<FSAilmentStateComponent, HealthBeingExaminedEvent>(OnHealthExamined);
         SubscribeLocalEvent<FSAilmentComponent, StatusEffectRemovedEvent>(OnAilmentRemoved);
+        SubscribeLocalEvent<FSSignatureAilmentComponent, ExaminedEvent>(OnSignatureExamined);
     }
 
     public override void Update(float frameTime)
@@ -710,6 +712,11 @@ public sealed partial class FSAilmentSystem : EntitySystem
             return;
 
         _pendingExpiry.Add((args.Target, next));
+    }
+
+    private void OnSignatureExamined(Entity<FSSignatureAilmentComponent> ent, ref ExaminedEvent args)
+    {
+        args.PushMarkup(Loc.GetString(ent.Comp.Examine));
     }
 
     public readonly struct InternalDamageScope(FSAilmentSystem system) : IDisposable

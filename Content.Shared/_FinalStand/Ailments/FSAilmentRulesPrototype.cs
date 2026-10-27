@@ -82,6 +82,12 @@ public sealed partial class FSAilmentSlotInfo
     public LocId Label;
 
     [DataField]
+    public LocId? Name;
+
+    [DataField]
+    public LocId? Advice;
+
+    [DataField]
     public LocId? Need;
 
     [DataField]

@@ -872,6 +872,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.DarkWaveWarningFired = true;
 
         RaiseNetworkEvent(new FSDarkWaveWarningEvent(), Filter.Broadcast());
+        RaiseLocalEvent(new FSDarkWaveWarningEvent());
         AnnounceDarkWave();
 
         if (comp.DarkWaveWarningSound != null)

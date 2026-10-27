@@ -24,6 +24,8 @@
   slots:
     Bleeding:
       label: fs-ailment-bleeding
+      name: fs-ailment-bleeding
+      advice: fs-forecast-advice-bleeding
       pip:
         sprite: _FinalStand/Interface/Ailments/pips.rsi
         state: drop
@@ -38,6 +40,8 @@
       fixed: true
     Bone:
       label: fs-slot-bone
+      name: fs-ailment-broken
+      advice: fs-forecast-advice-bone
       pip:
         sprite: _FinalStand/Interface/Ailments/pips.rsi
         state: bone
@@ -50,6 +54,8 @@
       fixed: true
     Burn:
       label: fs-slot-burn
+      name: fs-ailment-burned
+      advice: fs-forecast-advice-burn
       pip:
         sprite: _FinalStand/Interface/Ailments/pips.rsi
         state: flame
@@ -62,6 +68,8 @@
       fixed: true
     Bloater:
       label: fs-slot-bloat
+      name: fs-ailment-soaked
+      advice: fs-forecast-advice-bloat
       pip:
         sprite: _FinalStand/Interface/Ailments/pips.rsi
         state: drop

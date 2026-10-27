@@ -124,6 +124,10 @@
   suffix: Runner
   name: runner zombie
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Bleeding: 1
+    examine: fs-signature-runner
   - type: FSVaporiseWeak
   - type: FSInjuryOnHit
     injury:
@@ -267,6 +271,10 @@
   # when spawning boss waves, same as normal enemies. MobThresholdsComponent present via
   # inheritance from FSZombieBase → ScaleEnemyHp will apply the correct wave multiplier.
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Bone: 0
+    examine: fs-signature-giant
   - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/giantzombie.png
