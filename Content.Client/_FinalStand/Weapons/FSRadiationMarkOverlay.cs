@@ -1,26 +1,24 @@
 using System.Numerics;
+using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
-using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
 using Robust.Shared.Maths;
-using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Weapons;
 
 public sealed partial class FSRadiationMarkOverlay : Overlay
 {
-    [Dependency] private IResourceCache _resourceCache = default!;
+    private const string SkullIcon = "/Textures/_FinalStand/Interface/HUD/hud_enemies.png";
+    private const float IconPx = 20f;
 
     private readonly IEntityManager _entManager;
     private readonly SharedTransformSystem _transform;
     private readonly MobStateSystem _mobState;
     private readonly SpriteSystem _sprite;
-
-    private Texture? _icon;
 
     private static readonly Color IconColor = new(0.4f, 1.0f, 0.1f, 0.9f);
 
@@ -28,7 +26,6 @@ public sealed partial class FSRadiationMarkOverlay : Overlay
 
     public FSRadiationMarkOverlay(IEntityManager entManager)
     {
-        IoCManager.InjectDependencies(this);
         _entManager = entManager;
         _transform  = entManager.System<SharedTransformSystem>();
         _mobState   = entManager.System<MobStateSystem>();
@@ -44,8 +41,8 @@ public sealed partial class FSRadiationMarkOverlay : Overlay
         var scaleMatrix    = Matrix3Helpers.CreateScale(Vector2.One);
         var rotationMatrix = Matrix3Helpers.CreateRotation(-rotation);
 
-        _icon ??= TryLoadIcon();
-        if (_icon == null)
+        var skull = FSMipmaps.PickInWorld(SkullIcon, args.Viewport, IconPx / EyeManager.PixelsPerMeter);
+        if (skull == null)
             return;
 
         var query = _entManager.EntityQueryEnumerator<FSRadiationMarkComponent, MobStateComponent>();
@@ -70,24 +67,12 @@ public sealed partial class FSRadiationMarkOverlay : Overlay
             handle.SetTransform(matty);
 
             var ppm        = EyeManager.PixelsPerMeter;
-            const float iconPx = 20f;
-            var iconHalf   = iconPx / 2f / ppm;
+            var iconHalf   = IconPx / 2f / ppm;
             var iconBottom = bounds.Height / 2f;
-            var iconBox    = new Box2(-iconHalf, iconBottom, iconHalf, iconBottom + iconPx / ppm);
-            handle.DrawTextureRect(_icon, iconBox, IconColor);
+            var iconBox    = new Box2(-iconHalf, iconBottom, iconHalf, iconBottom + IconPx / ppm);
+            handle.DrawTextureRect(skull, iconBox, IconColor);
         }
 
         handle.SetTransform(Matrix3x2.Identity);
-    }
-
-    private Texture? TryLoadIcon()
-    {
-        try
-        {
-            return _resourceCache
-                .GetResource<TextureResource>(new ResPath("/Textures/_FinalStand/Interface/HUD/hud_enemies.png"))
-                .Texture;
-        }
-        catch { return null; }
     }
 }

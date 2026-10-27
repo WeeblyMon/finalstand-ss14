@@ -21,14 +21,17 @@
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/boomer.png
   - type: FSBoomOnDeath
+    explosionRadius: 4.5
+    explosionDamage: 25
+    causticDamage: 75
     injury:
       poison: true
   - type: MobThresholds
     thresholds:
       0: Alive
-      50: Dead   # 65% of FSZombieNormal HP (75)
+      150: Dead
   - type: FSEnemyValue
-    killCredits: 350
+    killCredits: 800
   - type: Sprite
     drawdepth: Mobs
     sprite: _FinalStand/Mobs/Zombies/Bloater/fat_zombie.rsi

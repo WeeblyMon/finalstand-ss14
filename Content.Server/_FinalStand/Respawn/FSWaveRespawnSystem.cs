@@ -1,10 +1,12 @@
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Respawn;
 using Content.Shared.Administration.Systems;
 using Content.Shared.Buckle;
+using Content.Shared.Destructible;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mind.Components;
@@ -50,6 +52,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
     {
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
+        SubscribeLocalEvent<FSFriendlyFireComponent, DestructionAttemptEvent>(OnPlayerDestruction);
         SubscribeLocalEvent<MindContainerComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
@@ -77,6 +80,9 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev) => PushOffer(ev.Player);
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev) => _lastRequest.Clear();
+
+    private void OnPlayerDestruction(Entity<FSFriendlyFireComponent> ent, ref DestructionAttemptEvent args)
+        => args.Cancel();
 
     private void OnMobStateChanged(EntityUid uid, MindContainerComponent mindContainer, ref MobStateChangedEvent args)
     {

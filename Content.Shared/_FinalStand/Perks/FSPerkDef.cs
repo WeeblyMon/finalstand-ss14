@@ -257,7 +257,7 @@ public sealed class FSPerkDef
                 PctTable("-{0}% Fire Damage", FSPerkBonusConstants.ManOnFireResist)),
 
             new("Bandolier", "Bandolier",
-                "Increases the magazine size of your guns.",
+                "Increases the magazine size of your guns. Does not apply to charge weapons.",
                 PerkCategory.Green,
                 Pct("+{0}% Magazine Size", FSPerkBonusConstants.BandolierPerLevel)),
 

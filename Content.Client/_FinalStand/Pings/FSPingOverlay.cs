@@ -105,7 +105,8 @@ public sealed partial class FSPingOverlay : Overlay
             return;
 
         var at = _input.MouseScreenPosition.Position + new Vector2(16f, -30f);
-        handle.DrawTextureRect(_look.Muted, UIBox2.FromDimensions(at, new Vector2(22f)), FSPalette.DangerSoft);
+        if (FSMipmaps.Pick(FSPingLook.MutedIcon, 22f) is { } muted)
+            handle.DrawTextureRect(muted, UIBox2.FromDimensions(at, new Vector2(22f)), FSPalette.DangerSoft);
         handle.DrawString(_look.Font(9), at + new Vector2(25f, 3f), Loc.GetString("fs-ping-muted", ("seconds", (int) Math.Ceiling(left))), FSPalette.DangerSoft);
     }
 

@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Client._FinalStand.Stylesheets;
+using Content.Client._FinalStand.UI;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.GameTicking;
@@ -134,7 +135,7 @@ public sealed partial class CCCWindow : FancyWindow
                 || iconEntry.Component is not FSEnemyIconComponent iconComp
                 || string.IsNullOrEmpty(iconComp.IconPath))
                 continue;
-            if (!cache.TryGetResource<TextureResource>(iconComp.IconPath, out var texRes))
+            if (!cache.ContentFileExists(iconComp.IconPath))
                 continue;
 
             var displayName = proto.Name.Length > 0
@@ -147,12 +148,11 @@ public sealed partial class CCCWindow : FancyWindow
                 ZombieIconsContainer.AddChild(row);
             }
 
-            row.AddChild(new TextureRect
+            row.AddChild(new FSMipmapRect
             {
-                Texture = texRes.Texture,
+                TexturePath = iconComp.IconPath,
                 SetWidth = IconSize,
                 SetHeight = IconSize,
-                Stretch = TextureRect.StretchMode.KeepAspectCentered,
                 ToolTip = displayName,
                 Margin = new Thickness(0, 0, IconGap, 0),
             });

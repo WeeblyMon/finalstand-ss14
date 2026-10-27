@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Client._FinalStand.Stylesheets;
+using Content.Client._FinalStand.UI;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.Perks;
@@ -25,9 +26,6 @@ public sealed partial class PerkShopWindow : FancyWindow
     private int _prestigeLevel;
 
     private readonly IResourceCache _res;
-    private readonly IClyde _clyde;
-
-    private readonly Dictionary<string, OwnedTexture> _iconCache = new();
 
     private readonly Font _fontSmallBold;
     private readonly Font _fontBody;
@@ -50,7 +48,6 @@ public sealed partial class PerkShopWindow : FancyWindow
         PerkCategory.Yellow, PerkCategory.Purple,
     ];
 
-    private const int CellSize = 64;
     private const int LoadoutCount = 3;
     private const float CompactBelow = 940f;
     private const float DetailWidth = 340f;
@@ -72,7 +69,6 @@ public sealed partial class PerkShopWindow : FancyWindow
         RobustXamlLoader.Load(this);
 
         _res   = IoCManager.Resolve<IResourceCache>();
-        _clyde = IoCManager.Resolve<IClyde>();
 
         ((Control)this).Stylesheet = FSMenuStylesheet.Get(
             IoCManager.Resolve<IUserInterfaceManager>(), _res);
@@ -266,10 +262,9 @@ public sealed partial class PerkShopWindow : FancyWindow
 
         if (def != null && GetPerkIcon(def.Id) is { } icon)
         {
-            panel.AddChild(new TextureRect
+            panel.AddChild(new FSMipmapRect
             {
-                Texture = icon,
-                Stretch = TextureRect.StretchMode.Scale,
+                TexturePath = icon,
                 SetSize = new System.Numerics.Vector2(14, 14),
                 HorizontalAlignment = HAlignment.Center,
                 VerticalAlignment = VAlignment.Center,
@@ -351,8 +346,5 @@ public sealed partial class PerkShopWindow : FancyWindow
         base.Dispose(disposing);
         if (!disposing) return;
         _starterDialog?.Dispose();
-        foreach (var tex in _iconCache.Values)
-            tex.Dispose();
-        _iconCache.Clear();
     }
 }

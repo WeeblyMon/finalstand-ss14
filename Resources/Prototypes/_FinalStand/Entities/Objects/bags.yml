@@ -31,7 +31,11 @@
       - Material
       tags:
       - CableCoil
+    blacklist:
+      tags:
+      - Trash
   - type: Dumpable
+    multiplier: 0.15
 
 - type: entity
   name: construction bag of holding

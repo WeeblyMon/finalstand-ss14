@@ -22,6 +22,9 @@ public sealed partial class FSInventorySearchSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private InventorySystem _inventory = default!;
 
+    public static readonly string[] SearchSlots =
+        ["belt", "suitstorage", "pocket1", "pocket2", "shoes", "back"];
+
     // Every carried item matching protoIds, in hand then slot then backpack order.
     public void Collect(EntityUid player, IReadOnlySet<string> protoIds, List<CarriedItem> results,
         bool requireUpgradeState = false)
@@ -79,25 +82,22 @@ public sealed partial class FSInventorySearchSystem : EntitySystem
             }
         }
 
-        foreach (var slot in FSItemStashSystem.SlotPriority)
+        foreach (var slot in SearchSlots)
         {
             if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
                 continue;
             if (Accept(slotEnt.Value, CarryKind.Equipped, slot, ref first))
                 return;
-        }
+            if (!TryComp<ContainerManagerComponent>(slotEnt.Value, out var cm))
+                continue;
 
-        if (!_inventory.TryGetSlotEntity(player, "back", out var backpack) || backpack == null)
-            return;
-        if (!TryComp<ContainerManagerComponent>(backpack.Value, out var cm))
-            return;
-
-        foreach (var container in cm.Containers.Values)
-        {
-            foreach (var item in container.ContainedEntities)
+            foreach (var container in cm.Containers.Values)
             {
-                if (Accept(item, CarryKind.Backpack, "back", ref first))
-                    return;
+                foreach (var item in container.ContainedEntities)
+                {
+                    if (Accept(item, CarryKind.Backpack, slot, ref first))
+                        return;
+                }
             }
         }
     }

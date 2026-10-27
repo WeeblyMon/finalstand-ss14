@@ -181,7 +181,7 @@
   - type: MobThresholds
     thresholds:
       0: Alive
-      150: Dead
+      500: Dead
   - type: MovementSpeedModifier
     baseWalkSpeed: 1.9
     baseSprintSpeed: 2.4
@@ -192,13 +192,20 @@
         Slash: 0.6
         Piercing: 0.7
   - type: FSEnemyValue
-    killCredits: 300
+    killCredits: 900
   - type: FSMoneyOnHitCap
-    maxMoneyPerPlayer: 750
+    maxMoneyPerPlayer: 1500
   - type: FSArmor
-    maxHPRatio: 1.0
+    maxHPRatio: 0.6
     regenRate: 10
   - type: FSArmouredDeflect
+    stanceDuration: 3
+    vulnerableDuration: 5
+    shrapnelRange: 6
+    shrapnelCount: 8
+    shrapnelSpeed: 30
+    shrapnelDamageFraction: 1.0
+    maxShardDamage: 30
   - type: PointLight
     enabled: false
     color: "#AAAAAA"

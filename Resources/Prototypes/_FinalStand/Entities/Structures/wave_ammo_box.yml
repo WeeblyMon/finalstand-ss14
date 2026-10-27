@@ -14,6 +14,7 @@
     drawdepth: WallMountedItems
     sprite: _FinalStand/Structures/wave_ammo_box.rsi
     state: base
+  - type: FSPlayerDamageImmune
   - type: Destructible
     thresholds:
     - trigger:

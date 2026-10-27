@@ -141,6 +141,20 @@
     Steel: 1
 
 - type: fsBuildRecipe
+  id: TubeLight
+  station: true
+  materials:
+    Steel: 1
+    Glass: 1
+
+- type: fsBuildRecipe
+  id: BulbLight
+  station: true
+  materials:
+    Steel: 1
+    Glass: 1
+
+- type: fsBuildRecipe
   id: Airlock
   station: true
   materials:
