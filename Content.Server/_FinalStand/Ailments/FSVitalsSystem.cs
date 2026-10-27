@@ -2,10 +2,12 @@ using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Ailments;
@@ -21,7 +23,7 @@ public sealed partial class FSVitalsSystem : EntitySystem
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
 
     private readonly List<Entity<FSAilmentStateComponent, DamageableComponent>> _patients = new();
-    private readonly List<(string Type, FixedPoint2 Amount)> _types = new();
+    private readonly List<(ProtoId<DamageTypePrototype> Type, FixedPoint2 Amount)> _types = new();
     private TimeSpan _nextTick;
 
     public override void Initialize()
