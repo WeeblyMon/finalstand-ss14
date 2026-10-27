@@ -3,6 +3,7 @@ using Content.Client._FinalStand.Ailments;
 using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using Robust.Client.Graphics;
+using Content.Shared.GameTicking;
 using Robust.Client.Player;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
@@ -112,6 +113,20 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
 
         if (ev.Open)
         {
+        SubscribeNetworkEvent<FSMedicalStatusEvent>(OnMedicalStatus);
+        SubscribeNetworkEvent<RoundRestartCleanupEvent>(_ => Clear());
+    }
+
+    private void OnMedicalStatus(FSMedicalStatusEvent ev)
+    {
+        if (!ev.IsMedical)
+            Clear();
+    }
+
+    private void Clear()
+    {
+        _entries = new();
+        _window?.Close();
             Toggle();
             return;
         }
