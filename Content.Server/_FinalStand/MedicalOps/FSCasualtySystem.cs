@@ -50,7 +50,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<FSCasualtyBoardActionEvent>(OnBoardAction);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
@@ -97,12 +96,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
         _priority.Clear();
         _tagReadyAt.Clear();
         _nextBroadcast = TimeSpan.Zero;
-    }
-
-    private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
-    {
-        if (ev.JobId == FSMedicalRosterSystem.DoctorJob)
-            EnsureComp<FSSteadyHandsComponent>(ev.Mob);
     }
 
     private void OnBoardAction(FSCasualtyBoardActionEvent args)
