@@ -95,7 +95,6 @@
       pip:
         sprite: _FinalStand/Interface/Ailments/pips.rsi
         state: heart
-      need: fs-need-defib
       fixIcon:
         sprite: Objects/Specific/Medical/defib.rsi
         state: icon
