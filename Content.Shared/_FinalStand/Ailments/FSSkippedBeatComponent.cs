@@ -1,9 +1,10 @@
 using Robust.Shared.Audio;
+using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Ailments;
 
-[RegisterComponent, AutoGenerateComponentPause]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSSkippedBeatComponent : Component
 {
     [DataField]
@@ -24,6 +25,6 @@ public sealed partial class FSSkippedBeatComponent : Component
     [DataField]
     public SoundSpecifier? Sound;
 
-    [DataField, AutoPausedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan NextBeat;
 }
