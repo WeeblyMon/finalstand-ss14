@@ -16,30 +16,26 @@ namespace Content.Server._FinalStand.Mobs;
 
 public sealed partial class FSRevenantSystem
 {
+    public float DealSlash(EntityUid target, float amount, float bypass, EntityUid origin)
+    {
+        var pierced = amount * Math.Clamp(bypass, 0f, 1f);
+        return Slash(target, amount - pierced, false, origin) + Slash(target, pierced, true, origin);
+    }
+
+    private float Slash(EntityUid target, float amount, bool ignoreResistances, EntityUid origin)
+    {
+        if (amount <= 0f)
+            return 0f;
+
+        var dmg = new DamageSpecifier();
+        dmg.DamageDict["Slash"] = FixedPoint2.New(amount);
+        _damageable.TryChangeDamage(target, dmg, out var landed, ignoreResistances: ignoreResistances, origin: origin);
+        return landed.GetTotal().Float();
+    }
+
     private float ApplyAbilityDamage(EntityUid uid, FSRevenantComponent comp, EntityUid target, float amount)
     {
-        var scaled = amount * GetDamageScale(uid);
-        var pierced = scaled * Math.Clamp(comp.ResistanceBypass, 0f, 1f);
-        var resisted = scaled - pierced;
-        var dealt = 0f;
-
-        if (resisted > 0f)
-        {
-            var dmg = new DamageSpecifier();
-            dmg.DamageDict["Slash"] = FixedPoint2.New(resisted);
-            _damageable.TryChangeDamage(target, dmg, out var landed, ignoreResistances: false, origin: uid);
-            dealt += landed.GetTotal().Float();
-        }
-
-        if (pierced > 0f)
-        {
-            var dmg = new DamageSpecifier();
-            dmg.DamageDict["Slash"] = FixedPoint2.New(pierced);
-            _damageable.TryChangeDamage(target, dmg, out var landed, ignoreResistances: true, origin: uid);
-            dealt += landed.GetTotal().Float();
-        }
-
-        return dealt;
+        return DealSlash(target, amount * GetDamageScale(uid), comp.ResistanceBypass, uid);
     }
 
     private float GetDamageScale(EntityUid uid)
