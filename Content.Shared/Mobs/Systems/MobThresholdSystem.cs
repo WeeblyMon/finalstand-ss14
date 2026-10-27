@@ -334,19 +334,6 @@ public sealed partial class MobThresholdSystem : EntitySystem
         VerifyThresholds(uid, component);
     }
 
-    /// <summary>
-    /// Returns the fraction of damage towards the dead threshold (0–1). Used by health analyzer UI.
-    /// </summary>
-    public FixedPoint2 CheckVitalDamage(EntityUid target, DamageableComponent damageable)
-    {
-        if (!TryGetDeadThreshold(target, out var threshold))
-            return FixedPoint2.Zero;
-        if (threshold.Value <= FixedPoint2.Zero)
-            return FixedPoint2.New(1);
-        var total = damageable.TotalDamage;
-        return total >= threshold.Value ? FixedPoint2.New(1) : total / threshold.Value;
-    }
-
     #endregion
 
     #region Private Implementation
