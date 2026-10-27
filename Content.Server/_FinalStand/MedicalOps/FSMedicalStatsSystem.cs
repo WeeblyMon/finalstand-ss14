@@ -50,7 +50,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _topicalsPaid = new();
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _curesPaid = new();
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), FSMedicalLine> _linesThisTick = new();
-    private readonly Dictionary<EntityUid, int> _massPaidThisTick = new();
+    private readonly Dictionary<EntityUid, (int Count, TimeSpan Until)> _massPaid = new();
     private readonly Dictionary<(string Job, string Source), (int Credits, int Fund)> _waveIncome = new();
     private GameTick _payTick;
 
@@ -86,7 +86,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         _topicalsPaid.Clear();
         _curesPaid.Clear();
         _linesThisTick.Clear();
-        _massPaidThisTick.Clear();
+        _massPaid.Clear();
         _waveIncome.Clear();
     }
 
@@ -281,12 +281,15 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private bool TakeMassSlot(EntityUid medicMind)
     {
-        RollPayTick();
-        var used = _massPaidThisTick.GetValueOrDefault(medicMind);
-        if (used >= FSMedicalPayoutRates.MassClearPatientsPaid)
+        var now = _timing.CurTime;
+        var slot = _massPaid.TryGetValue(medicMind, out var open) && open.Until > now
+            ? open
+            : (Count: 0, Until: now + FSMedicalPayoutRates.MassClearWindow);
+
+        if (slot.Count >= FSMedicalPayoutRates.MassClearPatientsPaid)
             return false;
 
-        _massPaidThisTick[medicMind] = used + 1;
+        _massPaid[medicMind] = (slot.Count + 1, slot.Until);
         return true;
     }
 
@@ -329,7 +332,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         _payTick = _timing.CurTick;
         _linesThisTick.Clear();
-        _massPaidThisTick.Clear();
     }
 
     private static bool IsDownward(MobState oldState, MobState newState)

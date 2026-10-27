@@ -33,6 +33,7 @@ public static class FSMedicalPayoutRates
     public const int TopicalsPaidPerPatientPerWave = 6;
     public const int CuresPaidPerPatientPerWave = 4;
     public const int MassClearPatientsPaid = 4;
+    public static readonly TimeSpan MassClearWindow = TimeSpan.FromSeconds(3);
 
     public static readonly IReadOnlyDictionary<string, float> JobMultipliers = new Dictionary<string, float>
     {
