@@ -13,7 +13,6 @@ using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Projectiles;
-using Content.Shared.Stunnable;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Systems;
 using Microsoft.Extensions.ObjectPool;
@@ -40,7 +39,6 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
-    [Dependency] private SharedStunSystem _stun = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
     [Dependency] private IGameTiming _timing = default!;

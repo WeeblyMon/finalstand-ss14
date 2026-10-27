@@ -1,7 +1,6 @@
 using System.Linq;
 using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.Actions;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
@@ -23,7 +22,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private DamageableSystem _damageable = default!;

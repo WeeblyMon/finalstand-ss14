@@ -10,7 +10,6 @@ namespace Content.Server._FinalStand.Perks;
 public sealed partial class FSCargonianSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
-    [Dependency] private MovementSpeedModifierSystem _movement = default!;
 
     private static readonly float[] Counters = [1.018f, 1.034f, 1.053f, 1.053f];
     private static readonly TimeSpan SyncInterval = TimeSpan.FromSeconds(3);

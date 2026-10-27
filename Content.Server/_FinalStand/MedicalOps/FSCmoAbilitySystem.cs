@@ -99,8 +99,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private FSMedicalDirective? _activeDirective;
 
-    public FSMedicalDirective? ActiveDirective => _activeDirective;
-
     private void SetActiveDirective(FSMedicalDirective? directive)
     {
         _activeDirective = directive;

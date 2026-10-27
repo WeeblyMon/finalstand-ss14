@@ -23,11 +23,7 @@ public sealed partial class FSStaunchBleedingSystem : EntityEffectSystem<FSFrien
     }
 }
 
-public sealed partial class FSStaunchBleeding : EntityEffectBase<FSStaunchBleeding>
-{
-    [DataField]
-    public float Amount = 3f;
-}
+public sealed partial class FSStaunchBleeding : EntityEffectBase<FSStaunchBleeding>;
 
 public sealed partial class FSApplyArmorPiercingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSApplyArmorPiercing>
 {

@@ -8,7 +8,6 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
-using Robust.Server.Player;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Player;
@@ -26,7 +25,6 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     [Dependency] private FSCasualtySystem _casualty = default!;
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private IPlayerManager _players = default!;
     [Dependency] private FSAilmentSystem _ailments = default!;
 
     private static readonly EntProtoId PingActionProto = "FSMedicPingAction";
