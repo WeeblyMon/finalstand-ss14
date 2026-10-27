@@ -10,6 +10,8 @@ namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class WaveHudOverlay
 {
+    private readonly string _priorityText = Loc.GetString("fs-casualty-priority");
+
     public readonly record struct TriageRow(string Name, string State, Color StateColor, string Range,
         string? Responder, Vector2? Direction, FSAilmentPips Pips, string Needs, bool Priority);
 
@@ -88,7 +90,7 @@ public sealed partial class WaveHudOverlay
 
             if (row.Priority)
             {
-                const string priority = "P1";
+                var priority = _priorityText;
                 var priorityW = screen.GetDimensions(_labelFont!, priority, 1f).X + TriageChipPad * 2f;
                 var priorityChip = new UIBox2(chipX, y, chipX + priorityW, y + lineH);
                 DrawRounded(screen, priorityChip, FSPalette.Money, 2f);

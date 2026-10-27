@@ -1,9 +1,10 @@
 using System.Numerics;
 using Content.Client._FinalStand.Ailments;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
-using Robust.Client.Graphics;
 using Content.Shared.GameTicking;
+using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
@@ -75,6 +76,13 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
         };
     }
 
+    public static Color StateColor(FSCasualtyEntry entry) => entry.State switch
+    {
+        FSCasualtyState.Critical => entry.Held ? FSPalette.Ok : FSPalette.Danger,
+        FSCasualtyState.Dead => FSPalette.TextDim,
+        _ => FSPalette.Warn,
+    };
+
     public static string FormatClock(TimeSpan left)
     {
         var seconds = FSAilmentVisualsSystem.Seconds(left);
@@ -105,14 +113,6 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
         base.Initialize();
 
         SubscribeNetworkEvent<FSCasualtyBoardEvent>(OnBoard);
-    }
-
-    private void OnBoard(FSCasualtyBoardEvent ev)
-    {
-        _entries = ev.Entries;
-
-        if (ev.Open)
-        {
         SubscribeNetworkEvent<FSMedicalStatusEvent>(OnMedicalStatus);
         SubscribeNetworkEvent<RoundRestartCleanupEvent>(_ => Clear());
     }
@@ -127,6 +127,14 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
     {
         _entries = new();
         _window?.Close();
+    }
+
+    private void OnBoard(FSCasualtyBoardEvent ev)
+    {
+        _entries = ev.Entries;
+
+        if (ev.Open)
+        {
             Toggle();
             return;
         }

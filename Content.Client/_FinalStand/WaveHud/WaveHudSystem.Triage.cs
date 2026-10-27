@@ -1,6 +1,5 @@
 // Feeds the triage panel from the casualty board's pushed list.
 using System.Numerics;
-using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
 
@@ -42,7 +41,7 @@ public sealed partial class WaveHudSystem
             overlay.TriageRows.Add(new WaveHudOverlay.TriageRow(
                 entry.Name,
                 _board.StateLabel(entry, now),
-                StateColor(entry),
+                FSCasualtyBoardSystem.StateColor(entry),
                 range is { } r ? $"{(int) r}m" : string.Empty,
                 entry.Responder,
                 dir,
@@ -51,11 +50,4 @@ public sealed partial class WaveHudSystem
                 entry.Priority));
         }
     }
-
-    private static Color StateColor(FSCasualtyEntry entry) => entry.State switch
-    {
-        FSCasualtyState.Critical => entry.Held ? FSPalette.Ok : FSPalette.Warn,
-        FSCasualtyState.Dead => FSPalette.Danger,
-        _ => FSPalette.TextMuted,
-    };
 }
