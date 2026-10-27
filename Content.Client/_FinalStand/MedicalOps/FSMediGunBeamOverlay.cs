@@ -168,18 +168,26 @@ public sealed class FSMediGunBeamOverlay : Overlay
         DrawParticles(handle, start, control, end, time, gun.BeamColor);
 
         if (gun.ParentEntity == _player.LocalEntity)
-            DrawPatientStatus(handle, patient, end);
+            DrawPatientStatus(handle, patient, end, args.Viewport.Eye?.Rotation ?? Angle.Zero);
     }
 
-    private void DrawPatientStatus(DrawingHandleWorld handle, EntityUid patient, Vector2 end)
+    private void DrawPatientStatus(DrawingHandleWorld handle, EntityUid patient, Vector2 end, Angle eyeRotation)
     {
+        handle.SetTransform(Matrix3x2.Multiply(Matrix3Helpers.CreateRotation(-eyeRotation), Matrix3Helpers.CreateTranslation(end)));
+
         var pips = _ailments.GetPips(patient);
         if (pips != FSAilmentPips.None)
         {
-            var origin = end + new Vector2(-FSAilmentVisualsSystem.Count(pips) * PipMeters / 2f, PipLift);
+            var origin = new Vector2(-FSAilmentVisualsSystem.Count(pips) * PipMeters / 2f, PipLift);
             _ailmentVisuals.DrawWorldPips(handle, origin, pips, PipMeters);
         }
 
+        DrawMend(handle, patient);
+        handle.SetTransform(Matrix3x2.Identity);
+    }
+
+    private void DrawMend(DrawingHandleWorld handle, EntityUid patient)
+    {
         if (!_entManager.TryGetComponent(patient, out FSAilmentStateComponent? vitals))
             return;
 
@@ -195,7 +203,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
         }
 
         if (mending is { } mendSlot)
-            FSAilmentVisualsSystem.DrawArc(handle, end, MendRadius, fill / 10f, FSAilmentVisualsSystem.SlotColor(mendSlot));
+            FSAilmentVisualsSystem.DrawArc(handle, Vector2.Zero, MendRadius, fill / 10f, FSAilmentVisualsSystem.SlotColor(mendSlot));
     }
 
     private void DrawRibbon(DrawingHandleWorld handle, Texture beam, Vector2 start, Vector2 control, Vector2 end,
