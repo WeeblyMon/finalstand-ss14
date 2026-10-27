@@ -92,6 +92,9 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
     public string NeedsLabel(FSCasualtyEntry entry)
     {
         var parts = new List<string>();
+        if (entry.NeedsDefib)
+            parts.Add(Loc.GetString("fs-need-defib"));
+
         foreach (var slot in FSAilmentVisualsSystem.Slots)
         {
             if (FSAilmentVisualsSystem.Has(entry.Needs, slot)
@@ -101,9 +104,6 @@ public sealed partial class FSCasualtyBoardSystem : EntitySystem
                 parts.Add(Loc.GetString(need));
             }
         }
-
-        if (entry.NeedsDefib)
-            parts.Add(Loc.GetString("fs-need-defib"));
 
         return string.Join(" ", parts);
     }

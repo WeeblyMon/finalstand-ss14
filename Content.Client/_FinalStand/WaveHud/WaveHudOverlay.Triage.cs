@@ -133,8 +133,10 @@ public sealed partial class WaveHudOverlay
                     if (detailX > innerX)
                         detailX += 4f;
 
-                    screen.DrawString(_labelFont!, new Vector2(detailX, detailY + 1f), row.Needs, FSPalette.Money);
-                    detailX += screen.GetDimensions(_labelFont!, row.Needs, 1f).X;
+                    var room = innerRight - detailX;
+                    var needs = Fit(screen, _labelFont!, row.Needs, row.Responder == null ? room : room * 0.5f);
+                    screen.DrawString(_labelFont!, new Vector2(detailX, detailY + 1f), needs, FSPalette.Money);
+                    detailX += screen.GetDimensions(_labelFont!, needs, 1f).X;
                 }
 
                 if (row.Responder is { } responder)
