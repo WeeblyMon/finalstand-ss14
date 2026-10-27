@@ -1,0 +1,80 @@
+<Document>
+# Injuries
+
+You have one health bar and, on top of it, a few named injuries called [bold]ailments[/bold]. Every ailment ends on its own. Items anyone can carry end it sooner, and medics end it faster, from range, for several people at once, or stop it before it lands.
+
+## Reading your HUD
+
+Three slots always sit under your health bar: [color=#b3402f]BLEEDING[/color], [color=#dfdcd7]BONE[/color] and [color=#d9702e]BURN[/color]. A dim slot is empty. Each lit slot shows the item that fixes it.
+
+- An outline filling a slot means that ailment is building up. Get out of the crowd or the fire before it fills.
+- A [color=#7e9464]green-edged[/color] slot is a ward: that ailment cannot land while it lasts.
+- [color=#7e9464]REGEN[/color] shows while you heal on your own. [color=#7e9464]RECOVERING[/color] shows inside a field hospital tent.
+- The two ticks on your health bar mark where passive healing stops (50%) and where the medigun and the tent stop (70%).
+
+## Bleeding
+
+<Box>
+<GuideEntityEmbed Entity="Gauze"/>
+<GuideEntityEmbed Entity="FSBoneStapler"/>
+</Box>
+
+[bold]Cause:[/bold] being surrounded by zombies, runner claws, a devastator's chainsaw, a revenant's blades.
+
+[bold]Effect:[/bold] 0.5 health a second for each pip, up to three pips. No passive healing while it lasts. One pip clots every 15 seconds, but never while you are down.
+
+[bold]Fix:[/bold] gauze stops it at once. A doctor's stapler closes two or three pips instantly. The medigun clots a pip every 2 seconds; tranexamic acid and coagulant mist also stop it.
+
+## Broken bone
+
+<Box>
+<GuideEntityEmbed Entity="FSSplint"/>
+</Box>
+
+[bold]Cause:[/bold] a giant's slam, charge or boulder. From wave 15, a revenant's grab.
+
+[bold]Effect:[/bold] 35% slower. After 30 seconds the bone sets itself and becomes [bold]splinted[/bold]: 15% slower, healing on its own in 90 seconds.
+
+[bold]Fix:[/bold] a splint turns it into a splinted bone at once. A doctor's stapler clears either state instantly. The medigun can set bones once Bone-Knitter Beam is researched.
+
+## Burned
+
+<Box>
+<GuideEntityEmbed Entity="Ointment"/>
+</Box>
+
+[bold]Cause:[/bold] standing in fire. About 5 heat damage taken while you burn is enough.
+
+[bold]Effect:[/bold] no passive healing for 45 seconds. Bandages, the medigun and the medi-drone heal you at half speed. Chemicals, defibrillators and perks are not affected.
+
+[bold]Fix:[/bold] ointment, aloe cream or regenerative mesh. A kelotane or dermaline dart clears it on the first dose.
+
+## Soaked
+
+[bold]Cause:[/bold] a bloater bursting within 3 metres.
+
+[bold]Effect:[/bold] slower, and you take double damage for 5 seconds. It cannot be treated; spread out and kill bloaters from range.
+
+## Down
+
+When your health runs out you go [color=#b3402f]DOWN[/color] and the number on your HUD becomes a clock: [bold]DOWN 0:41[/bold] means 41 seconds until death at the current rate. Bleeding makes the clock run faster, so [bold]gauze a downed bleeder first[/bold]. [color=#7e9464]HELD[/color] means someone is keeping you alive.
+
+Any heal that brings you back over the line stands you up. A defibrillator brings the dead back down, with about 40 seconds on the clock.
+
+## Wards
+
+A chemist's [bold]Bone Brace[/bold] stops broken bones for 60 seconds and a [bold]Char Ward[/bold] stops burns for 45 seconds. With Clotting Gauze researched, gauze and tranexamic acid leave you [bold]clotted[/bold] for 20 seconds.
+
+## The field hospital
+
+<Box>
+<GuideEntityEmbed Entity="FSFieldHospitalItem"/>
+</Box>
+
+Stand within 2 metres of a deployed tent. Every ailment you have mends at once and clears after 8 seconds, and you heal up to 70% health. It does not heal you while you are down or burned.
+
+## Two rules
+
+- A hit that deals less than 5 damage after armour and shields never causes an ailment.
+- Every ailment clears when the prep phase starts.
+</Document>

@@ -4,6 +4,8 @@
   name: bone stapler
   description: Drives a brace into a broken bone and sets it on the spot. With no bone to fix, it staples a heavy bleed shut.
   components:
+  - type: GuideHelp
+    guides: [ FSInjuries ]
   - type: Sprite
     sprite: _FinalStand/Objects/Medical/bone_stapler.rsi
     state: icon

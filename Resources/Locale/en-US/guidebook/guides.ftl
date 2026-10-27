@@ -208,3 +208,4 @@ guide-entry-writing = Writing
 guide-entry-glossary = Glossary
 guide-entry-fs-enemies = Enemies
 guide-entry-fs-chemist = Chemist
+guide-entry-fs-injuries = Injuries

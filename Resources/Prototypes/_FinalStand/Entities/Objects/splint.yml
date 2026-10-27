@@ -5,6 +5,8 @@
   description: Two padded slats and a cloth wrap. Sets a broken bone so it only slows you a little while it heals.
   suffix: Full
   components:
+  - type: GuideHelp
+    guides: [ FSInjuries ]
   - type: Sprite
     sprite: _FinalStand/Objects/Medical/splint.rsi
     state: icon

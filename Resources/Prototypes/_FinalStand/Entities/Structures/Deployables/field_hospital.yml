@@ -4,6 +4,8 @@
   name: field hospital kit
   description: A folded medical tent. Pitch it anywhere and anyone resting beside it mends. Press Z to aim a placement, click to deploy.
   components:
+  - type: GuideHelp
+    guides: [ FSInjuries ]
   - type: Item
     size: Large
   - type: Sprite
@@ -25,6 +27,8 @@
   description: A pitched medical tent. Stay within two metres of it and your injuries mend while you rest.
   categories: [ HideSpawnMenu ]
   components:
+  - type: GuideHelp
+    guides: [ FSInjuries ]
   - type: Sprite
     sprite: _FinalStand/Structures/field_hospital.rsi
     state: tent
