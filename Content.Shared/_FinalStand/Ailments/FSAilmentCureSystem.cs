@@ -86,7 +86,7 @@ public sealed partial class FSAilmentCureSystem : EntitySystem
         if (!self)
             _popup.PopupEntity(Loc.GetString("fs-splint-start", ("user", Identity.Entity(user, EntityManager))), patient, patient, PopupType.Medium);
 
-        var delay = self ? splint.Comp.SelfDelay : GetTreatmentDelay(user, patient, splint.Comp.Delay);
+        var delay = GetTreatmentDelay(user, patient, self ? splint.Comp.SelfDelay : splint.Comp.Delay);
         _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, delay, new FSSplintDoAfterEvent(), splint, target: patient, used: splint)
         {
             NeedHand = true,
