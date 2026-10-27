@@ -31,13 +31,11 @@ namespace Content.Server.Body.Systems;
 [UsedImplicitly]
 public sealed partial class RespiratorSystem : EntitySystem
 {
-    [Dependency] private Content.Shared.Body.BodySystem _vanillaBody = default!;
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private IGameTiming _gameTiming = default!;
-    [Dependency] private IPrototypeManager _protoMan = default!;
     [Dependency] private AlertsSystem _alertsSystem = default!;
     [Dependency] private AtmosphereSystem _atmosSys = default!;
-    [Dependency] private BodyAppearanceSystem _body = default!;
+    [Dependency] private BodySystem _body = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private DamageableSystem _damageableSys = default!;
     [Dependency] private LungSystem _lungSystem = default!;
@@ -57,11 +55,11 @@ public sealed partial class RespiratorSystem : EntitySystem
         SubscribeLocalEvent<RespiratorComponent, ApplyMetabolicMultiplierEvent>(OnApplyMetabolicMultiplier);
 
         // BodyComp stuff
-        SubscribeLocalEvent<BodyComponent, InhaledGasEvent>(_vanillaBody.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, ExhaledGasEvent>(_vanillaBody.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, CanMetabolizeGasEvent>(_vanillaBody.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, SuffocationEvent>(_vanillaBody.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, StopSuffocatingEvent>(_vanillaBody.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, InhaledGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, ExhaledGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, CanMetabolizeGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, SuffocationEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, StopSuffocatingEvent>(_body.RelayEvent);
 
         SubscribeLocalEvent<LungComponent, BodyRelayedEvent<InhaledGasEvent>>(OnGasInhaled);
         SubscribeLocalEvent<LungComponent, BodyRelayedEvent<ExhaledGasEvent>>(OnGasExhaled);
@@ -288,7 +286,7 @@ public sealed partial class RespiratorSystem : EntitySystem
         float saturation = 0;
         foreach (var (id, quantity) in solution.Contents)
         {
-            var reagent = _protoMan.Index<ReagentPrototype>(id.Prototype);
+            var reagent = ProtoMan.Index<ReagentPrototype>(id.Prototype);
             if (reagent.Metabolisms == null)
                 continue;
 
