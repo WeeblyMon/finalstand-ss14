@@ -50,6 +50,9 @@ public sealed partial class FSAutoStartSystem : EntitySystem
         _cfg.SetCVar(CCVars.ArrivalsShuttles, false); // Arrivals shuttle not used, players spawn via cryo
         // Grid fill brings the cargo shuttle and trading station; the station spawns nothing else.
         _cfg.SetCVar(CCVars.GridFill, true);
+        // No evac in Final Stand. The packaged config auto-calls the shuttle 90 minutes in, which ends the round.
+        _cfg.SetCVar(CCVars.EmergencyShuttleAutoCallTime, 0);
+        _cfg.SetCVar(CCVars.EmergencyShuttleEnabled, false);
         _ticker.SetGamePreset(preset);
         Log.Info("FinalStand preset and map applied. Waiting for startround.");
     }
