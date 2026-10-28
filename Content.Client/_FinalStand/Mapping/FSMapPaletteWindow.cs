@@ -8,6 +8,7 @@ using Content.Shared.Maps;
 using Robust.Client.Graphics;
 using Robust.Client.Placement;
 using Robust.Client.ResourceManagement;
+using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Client.GameObjects;
@@ -34,6 +35,9 @@ public sealed class FSMapPaletteWindow : DefaultWindow
     private Button _eraseEntity = default!;
     private Button _eraseTile = default!;
     private OptionButton _placementMode = default!;
+
+    private const float RailWidth = 5f;
+    private const float RailGap = 3f;
 
     private BoxContainer _decalControls = default!;
     private ColorSelectorSliders _decalColorPicker = default!;
@@ -553,11 +557,22 @@ public sealed class FSMapPaletteWindow : DefaultWindow
     {
         if (expanded)
         {
-            if (button.Prototype?.Children != null)
+            if (button.Prototype?.Children is { } children)
             {
-                foreach (var child in button.Prototype.Children)
+                var wrapper = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
+                var stack = new BoxContainer
                 {
-                    _list.Insert(button.ChildrenPrototypes, child, true);
+                    Orientation = BoxContainer.LayoutOrientation.Vertical,
+                    HorizontalExpand = true,
+                };
+
+                wrapper.AddChild(MakeCollapseRail(button));
+                wrapper.AddChild(stack);
+                button.ChildrenPrototypes.AddChild(wrapper);
+
+                foreach (var child in children)
+                {
+                    _list.Insert(stack, child, true);
                 }
             }
 
@@ -568,6 +583,32 @@ public sealed class FSMapPaletteWindow : DefaultWindow
             button.ChildrenPrototypes.RemoveAllChildren();
             button.CollapseButton.Label.Text = "▶";
         }
+    }
+
+    private Control MakeCollapseRail(MappingSpawnButton button)
+    {
+        var rail = new Button
+        {
+            MinSize = new Vector2(RailWidth, 0),
+            VerticalExpand = true,
+            ToolTip = Loc.GetString("fs-map-palette-collapse-rail"),
+            TooltipDelay = 0,
+            Margin = new Thickness(0, 0, RailGap, 0),
+        };
+
+        rail.AddStyleClass("ButtonSquare");
+        rail.OnPressed += _ => Collapse(button);
+
+        return rail;
+    }
+
+    private void Collapse(MappingSpawnButton button)
+    {
+        if (!button.CollapseButton.Pressed)
+            return;
+
+        button.CollapseButton.Pressed = false;
+        SetCollapsed(button, false);
     }
 
     private void OnSearch(LineEditEventArgs args)
@@ -596,8 +637,7 @@ public sealed class FSMapPaletteWindow : DefaultWindow
             if (child is not MappingSpawnButton button || !button.CollapseButton.Pressed)
                 continue;
 
-            button.CollapseButton.Pressed = false;
-            SetCollapsed(button, false);
+            Collapse(button);
         }
 
         _list.ScrollContainer.SetScrollValue(Vector2.Zero);

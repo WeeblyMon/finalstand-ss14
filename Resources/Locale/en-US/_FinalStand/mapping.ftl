@@ -97,3 +97,4 @@ fs-palette-decals-70 = Branding
 
 fs-map-palette-erase-entity = Erase entity
 fs-map-palette-erase-tile = Erase tile
+fs-map-palette-collapse-rail = Collapse this category
