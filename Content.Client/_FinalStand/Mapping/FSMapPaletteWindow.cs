@@ -117,7 +117,6 @@ public sealed class FSMapPaletteWindow : DefaultWindow
 
         row.AddChild(_eraseEntity);
         row.AddChild(_eraseTile);
-        root.AddChild(row);
 
         _placementMode = new OptionButton
         {
@@ -136,6 +135,7 @@ public sealed class FSMapPaletteWindow : DefaultWindow
         _placementMode.SelectId(0);
         _placementMode.OnItemSelected += OnPlacementModeSelected;
         root.AddChild(_placementMode);
+        root.AddChild(row);
 
         BuildDecalControls(root);
     }
