@@ -182,7 +182,8 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (ShowAilmentPips && _entManager.HasComponent<FSAilmentStateComponent>(uid)
                 && _ailments.GetPips(uid) is var pips and not FSAilmentPips.None)
             {
-                var pipOrigin = position + new Vector2(startX, PipLift) / EyeManager.PixelsPerMeter;
+                var pipX = (widthOfMob - FSAilmentVisualsSystem.Count(pips) * PipPixels) / 2f;
+                var pipOrigin = position + new Vector2(pipX, PipLift) / EyeManager.PixelsPerMeter;
                 _ailmentVisuals.DrawWorldPips(handle, pipOrigin, pips, PipPixels / EyeManager.PixelsPerMeter);
             }
 
