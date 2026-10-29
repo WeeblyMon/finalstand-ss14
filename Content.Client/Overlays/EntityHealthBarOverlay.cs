@@ -45,6 +45,7 @@ public sealed class EntityHealthBarOverlay : Overlay
 
     public bool ShowAilmentPips;
     private const float PipPixels = 9f;
+    private const float PipLift = 6f;
 
     public EntityUid? MedigunTarget;
     public float MedigunSoftCap = 0.7f;
@@ -181,7 +182,7 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (ShowAilmentPips && _entManager.HasComponent<FSAilmentStateComponent>(uid)
                 && _ailments.GetPips(uid) is var pips and not FSAilmentPips.None)
             {
-                var pipOrigin = position + new Vector2(startX, -PipPixels - 1f) / EyeManager.PixelsPerMeter;
+                var pipOrigin = position + new Vector2(startX, PipLift) / EyeManager.PixelsPerMeter;
                 _ailmentVisuals.DrawWorldPips(handle, pipOrigin, pips, PipPixels / EyeManager.PixelsPerMeter);
             }
 
