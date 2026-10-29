@@ -89,7 +89,7 @@
   cost: 1100
   prerequisites:
   - FSMedicalFieldSplints
-  bonusDescription: Gauze, sutures and tranexamic acid leave the patient CLOTTED for 20 seconds, so no new bleeding can start.
+  bonusDescription: Gauze and sutures leave the patient CLOTTED for 20 seconds, so no new bleeding can start.
 
 - type: fsTechNode
   id: FSMedicalTraumaScanners

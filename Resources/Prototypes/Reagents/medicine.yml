@@ -29,12 +29,6 @@
   metabolisms:
     Bloodstream:
       effects:
-      - !type:FSCureAilment
-        slot: Bloater
-        conditions:
-        - !type:ReagentCondition
-          reagent: Dylovene
-          min: 0.2
       - !type:HealthChange
         damage:
           types:
@@ -238,12 +232,6 @@
   metabolisms:
     Bloodstream:
       effects:
-      - !type:FSCureAilment
-        slot: Burn
-        conditions:
-        - !type:ReagentCondition
-          reagent: Dermaline
-          min: 0.2
       - !type:HealthChange
         damage:
           types:
@@ -337,12 +325,6 @@
   metabolisms:
     Bloodstream:
       effects:
-      - !type:FSCureAilment
-        slot: Heart
-        conditions:
-        - !type:ReagentCondition
-          reagent: Epinephrine
-          min: 0.2
       - !type:AdjustReagent
         conditions:
         - !type:ReagentCondition
@@ -496,12 +478,6 @@
   metabolisms:
     Bloodstream:
       effects:
-      - !type:FSCureAilment
-        slot: Burn
-        conditions:
-        - !type:ReagentCondition
-          reagent: Kelotane
-          min: 0.2
       - !type:HealthChange
         damage:
           types:
@@ -838,13 +814,6 @@
       # but still technically stop your bleeding.
       - !type:ModifyBleed
         amount: -1.5
-      - !type:FSApplyWard
-        ward: FSWardClotted
-        requiresNode: FSMedicalClottingGauze
-        conditions:
-        - !type:ReagentCondition
-          reagent: TranexamicAcid
-          min: 0.2
       - !type:HealthChange
         conditions:
         - !type:ReagentCondition

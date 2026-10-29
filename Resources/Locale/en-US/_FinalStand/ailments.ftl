@@ -18,14 +18,14 @@ fs-need-stapler = STAPLER
 fs-need-ointment = OINTMENT
 fs-need-defib = DEFIB
 fs-ailment-bleeding-effect = {$rate} HP/s, no clotting while down
-fs-ailment-bleeding-fix = gauze, stapler, beam, TXA, Coagulant
+fs-ailment-bleeding-fix = gauze, stapler, beam, Coagulant
 fs-ailment-broken-effect = -35% speed, sets itself in {$seconds} s
 fs-ailment-broken-fix = stapler, beam (Bone-Knitter); splint eases
 fs-ailment-splinted-effect = -15% speed, heals in {$seconds} s
 fs-ailment-splinted-fieldops-effect = no slowdown under Field Ops, heals in {$seconds} s
 fs-ailment-splinted-fix = stapler, tent
 fs-ailment-burned-effect = no regen, heals halved, {$seconds} s left
-fs-ailment-burned-fix = ointment, Kelotane, Dermaline
+fs-ailment-burned-fix = ointment
 fs-ailment-soaked-effect = slowed, double damage taken, {$seconds} s left
 fs-ward-clotted-effect = stops new bleeding, {$seconds} s left
 fs-ward-braced-effect = stops broken bones, {$seconds} s left
@@ -58,8 +58,8 @@ fs-signature-revenant = [color=#b3402f]Its blades cause heavy bleeding, and its 
 fs-signature-revenant-dark = [color=#b3402f]Its blades cause heavy bleeding.[/color]
 fs-forecast-advice-bleeding = gauze
 fs-forecast-advice-bone = splints, Bone Brace
-fs-forecast-advice-burn = ointment, Kelotane darts, Char Ward
-fs-forecast-advice-bloat = Dylovene darts, water sprays, spread out
+fs-forecast-advice-burn = ointment, Char Ward
+fs-forecast-advice-bloat = water sprays, spread out
 fs-forecast-line = {$new ->
     [true] NEW {$enemy}
    *[false] {$enemy}
@@ -67,15 +67,15 @@ fs-forecast-line = {$new ->
 fs-forecast-header = [color=#d2a44e]Medical forecast, wave {$wave}:[/color] {$lines}. Bring {$advice}.
 fs-hint-bleeding = [color=#b3402f]BLEEDING:[/color] you lose health every second and you cannot regenerate. Gauze stops it at once; a doctor's stapler closes heavy wounds. It clots by itself slowly, but not while you are down.
 fs-hint-bone = [color=#dfdcd7]BROKEN BONE:[/color] -35% speed. Splint it, or it sets itself in 30 s. A doctor's stapler fixes it now.
-fs-hint-burn = [color=#d9702e]BURNED:[/color] no regeneration, and bandages and the medigun heal you at half speed. Ointment or a Kelotane dart clears it.
-fs-hint-bloat = [color=#a8b83a]POISONED:[/color] bloater bile burns you for 20 seconds and stops you healing; for the first few seconds it also slows you and doubles the damage you take. A Dylovene dart or a spray of water washes it off. Kill bloaters from range and spread out.
+fs-hint-burn = [color=#d9702e]BURNED:[/color] no regeneration, and bandages and the medigun heal you at half speed. Ointment clears it.
+fs-hint-bloat = [color=#a8b83a]POISONED:[/color] bloater bile burns you for 20 seconds and stops you healing; for the first few seconds it also slows you and doubles the damage you take. A spray of water washes it off. Kill bloaters from range and spread out.
 fs-slot-heart = HEART
 fs-ailment-arrhythmia = ARRHYTHMIA
 fs-ailment-arrhythmia-examine = [color=#4fb3d9]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } an uneven pulse.[/color]
 fs-ailment-arrhythmia-effect = the heart skips every 6 s; dying 50% faster while down, {$seconds} s left
-fs-ailment-arrhythmia-fix = cardiovert with the emergency defib, Epinephrine, tent
-fs-forecast-advice-heart = Epinephrine, the emergency defib
-fs-hint-heart = [color=#4fb3d9]ARRHYTHMIA:[/color] your heart skips a beat every 6 seconds, slowing you for a moment, and you die faster while down. A medic's emergency defib or a dose of Epinephrine fixes it. Spread out from teslas.
+fs-ailment-arrhythmia-fix = cardiovert with the emergency defib, tent
+fs-forecast-advice-heart = the emergency defib
+fs-hint-heart = [color=#4fb3d9]ARRHYTHMIA:[/color] your heart skips a beat every 6 seconds, slowing you for a moment, and you die faster while down. A medic's emergency defib fixes it. Spread out from teslas.
 fs-signature-tesla = [color=#4fb3d9]Its lightning knocks hearts out of rhythm.[/color]
 fs-cardiovert-fine = Their heart rhythm is fine.
 fs-cardiovert-recharging = The cardioversion charge is recharging.
@@ -83,7 +83,7 @@ fs-cardiovert-done = You shock {THE($target)}'s heart back into rhythm.
 fs-ailment-poisoned = POISONED
 fs-ailment-poisoned-examine = [color=#a8b83a]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-BE($target) } covered in reeking bile.[/color]
 fs-ailment-poisoned-effect = 1 poison damage a second, no regen, {$seconds} s left
-fs-ailment-poisoned-fix = Dylovene, a water spray, tent
+fs-ailment-poisoned-fix = a water spray, tent
 fs-ailment-soaked-suffix = slowed
 fs-ailment-with-suffix = {$name}, {$suffix}
-fs-need-dylovene = DYLOVENE
+fs-need-water = WATER

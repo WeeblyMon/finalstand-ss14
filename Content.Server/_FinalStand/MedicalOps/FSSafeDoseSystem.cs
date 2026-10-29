@@ -112,7 +112,7 @@ public sealed partial class FSSafeDoseSystem : EntitySystem
             {
                 foreach (var effect in entry.Effects)
                 {
-                    if (effect is FSCureAilment or FSApplyWard)
+                    if (effect is FSApplyWard)
                         continue;
 
                     foreach (var condition in effect.Conditions ?? [])

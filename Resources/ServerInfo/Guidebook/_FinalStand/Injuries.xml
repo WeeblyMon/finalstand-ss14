@@ -23,7 +23,7 @@ Each ailment you have shows under your health bar with its timer and the item th
 
 [bold]Effect:[/bold] 0.5 health a second for each pip, up to three pips. No passive healing while it lasts. One pip clots every 15 seconds, but never while you are down.
 
-[bold]Fix:[/bold] gauze stops it at once. A doctor's stapler closes two or three pips instantly. The medigun clots a pip every 2 seconds; tranexamic acid and coagulant mist also stop it.
+[bold]Fix:[/bold] gauze stops it at once. A doctor's stapler closes two or three pips instantly. The medigun clots a pip every 2 seconds; coagulant mist also stops it.
 
 ## Broken bone
 
@@ -47,7 +47,7 @@ Each ailment you have shows under your health bar with its timer and the item th
 
 [bold]Effect:[/bold] no passive healing for 45 seconds. Bandages, the medigun and the medi-drone heal you at half speed. Chemicals, defibrillators and perks are not affected.
 
-[bold]Fix:[/bold] ointment, aloe cream or regenerative mesh. A kelotane or dermaline dart clears it on the first dose.
+[bold]Fix:[/bold] ointment, aloe cream or regenerative mesh.
 
 ## Arrhythmia
 
@@ -59,12 +59,11 @@ Each ailment you have shows under your health bar with its timer and the item th
 
 [bold]Effect:[/bold] every 6 seconds your heart skips a beat and you slow for a moment. While you are down you die half as fast again.
 
-[bold]Fix:[/bold] a medic cardioverts you with the emergency defibrillator, or a dose of epinephrine clears it. A defibrillator revive clears it too.
+[bold]Fix:[/bold] a medic cardioverts you with the emergency defibrillator. A defibrillator revive clears it too.
 
 ## Poisoned
 
 <Box>
-<GuideEntityEmbed Entity="FSChemistSyringe"/>
 <GuideEntityEmbed Entity="FireExtinguisher"/>
 </Box>
 
@@ -72,7 +71,7 @@ Each ailment you have shows under your health bar with its timer and the item th
 
 [bold]Effect:[/bold] 1 poison damage a second for 20 seconds and no passive healing. The medigun cannot heal poison. For the first 6 seconds you are also [bold]soaked[/bold]: slower, and you take double damage.
 
-[bold]Fix:[/bold] a dylovene dart clears it, and so does a good spray of water from an extinguisher or spray bottle. Kill bloaters from range and spread out.
+[bold]Fix:[/bold] a good spray of water from an extinguisher or spray bottle washes it off. Kill bloaters from range and spread out.
 
 ## Down
 
@@ -82,7 +81,7 @@ Any heal that brings you back over the line stands you up. A defibrillator bring
 
 ## Wards
 
-A chemist's [bold]Bone Brace[/bold] stops broken bones for 60 seconds and a [bold]Char Ward[/bold] stops burns for 45 seconds. With Clotting Gauze researched, gauze and tranexamic acid leave you [bold]clotted[/bold] for 20 seconds.
+A chemist's [bold]Bone Brace[/bold] stops broken bones for 60 seconds and a [bold]Char Ward[/bold] stops burns for 45 seconds. With Clotting Gauze researched, gauze and sutures leave you [bold]clotted[/bold] for 20 seconds.
 
 ## The field hospital
 

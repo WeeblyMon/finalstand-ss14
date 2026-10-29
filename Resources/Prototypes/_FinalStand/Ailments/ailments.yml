@@ -76,7 +76,7 @@
     Bloater:
       label: fs-slot-bloat
       name: fs-ailment-poisoned
-      need: fs-need-dylovene
+      need: fs-need-water
       advice: fs-forecast-advice-bloat
       hint: fs-hint-bloat
       pip:
@@ -290,8 +290,8 @@
     effect: fs-ailment-poisoned-effect
     fixHint: fs-ailment-poisoned-fix
     fixIcon:
-      sprite: Objects/Specific/Chemistry/syringe.rsi
-      state: syringeproj
+      sprite: Objects/Misc/fire_extinguisher.rsi
+      state: fire_extinguisher_closed
     overlay:
       sprite: _FinalStand/Mobs/ailment_overlays.rsi
       state: poisoned
