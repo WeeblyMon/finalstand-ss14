@@ -1,4 +1,3 @@
-using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Body.Components;
@@ -112,9 +111,6 @@ public sealed partial class FSSafeDoseSystem : EntitySystem
             {
                 foreach (var effect in entry.Effects)
                 {
-                    if (effect is FSApplyWard)
-                        continue;
-
                     foreach (var condition in effect.Conditions ?? [])
                     {
                         if (condition is not ReagentCondition gate || gate.Reagent != reagentId || gate.Min <= FixedPoint2.Zero)

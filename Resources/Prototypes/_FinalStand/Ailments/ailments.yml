@@ -234,28 +234,6 @@
 
 - type: entity
   parent: FSAilmentBase
-  id: FSWardBraced
-  name: braced
-  components:
-  - type: FSAilmentWard
-    blocks: Bone
-    name: fs-ward-braced
-    effect: fs-ward-braced-effect
-    duration: 60
-
-- type: entity
-  parent: FSAilmentBase
-  id: FSWardCharred
-  name: warded
-  components:
-  - type: FSAilmentWard
-    blocks: Burn
-    name: fs-ward-warded
-    effect: fs-ward-warded-effect
-    duration: 45
-
-- type: entity
-  parent: FSAilmentBase
   id: FSAilmentArrhythmia
   name: arrhythmia
   components:

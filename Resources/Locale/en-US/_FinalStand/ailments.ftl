@@ -7,8 +7,6 @@ fs-ailment-burned = BURNED
 fs-ailment-burned-examine = [color=#ff8c2e]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } fresh burns.[/color]
 fs-ailment-soaked = SOAKED
 fs-ward-clotted = CLOTTED
-fs-ward-braced = BRACED
-fs-ward-warded = WARDED
 fs-ailment-soaked-examine = [color=#a8d44a]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-BE($target) } dripping with bloater bile.[/color]
 fs-slot-bone = BONE
 fs-slot-burn = BURN
@@ -28,8 +26,6 @@ fs-ailment-burned-effect = no regen, heals halved, {$seconds} s left
 fs-ailment-burned-fix = ointment
 fs-ailment-soaked-effect = slowed, double damage taken, {$seconds} s left
 fs-ward-clotted-effect = stops new bleeding, {$seconds} s left
-fs-ward-braced-effect = stops broken bones, {$seconds} s left
-fs-ward-warded-effect = stops burns, {$seconds} s left
 fs-ailment-name-level = {$name} {$level}
 fs-ailment-inflicted-by = {$ailment} ({$source})
 fs-vitals-regen = REGEN
@@ -57,8 +53,8 @@ fs-signature-devastator = [color=#b3402f]Its chainsaw causes severe bleeding.[/c
 fs-signature-revenant = [color=#b3402f]Its blades cause heavy bleeding, and its grab breaks bones.[/color]
 fs-signature-revenant-dark = [color=#b3402f]Its blades cause heavy bleeding.[/color]
 fs-forecast-advice-bleeding = gauze
-fs-forecast-advice-bone = splints, Bone Brace
-fs-forecast-advice-burn = ointment, Char Ward
+fs-forecast-advice-bone = splints
+fs-forecast-advice-burn = ointment
 fs-forecast-advice-bloat = water sprays, spread out
 fs-forecast-line = {$new ->
     [true] NEW {$enemy}

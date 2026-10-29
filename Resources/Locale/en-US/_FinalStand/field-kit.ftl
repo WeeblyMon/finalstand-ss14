@@ -17,9 +17,3 @@ fs-field-kit-corrosive = Corrosive
 fs-field-kit-corrosive-purpose = Leaves caustic damage on the ground for anything that walks through.
 
 fs-chem-guide-potions = FIELD POTIONS
-fs-field-kit-bone-brace = Bone Brace
-fs-field-kit-bone-brace-purpose = BRACED for 60 seconds: no new broken bones. Dart the frontline before a Giant or Revenant wave.
-fs-field-kit-char-ward = Char Ward
-fs-field-kit-char-ward-purpose = WARDED for 45 seconds: no burns and no burn build-up. Use before a flamethrower wave.
-fs-chem-guide-note-bone-brace = BRACED for 60 seconds: no new broken bones.
-fs-chem-guide-note-char-ward = WARDED for 45 seconds: no burns.
