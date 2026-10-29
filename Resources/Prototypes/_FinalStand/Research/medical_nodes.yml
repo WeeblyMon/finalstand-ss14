@@ -102,7 +102,7 @@
   cost: 1600
   prerequisites:
   - FSMedicalFieldSplints
-  bonusDescription: Every crew member sees the ailment pips over wounded allies, not only medics.
+  bonusDescription: Medics see ailment pips above the health bars of wounded allies.
 
 - type: fsTechNode
   id: FSMedicalRestartProtocol

@@ -47,7 +47,7 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
                 continue;
 
             var isMedical = IsMedicalDepartment(mob);
-            var showPips = isMedical || scanners;
+            var showPips = isMedical && scanners;
             if (_lastSent.TryGetValue(session.UserId, out var prior)
                 && prior.Mob == mob
                 && prior.IsMedical == isMedical
@@ -65,7 +65,7 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
         var isMedical = IsMedicalDepartment(ev.Mob);
-        var showPips = isMedical || _upgrades.Unlocked(FSMedicalUpgradeSystem.TraumaScanners);
+        var showPips = isMedical && _upgrades.Unlocked(FSMedicalUpgradeSystem.TraumaScanners);
         var softCap = SoftCap();
         _lastSent[ev.Player.UserId] = (ev.Mob, isMedical, showPips, softCap);
         RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical, IsChemist(ev.Mob), showPips, softCap), ev.Player);
