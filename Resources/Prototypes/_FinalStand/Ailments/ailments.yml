@@ -273,7 +273,7 @@
     overlay:
       sprite: _FinalStand/Mobs/ailment_overlays.rsi
       state: poisoned
-    duration: 20
+    duration: 12
     tier: Minor
     blocksRegen: true
     tickDamage:
