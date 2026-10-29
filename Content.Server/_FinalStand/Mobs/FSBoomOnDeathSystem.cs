@@ -142,10 +142,12 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
             if (HasComp<GhostComponent>(targetUid)) continue;
             if (!HasComp<MobStateComponent>(targetUid)) continue; // skip structures, walls, machines
 
-            if (Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid)) > comp.ExplosionRadius)
+            var distance = Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid));
+            if (distance > comp.ExplosionRadius)
                 continue;
 
-            _damageable.TryChangeDamage(targetUid, blastDamage, out var dealt, ignoreResistances: false, origin: uid);
+            var scale = MathHelper.Lerp(1f, comp.EdgeDamageScale, distance / comp.ExplosionRadius);
+            _damageable.TryChangeDamage(targetUid, blastDamage * scale, out var dealt, ignoreResistances: false, origin: uid);
             _ailments.InflictHit(targetUid, comp.Injury, dealt.GetTotal().Float(), uid);
             _ailments.Apply(targetUid, soaked, uid);
         }

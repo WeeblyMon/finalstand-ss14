@@ -9,6 +9,7 @@ public sealed partial class FSBoomOnDeathComponent : Component
     [DataField] public float ExplosionRadius = 3f;
     [DataField] public float ExplosionDamage = 12f;
     [DataField] public float CausticDamage = 20f;
+    [DataField] public float EdgeDamageScale = 0.5f;
     [DataField] public FSInjurySpec Injury = new();
     [DataField] public int FlashCount = 2;
     [DataField] public float FlashInterval = 0.3f;
