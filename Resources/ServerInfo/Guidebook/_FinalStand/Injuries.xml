@@ -23,7 +23,7 @@ Each ailment you have shows under your health bar with its timer and the item th
 
 [bold]Effect:[/bold] 0.5 health a second for each pip, up to three pips. No passive healing while it lasts. One pip clots every 15 seconds, but never while you are down.
 
-[bold]Fix:[/bold] gauze stops it at once. A doctor's stapler closes two or three pips instantly. The medigun clots a pip every 2 seconds; coagulant mist also stops it.
+[bold]Fix:[/bold] gauze stops it at once. A doctor's stapler closes two or three pips instantly. The medigun clots a pip every 2 seconds.
 
 ## Broken bone
 

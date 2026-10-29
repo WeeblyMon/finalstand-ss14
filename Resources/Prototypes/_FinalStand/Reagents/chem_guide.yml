@@ -7,11 +7,9 @@
   - FSCorrosive
   - FSSolvent
   - FSWeakeningAgent
-  - FSCoagulantMist
   - FSEtchant
   - FSBoneBrace
   - FSCharWard
   notes:
-    FSCoagulantMist: fs-chem-guide-note-coagulant
     FSBoneBrace: fs-chem-guide-note-bone-brace
     FSCharWard: fs-chem-guide-note-char-ward

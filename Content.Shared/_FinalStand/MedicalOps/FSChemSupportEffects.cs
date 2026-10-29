@@ -1,4 +1,3 @@
-using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.EntityEffects;
 using Robust.Shared.GameStates;
@@ -12,18 +11,6 @@ public sealed partial class FSArmorPiercingComponent : Component
     [DataField]
     public TimeSpan Until;
 }
-
-public sealed partial class FSStaunchBleedingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSStaunchBleeding>
-{
-    [Dependency] private FSAilmentSystem _ailments = default!;
-
-    protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSStaunchBleeding> args)
-    {
-        _ailments.StopBleeding(entity, kind: FSCureKind.Mass);
-    }
-}
-
-public sealed partial class FSStaunchBleeding : EntityEffectBase<FSStaunchBleeding>;
 
 public sealed partial class FSApplyArmorPiercingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSApplyArmorPiercing>
 {
