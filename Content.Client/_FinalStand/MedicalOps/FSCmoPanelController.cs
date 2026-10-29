@@ -7,14 +7,11 @@ using System.Numerics;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
-using Robust.Shared;
-using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
@@ -24,8 +21,7 @@ public sealed partial class FSCmoPanelController : UIController
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceCache _resource = default!;
-    [Dependency] private IConfigurationManager _cfg = default!;
-    [Dependency] private IClyde _clyde = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
 
     private const int EdgePadding = 8;
     private const int SlotSize = 40;
@@ -77,7 +73,6 @@ public sealed partial class FSCmoPanelController : UIController
     private readonly Dictionary<FSCmoAbility, int> _shownSeconds = new();
 
     private BoxContainer? _frame;
-    private HotbarGui? _hotbar;
 
     public override void Initialize()
     {
@@ -97,8 +92,7 @@ public sealed partial class FSCmoPanelController : UIController
         _slots.Clear();
         _shownSeconds.Clear();
 
-        _hotbar = FindWidget<HotbarGui>(screen);
-        if (_hotbar?.Parent is not LayoutContainer container)
+        if (FindWidget<HotbarGui>(screen)?.Parent is not LayoutContainer container)
             return;
 
         _frame = new BoxContainer
@@ -223,7 +217,6 @@ public sealed partial class FSCmoPanelController : UIController
     {
         _frame?.Orphan();
         _frame = null;
-        _hotbar = null;
         _slots.Clear();
         _shownSeconds.Clear();
 
@@ -289,14 +282,17 @@ public sealed partial class FSCmoPanelController : UIController
 
     private void UpdatePlacement()
     {
-        if (_frame == null || _hotbar == null)
+        if (_frame?.Parent is not { } parent
+            || !_overlays.TryGetOverlay<WaveHudOverlay>(out var hud)
+            || hud.VitalsBox is not { } vitals)
+        {
             return;
+        }
 
-        var displayScale = _cfg.GetCVar(CVars.DisplayUIScale);
-        var uiScale = displayScale > 0f ? displayScale : UIManager.DefaultUIScale;
-        var hudScale = WaveHudOverlay.GetResolutionFactor(_clyde.ScreenSize.X) * uiScale;
-        var x = WaveHudOverlay.ScreenMargin + WaveHudOverlay.VitalsWidthBase * hudScale + EdgePadding;
-        var y = _hotbar.Position.Y + _hotbar.Size.Y - _frame.DesiredSize.Y - WaveHudOverlay.ScreenMargin;
+        var scale = parent.UIScale;
+        var origin = parent.GlobalPixelPosition;
+        var x = (vitals.Right - origin.X) / scale + EdgePadding;
+        var y = (vitals.Bottom - origin.Y) / scale - _frame.DesiredSize.Y;
 
         LayoutContainer.SetPosition(_frame, new Vector2(x, y));
     }

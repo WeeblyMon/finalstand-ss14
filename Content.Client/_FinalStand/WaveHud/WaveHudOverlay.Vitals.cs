@@ -17,6 +17,7 @@ public sealed partial class WaveHudOverlay
     public Texture? DownBadge;
     public readonly List<float> HealthTicks = new();
     public readonly List<VitalPill> StatusPills = new();
+    public UIBox2? VitalsBox { get; private set; }
 
     public enum VitalPillStyle : byte
     {
@@ -191,6 +192,7 @@ public sealed partial class WaveHudOverlay
 
     private void DrawVitals(DrawingHandleScreen screen, float margin, float bandLift)
     {
+        VitalsBox = null;
         if (HealthRatio is not { } health)
             return;
 
@@ -205,6 +207,7 @@ public sealed partial class WaveHudOverlay
         var lowHp = health <= 0.3f || HealthInCrit;
 
         var panelBox = new UIBox2(x, top, x + VitalsWidth, bottom);
+        VitalsBox = panelBox;
         DrawPanel(screen, panelBox, VitalsBack, lowHp ? VitalsEdgeHot : VitalsEdge,
             lowHp ? FSPalette.HealthLow : FSPalette.HealthFill);
 
