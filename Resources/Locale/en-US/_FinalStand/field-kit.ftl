@@ -20,17 +20,11 @@ fs-field-kit-weakening-purpose = Zombies caught in it take 25% more damage from 
 fs-field-kit-corrosive = Corrosive
 fs-field-kit-corrosive-purpose = Leaves caustic damage on the ground for anything that walks through.
 
-fs-chem-guide-trauma = TRAUMA
-fs-chem-guide-support = SUPPORT
 fs-chem-guide-potions = FIELD POTIONS
 fs-field-kit-bone-brace = Bone Brace
 fs-field-kit-bone-brace-purpose = BRACED for 60 seconds: no new broken bones. Dart the frontline before a Giant or Revenant wave.
 fs-field-kit-char-ward = Char Ward
 fs-field-kit-char-ward-purpose = WARDED for 45 seconds: no burns and no burn build-up. Use before a flamethrower wave.
-fs-chem-guide-note-burn = Clears BURNED at any dose of 0.2u or more.
-fs-chem-guide-note-txa = Slows bleeding; with Clotting Gauze it leaves the patient CLOTTED.
 fs-chem-guide-note-coagulant = Stops all bleeding inside the cloud.
 fs-chem-guide-note-bone-brace = BRACED for 60 seconds: no new broken bones.
 fs-chem-guide-note-char-ward = WARDED for 45 seconds: no burns.
-fs-chem-guide-note-heart = Clears ARRHYTHMIA at any dose of 0.2u or more.
-fs-chem-guide-note-poison = Clears POISONED at any dose of 0.2u or more.
