@@ -4,74 +4,6 @@
   categories: [ HideSpawnMenu ]
   name: dwarf appearance
   components:
-  - type: Inventory
-    femaleDisplacements: { } # Necessary due to MobHuman inheritance for MobDwarf
-    displacements:
-      jumpsuit:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      outerClothing:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      suitstorage:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      id:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      mask:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      belt:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      eyes:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      gloves:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      head:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      neck:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      back:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      ears:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      shoes:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
   - type: InitialBody
     organs:
       Torso: OrganDwarfTorso
@@ -94,27 +26,8 @@
       Stomach: OrganDwarfStomach
       Liver: OrganDwarfLiver
       Kidneys: OrganHumanKidneys
-  - type: Hands
-    leftHandDisplacement:
-      sizeMaps:
-        32:
-          sprite: Mobs/Species/Human/displacement.rsi
-          state: dwarfism_hand_left
-    rightHandDisplacement:
-      sizeMaps:
-        32:
-          sprite: Mobs/Species/Human/displacement.rsi
-          state: dwarfism_hand_right
   - type: HumanoidProfile
     species: Dwarf
-
-- type: displacementData
-  id: Dwarfism
-  displacement:
-    sizeMaps:
-      32:
-        sprite: Mobs/Species/Human/displacement.rsi
-        state: dwarfism
 
 - type: entity
   parent:
@@ -142,14 +55,6 @@
     accent: scottish
   - type: Speech
     speechSounds: Bass
-  - type: CreamPied
-    displacement: Dwarfism
-  - type: Damageable
-    displacement: Dwarfism
-  - type: Flammable
-    displacement: Dwarfism
-  - type: InnerBodyAnomalyVisuals
-    displacement: Dwarfism
 
 - type: entity
   parent: OrganBaseOrganic
@@ -166,7 +71,6 @@
   - type: VisualOrgan
     data:
       sprite: Mobs/Species/Human/parts.rsi
-    displacement: Dwarfism
 
 - type: entity
   parent: OrganDwarf
@@ -181,180 +85,60 @@
   id: OrganDwarfTorso
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      Chest:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      Tail:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      Overlay:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      TailOverlay:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      UndergarmentTop:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      UndergarmentBottom:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      Special:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanHead, OrganDwarfAppearance ]
   id: OrganDwarfHead
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      Head:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      Hair:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      FacialHair:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      Snout:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      SnoutCover:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      HeadSide:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
-      HeadTop:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanArmLeft, OrganDwarfAppearance ]
   id: OrganDwarfArmLeft
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      LArm:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanArmRight, OrganDwarfAppearance ]
   id: OrganDwarfArmRight
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      RArm:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanHandRight, OrganDwarfAppearance ]
   id: OrganDwarfHandRight
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      RHand:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanHandLeft, OrganDwarfAppearance ]
   id: OrganDwarfHandLeft
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      LHand:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanLegLeft, OrganDwarfAppearance ]
   id: OrganDwarfLegLeft
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      LLeg:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanLegRight, OrganDwarfAppearance ]
   id: OrganDwarfLegRight
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      RLeg:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanFootLeft, OrganDwarfAppearance ]
   id: OrganDwarfFootLeft
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      LFoot:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanFootRight, OrganDwarfAppearance ]
   id: OrganDwarfFootRight
   components:
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      RFoot:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganHumanEyes, OrganDwarfAppearance ]
@@ -363,14 +147,7 @@
   - type: VisualOrgan
     data:
       sprite: Mobs/Customization/eyes.rsi
-    displacement: Dwarfism
   - type: VisualOrganMarkings
-    markingsDisplacement:
-      Eyes:
-        sizeMaps:
-          32:
-            sprite: Mobs/Species/Human/displacement.rsi
-            state: dwarfism
 
 - type: entity
   parent: [ OrganDwarfMetabolizer, OrganHumanStomach ]
