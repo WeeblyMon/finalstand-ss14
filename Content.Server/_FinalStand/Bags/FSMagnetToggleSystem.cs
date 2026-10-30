@@ -5,7 +5,7 @@ using Content.Shared.Verbs;
 
 namespace Content.Server._FinalStand.Bags;
 
-public sealed class FSMagnetToggleSystem : EntitySystem
+public sealed partial class FSMagnetToggleSystem : EntitySystem
 {
     [Dependency] private SharedPopupSystem _popup = default!;
 
