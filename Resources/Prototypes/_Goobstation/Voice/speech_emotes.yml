@@ -9,7 +9,6 @@
   blacklist:
     components:
     - BorgChassis
-    - Silicon
   chatMessages: ["chat-emote-msg-fart"]
   chatTriggers:
     - fart
