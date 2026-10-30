@@ -32,11 +32,10 @@ public sealed partial class AntagSelectionComponent : Component
     public bool LateJoinAdditional;
 
     /// <summary>
-    /// The antag specifiers for the antagonists.
-    /// Made optional (was required) to support Goob's older AntagSelection YAML format that uses `definitions:` instead.
+    /// The antag specifiers for the antagonists
     /// </summary>
-    [DataField]
-    public AntagCountSelector[] Antags = Array.Empty<AntagCountSelector>();
+    [DataField(required: true)]
+    public AntagCountSelector[] Antags;
 
     /// <summary>
     /// Cached sessions of antag definitions and selected players.
