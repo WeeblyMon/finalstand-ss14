@@ -100,7 +100,7 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
             var alive = !mech.Broken;
             _particles.SetRateScale(flair.Smoke, alive && health < SmokeBelow ? 1f : 0f);
             _particles.SetRateScale(flair.Sparks, alive && health < SparksBelow ? 1f : 0f);
-            Brownout(uid, flair, alive && mech.CriticalPowerState);
+            Brownout(uid, flair, alive && CompOrNull<FSMechLowPowerComponent>(uid)?.Active == true);
 
             var pos = _transform.GetWorldPosition(xform);
             if ((pos - flair.LastStep).Length() < StepLength)

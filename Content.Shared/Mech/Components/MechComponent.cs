@@ -39,17 +39,6 @@ public sealed partial class MechComponent : Component
     [DataField, AutoNetworkedField, ViewVariables(VVAccess.ReadWrite)]
     public FixedPoint2 MaxEnergy = 0;
 
-    // FS: from Monolith
-    [DataField, AutoNetworkedField]
-    public bool CriticalPowerState;
-
-    [DataField]
-    public float CriticalPowerStateSpeedPenalty = 0.65f;
-
-    // FS: from Monolith
-    [DataField]
-    public System.Numerics.Vector2 Zoom = new(1f, 1f);
-
     /// <summary>
     /// The slot the battery is stored in.
     /// </summary>

@@ -250,10 +250,10 @@ public sealed partial class FSFlairOverlay : Overlay
     {
         var pulse = 0.55f + 0.45f * MathF.Abs(MathF.Sin((float) now.TotalSeconds * 3f));
         var icon = _sprite!.Frame0(LowPowerIcon);
-        var query = _entMan.EntityQueryEnumerator<FSCombatMechComponent, MechComponent, TransformComponent>();
-        while (query.MoveNext(out _, out _, out var mech, out var xform))
+        var query = _entMan.EntityQueryEnumerator<FSMechLowPowerComponent, MechComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var low, out var mech, out var xform))
         {
-            if (!mech.CriticalPowerState || mech.Broken || xform.MapID != args.MapId)
+            if (!low.Active || mech.Broken || xform.MapID != args.MapId)
                 continue;
 
             var at = _xform!.GetWorldPosition(xform) + new Vector2(0f, LowPowerIconHeight);
