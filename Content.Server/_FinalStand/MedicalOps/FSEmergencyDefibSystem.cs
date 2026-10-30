@@ -47,9 +47,6 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
             else if (_mobState.IsCritical(patient))
                 StabilizeToward(patient, damageable, MobState.Critical, emergency.ReviveHealthFraction, args.User);
         }
-
-        if (wasDead && !_mobState.IsDead(patient))
-            _ailments.Cure(patient, FSAilmentSlot.Heart, args.User, FSCureKind.Rider);
     }
 
     private void Revive(EntityUid patient, DamageableComponent damageable, FSEmergencyDefibComponent emergency, EntityUid user)

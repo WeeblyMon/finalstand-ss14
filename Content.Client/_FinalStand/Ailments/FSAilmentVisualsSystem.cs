@@ -89,7 +89,6 @@ public sealed partial class FSAilmentVisualsSystem : EntitySystem
         FSAilmentSlot.Bone => FSPalette.TextBright,
         FSAilmentSlot.Burn => FSPalette.Burn,
         FSAilmentSlot.Bloater => FSPalette.Toxic,
-        FSAilmentSlot.Heart => FSPalette.Pulse,
         _ => FSPalette.TextMuted,
     };
 

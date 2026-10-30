@@ -124,7 +124,7 @@ public sealed class FSReviveIndicatorOverlay : Overlay
 
     private float FullClock(EntityUid uid)
     {
-        var drain = _ailments.Rules.DownDrain.GetTotal().Float() * _ailments.GetDownDrainScale(uid);
+        var drain = _ailments.Rules.DownDrain.GetTotal().Float();
         if (drain <= 0f
             || !_thresholds.TryGetThresholdForState(uid, MobState.Critical, out var crit)
             || !_thresholds.TryGetThresholdForState(uid, MobState.Dead, out var dead))

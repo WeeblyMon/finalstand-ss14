@@ -35,9 +35,6 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
     public EntProtoId Soaked = "FSAilmentSoaked";
 
     [DataField]
-    public EntProtoId Arrhythmia = "FSAilmentArrhythmia";
-
-    [DataField]
     public EntProtoId Poisoned = "FSAilmentPoisoned";
 
     [DataField]

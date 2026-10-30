@@ -65,17 +65,6 @@ fs-hint-bleeding = [color=#b3402f]BLEEDING:[/color] you lose health every second
 fs-hint-bone = [color=#dfdcd7]BROKEN BONE:[/color] -35% speed. Splint it, or it sets itself in 30 s. A doctor's stapler fixes it now.
 fs-hint-burn = [color=#d9702e]BURNED:[/color] no regeneration, and bandages and the medigun heal you at half speed. Ointment clears it.
 fs-hint-bloat = [color=#a8b83a]POISONED:[/color] bloater bile burns you for 12 seconds and stops you healing; for the first few seconds it also slows you and doubles the damage you take. A spray of water washes it off. Kill bloaters from range and spread out.
-fs-slot-heart = HEART
-fs-ailment-arrhythmia = ARRHYTHMIA
-fs-ailment-arrhythmia-examine = [color=#4fb3d9]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } an uneven pulse.[/color]
-fs-ailment-arrhythmia-effect = the heart skips every 6 s; dying 50% faster while down, {$seconds} s left
-fs-ailment-arrhythmia-fix = cardiovert with the emergency defib, tent
-fs-forecast-advice-heart = the emergency defib
-fs-hint-heart = [color=#4fb3d9]ARRHYTHMIA:[/color] your heart skips a beat every 6 seconds, slowing you for a moment, and you die faster while down. A medic's emergency defib fixes it. Spread out from teslas.
-fs-signature-tesla = [color=#4fb3d9]Its lightning knocks hearts out of rhythm.[/color]
-fs-cardiovert-fine = Their heart rhythm is fine.
-fs-cardiovert-recharging = The cardioversion charge is recharging.
-fs-cardiovert-done = You shock {THE($target)}'s heart back into rhythm.
 fs-ailment-poisoned = POISONED
 fs-ailment-poisoned-examine = [color=#a8b83a]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-BE($target) } covered in reeking bile.[/color]
 fs-ailment-poisoned-effect = 1 poison damage a second, no regen, {$seconds} s left

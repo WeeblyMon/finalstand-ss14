@@ -49,18 +49,6 @@ Each ailment you have shows under your health bar with its timer and the item th
 
 [bold]Fix:[/bold] ointment, aloe cream or regenerative mesh.
 
-## Arrhythmia
-
-<Box>
-<GuideEntityEmbed Entity="FSEmergencyDefibrillator"/>
-</Box>
-
-[bold]Cause:[/bold] tesla lightning. Two direct bolts close together, or several chained arcs, knock your heart out of rhythm. Insulated gloves halve the build-up.
-
-[bold]Effect:[/bold] every 6 seconds your heart skips a beat and you slow for a moment. While you are down you die half as fast again.
-
-[bold]Fix:[/bold] a medic cardioverts you with the emergency defibrillator. A defibrillator revive clears it too.
-
 ## Poisoned
 
 <Box>

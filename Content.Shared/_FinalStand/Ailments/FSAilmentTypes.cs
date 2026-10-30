@@ -11,7 +11,6 @@ public enum FSAilmentSlot : byte
     Bone,
     Burn,
     Bloater,
-    Heart,
 }
 
 [Serializable, NetSerializable]
@@ -19,7 +18,6 @@ public enum FSAilmentMeter : byte
 {
     Bleed,
     Burn,
-    Shock,
 }
 
 public enum FSAilmentTier : byte
@@ -47,7 +45,6 @@ public enum FSAilmentPips : byte
     Bone = 1 << (int) FSAilmentSlot.Bone,
     Burn = 1 << (int) FSAilmentSlot.Burn,
     Bloater = 1 << (int) FSAilmentSlot.Bloater,
-    Heart = 1 << (int) FSAilmentSlot.Heart,
 }
 
 public record struct FSAilmentMeterState(float Value, TimeSpan Updated, bool Draining);

@@ -23,11 +23,6 @@
       drainPerSecond: 10
       injury:
         burn: true
-    Shock:
-      slot: Heart
-      drainPerSecond: 4
-      injury:
-        arrhythmia: true
   slots:
     Bleeding:
       label: fs-ailment-bleeding
@@ -84,19 +79,6 @@
         state: drop
       sound:
         path: /Audio/Effects/Fluids/splat.ogg
-    Heart:
-      label: fs-slot-heart
-      name: fs-ailment-arrhythmia
-      advice: fs-forecast-advice-heart
-      hint: fs-hint-heart
-      pip:
-        sprite: _FinalStand/Interface/Ailments/pips.rsi
-        state: heart
-      fixIcon:
-        sprite: Objects/Specific/Medical/defib.rsi
-        state: icon
-      sound:
-        path: /Audio/_FinalStand/Mobs/Revenant/heartbeat.ogg
   clearedSound:
     path: /Audio/Effects/chime.ogg
     params:
@@ -231,30 +213,6 @@
     name: fs-ward-clotted
     effect: fs-ward-clotted-effect
     duration: 20
-
-- type: entity
-  parent: FSAilmentBase
-  id: FSAilmentArrhythmia
-  name: arrhythmia
-  components:
-  - type: FSAilment
-    slot: Heart
-    name: fs-ailment-arrhythmia
-    examine: fs-ailment-arrhythmia-examine
-    effect: fs-ailment-arrhythmia-effect
-    fixHint: fs-ailment-arrhythmia-fix
-    duration: 40
-    tier: Major
-    downDrainScale: 1.5
-  - type: FSSkippedBeat
-    spark: EffectSparks
-    sound:
-      path: /Audio/_FinalStand/Mobs/Revenant/heartbeat.ogg
-
-- type: entity
-  parent: StatusEffectSlowdown
-  id: FSSkippedBeatStatusEffect
-  name: skipped beat
 
 - type: entity
   parent: FSAilmentBase

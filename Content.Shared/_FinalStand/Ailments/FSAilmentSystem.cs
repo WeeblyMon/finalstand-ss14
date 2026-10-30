@@ -101,9 +101,6 @@ public sealed partial class FSAilmentSystem : EntitySystem
         if (injury.Burn)
             Apply(patient, Rules.Burned, source);
 
-        if (injury.Arrhythmia)
-            Apply(patient, Rules.Arrhythmia, source);
-
         if (injury.Poison)
             Apply(patient, Rules.Poisoned, source);
 
@@ -437,17 +434,6 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
 
         return total;
-    }
-
-    public float GetDownDrainScale(EntityUid patient)
-    {
-        var scale = 1f;
-        foreach (var effect in Active<FSAilmentComponent>(patient))
-        {
-            scale *= effect.Comp2.DownDrainScale;
-        }
-
-        return scale;
     }
 
     public float GetIncomingHealScale(EntityUid patient)

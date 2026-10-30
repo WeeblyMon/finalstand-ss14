@@ -71,7 +71,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
 
     private static readonly string[] AilmentKinds =
     {
-        "bleed", "bone", "burn", "arrhythmia", "poison", "soaked", "all", "clear",
+        "bleed", "bone", "burn", "poison", "soaked", "all", "clear",
     };
 
     private static readonly string[] SpecialZombies =
@@ -664,7 +664,6 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
             Bleed = all || kind == "bleed" ? 2 : 0,
             Fracture = all || kind == "bone",
             Burn = all || kind == "burn",
-            Arrhythmia = all || kind == "arrhythmia",
             Poison = all || kind == "poison",
         });
 

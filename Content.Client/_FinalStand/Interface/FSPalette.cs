@@ -23,7 +23,6 @@ public static class FSPalette
     public static readonly Color Money = Color.FromHex("#d2a44e");
     public static readonly Color Burn = Color.FromHex("#d9702e");
     public static readonly Color Toxic = Color.FromHex("#a8b83a");
-    public static readonly Color Pulse = Color.FromHex("#4fb3d9");
 
     public static readonly Color BarTrack = Color.White.WithAlpha(0.06f);
     public static readonly Color BarSheen = Color.White.WithAlpha(0.12f);

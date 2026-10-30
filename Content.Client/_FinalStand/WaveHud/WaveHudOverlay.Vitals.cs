@@ -14,7 +14,6 @@ public sealed partial class WaveHudOverlay
     public int HealthMax;
     public string? DownText;
     public bool DownHeld;
-    public Texture? DownBadge;
     public readonly List<float> HealthTicks = new();
     public readonly List<VitalPill> StatusPills = new();
     public UIBox2? VitalsBox { get; private set; }
@@ -220,14 +219,6 @@ public sealed partial class WaveHudOverlay
         var hpDims = screen.GetDimensions(_valueFont!, hpText, 1f);
         var rowH = MathF.Max(hpDims.Y, HpBarH);
         screen.DrawString(_valueFont!, new Vector2(innerX, y + (rowH - hpDims.Y) * 0.5f), hpText, hpColor);
-
-        if (DownText != null && DownBadge != null)
-        {
-            var badge = hpDims.Y * 0.6f;
-            var badgeX = innerX + hpDims.X + 6f;
-            var badgeY = y + (rowH - badge) * 0.5f;
-            screen.DrawTextureRect(DownBadge, new UIBox2(badgeX, badgeY, badgeX + badge, badgeY + badge), FSPalette.Pulse);
-        }
 
         if (DownText == null)
         {
