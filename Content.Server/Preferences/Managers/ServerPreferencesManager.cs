@@ -90,6 +90,15 @@ namespace Content.Server.Preferences.Managers
             return new PlayerPreferences(profiles, prefs.SelectedCharacterSlot, Color.FromHex(prefs.AdminOOCColor), constructionFavorites);
         }
 
+        private void AddLegacyMarking(List<Marking> markings, HumanoidVisualLayers layer, string raw)
+        {
+            if (markings.Any(marking => _marking.TryGetMarking(marking, out var proto) && proto.BodyPart == layer))
+                return;
+
+            if (Marking.ParseFromDbString(raw) is { } parsed)
+                markings.Add(parsed);
+        }
+
         internal HumanoidCharacterProfile ConvertProfiles(Profile profile)
         {
 
@@ -143,11 +152,8 @@ namespace Content.Server.Preferences.Managers
                     markingsList.Add(parsed.Value);
                 }
 
-                if (Marking.ParseFromDbString($"{profile.HairName}@{profile.HairColor}") is { } facialMarking)
-                    markingsList.Add(facialMarking);
-
-                if (Marking.ParseFromDbString($"{profile.HairName}@{profile.HairColor}") is { } hairMarking)
-                    markingsList.Add(hairMarking);
+                AddLegacyMarking(markingsList, HumanoidVisualLayers.Hair, $"{profile.HairName}@{profile.HairColor}");
+                AddLegacyMarking(markingsList, HumanoidVisualLayers.FacialHair, $"{profile.FacialHairName}@{profile.FacialHairColor}");
 
                 markings = _marking.ConvertMarkings(markingsList, species);
             }
