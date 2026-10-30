@@ -1,3 +1,16 @@
+- type: vendingMachineInventory
+  id: NanoMedInventory
+  startingInventory:
+    Gauze: 3
+    Brutepack: 3
+    Ointment: 3
+    Bloodpack: 3
+    ChemistryBottleEpinephrine: 3
+    Syringe: 3
+    FSSplint1: 3
+  contrabandInventory:
+    PowerCellSmall: 2
+
 # All access version. Should reflect the stock of NanoMedInventory, but less powerful
 - type: vendingMachineInventory
   id: NanoMedCivilianWallInventory
