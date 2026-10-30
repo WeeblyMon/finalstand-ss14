@@ -1,5 +1,4 @@
 using Content.Shared.Chat.Prototypes;
-using Content.Shared.Humanoid;
 using Content.Shared.Speech.EntitySystems;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
@@ -55,12 +54,4 @@ public sealed partial class VocalComponent : Component
     [DataField]
     [AutoNetworkedField]
     public ProtoId<EmoteSoundsPrototype>? EmoteSounds;
-
-    /// <summary>
-    ///     Emote sounds per sex, used by humanoids that pick their voice from <see cref="Sex"/>
-    ///     rather than carrying an explicit voice on their profile.
-    /// </summary>
-    [DataField]
-    [AutoNetworkedField]
-    public Dictionary<Sex, ProtoId<EmoteSoundsPrototype>>? Sounds;
 }

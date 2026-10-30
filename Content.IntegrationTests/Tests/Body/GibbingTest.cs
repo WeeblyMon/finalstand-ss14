@@ -15,20 +15,18 @@ public sealed class GibletTest : GameTest
   id: GibbingBody
   components:
   - type: Body
-  - type: InitialBody
-    organs:
-      Torso: ChestHuman
-      Heart: Giblet
-      Liver: Giblet
-      Kidneys: Giblet
-    relationships:
-      Torso: [ Heart, Liver, Kidneys ]
+  - type: EntityTableContainerFill
+    containers:
+      body_organs: !type:AllSelector
+        children:
+        - id: Giblet
+        - id: Giblet
+        - id: Giblet
 
 - type: entity
   id: Giblet
   components:
   - type: Organ
-  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Physics
 ";
@@ -50,8 +48,7 @@ public sealed class GibletTest : GameTest
             var gibbing = entityManager.System<GibbingSystem>();
             var giblets = gibbing.Gib(body);
 
-            // the torso is an organ too, so it scatters alongside the three giblets
-            Assert.That(giblets.Count, Is.EqualTo(4));
+            Assert.That(giblets.Count, Is.EqualTo(3));
 
             foreach (var giblet in giblets)
             {

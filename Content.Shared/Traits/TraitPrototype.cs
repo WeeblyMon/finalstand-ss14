@@ -1,4 +1,3 @@
-using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Roles;
 using Content.Shared.Whitelist;
 using Robust.Shared.Prototypes;
@@ -70,10 +69,4 @@ public sealed partial class TraitPrototype : IPrototype
     /// </summary>
     [DataField]
     public ProtoId<TraitCategoryPrototype>? Category;
-
-    [DataField]
-    public HashSet<ProtoId<SpeciesPrototype>> ExcludedSpecies = new();
-
-    [DataField]
-    public HashSet<ProtoId<SpeciesPrototype>> IncludedSpecies = new();
 }

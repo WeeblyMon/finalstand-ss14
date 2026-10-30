@@ -25,12 +25,11 @@ public sealed class LungTest : GameTest
   components:
   - type: SolutionContainerManager
   - type: Body
-  - type: InitialBody
-    organs:
-      Torso: ChestHuman
-      Lungs: OrganHumanLungs
-    relationships:
-      Torso: [ Lungs ]
+  - type: EntityTableContainerFill
+    containers:
+      body_organs: !type:AllSelector
+        children:
+        - id: OrganHumanLungs
   - type: MobState
     allowedStates:
       - Alive
