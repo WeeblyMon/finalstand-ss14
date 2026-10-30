@@ -33,10 +33,6 @@
     horizontalRotation: 90
   - type: HumanoidProfile
   - type: TypingIndicator
-  - type: SlowOnDamage
-    speedModifierThresholds:
-      60: 0.7
-      80: 0.5
   - type: Fixtures
     fixtures: # TODO: This needs a second fixture just for mob collisions.
       fix1:
@@ -110,6 +106,13 @@
     interactSuccessString: hugging-success-generic
     interactSuccessSound: /Audio/Effects/thudswoosh.ogg
     messagePerceivedByOthers: hugging-success-generic-others
+  - type: ExtinguishOnInteract
+    probability: 1
+    stackDelta: -2
+    extinguishAttemptSound:
+      path: /Audio/Items/candle_blowing.ogg
+  - type: UseDelay
+    delay: 1
   - type: CanHostGuardian
   - type: NpcFactionMember
     factions:
@@ -121,7 +124,6 @@
   - type: ParcelWrapOverride
     parcelPrototype: WrappedParcelHumanoid
     wrapDelay: 5
-  - type: Stripping
   - type: UserInterface
     interfaces:
       enum.HumanoidMarkingModifierKey.Key:
@@ -155,37 +157,24 @@
 - type: entity
   abstract: true
   parent:
+  - FSPlayerVitals
   - MobBloodstream
   - MobRespirator
   - MobAtmosStandard
   - MobFlammable
   - BaseSpeciesMob
   - BaseMobDestructible
-  - BaseHungerSlowdown
-  - BaseThirstSlowdown
   id: BaseSpeciesMobOrganic
   save: false
   components:
-  - type: Satiation
-    satiations:
-      Hunger:
-        prototype: NormalSatiationHunger
-      Thirst:
-        prototype: NormalSatiationThirst
+  - type: Flammable
+    fireSpread: false
+  - type: FSSprint
   - type: Barotrauma
     damage:
       types:
         Blunt: 0.50
         Heat: 0.1
-  - type: PassiveDamage
-    allowedStates:
-    - Alive
-    damage:
-      types:
-        Heat: -0.07
-        Blunt: -0.05
-        Piercing: -0.05
-        Slash: -0.05
   - type: Fingerprint
   - type: Blindable
   - type: Temperature
