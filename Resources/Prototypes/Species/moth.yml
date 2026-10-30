@@ -10,10 +10,12 @@
   femaleFirstNames: NamesMothFirstFemale
   lastNames: NamesMothLast
   defaultSoundsBySex:
-  - UnisexMoth
-  - UnisexMoth
+  - MaleMoth
+  - FemaleMoth
   - UnisexMoth
   voices:
+  - MaleMoth
+  - FemaleMoth
   - UnisexMoth
   bodySize:
     minWidth: 0.8
