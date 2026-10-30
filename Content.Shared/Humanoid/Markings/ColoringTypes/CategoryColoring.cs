@@ -12,13 +12,13 @@ public sealed partial class CategoryColoring : LayerColoringType
 
     public override Color? GetCleanColor(Color? skin, Color? eyes, List<Marking> otherMarkings)
     {
-        Color? outColor = null;
-
-        if (otherMarkings.Count > 0)
+        var markingManager = IoCManager.Resolve<MarkingManager>();
+        foreach (var marking in otherMarkings)
         {
-            outColor = otherMarkings[0].MarkingColors.FirstOrDefault();
+            if (markingManager.TryGetMarking(marking, out var proto) && proto.BodyPart == Category)
+                return marking.MarkingColors.FirstOrDefault();
         }
 
-        return outColor;
+        return null;
     }
 }

@@ -28,7 +28,7 @@ public abstract partial class SharedVisualBodySystem : EntitySystem
         InitializeInitial();
     }
 
-    private List<Marking> ResolveMarkings(List<Marking> markings, Color? skinColor, Color? eyeColor, Dictionary<Enum, MarkingsAppearance> appearances)
+    private List<Marking> ResolveMarkings(List<Marking> markings, List<Marking> bodyMarkings, Color? skinColor, Color? eyeColor, Dictionary<Enum, MarkingsAppearance> appearances)
     {
         var ret = new List<Marking>();
         var forcedColors = new List<(Marking, MarkingPrototype)>();
@@ -52,7 +52,7 @@ public abstract partial class SharedVisualBodySystem : EntitySystem
                 prototype,
                 skinColor,
                 eyeColor,
-                ret);
+                bodyMarkings);
 
             var markingWithColor = new Marking(marking.MarkingId, colors)
             {
@@ -164,9 +164,10 @@ public abstract partial class SharedVisualBodySystem : EntitySystem
         }
 
         var profile = Comp<VisualOrganComponent>(ent).Profile;
+        var bodyMarkings = args.Args.Markings.Values.SelectMany(layers => layers.Values).SelectMany(list => list).ToList();
         var resolved = organMarkings.ToDictionary(
             kvp => kvp.Key,
-            kvp => ResolveMarkings(kvp.Value, profile.SkinColor, profile.EyeColor, groupProto.Appearances));
+            kvp => ResolveMarkings(kvp.Value, bodyMarkings, profile.SkinColor, profile.EyeColor, groupProto.Appearances));
 
         SetOrganMarkings(ent, resolved);
     }
