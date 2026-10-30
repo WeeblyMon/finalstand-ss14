@@ -1,17 +1,29 @@
-using Content.Shared._FinalStand.Chat;
+using Content.Shared.Access.Systems;
+using Content.Shared.StatusIcon;
+using Content.Shared.StatusIcon.Components;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Radio.EntitySystems;
 
 public sealed partial class RadioSystem
 {
-    [Dependency] private FSRadioJobIconSystem _jobIcon = default!;
+    [Dependency] private SharedIdCardSystem _idCard = default!;
+
+    private static readonly ProtoId<JobIconPrototype> NoIdJobIcon = "JobIconNoId";
 
     private string FinalStandDecorateSpeakerName(EntityUid speaker, string name)
     {
-        if (!_jobIcon.TryGetJobIcon(speaker, out var jobIcon, out var jobName))
+        if (!HasComp<StatusIconComponent>(speaker))
             return name;
 
-        return Loc.GetString("chat-radio-message-name-with-icon",
-            ("jobIcon", jobIcon), ("jobName", jobName ?? ""), ("name", name));
+        var icon = NoIdJobIcon;
+        var title = string.Empty;
+        if (_idCard.TryFindIdCard(speaker, out var card))
+        {
+            icon = card.Comp.JobIcon;
+            title = card.Comp.LocalizedJobTitle ?? string.Empty;
+        }
+
+        return Loc.GetString("chat-radio-message-name-with-icon", ("jobIcon", icon), ("jobName", title), ("name", name));
     }
 }
