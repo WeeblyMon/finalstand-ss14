@@ -8,6 +8,8 @@ using Content.Shared.Examine;
 using Content.Shared.HealthExaminable;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Movement.Components;
+using Content.Shared.Movement.Systems;
 using Content.Shared.Rejuvenate;
 using Content.Shared.StatusEffectNew;
 using Content.Shared.StatusEffectNew.Components;
@@ -27,6 +29,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
     [Dependency] private INetManager _net = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private MovementSpeedModifierSystem _movementSpeed = default!;
     [Dependency] private StatusEffectsSystem _status = default!;
 
     private static readonly ProtoId<FSAilmentRulesPrototype> RulesId = "Default";
@@ -62,6 +65,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
         SubscribeLocalEvent<FSAilmentStateComponent, HealthBeingExaminedEvent>(OnHealthExamined);
         SubscribeLocalEvent<FSSignatureAilmentComponent, ExaminedEvent>(OnSignatureExamined);
         SubscribeLocalEvent<FSAilmentStateComponent, ReactionEntityEvent>(OnReaction);
+        SubscribeLocalEvent<FSAilmentComponent, StatusEffectAppliedEvent>(OnAilmentApplied);
         SubscribeLocalEvent<FSAilmentComponent, StatusEffectRemovedEvent>(OnAilmentRemoved);
     }
 
@@ -767,6 +771,12 @@ public sealed partial class FSAilmentSystem : EntitySystem
     private void OnSignatureExamined(Entity<FSSignatureAilmentComponent> ent, ref ExaminedEvent args)
     {
         args.PushMarkup(Loc.GetString(ent.Comp.Examine));
+    }
+
+    private void OnAilmentApplied(Entity<FSAilmentComponent> ent, ref StatusEffectAppliedEvent args)
+    {
+        if (HasComp<MovementModStatusEffectComponent>(ent))
+            _movementSpeed.RefreshMovementSpeedModifiers(args.Target);
     }
 
     private void OnAilmentRemoved(Entity<FSAilmentComponent> ent, ref StatusEffectRemovedEvent args)
