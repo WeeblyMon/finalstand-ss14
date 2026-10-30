@@ -204,7 +204,7 @@
   id: OrganSlimePersonTorso
 
 - type: entity
-  parent: [ OrganBaseHead, OrganSlimePersonExternal ]
+  parent: [ OrganBaseHeadSexed, OrganBaseHead, OrganSlimePersonExternal ]
   id: OrganSlimePersonHead
 
 - type: entity
