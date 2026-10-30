@@ -125,17 +125,17 @@
                                 <humanoid:EyeColorPicker Name="EyeColorPicker" />
                             </BoxContainer>
                             <BoxContainer Margin="10" Orientation="Vertical">
-                                <Label Name="HeightLabel" />
                                 <BoxContainer HorizontalExpand="True">
-                                    <Slider Name="HeightSlider" HorizontalExpand="True" Margin="5 0 5 0" />
-                                    <Button Name="HeightReset" Text="{Loc 'ui-options-bind-reset'}" />
+                                    <Label Name="BodyHeightLabel" MinWidth="130" />
+                                    <Slider Name="BodyHeightSlider" HorizontalExpand="True" Margin="5 0 5 0" />
+                                    <Button Name="BodyHeightReset" Text="{Loc 'ui-options-bind-reset'}" />
                                 </BoxContainer>
-                                <Label Name="WidthLabel" />
                                 <BoxContainer HorizontalExpand="True">
-                                    <Slider Name="WidthSlider" HorizontalExpand="True" Margin="5 0 5 0" />
-                                    <Button Name="WidthReset" Text="{Loc 'ui-options-bind-reset'}" />
+                                    <Label Name="BodyWidthLabel" MinWidth="130" />
+                                    <Slider Name="BodyWidthSlider" HorizontalExpand="True" Margin="5 0 5 0" />
+                                    <Button Name="BodyWidthReset" Text="{Loc 'ui-options-bind-reset'}" />
                                 </BoxContainer>
-                                <Label Name="WeightLabel" />
+                                <Label Name="BodyWeightLabel" />
                             </BoxContainer>
                         </BoxContainer>
                     </ScrollContainer>

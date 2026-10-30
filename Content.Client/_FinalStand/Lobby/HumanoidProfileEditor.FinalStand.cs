@@ -8,10 +8,10 @@ public sealed partial class HumanoidProfileEditor
 {
     private void InitializeBodySize()
     {
-        HeightSlider.OnValueChanged += _ => SetBodySize(true);
-        WidthSlider.OnValueChanged += _ => SetBodySize(false);
-        HeightReset.OnPressed += _ => ResetBodySize(true);
-        WidthReset.OnPressed += _ => ResetBodySize(false);
+        BodyHeightSlider.OnValueChanged += _ => SetBodySize(true);
+        BodyWidthSlider.OnValueChanged += _ => SetBodySize(false);
+        BodyHeightReset.OnPressed += _ => ResetBodySize(true);
+        BodyWidthReset.OnPressed += _ => ResetBodySize(false);
     }
 
     private FSBodySize? CurrentBodySize()
@@ -26,12 +26,12 @@ public sealed partial class HumanoidProfileEditor
 
         var height = size.ClampHeight(Profile.Height);
         var width = size.ClampWidth(Profile.Width);
-        HeightSlider.MinValue = size.MinHeight;
-        HeightSlider.MaxValue = size.MaxHeight;
-        WidthSlider.MinValue = size.MinWidth;
-        WidthSlider.MaxValue = size.MaxWidth;
-        HeightSlider.SetValueWithoutEvent(height);
-        WidthSlider.SetValueWithoutEvent(width);
+        BodyHeightSlider.MinValue = size.MinHeight;
+        BodyHeightSlider.MaxValue = size.MaxHeight;
+        BodyWidthSlider.MinValue = size.MinWidth;
+        BodyWidthSlider.MaxValue = size.MaxWidth;
+        BodyHeightSlider.SetValueWithoutEvent(height);
+        BodyWidthSlider.SetValueWithoutEvent(width);
 
         if (!MathHelper.CloseTo(height, Profile.Height) || !MathHelper.CloseTo(width, Profile.Width))
             Profile = Profile.WithSize(height, width);
@@ -45,9 +45,9 @@ public sealed partial class HumanoidProfileEditor
             return;
 
         if (height)
-            HeightSlider.Value = size.DefaultHeight;
+            BodyHeightSlider.Value = size.DefaultHeight;
         else
-            WidthSlider.Value = size.DefaultWidth;
+            BodyWidthSlider.Value = size.DefaultWidth;
     }
 
     private void SetBodySize(bool heightMoved)
@@ -55,16 +55,16 @@ public sealed partial class HumanoidProfileEditor
         if (Profile == null || CurrentBodySize() is not { } size)
             return;
 
-        var height = size.ClampHeight(HeightSlider.Value);
-        var width = size.ClampWidth(WidthSlider.Value);
+        var height = size.ClampHeight(BodyHeightSlider.Value);
+        var width = size.ClampWidth(BodyWidthSlider.Value);
 
         if (heightMoved)
             width = size.ClampWidth(Math.Clamp(width, height / size.SizeRatio, height * size.SizeRatio));
         else
             height = size.ClampHeight(Math.Clamp(height, width / size.SizeRatio, width * size.SizeRatio));
 
-        HeightSlider.SetValueWithoutEvent(height);
-        WidthSlider.SetValueWithoutEvent(width);
+        BodyHeightSlider.SetValueWithoutEvent(height);
+        BodyWidthSlider.SetValueWithoutEvent(width);
         Profile = Profile.WithSize(height, width);
         UpdateBodySizeLabels(size);
         SetDirty();
@@ -76,8 +76,8 @@ public sealed partial class HumanoidProfileEditor
         if (Profile == null)
             return;
 
-        HeightLabel.Text = Loc.GetString("fs-profile-editor-height", ("height", (int) MathF.Round(size.AverageHeight * HeightSlider.Value)));
-        WidthLabel.Text = Loc.GetString("fs-profile-editor-width", ("width", (int) MathF.Round(size.AverageWidth * WidthSlider.Value)));
+        BodyHeightLabel.Text = Loc.GetString("fs-profile-editor-height", ("height", (int) MathF.Round(size.AverageHeight * BodyHeightSlider.Value)));
+        BodyWidthLabel.Text = Loc.GetString("fs-profile-editor-width", ("width", (int) MathF.Round(size.AverageWidth * BodyWidthSlider.Value)));
 
         var weight = 0f;
         if (_prototypeManager.TryIndex(Profile.Species, out var species)
@@ -90,7 +90,7 @@ public sealed partial class HumanoidProfileEditor
             }
         }
 
-        var average = (HeightSlider.Value + WidthSlider.Value) / 2f;
-        WeightLabel.Text = Loc.GetString("fs-profile-editor-weight", ("weight", (int) MathF.Round(weight * average)));
+        var average = (BodyHeightSlider.Value + BodyWidthSlider.Value) / 2f;
+        BodyWeightLabel.Text = Loc.GetString("fs-profile-editor-weight", ("weight", (int) MathF.Round(weight * average)));
     }
 }
