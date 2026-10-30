@@ -12,3 +12,10 @@
   voices:
   - UnisexDwarf
   - FemaleDwarf
+  bodySize:
+    sizeRatio: 1.3
+    minHeight: 0.75
+    defaultHeight: 0.8
+    maxHeight: 0.9
+    minWidth: 0.9
+    maxWidth: 1.3

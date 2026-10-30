@@ -5,3 +5,8 @@
   prototype: MobHuman
   dollPrototype: AppearanceHuman
   skinColoration: HumanToned
+  bodySize:
+    minHeight: 0.9
+    maxHeight: 1.2
+    minWidth: 0.9
+    maxWidth: 1.1

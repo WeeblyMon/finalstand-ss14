@@ -209,6 +209,8 @@ namespace Content.Client.Lobby.UI
                 OnSkinColorOnValueChanged();
             };
 
+            InitializeBodySize();
+
             #region Skin
 
             Skin.OnValueChanged += _ =>
@@ -384,6 +386,7 @@ namespace Content.Client.Lobby.UI
             UpdateSpawnPriorityControls();
             UpdateAgeEdit();
             UpdateEyePickers();
+            UpdateBodySize();
             UpdateSaveButton();
             UpdateMarkings();
 

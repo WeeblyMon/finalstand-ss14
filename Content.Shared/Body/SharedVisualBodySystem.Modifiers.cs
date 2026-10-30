@@ -171,6 +171,7 @@ public abstract partial class SharedVisualBodySystem
     public void ApplyProfileTo(Entity<VisualBodyComponent?> ent, HumanoidCharacterProfile profile)
     {
         ApplyAppearanceTo(ent, profile.Appearance, profile.Sex);
+        ApplyBodySize(ent.Owner, profile);
     }
 
     /// <summary>

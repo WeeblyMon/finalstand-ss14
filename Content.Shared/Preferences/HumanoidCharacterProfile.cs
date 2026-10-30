@@ -193,6 +193,8 @@ namespace Content.Shared.Preferences
                 new HashSet<ProtoId<TraitPrototype>>(other.TraitPreferences),
                 new Dictionary<string, RoleLoadout>(other.Loadouts))
         {
+            Height = other.Height;
+            Width = other.Width;
         }
 
         /// <summary>
@@ -625,6 +627,7 @@ namespace Content.Shared.Preferences
             if (!_traitPreferences.SequenceEqual(other._traitPreferences)) return false;
             if (!Loadouts.SequenceEqual(other.Loadouts)) return false;
             if (FlavorText != other.FlavorText) return false;
+            if (!Height.Equals(other.Height) || !Width.Equals(other.Width)) return false;
             return Appearance.Equals(other.Appearance);
         }
 
@@ -656,6 +659,7 @@ namespace Content.Shared.Preferences
                 sex = speciesPrototype.Sexes[0];
 
             var age = Math.Clamp(Age, speciesPrototype.MinAge, speciesPrototype.MaxAge);
+            EnsureValidSize(speciesPrototype);
 
             var gender = Gender switch
             {
@@ -888,6 +892,8 @@ namespace Content.Shared.Preferences
             hashCode.Add(Appearance);
             hashCode.Add((int)SpawnPriority);
             hashCode.Add((int)PreferenceUnavailable);
+            hashCode.Add(Height);
+            hashCode.Add(Width);
             return hashCode.ToHashCode();
         }
 

@@ -15,3 +15,6 @@
   - UnisexMoth
   voices:
   - UnisexMoth
+  bodySize:
+    minWidth: 0.8
+    maxWidth: 1.25

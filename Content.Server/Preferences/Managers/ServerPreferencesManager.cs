@@ -202,7 +202,7 @@ namespace Content.Server.Preferences.Managers
                 antags.ToHashSet(),
                 traits.ToHashSet(),
                 loadouts
-            );
+            ).WithSize(profile.Height, profile.Width);
         }
 
         private async void HandleSelectCharacterMessage(MsgSelectCharacter message)

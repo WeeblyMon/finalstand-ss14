@@ -124,6 +124,19 @@
                                 <Label Text="{Loc 'humanoid-profile-editor-eyes-label'}" />
                                 <humanoid:EyeColorPicker Name="EyeColorPicker" />
                             </BoxContainer>
+                            <BoxContainer Margin="10" Orientation="Vertical">
+                                <Label Name="HeightLabel" />
+                                <BoxContainer HorizontalExpand="True">
+                                    <Slider Name="HeightSlider" HorizontalExpand="True" Margin="5 0 5 0" />
+                                    <Button Name="HeightReset" Text="{Loc 'ui-options-bind-reset'}" />
+                                </BoxContainer>
+                                <Label Name="WidthLabel" />
+                                <BoxContainer HorizontalExpand="True">
+                                    <Slider Name="WidthSlider" HorizontalExpand="True" Margin="5 0 5 0" />
+                                    <Button Name="WidthReset" Text="{Loc 'ui-options-bind-reset'}" />
+                                </BoxContainer>
+                                <Label Name="WeightLabel" />
+                            </BoxContainer>
                         </BoxContainer>
                     </ScrollContainer>
                 </BoxContainer>
