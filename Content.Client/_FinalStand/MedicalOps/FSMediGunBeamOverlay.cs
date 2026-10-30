@@ -124,7 +124,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
         EntityUid patient, float time, float dt, float uMin, float vMin, float cell)
     {
         if (!_entManager.TryGetComponent(source, out FSMediGunComponent? gun)
-            || gun.ParentEntity is not { } medic
+            || gun.Medic is not { } medic
             || !_entManager.EntityExists(medic)
             || !_entManager.EntityExists(patient))
             return;
@@ -167,7 +167,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
         DrawParticles(handle, start, control, end, time, gun.BeamColor);
 
-        if (gun.ParentEntity == _player.LocalEntity)
+        if (gun.Medic == _player.LocalEntity)
             DrawPatientStatus(handle, patient, end, args.Viewport.Eye?.Rotation ?? Angle.Zero);
     }
 
@@ -262,7 +262,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private void DrawPulse(DrawingHandleWorld handle, Vector2 start, Vector2 control, Vector2 end, float time,
         FSMediGunComponent gun, EntityUid patient)
     {
-        var period = MathF.Max(0.2f, gun.Frequency);
+        var period = MathF.Max(0.2f, gun.PulseSeconds);
         var t = time / period % 1f;
         var point = Bezier(start, control, end, t);
         var fade = MathF.Sin(t * MathF.PI);

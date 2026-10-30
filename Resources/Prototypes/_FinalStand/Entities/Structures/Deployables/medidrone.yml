@@ -58,12 +58,12 @@
   - type: FSMediDrone
   - type: FSMediGun
     beamFromSelf: true
-    frequency: 1.0
-    maxRange: 4
-    batteryWithdraw: 1
+    pulseSeconds: 1.0
+    range: 4
+    chargePerPulse: 1
     softCapRatio: 0.5
     clotPerSecond: 0.25
-    healing:
+    healPerPulse:
       types:
         Blunt: -2
         Slash: -2
@@ -74,7 +74,7 @@
         Caustic: -2
         Asphyxiation: -2
         Bloodloss: -2
-    soundOnTarget:
+    linkSound:
       path: /Audio/_FinalStand/Effects/medigun.ogg
   - type: Battery
     maxCharge: 20

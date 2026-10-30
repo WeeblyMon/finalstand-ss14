@@ -56,7 +56,7 @@ public sealed partial class FSUberSystem : EntitySystem
 
         Dirty(gun);
 
-        if (before < FullCharge && comp.UberCharge >= FullCharge && comp.ParentEntity is { } medic)
+        if (before < FullCharge && comp.UberCharge >= FullCharge && comp.Medic is { } medic)
         {
             _audio.PlayEntity(ReadySound, medic, medic);
             _popup.PopupEntity(Loc.GetString("fs-uber-ready"), medic, medic, PopupType.Medium);
@@ -98,12 +98,12 @@ public sealed partial class FSUberSystem : EntitySystem
         }
 
         comp.UberEndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.UberDuration);
-        comp.ParentEntity ??= medic;
+        comp.Medic ??= medic;
         Dirty(ent);
 
         Cover(ent, medic);
         _mediGun.ClearTreatable(comp, medic, medic);
-        foreach (var patient in comp.HealedEntities)
+        foreach (var patient in comp.Patients)
         {
             Cover(ent, patient);
             _mediGun.ClearTreatable(comp, patient, medic);
@@ -133,7 +133,7 @@ public sealed partial class FSUberSystem : EntitySystem
                 gun.UberCharge = 0f;
                 gun.UberLoop = _audio.Stop(gun.UberLoop);
                 Dirty(uid, gun);
-                if (gun.ParentEntity is { } medic)
+                if (gun.Medic is { } medic)
                     _audio.PlayEntity(EndSound, medic, medic);
                 continue;
             }

@@ -170,18 +170,18 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     private void ApplyMediGun(Entity<FSMediGunComponent> ent)
     {
         var c = ent.Comp;
-        c.BaseMaxRange ??= c.MaxRange;
+        c.BaseRange ??= c.Range;
         c.BaseClotPerSecond ??= c.ClotPerSecond;
-        c.BaseMaxLinksAmount ??= c.MaxLinksAmount;
-        c.BaseFrequency ??= c.Frequency;
+        c.BaseMaxPatients ??= c.MaxPatients;
+        c.BasePulseSeconds ??= c.PulseSeconds;
 
-        c.MaxRange = c.BaseMaxRange.Value + (Unlocked(ExtendedOptics) ? 3f : 0f);
+        c.Range = c.BaseRange.Value + (Unlocked(ExtendedOptics) ? 3f : 0f);
         c.ClotPerSecond = c.BaseClotPerSecond.Value * (Unlocked(HaemostaticBeam) ? 2f : 1f);
-        c.MaxLinksAmount = c.BaseMaxLinksAmount.Value + (Unlocked(FocusedEmitters) ? 1 : 0);
-        c.Frequency = c.BaseFrequency.Value * (Unlocked(RapidCycling) ? 0.7f : 1f);
+        c.MaxPatients = c.BaseMaxPatients.Value + (Unlocked(FocusedEmitters) ? 1 : 0);
+        c.PulseSeconds = c.BasePulseSeconds.Value * (Unlocked(RapidCycling) ? 0.7f : 1f);
 
-        c.BaseBatteryWithdraw ??= c.BatteryWithdraw;
-        c.BatteryWithdraw = c.BaseBatteryWithdraw.Value
+        c.BaseChargePerPulse ??= c.ChargePerPulse;
+        c.ChargePerPulse = c.BaseChargePerPulse.Value
                             * (Unlocked(CellEfficiency) ? 0.6f : 1f)
                             * (Unlocked(CellEfficiency2) ? 0.75f : 1f);
 

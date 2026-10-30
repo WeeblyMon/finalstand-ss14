@@ -16,7 +16,7 @@
     - back
     - suitStorage
   - type: FSMediGun
-    healing:
+    healPerPulse:
       types:
         Blunt: -6
         Slash: -6
@@ -27,7 +27,7 @@
         Caustic: -6
         Asphyxiation: -6
         Bloodloss: -6
-    soundOnTarget:
+    linkSound:
       path: /Audio/_FinalStand/Effects/medigun.ogg
   - type: Battery
     maxCharge: 30

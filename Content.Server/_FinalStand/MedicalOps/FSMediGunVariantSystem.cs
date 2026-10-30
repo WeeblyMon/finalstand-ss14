@@ -86,7 +86,7 @@ public sealed partial class FSMediGunVariantSystem : EntitySystem
     {
         var proto = variant == FSMediGunVariant.OverHealer ? OverHealerProto : UberChargerProto;
 
-        _mediGun.DisableAllConnections((old, Comp<FSMediGunComponent>(old)));
+        _mediGun.Release((old, Comp<FSMediGunComponent>(old)));
         var charge = _battery.GetCharge(old);
 
         BaseContainer? container = null;

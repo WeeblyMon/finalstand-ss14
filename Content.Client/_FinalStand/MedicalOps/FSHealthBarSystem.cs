@@ -131,7 +131,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
         {
             foreach (var source in healed.Sources)
             {
-                if (TryComp<FSMediGunComponent>(source, out var gun) && gun.ParentEntity == local)
+                if (TryComp<FSMediGunComponent>(source, out var gun) && gun.Medic == local)
                     return patient;
             }
         }
