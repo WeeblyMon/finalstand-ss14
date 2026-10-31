@@ -12,9 +12,11 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class AutoStartTest : GameTest
 {
+    // Destructive: auto-start sets the preset and server-wide cvars (map, grid fill, arrivals) that a cleaned-up pair
+    // would carry into the next test.
     public override PoolSettings PoolSettings => new()
     {
-        Dirty = true,
+        Destructive = true,
         DummyTicker = false,
         InLobby = true,
         Map = "FinalStandMap1",
