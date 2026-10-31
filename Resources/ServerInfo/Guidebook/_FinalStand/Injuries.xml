@@ -45,7 +45,7 @@ Each ailment you have shows under your health bar with its timer and the item th
 
 [bold]Cause:[/bold] standing in fire. About 5 heat damage taken while you burn is enough.
 
-[bold]Effect:[/bold] no passive healing for 45 seconds. Bandages, the medigun and the medi-drone heal you at half speed. Chemicals, defibrillators and perks are not affected.
+[bold]Effect:[/bold] for 45 seconds, bandages, the medigun and the medi-drone heal you at half speed. Chemicals, defibrillators and perks are not affected.
 
 [bold]Fix:[/bold] ointment, aloe cream or regenerative mesh.
 
@@ -57,7 +57,7 @@ Each ailment you have shows under your health bar with its timer and the item th
 
 [bold]Cause:[/bold] a bloater bursting within 4.5 metres.
 
-[bold]Effect:[/bold] 1 poison damage a second for 12 seconds and no passive healing. The medigun cannot heal poison. For the first 6 seconds you are also [bold]soaked[/bold]: slower, and you take double damage.
+[bold]Effect:[/bold] 1 poison damage a second for 12 seconds. The medigun cannot heal poison. For the first 6 seconds you are also [bold]soaked[/bold]: slower, and you take double damage.
 
 [bold]Fix:[/bold] a good spray of water from an extinguisher or spray bottle washes it off. Kill bloaters from range and spread out.
 
