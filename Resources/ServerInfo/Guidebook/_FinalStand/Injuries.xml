@@ -28,14 +28,14 @@ Each ailment you have shows under your health bar with its timer and the item th
 ## Broken bone
 
 <Box>
-<GuideEntityEmbed Entity="FSSplint"/>
+<GuideEntityEmbed Entity="Brutepack"/>
 </Box>
 
 [bold]Cause:[/bold] a giant's slam, charge or boulder. From wave 15, a revenant's grab.
 
-[bold]Effect:[/bold] 35% slower. After 30 seconds the bone sets itself and becomes [bold]splinted[/bold]: 15% slower, healing on its own in 90 seconds.
+[bold]Effect:[/bold] 35% slower. After 30 seconds the bone starts [bold]mending[/bold]: 15% slower, healing on its own in 90 seconds.
 
-[bold]Fix:[/bold] a splint turns it into a splinted bone at once. A doctor's stapler clears either state instantly. The medigun can set bones once Bone-Knitter Beam is researched.
+[bold]Fix:[/bold] three bruise packs clear either state, two with Bone Setting researched. A doctor's stapler clears either state instantly. The medigun can set bones once Bone-Knitter Beam is researched.
 
 ## Burned
 

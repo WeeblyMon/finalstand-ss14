@@ -20,7 +20,6 @@
         - Handcuffs
         - Zipties
         - FlashlightSeclite
-        - FSSplint1
       chance: 0.85
 
 - type: entity
@@ -50,7 +49,6 @@
         - FlashlightSeclite
         - GrenadeFlashBang
         - SecurityWhistle
-        - FSSplint1
       chance: 0.85
  
 # Armory loot spawner

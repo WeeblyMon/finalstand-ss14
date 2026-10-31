@@ -11,7 +11,6 @@
   - FSDefibrillatorCompact
   - FSMedicatedSuture
   - FSRegenerativeMesh
-  - FSSplint
 
 - type: fsTechNode
   id: FSMedicalBiochemicalStasis
@@ -34,7 +33,7 @@
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Unlocks the compact defibrillator, medicated sutures, regenerative mesh and splints at the medical lathe.
+  bonusDescription: Unlocks the compact defibrillator, medicated sutures, and regenerative mesh at the medical lathe.
   vanillaTechnologyId: FSAdvancedTreatment
 
 - type: fsTechNode
@@ -52,17 +51,17 @@
   vanillaTechnologyId: MechanizedTreatment
 
 - type: fsTechNode
-  id: FSMedicalFieldSplints
-  name: Field Splints
+  id: FSMedicalBoneSetting
+  name: Bone Setting
   icon:
-    sprite: _FinalStand/Objects/Medical/splint.rsi
-    state: icon
+    sprite: Objects/Specific/Medical/medical.rsi
+    state: brutepack
   branch: Medical
   tier: 2
   cost: 700
   prerequisites:
   - FSMedicalAdvancedTreatment
-  bonusDescription: Splints go on in half the time, and a splinted bone heals in 45 seconds instead of 90.
+  bonusDescription: Two bruise packs fix a broken bone instead of three, and a mending bone heals in 45 seconds instead of 90.
 
 - type: fsTechNode
   id: FSMedicalBluespaceChemistry
@@ -88,7 +87,7 @@
   tier: 3
   cost: 1100
   prerequisites:
-  - FSMedicalFieldSplints
+  - FSMedicalBoneSetting
   bonusDescription: Gauze and sutures leave the patient CLOTTED for 20 seconds, so no new bleeding can start.
 
 - type: fsTechNode
@@ -101,7 +100,7 @@
   tier: 4
   cost: 1600
   prerequisites:
-  - FSMedicalFieldSplints
+  - FSMedicalBoneSetting
   bonusDescription: Medics see ailment pips above the health bars of wounded allies.
 
 - type: fsTechNode
@@ -591,7 +590,7 @@
   cost: 1100
   prerequisites:
   - FSMedicalHaemostaticBeam
-  bonusDescription: The beam can set a broken bone in 6 seconds, or 3 if it is already splinted.
+  bonusDescription: The beam can set a broken bone in 6 seconds, or 3 if it is already mending.
 
 - type: fsTechNode
   id: FSMedicalDermalLattice

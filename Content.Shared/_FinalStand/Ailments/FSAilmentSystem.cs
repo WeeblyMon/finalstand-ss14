@@ -40,6 +40,7 @@ public sealed partial class FSAilmentSystem : EntitySystem
     private readonly List<FSAilmentView> _examineViews = new();
     private int _internalDepth;
     private bool _fieldOps;
+    private TimeSpan? _mendingDuration;
     private float _wardScale = 1f;
 
     public FSAilmentRulesPrototype Rules => _proto.Index(RulesId);
@@ -78,8 +79,13 @@ public sealed partial class FSAilmentSystem : EntitySystem
 
         foreach (var (patient, next) in _pendingExpiry)
         {
-            if (!TerminatingOrDeleted(patient))
-                ApplyUnchecked(patient, next == Rules.Splinted ? SplintedEffect : next);
+            if (TerminatingOrDeleted(patient))
+                continue;
+
+            if (next != Rules.Mending)
+                ApplyUnchecked(patient, next);
+            else if (GetAilment(MendingEffect) is { } mending)
+                _status.TrySetStatusEffectDuration(patient, MendingEffect, _mendingDuration ?? mending.Duration);
         }
 
         _pendingExpiry.Clear();
@@ -264,20 +270,11 @@ public sealed partial class FSAilmentSystem : EntitySystem
         }
     }
 
-    private EntProtoId SplintedEffect => _fieldOps ? Rules.SplintedFieldOps : Rules.Splinted;
+    private EntProtoId MendingEffect => _fieldOps ? Rules.MendingFieldOps : Rules.Mending;
 
-    public bool Splint(EntityUid patient, TimeSpan? duration = null)
+    public void SetMendingDuration(TimeSpan? duration)
     {
-        var effect = SplintedEffect;
-        if (!IsBroken(patient) || GetAilment(effect) is not { } splinted)
-            return false;
-
-        if (_net.IsClient)
-            return true;
-
-        RemoveSlot(patient, FSAilmentSlot.Bone);
-        _status.TrySetStatusEffectDuration(patient, effect, duration ?? splinted.Duration);
-        return true;
+        _mendingDuration = duration;
     }
 
     public void SetFieldOps(bool active)
@@ -286,8 +283,8 @@ public sealed partial class FSAilmentSystem : EntitySystem
             return;
 
         _fieldOps = active;
-        var from = active ? Rules.Splinted : Rules.SplintedFieldOps;
-        var to = SplintedEffect;
+        var from = active ? Rules.Mending : Rules.MendingFieldOps;
+        var to = MendingEffect;
         var now = _timing.CurTime;
 
         var swaps = new List<(EntityUid Patient, EntityUid Effect, TimeSpan? Left)>();

@@ -107,7 +107,6 @@
         - id: Brutepack
         - id: Ointment
         - id: Gauze
-        - id: FSSplint3
         # Reagents reflect the bottles in CoreMedicineReagentBottleTable
         - id: ChemistryBottleSaline
         - id: ChemistryBottleBicaridine
@@ -130,7 +129,6 @@
         - id: Brutepack
         - id: Ointment
         - id: Gauze
-        - id: FSSplint2
         - id: Bloodpack
         - id: ChemistryBottleBicaridine
         - id: ChemistryBottleDylovene

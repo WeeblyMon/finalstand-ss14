@@ -1,8 +1,8 @@
 fs-ailment-bleeding = BLEEDING
 fs-ailment-broken = BROKEN BONE
 fs-ailment-broken-examine = [color=#e8e2d0]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } a broken bone.[/color]
-fs-ailment-splinted = SPLINTED
-fs-ailment-splinted-examine = [color=#e8e2d0]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } a splinted bone.[/color]
+fs-ailment-mending = MENDING
+fs-ailment-mending-examine = [color=#e8e2d0]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } a mending bone.[/color]
 fs-ailment-burned = BURNED
 fs-ailment-burned-examine = [color=#ff8c2e]{ CAPITALIZE(SUBJECT($target)) } { CONJUGATE-HAVE($target) } fresh burns.[/color]
 fs-ailment-soaked = SOAKED
@@ -17,11 +17,11 @@ fs-need-ointment = OINTMENT
 fs-need-defib = DEFIB
 fs-ailment-bleeding-effect = {$rate} HP/s, no clotting while down
 fs-ailment-bleeding-fix = gauze, stapler, beam
-fs-ailment-broken-effect = -35% speed, sets itself in {$seconds} s
-fs-ailment-broken-fix = stapler, beam (Bone-Knitter); splint eases
-fs-ailment-splinted-effect = -15% speed, heals in {$seconds} s
-fs-ailment-splinted-fieldops-effect = no slowdown under Field Ops, heals in {$seconds} s
-fs-ailment-splinted-fix = stapler, tent
+fs-ailment-broken-effect = -35% speed, starts mending in {$seconds} s
+fs-ailment-broken-fix = bruise packs, stapler, beam (Bone-Knitter)
+fs-ailment-mending-effect = -15% speed, heals in {$seconds} s
+fs-ailment-mending-fieldops-effect = no slowdown under Field Ops, heals in {$seconds} s
+fs-ailment-mending-fix = bruise packs, stapler, tent
 fs-ailment-burned-effect = heals halved, {$seconds} s left
 fs-ailment-burned-fix = ointment
 fs-ailment-soaked-effect = slowed, double damage taken, {$seconds} s left
@@ -53,7 +53,7 @@ fs-signature-devastator = [color=#b3402f]Its chainsaw causes severe bleeding.[/c
 fs-signature-revenant = [color=#b3402f]Its blades cause heavy bleeding, and its grab breaks bones.[/color]
 fs-signature-revenant-dark = [color=#b3402f]Its blades cause heavy bleeding.[/color]
 fs-forecast-advice-bleeding = gauze
-fs-forecast-advice-bone = splints
+fs-forecast-advice-bone = bruise packs
 fs-forecast-advice-burn = ointment
 fs-forecast-advice-bloat = water sprays, spread out
 fs-forecast-line = {$new ->
@@ -62,7 +62,7 @@ fs-forecast-line = {$new ->
 } → {$ailment}
 fs-forecast-header = [color=#d2a44e]Medical forecast, wave {$wave}:[/color] {$lines}. Bring {$advice}.
 fs-hint-bleeding = [color=#b3402f]BLEEDING:[/color] you lose health every second and you cannot regenerate. Gauze stops it at once; a doctor's stapler closes heavy wounds. It clots by itself slowly, but not while you are down.
-fs-hint-bone = [color=#dfdcd7]BROKEN BONE:[/color] -35% speed. Splint it, or it sets itself in 30 s. A doctor's stapler fixes it now.
+fs-hint-bone = [color=#dfdcd7]BROKEN BONE:[/color] -35% speed. Three bruise packs fix it, or it starts mending by itself after 30 s. A doctor's stapler fixes it now.
 fs-hint-burn = [color=#d9702e]BURNED:[/color] bandages and the medigun heal you at half speed. Ointment clears it.
 fs-hint-bloat = [color=#a8b83a]POISONED:[/color] bloater bile burns you for 12 seconds; for the first few seconds it also slows you and doubles the damage you take. A spray of water washes it off. Kill bloaters from range and spread out.
 fs-ailment-poisoned = POISONED

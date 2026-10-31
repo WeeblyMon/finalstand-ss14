@@ -908,3 +908,7 @@ FSDurandControlModule: FSBroadswordControlModule
 FSDurandTargetingModule: FSBroadswordTargetingModule
 FSDurandBossPlate: FSBroadswordBossPlate
 ChestSkeleton: OrganSkeletonPersonTorso
+FSSplint: Brutepack1
+FSSplint1: Brutepack1
+FSSplint2: Brutepack1
+FSSplint3: Brutepack1

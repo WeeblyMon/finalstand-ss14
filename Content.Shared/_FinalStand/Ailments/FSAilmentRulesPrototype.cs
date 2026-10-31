@@ -23,10 +23,10 @@ public sealed partial class FSAilmentRulesPrototype : IPrototype
     public EntProtoId Broken = "FSAilmentBroken";
 
     [DataField]
-    public EntProtoId Splinted = "FSAilmentSplinted";
+    public EntProtoId Mending = "FSAilmentMending";
 
     [DataField]
-    public EntProtoId SplintedFieldOps = "FSAilmentSplintedFieldOps";
+    public EntProtoId MendingFieldOps = "FSAilmentMendingFieldOps";
 
     [DataField]
     public EntProtoId Burned = "FSAilmentBurned";

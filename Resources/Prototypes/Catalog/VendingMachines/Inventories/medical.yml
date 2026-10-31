@@ -7,7 +7,6 @@
     Bloodpack: 3
     ChemistryBottleEpinephrine: 3
     Syringe: 3
-    FSSplint1: 3
   contrabandInventory:
     PowerCellSmall: 2
 
@@ -16,7 +15,6 @@
   id: NanoMedCivilianWallInventory
   startingInventory:
     HandheldHealthAnalyzer: 1
-    FSSplint1: 3
     Brutepack: 3
     AloeCream: 3 # Currently just a reskin of Ointment but it's something
     Bloodpack: 3
@@ -41,7 +39,6 @@
     BoxBodyBag: 1
     # Extra Expendable Gear
     Gauze: 4
-    FSSplint1: 4
     Brutepack: 4
     Ointment: 4
     Bloodpack: 4
@@ -62,7 +59,6 @@
   id: NanoMedCivilianInventory
   startingInventory:
     HandheldHealthAnalyzer: 3
-    FSSplint1: 5
     Brutepack: 5
     AloeCream: 5
     Bloodpack: 5

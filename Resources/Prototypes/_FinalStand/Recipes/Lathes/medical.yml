@@ -24,14 +24,6 @@
     Plastic: 50
 
 - type: latheRecipe
-  id: FSSplint
-  result: FSSplint1
-  completetime: 2
-  materials:
-    Plastic: 50
-    Cloth: 50
-
-- type: latheRecipe
   abstract: true
   id: FSBaseAutoInjectorRecipe
   completetime: 3

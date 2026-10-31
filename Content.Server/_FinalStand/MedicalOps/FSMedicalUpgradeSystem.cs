@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Research;
 using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.GameTicking;
 using Content.Shared.Medical;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
@@ -15,6 +16,9 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     [Dependency] private FSMedicalResearchSystem _research = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private FSMediGunVariantSystem _variants = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
+
+    private static readonly TimeSpan BoneSettingMending = TimeSpan.FromSeconds(45);
 
     public const string ExtendedOptics = "FSMedicalExtendedOptics";
     public const string HaemostaticBeam = "FSMedicalHaemostaticBeam";
@@ -59,7 +63,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     public const string MassCasualtyReadiness = "FSMedicalMassCasualtyReadiness";
     public const string DepartmentDividend = "FSMedicalDepartmentDividend";
 
-    public const string FieldSplints = "FSMedicalFieldSplints";
+    public const string BoneSetting = "FSMedicalBoneSetting";
     public const string ClottingGauze = "FSMedicalClottingGauze";
     public const string TraumaScanners = "FSMedicalTraumaScanners";
     public const string RestartProtocol = "FSMedicalRestartProtocol";
@@ -77,7 +81,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
         StandingOrders, RapidMobilisation, ExtendedProtocol, TriageDoctrine, MassCasualtyReadiness,
         DepartmentDividend,
-        FieldSplints, ClottingGauze, TraumaScanners, RestartProtocol,
+        BoneSetting, ClottingGauze, TraumaScanners, RestartProtocol,
     ];
 
     private static readonly FrozenSet<string> NodeSet = AllNodes.ToFrozenSet();
@@ -95,8 +99,8 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSFieldHospitalComponent, MapInitEvent>(OnFieldHospitalInit);
         SubscribeLocalEvent<FSEmergencyDefibComponent, MapInitEvent>(OnDefibInit);
         SubscribeLocalEvent<FSSyringeFillerComponent, MapInitEvent>(OnFillerInit);
-        SubscribeLocalEvent<FSSplintComponent, MapInitEvent>(OnSplintInit);
         SubscribeLocalEvent<FSAilmentCureComponent, MapInitEvent>(OnCureInit);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _ailments.SetMendingDuration(null));
     }
 
     public bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);
@@ -144,13 +148,11 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         while (fillers.MoveNext(out var uid, out var filler))
             ApplyFiller((uid, filler));
 
-        var splints = EntityQueryEnumerator<FSSplintComponent>();
-        while (splints.MoveNext(out var uid, out var splint))
-            ApplySplint((uid, splint));
-
         var cures = EntityQueryEnumerator<FSAilmentCureComponent>();
         while (cures.MoveNext(out var uid, out var cure))
             ApplyCure((uid, cure));
+
+        _ailments.SetMendingDuration(Unlocked(BoneSetting) ? BoneSettingMending : null);
     }
 
     private void OnMediGunInit(Entity<FSMediGunComponent> ent, ref MapInitEvent args)
@@ -164,7 +166,6 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
     private void OnFieldHospitalInit(Entity<FSFieldHospitalComponent> ent, ref MapInitEvent args) => ApplyFieldHospital(ent);
     private void OnDefibInit(Entity<FSEmergencyDefibComponent> ent, ref MapInitEvent args) => ApplyDefib(ent);
     private void OnFillerInit(Entity<FSSyringeFillerComponent> ent, ref MapInitEvent args) => ApplyFiller(ent);
-    private void OnSplintInit(Entity<FSSplintComponent> ent, ref MapInitEvent args) => ApplySplint(ent);
     private void OnCureInit(Entity<FSAilmentCureComponent> ent, ref MapInitEvent args) => ApplyCure(ent);
 
     private void ApplyMediGun(Entity<FSMediGunComponent> ent)
@@ -257,23 +258,17 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         Dirty(ent);
     }
 
-    private void ApplySplint(Entity<FSSplintComponent> ent)
-    {
-        var c = ent.Comp;
-        c.BaseDelay ??= c.Delay;
-        c.BaseSelfDelay ??= c.SelfDelay;
-
-        var field = Unlocked(FieldSplints);
-        c.Delay = c.BaseDelay.Value * (field ? 0.5f : 1f);
-        c.SelfDelay = c.BaseSelfDelay.Value * (field ? 0.5f : 1f);
-        c.SplintedDuration = field ? TimeSpan.FromSeconds(45) : null;
-        Dirty(ent);
-    }
-
     private void ApplyCure(Entity<FSAilmentCureComponent> ent)
     {
-        if (ent.Comp.Slot == FSAilmentSlot.Bleeding)
-            ent.Comp.Ward = Unlocked(ClottingGauze) ? ClottedWard : (EntProtoId?) null;
+        var c = ent.Comp;
+        if (c.Slot == FSAilmentSlot.Bleeding)
+            c.Ward = Unlocked(ClottingGauze) ? ClottedWard : (EntProtoId?) null;
+
+        if (c.Mend > 0f)
+        {
+            c.BaseMend ??= c.Mend;
+            c.Mend = c.BaseMend.Value * (c.Slot == FSAilmentSlot.Bone && Unlocked(BoneSetting) ? 1.5f : 1f);
+        }
     }
 
     private void ApplyStapler(Entity<FSBoneStaplerComponent> ent)

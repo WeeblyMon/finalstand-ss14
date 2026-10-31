@@ -167,7 +167,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         var speed = _medicalBonus.GetDelayMultiplier(medic, FSMedicalBonusCategory.TreatmentSpeed);
         if (comp.CanSetBones && _ailments.Has(patient, FSAilmentSlot.Bone))
         {
-            var seconds = _ailments.IsBroken(patient) ? comp.BoneSetSeconds : comp.SplintedSetSeconds;
+            var seconds = _ailments.IsBroken(patient) ? comp.BoneSetSeconds : comp.MendingSetSeconds;
             _ailments.AddMend(patient, FSAilmentSlot.Bone, comp.PulseSeconds / (seconds * speed), medic);
         }
 

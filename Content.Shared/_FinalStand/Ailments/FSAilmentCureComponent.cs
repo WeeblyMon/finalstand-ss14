@@ -11,4 +11,10 @@ public sealed partial class FSAilmentCureComponent : Component
 
     [DataField]
     public EntProtoId? Ward;
+
+    [DataField]
+    public float Mend;
+
+    [ViewVariables]
+    public float? BaseMend;
 }

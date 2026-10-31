@@ -151,6 +151,9 @@
   - type: Stack
     stackType: Brutepack
     count: 10
+  - type: FSAilmentCure
+    slot: Bone
+    mend: 0.34
   - type: StackPrice
     price: 5
 

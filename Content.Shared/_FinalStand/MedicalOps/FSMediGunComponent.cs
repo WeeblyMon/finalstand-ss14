@@ -39,7 +39,7 @@ public sealed partial class FSMediGunComponent : Component
     public float BoneSetSeconds = 6f;
 
     [DataField]
-    public float SplintedSetSeconds = 3f;
+    public float MendingSetSeconds = 3f;
 
     [DataField]
     public bool CanClearBurns;

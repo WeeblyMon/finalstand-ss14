@@ -50,8 +50,8 @@
         state: bone
       need: fs-need-stapler
       fixIcon:
-        sprite: _FinalStand/Objects/Medical/splint.rsi
-        state: icon
+        sprite: Objects/Specific/Medical/medical.rsi
+        state: brutepack
       sound:
         collection: FSMeleeBoneBreak
     Burn:
@@ -109,25 +109,22 @@
     fixHint: fs-ailment-broken-fix
     duration: 30
     tier: Major
-    becomesOnExpire: FSAilmentSplinted
+    becomesOnExpire: FSAilmentMending
   - type: MovementModStatusEffect
     walkSpeedModifier: 0.65
     sprintSpeedModifier: 0.65
 
 - type: entity
   parent: FSAilmentBase
-  id: FSAilmentSplinted
-  name: splinted bone
+  id: FSAilmentMending
+  name: mending bone
   components:
   - type: FSAilment
     slot: Bone
-    name: fs-ailment-splinted
-    examine: fs-ailment-splinted-examine
-    overlay:
-      sprite: _FinalStand/Mobs/ailment_overlays.rsi
-      state: splint
-    effect: fs-ailment-splinted-effect
-    fixHint: fs-ailment-splinted-fix
+    name: fs-ailment-mending
+    examine: fs-ailment-mending-examine
+    effect: fs-ailment-mending-effect
+    fixHint: fs-ailment-mending-fix
     duration: 90
     tier: Minor
   - type: MovementModStatusEffect
@@ -136,18 +133,15 @@
 
 - type: entity
   parent: FSAilmentBase
-  id: FSAilmentSplintedFieldOps
-  name: splinted bone
+  id: FSAilmentMendingFieldOps
+  name: mending bone
   components:
   - type: FSAilment
     slot: Bone
-    name: fs-ailment-splinted
-    examine: fs-ailment-splinted-examine
-    overlay:
-      sprite: _FinalStand/Mobs/ailment_overlays.rsi
-      state: splint
-    effect: fs-ailment-splinted-fieldops-effect
-    fixHint: fs-ailment-splinted-fix
+    name: fs-ailment-mending
+    examine: fs-ailment-mending-examine
+    effect: fs-ailment-mending-fieldops-effect
+    fixHint: fs-ailment-mending-fix
     duration: 90
 
 - type: entity
