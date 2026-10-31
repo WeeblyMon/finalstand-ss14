@@ -190,7 +190,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     // Any swing ends the wind-up; a heavy one keeps how far it got.
     private void OnChargeAttempt(Entity<FSMeleeChargeComponent> ent, ref AttemptMeleeEvent args)
     {
-        if (args.IsHeavyAttack)
+        if (args.Heavy)
         {
             ent.Comp.LastCharge = ent.Comp.ChargeAt(Timing.CurTime);
             Dirty(ent);
@@ -233,7 +233,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
     private void OnAttemptMelee(Entity<FSMeleeJuiceComponent> ent, ref AttemptMeleeEvent args)
     {
-        if (!args.IsHeavyAttack)
+        if (!args.Heavy)
             return;
 
         if (!HeavyReady(args.User, ent))

@@ -7,6 +7,10 @@
   suffix: Devastator
   description: A hulking corpse swinging a chainsaw. The more you hurt it, the faster and harder it comes, and it shrugs off knockback and stuns.
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Bleeding: 3
+    examine: fs-signature-devastator
   - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/devastatorzombie.png
@@ -32,9 +36,9 @@
     damage:
       types:
         Slash: 14.4
-      # Redeclaring damage drops the base zombie's multiplier, which keeps hits under dismemberment severity.
-      woundSeverityMultipliers:
-        Slash: 0.05
+  - type: FSInjuryOnHit
+    injury:
+      bleed: 3
   - type: FSEnemyValue
     killCredits: 1500
   - type: FSMoneyOnHitCap

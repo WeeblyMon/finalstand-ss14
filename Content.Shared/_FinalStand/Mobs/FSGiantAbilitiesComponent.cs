@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Content.Shared._FinalStand.Ailments;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -58,6 +59,9 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public float SkyJumpDamage = 90f;
 
     [DataField]
+    public FSInjurySpec SkyJumpInjury = new() { Fracture = true };
+
+    [DataField]
     public float SkyJumpKnockbackDistance = 6f;
 
     [DataField]
@@ -89,6 +93,9 @@ public sealed partial class FSGiantAbilitiesComponent : Component
 
     [DataField]
     public float DashDamage = 75f;
+
+    [DataField]
+    public FSInjurySpec DashInjury = new() { Fracture = true };
 
     [DataField]
     public float DashHitRadius = 1.6f;

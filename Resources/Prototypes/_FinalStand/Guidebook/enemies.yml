@@ -9,3 +9,9 @@
   name: guide-entry-fs-chemist
   priority: 0
   text: "/ServerInfo/Guidebook/_FinalStand/Chemist.xml"
+
+- type: guideEntry
+  id: FSInjuries
+  name: guide-entry-fs-injuries
+  priority: 0
+  text: "/ServerInfo/Guidebook/_FinalStand/Injuries.xml"

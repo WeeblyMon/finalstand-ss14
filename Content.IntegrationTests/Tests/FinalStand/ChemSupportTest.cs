@@ -88,7 +88,6 @@ public sealed class ChemSupportTest : GameTest
             {
                 foreach (var (reaction, precursor) in new[]
                          {
-                             ("FSCoagulantMist", "FSRefinedEnzyme"),
                              ("FSEtchant", "FSCatalystSalt"),
                          })
                 {

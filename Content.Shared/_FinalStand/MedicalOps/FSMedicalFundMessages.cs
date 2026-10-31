@@ -49,11 +49,13 @@ public sealed class FSMedicalStatusEvent : EntityEventArgs
 {
     public bool IsMedical;
     public bool IsChemist;
+    public float SoftCap;
 
-    public FSMedicalStatusEvent(bool isMedical, bool isChemist = false)
+    public FSMedicalStatusEvent(bool isMedical, bool isChemist, float softCap)
     {
         IsMedical = isMedical;
         IsChemist = isChemist;
+        SoftCap = softCap;
     }
 }
 

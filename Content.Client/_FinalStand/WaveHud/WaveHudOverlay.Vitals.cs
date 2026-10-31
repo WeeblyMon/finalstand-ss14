@@ -13,7 +13,22 @@ public sealed partial class WaveHudOverlay
     public float? StaminaRatio;
     public int HealthCurrent;
     public int HealthMax;
-    public readonly List<(string Text, bool Bad)> StatusPills = new();
+    public string? DownText;
+    public bool DownHeld;
+    public readonly List<float> HealthTicks = new();
+    public readonly List<VitalPill> StatusPills = new();
+    public UIBox2? VitalsBox { get; private set; }
+
+    public enum VitalPillStyle : byte
+    {
+        Active,
+        Ward,
+        Empty,
+        Status,
+    }
+
+    public readonly record struct VitalPill(string Text, Color Color, Texture? Icon, float Bleed, float Fill,
+        byte Warning, VitalPillStyle Style);
 
     public const float BottomBandLift = 23f;
 
@@ -33,6 +48,8 @@ public sealed partial class WaveHudOverlay
     private const float PillPadXBase = 5f;
     private const float PillPadYBase = 2f;
     private const float PillGapBase = 3f;
+    private const float BleedPipWBase = 4f;
+    private const int BleedPips = 3;
 
     private float VitalsWidth => VitalsWidthBase * _hudScale;
     private float VitalsPadX => VitalsPadXBase * _hudScale;
@@ -43,6 +60,7 @@ public sealed partial class WaveHudOverlay
     private float PillPadX => PillPadXBase * _hudScale;
     private float PillPadY => PillPadYBase * _hudScale;
     private float PillGap => PillGapBase * _hudScale;
+    private float BleedPipW => BleedPipWBase * _hudScale;
 
     private static readonly Color VitalsBack = FSPalette.PanelBack;
     private static readonly Color VitalsEdge = FSPalette.PanelEdge;
@@ -53,8 +71,6 @@ public sealed partial class WaveHudOverlay
     private static readonly Color StaminaFill = FSPalette.StaminaFill;
     private static readonly Color StaminaFillLow = FSPalette.StaminaLow;
     private static readonly Color PillBack = FSPalette.CellBack;
-    private static readonly Color PillBad = FSPalette.HealthLow;
-    private static readonly Color PillGood = FSPalette.Ok;
     private static readonly Color VitalsMuted = FSPalette.TextMuted;
 
     public static void DrawRounded(DrawingHandleScreen screen, UIBox2 box, Color color, float radius = 3f)
@@ -157,9 +173,9 @@ public sealed partial class WaveHudOverlay
         var rows = 1;
         var used = 0f;
 
-        foreach (var (text, _) in StatusPills)
+        foreach (var pill in StatusPills)
         {
-            var w = screen.GetDimensions(_labelFont!, text, 1f).X + PillPadX * 2f;
+            var w = PillWidth(screen, pill);
 
             if (used > 0f && used + PillGap + w > innerW)
             {
@@ -176,6 +192,7 @@ public sealed partial class WaveHudOverlay
 
     private void DrawVitals(DrawingHandleScreen screen, float margin, float bandLift)
     {
+        VitalsBox = null;
         if (HealthRatio is not { } health)
             return;
 
@@ -190,6 +207,7 @@ public sealed partial class WaveHudOverlay
         var lowHp = health <= 0.3f || HealthInCrit;
 
         var panelBox = new UIBox2(x, top, x + VitalsWidth, bottom);
+        VitalsBox = panelBox;
         DrawPanel(screen, panelBox, VitalsBack, lowHp ? VitalsEdgeHot : VitalsEdge,
             lowHp ? FSPalette.HealthLow : FSPalette.HealthFill);
 
@@ -197,20 +215,28 @@ public sealed partial class WaveHudOverlay
         var innerW = VitalsWidth - VitalsPadX * 2f;
         var y = top + VitalsPadY;
 
-        var hpText = NumberText(HealthCurrent);
+        var hpText = DownText ?? NumberText(HealthCurrent);
+        var hpColor = DownText != null ? (DownHeld ? FSPalette.Ok : FSPalette.Danger) : lowHp ? HpFillLow : FSPalette.TextBright;
         var hpDims = screen.GetDimensions(_valueFont!, hpText, 1f);
         var rowH = MathF.Max(hpDims.Y, HpBarH);
-        screen.DrawString(_valueFont!, new Vector2(innerX, y + (rowH - hpDims.Y) * 0.5f), hpText,
-            lowHp ? HpFillLow : FSPalette.TextBright);
+        screen.DrawString(_valueFont!, new Vector2(innerX, y + (rowH - hpDims.Y) * 0.5f), hpText, hpColor);
 
-        var healthWord = _labelHealth;
-        var wordX = innerX + hpDims.X + 7f;
-        screen.DrawString(_labelFont!, new Vector2(wordX, y + (rowH - _cachedLabelH) * 0.5f),
-            healthWord, VitalsMuted);
+        if (DownText == null)
+        {
+            var wordX = innerX + hpDims.X + 7f;
+            screen.DrawString(_labelFont!, new Vector2(wordX, y + (rowH - _cachedLabelH) * 0.5f),
+                _labelHealth, VitalsMuted);
+        }
 
         y += rowH + 4f;
 
         DrawBar(screen, innerX, y, innerW, HpBarH, health, lowHp ? HpFillLow : HpFill);
+        foreach (var tick in HealthTicks)
+        {
+            var tickX = innerX + MathF.Round(innerW * tick);
+            screen.DrawRect(new UIBox2(tickX, y, tickX + 1f, y + HpBarH), FSPalette.TextBright.WithAlpha(0.55f));
+        }
+
         y += HpBarH;
 
         if (StaminaRatio is { } stamina)
@@ -225,14 +251,26 @@ public sealed partial class WaveHudOverlay
             DrawPills(screen, innerX, y + VitalsRowGap, innerW);
     }
 
+    private float PillWidth(DrawingHandleScreen screen, VitalPill pill)
+    {
+        var w = screen.GetDimensions(_labelFont!, pill.Text, 1f).X + PillPadX * 2f;
+        if (pill.Icon != null)
+            w += _pillRowH - PillPadY * 2f + PillGap;
+
+        if (pill.Bleed > 0f)
+            w += PillGap + BleedPips * (BleedPipW + 1f);
+
+        return w;
+    }
+
     private void DrawPills(DrawingHandleScreen screen, float left, float top, float innerW)
     {
         var px = left;
         var py = top;
 
-        foreach (var (text, bad) in StatusPills)
+        foreach (var pill in StatusPills)
         {
-            var w = screen.GetDimensions(_labelFont!, text, 1f).X + PillPadX * 2f;
+            var w = PillWidth(screen, pill);
 
             if (px > left && px + w > left + innerW)
             {
@@ -240,13 +278,68 @@ public sealed partial class WaveHudOverlay
                 py += _pillRowH + PillGap;
             }
 
-            var color = bad ? PillBad : PillGood;
             var box = new UIBox2(px, py, px + w, py + _pillRowH);
-            DrawRounded(screen, box, PillBack, 2f);
-            screen.DrawRect(box, color.WithAlpha(0.45f), filled: false);
-            screen.DrawString(_labelFont!, new Vector2(px + PillPadX, py + PillPadY), text, color);
+            DrawPill(screen, box, pill);
 
             px += w + PillGap;
+        }
+    }
+
+    private void DrawPill(DrawingHandleScreen screen, UIBox2 box, VitalPill pill)
+    {
+        DrawRounded(screen, box, PillBack, 2f);
+
+        if (pill.Fill > 0f)
+            screen.DrawRect(new UIBox2(box.Left, box.Top, box.Left + box.Width * pill.Fill, box.Bottom), pill.Color.WithAlpha(0.22f));
+
+        var textColor = pill.Style switch
+        {
+            VitalPillStyle.Empty => FSPalette.TextDim,
+            _ => pill.Color,
+        };
+
+        var edge = pill.Style switch
+        {
+            VitalPillStyle.Empty => FSPalette.CellEdge,
+            VitalPillStyle.Ward or VitalPillStyle.Status => pill.Color,
+            _ => pill.Color.WithAlpha(0.45f),
+        };
+        screen.DrawRect(box, edge, filled: false);
+
+        if (pill.Warning > 0)
+        {
+            var warn = pill.Color.WithAlpha(pill.Warning > 1 ? 0.95f : 0.6f);
+            screen.DrawRect(box, warn, filled: false);
+            if (pill.Warning > 1)
+                screen.DrawRect(new UIBox2(box.Left + 1f, box.Top + 1f, box.Right - 1f, box.Bottom - 1f), warn, filled: false);
+        }
+
+        var x = box.Left + PillPadX;
+        if (pill.Icon is { } icon)
+        {
+            var size = box.Height - PillPadY * 2f;
+            screen.DrawTextureRect(icon, new UIBox2(x, box.Top + PillPadY, x + size, box.Top + PillPadY + size));
+            x += size + PillGap;
+        }
+
+        screen.DrawString(_labelFont!, new Vector2(x, box.Top + PillPadY), pill.Text, textColor);
+
+        if (pill.Bleed <= 0f)
+            return;
+
+        var pipX = box.Right - PillPadX - BleedPips * (BleedPipW + 1f) + 1f;
+        var pipTop = box.Top + PillPadY + 1f;
+        var pipBottom = box.Bottom - PillPadY - 1f;
+        for (var i = 0; i < BleedPips; i++)
+        {
+            var pipBox = new UIBox2(pipX, pipTop, pipX + BleedPipW, pipBottom);
+            screen.DrawRect(pipBox, FSPalette.BarTrack);
+
+            var fill = Math.Clamp(pill.Bleed - i, 0f, 1f);
+            if (fill > 0f)
+                screen.DrawRect(new UIBox2(pipBox.Left, pipBottom - (pipBottom - pipTop) * fill, pipBox.Right, pipBottom), pill.Color);
+
+            pipX += BleedPipW + 1f;
         }
     }
 

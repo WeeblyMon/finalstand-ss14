@@ -38,7 +38,7 @@
   equipment:
     id: CMOPDA
     ears: ClothingHeadsetCMO
-    belt: ClothingBeltMedicalFilled # KS14
+    belt: FSClothingBeltMedicalCMOFilled
     pocket1: FlashlightSeclite
     pocket2: FSEmergencyDefibrillator # FINALSTAND
   storage:

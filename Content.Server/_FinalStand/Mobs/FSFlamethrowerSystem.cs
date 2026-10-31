@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._FinalStand.Ailments;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.NPC.HTN;
@@ -27,6 +28,7 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
     [Dependency] private RayCastSystem _rayCast = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FlammableSystem _flammable = default!;
+    [Dependency] private FSInjuryRulesSystem _injuryRules = default!;
 
     private const float AcquireInterval = 0.25f;
 
@@ -319,6 +321,7 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
                 // Uncapped on purpose: a long hosing builds stacks past the usual maximum, which is the flamer's threat.
                 flammable.FireStacks += flame.FireStacks;
                 _flammable.Ignite(target, uid, flammable);
+                _injuryRules.NoteIgnition(target, uid);
             }
         }
 

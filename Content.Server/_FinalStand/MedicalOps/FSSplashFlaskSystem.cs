@@ -1,9 +1,7 @@
 using Content.Server.Fluids.EntitySystems;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
-using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Coordinates.Helpers;
 using Content.Shared.Maps;
 using Content.Shared.Popups;
@@ -12,7 +10,6 @@ using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
-using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -25,6 +22,7 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FSChemCreditSystem _credit = default!;
+    [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
@@ -69,13 +67,18 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
         _smoke.StartSmoke(cloud, payload, ent.Comp.Duration, ent.Comp.SpreadAmount);
         _audio.PlayPvs(BurstSound, coords);
 
-        if (args.User is { } thrower && _credit.AppliesCombatBuff(payload))
+        if (args.User is { } thrower)
         {
             _crewBuffer.Clear();
             _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
 
+            var buff = _credit.AppliesCombatBuff(payload);
             foreach (var crew in _crewBuffer)
-                _credit.RegisterDelivery(crew, thrower, FSMedicalPayoutRates.SplashClaimBudget);
+            {
+                _attribution.RecordTreatment(crew, thrower, ent);
+                if (buff)
+                    _credit.RegisterDelivery(crew, thrower, FSMedicalPayoutRates.SplashClaimBudget);
+            }
         }
 
         QueueDel(ent);

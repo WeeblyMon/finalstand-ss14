@@ -10,7 +10,6 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 public sealed class ChemistTier0Test : GameTest
 {
     private const string HumanProto = "MobHuman";
-    private const string MedipenProto = "EmergencyMedipen";
 
     [Test]
     public async Task ReagentExplosionsSpareCrew()
@@ -52,25 +51,6 @@ public sealed class ChemistTier0Test : GameTest
 
             Assert.That(ev.DamageCoefficient, Is.EqualTo(1f),
                 "enemy explosions must stay lethal - a blanket denylist would neuter boss attacks");
-        });
-    }
-
-    [Test]
-    public async Task AMedipenEmptiesInOneUse()
-    {
-        var server = Pair.Server;
-        var protos = server.ResolveDependency<IPrototypeManager>();
-
-        await server.WaitAssertion(() =>
-        {
-            var medipen = protos.Index<EntityPrototype>(MedipenProto);
-
-            Assert.That(medipen.TryGetComponent<Content.Shared._Shitmed.Chemistry.HyposprayComponent>(
-                    "Hypospray", out var hypo), Is.True,
-                "medipens route through HypospraySystem, not the injector, so this is the component that matters");
-
-            Assert.That(hypo!.TransferAmount.Int(), Is.GreaterThanOrEqualTo(30),
-                "must cover the largest medipen's contents or it takes multiple clicks");
         });
     }
 }

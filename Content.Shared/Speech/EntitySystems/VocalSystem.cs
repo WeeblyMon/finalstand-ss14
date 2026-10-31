@@ -26,7 +26,6 @@ public sealed partial class VocalSystem : EntitySystem
     {
         // try to add scream action when vocal comp added
         _actions.AddAction(ent.Owner, ref ent.Comp.EmoteActionEntity, ent.Comp.EmoteAction);
-        LoadSounds(ent);
         Dirty(ent);
     }
 
@@ -39,9 +38,9 @@ public sealed partial class VocalSystem : EntitySystem
     }
 
     [SubscribeLocalEvent]
-    private void OnSexChanged(Entity<VocalComponent> ent, ref SexChangedEvent args)
+    private void OnVoiceChanged(Entity<VocalComponent> ent, ref VoiceChangedEvent args)
     {
-        LoadSounds(ent, sex: args.NewSex);
+        LoadSounds(ent, args.NewVoice);
     }
 
     [SubscribeLocalEvent]
@@ -112,33 +111,17 @@ public sealed partial class VocalSystem : EntitySystem
     /// <summary>
     /// This only works on Humanoids. Mobs should have emoteSounds on <see cref="VocalComponent"/> set directly instead.
     /// </summary>
-    private void LoadSounds(Entity<VocalComponent> ent, ProtoId<EmoteSoundsPrototype>? protoId = null, Sex? sex = null)
+    private void LoadSounds(Entity<VocalComponent> ent, ProtoId<EmoteSoundsPrototype>? protoId = null)
     {
-        var humanoid = CompOrNull<HumanoidProfileComponent>(ent.Owner);
+        if (!TryComp<HumanoidProfileComponent>(ent.Owner, out var humanoid))
+            return;
 
-        if (protoId == null)
-        {
-            sex ??= humanoid?.Sex ?? Sex.Unsexed;
-
-            if (ent.Comp.Sounds?.TryGetValue(sex.Value, out var sexSounds) != true)
-                return;
-
-            protoId = sexSounds;
-        }
+        protoId ??= humanoid.Voice;
 
         if (!ProtoMan.HasIndex(protoId))
             return;
 
         ent.Comp.EmoteSounds = protoId;
         Dirty(ent);
-
-        // Mirror the resolved sounds onto the humanoid so anything reading Voice sees the truth.
-        if (humanoid == null || humanoid.Voice == protoId.Value)
-            return;
-
-        var ev = new VoiceChangedEvent(humanoid.Voice, protoId.Value);
-        humanoid.Voice = protoId.Value;
-        Dirty(ent.Owner, humanoid);
-        RaiseLocalEvent(ent.Owner, ref ev);
     }
 }

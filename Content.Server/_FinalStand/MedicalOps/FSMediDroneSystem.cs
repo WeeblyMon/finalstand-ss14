@@ -7,7 +7,6 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
-using Content.Shared.Whitelist;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -26,7 +25,6 @@ public sealed partial class FSMediDroneSystem : EntitySystem
     [Dependency] private ExplosionSystem _explosion = default!;
     [Dependency] private FSMediGunSystem _mediGun = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private EntityWhitelistSystem _whitelist = default!;
 
     private static readonly SoundSpecifier LaunchSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
     private static readonly SoundSpecifier LowChargeSound = new SoundPathSpecifier("/Audio/Machines/beep.ogg");
@@ -80,7 +78,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
 
             if (level <= 0f)
             {
-                _mediGun.DisableAllConnections((uid, gun));
+                _mediGun.Release((uid, gun));
                 _explosion.TriggerExplosive(uid, user: owner);
                 QueueDel(uid);
                 continue;
@@ -102,11 +100,11 @@ public sealed partial class FSMediDroneSystem : EntitySystem
 
         if (target != drone.Comp.Target)
         {
-            _mediGun.DisableAllConnections(gun);
+            _mediGun.Release(gun);
             drone.Comp.Target = target;
         }
 
-        if (target is not { } patient || gun.Comp.HealedEntities.Contains(patient))
+        if (target is not { } patient || gun.Comp.Patients.Contains(patient))
             return;
 
         var distance = (_xform.GetWorldPosition(drone) - _xform.GetWorldPosition(patient)).Length();
@@ -146,7 +144,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
     {
         return patient != owner
                && !TerminatingOrDeleted(patient)
-               && _whitelist.IsWhitelistPass(gun.HealAbleWhitelist, patient)
+               && FSMediGunSystem.IsPatient(EntityManager, patient)
                && !_mobState.IsDead(patient)
                && TryComp<DamageableComponent>(patient, out var damageable)
                && HealableDamage(damageable, gun) >= MinHealableDamage
@@ -159,7 +157,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
         var total = 0f;
         foreach (var (type, amount) in damageable.Damage.DamageDict)
         {
-            if (gun.Healing.DamageDict.ContainsKey(type))
+            if (gun.HealPerPulse.DamageDict.ContainsKey(type))
                 total += amount.Float();
         }
 
@@ -200,10 +198,10 @@ public sealed partial class FSMediDroneSystem : EntitySystem
 
     private void UpdateCountdown(Entity<FSMediDroneComponent> drone, FSMediGunComponent gun)
     {
-        if (gun.BatteryWithdraw <= 0f)
+        if (gun.ChargePerPulse <= 0f)
             return;
 
-        var perSecond = gun.BatteryWithdraw / gun.Frequency;
+        var perSecond = gun.ChargePerPulse / gun.PulseSeconds;
         var seconds = (int) MathF.Ceiling(_battery.GetCharge(drone.Owner) / perSecond);
         var max = (int) MathF.Ceiling(Comp<BatteryComponent>(drone.Owner).MaxCharge / perSecond);
 

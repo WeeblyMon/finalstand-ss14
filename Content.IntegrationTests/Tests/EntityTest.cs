@@ -174,7 +174,7 @@ namespace Content.IntegrationTests.Tests
 
             // FINALSTAND: in batches. A map and grid per prototype for every prototype at once, all dirtied, took
             // the shared server/client test process out of memory applying the client's game state with this fork's
-            // prototypes and Shitmed bodies. Every prototype is still spawned, dirtied and sent to the client.
+            // prototypes. Every prototype is still spawned, dirtied and sent to the client.
             const int batchSize = 1000;
             var cEntMan = client.ResolveDependency<IEntityManager>();
             for (var start = 0; start < protoIds.Count; start += batchSize)

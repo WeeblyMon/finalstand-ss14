@@ -7,6 +7,10 @@
   suffix: Bloater
   description: A swollen corpse full of volatile gas. It bursts when it dies, so kill it well away from anyone you like.
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Bloater: 0
+    examine: fs-signature-bloater
   - type: FSMaterialDrop
     materials:
     - SheetPlasma1
@@ -19,11 +23,10 @@
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/boomer.png
   - type: FSBoomOnDeath
     explosionRadius: 4.5
-    explosionDamage: 25
-    toxinDamage: 75
-    slowRadius: 4.5
-    slowDuration: 6
-    slowAmount: 0.6
+    explosionDamage: 7.5
+    causticDamage: 15
+    injury:
+      poison: true
   - type: MobThresholds
     thresholds:
       0: Alive

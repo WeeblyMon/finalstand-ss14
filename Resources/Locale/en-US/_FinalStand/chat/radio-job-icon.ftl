@@ -1,1 +1,1 @@
-chat-radio-message-name-with-icon = [fsicon src="{$jobIcon}" tooltip="{$jobName}"/] {$name}
+chat-radio-message-name-with-icon = [fsjobicon job="{$jobIcon}" title="{$jobName}"/] {$name}

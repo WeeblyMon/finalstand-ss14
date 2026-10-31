@@ -1,4 +1,6 @@
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.Mech;
@@ -35,6 +37,7 @@ public sealed partial class FSFlairOverlay : Overlay
     private const float ShieldCloseTime = 0.25f;
     private const double ShieldSweepTime = 2.4;
     private const float CoverRange = 8f;
+    private const float RecoveryRange = 8f;
 
     private SharedTransformSystem? _xform;
     private SpriteSystem? _sprite;
@@ -64,6 +67,7 @@ public sealed partial class FSFlairOverlay : Overlay
         DrawHolograms(handle, args, now);
         DrawShields(handle, args, pulse);
         DrawCover(handle, args);
+        DrawRecoveryZones(handle, args);
         DrawSentryLines(handle, args);
         DrawLowPower(handle, args, now);
     }
@@ -220,6 +224,30 @@ public sealed partial class FSFlairOverlay : Overlay
         public double FlashAt = double.MinValue;
     }
 
+    private void DrawRecoveryZones(DrawingHandleWorld handle, in OverlayDrawArgs args)
+    {
+        if (_player.LocalEntity is not { } local)
+            return;
+
+        var me = _xform!.GetMapCoordinates(local);
+        var query = _entMan.EntityQueryEnumerator<FSRecoveryZoneComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var zone, out var xform))
+        {
+            if (xform.MapID != args.MapId || xform.MapID != me.MapId)
+                continue;
+
+            var grid = xform.GridUid is { } gridUid ? _xform.GetWorldRotation(gridUid) : Angle.Zero;
+            var center = _xform.GetWorldPosition(xform) + grid.RotateVec(zone.Offset);
+            var distance = (center - me.Position).Length();
+            if (distance > zone.Radius + RecoveryRange)
+                continue;
+
+            var alpha = distance <= zone.Radius ? 0.55f : 0.45f * (1f - (distance - zone.Radius) / RecoveryRange) + 0.1f;
+            handle.DrawCircle(center, zone.Radius, FSPalette.Ok.WithAlpha(alpha * 0.18f));
+            handle.DrawCircle(center, zone.Radius, FSPalette.Ok.WithAlpha(alpha), false);
+        }
+    }
+
     private void DrawCover(DrawingHandleWorld handle, in OverlayDrawArgs args)
     {
         if (_player.LocalEntity is not { } local)
@@ -248,10 +276,10 @@ public sealed partial class FSFlairOverlay : Overlay
     {
         var pulse = 0.55f + 0.45f * MathF.Abs(MathF.Sin((float) now.TotalSeconds * 3f));
         var icon = _sprite!.Frame0(LowPowerIcon);
-        var query = _entMan.EntityQueryEnumerator<FSCombatMechComponent, MechComponent, TransformComponent>();
-        while (query.MoveNext(out _, out _, out var mech, out var xform))
+        var query = _entMan.EntityQueryEnumerator<FSMechLowPowerComponent, MechComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var low, out var mech, out var xform))
         {
-            if (!mech.CriticalPowerState || mech.Broken || xform.MapID != args.MapId)
+            if (!low.Active || mech.Broken || xform.MapID != args.MapId)
                 continue;
 
             var at = _xform!.GetWorldPosition(xform) + new Vector2(0f, LowPowerIconHeight);

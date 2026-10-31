@@ -14,6 +14,7 @@ using Content.Client._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.GameTicking;
 using Robust.Client.Player;
+using Robust.Client.ResourceManagement;
 using Content.Client.UserInterface.Screens;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -28,6 +29,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;
+    [Dependency] private IResourceCache _resources = default!;
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 
     private WaveHudOverlay? _overlay;
@@ -117,6 +119,7 @@ public sealed partial class WaveHudSystem : EntitySystem
 
         UpdateWaveState(overlay);
         UpdateDownedDim(overlay);
+        UpdateDownedPrompt(overlay);
         UpdateAlertsAnchor(overlay);
         UpdateChatClearance(overlay);
         UpdateObjective(overlay);
@@ -149,6 +152,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     }
 
     private const float DownedDim = 0.22f;
+    private FSDownedPrompt? _downedPrompt;
 
     // A round can end while you're down, leaving the offer set as the lobby becomes the active screen.
     private void UpdateDownedDim(WaveHudOverlay overlay)
@@ -159,6 +163,28 @@ public sealed partial class WaveHudSystem : EntitySystem
         screen.Modulate = overlay.IsRespawnOfferVisible && screen is InGameScreen
             ? Color.White.WithAlpha(DownedDim)
             : Color.White;
+    }
+
+    private void UpdateDownedPrompt(WaveHudOverlay overlay)
+    {
+        if (!overlay.IsRespawnOfferVisible || _ui.ActiveScreen is not InGameScreen)
+        {
+            if (_downedPrompt != null)
+                _downedPrompt.Visible = false;
+            return;
+        }
+
+        if (_downedPrompt == null)
+        {
+            _downedPrompt = new FSDownedPrompt(_resources);
+            _downedPrompt.OnRevive += SendRespawnRequest;
+        }
+
+        if (_downedPrompt.Parent == null)
+            _ui.PopupRoot.AddChild(_downedPrompt);
+
+        _downedPrompt.Visible = true;
+        _downedPrompt.Update(overlay.RespawnCost, overlay.CasualtyStatus, overlay.CasualtyResponded);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
@@ -370,10 +396,12 @@ public sealed partial class WaveHudSystem : EntitySystem
         if (_overlay != null)
         {
             _overlay.OnReadyUpClicked -= SendReadyRequest;
-            _overlay.OnRespawnClicked -= SendRespawnRequest;
             _overlayManager.RemoveOverlay(_overlay);
             _overlay = null;
         }
+
+        _downedPrompt?.Orphan();
+        _downedPrompt = null;
     }
 
     // Sent on attach rather than on connect: at connect the client is still on tick 1 while the
@@ -393,7 +421,6 @@ public sealed partial class WaveHudSystem : EntitySystem
             return _overlay;
         _overlay = new WaveHudOverlay();
         _overlay.OnReadyUpClicked += SendReadyRequest;
-        _overlay.OnRespawnClicked += SendRespawnRequest;
         _overlay.OnThrowableCycle += OnThrowableCycle;
         _overlayManager.AddOverlay(_overlay);
         return _overlay;

@@ -1,8 +1,5 @@
 ## Research tree nodes and branches (fsTechNode / fsTechBranch)
 
-fs-tech-medical-coagulant-chemistry = Coagulant Chemistry
-fs-tech-medical-coagulant-chemistry-bonus = Unlocks refined enzyme, the base for coagulant mist - a cloud that staunches bleeding on crew standing in it.
-
 fs-tech-medical-etching-chemistry = Etching Chemistry
 fs-tech-medical-etching-chemistry-bonus = Unlocks etching catalyst, the base for etchant - coats a crewmate's ammunition so their shots pierce enemy plating.
 
@@ -100,37 +97,28 @@ fs-tech-medical-biochemical-stasis = Biochemical Stasis
 fs-tech-medical-biochemical-stasis-bonus = Unlocks stasis bed and cryo pod boards, plus cryostasis beakers and syringes that hold a mix without reacting.
 
 fs-tech-medical-advanced-treatment = Advanced Treatment
-fs-tech-medical-advanced-treatment-bonus = Unlocks the compact defibrillator and the powered surgical set - energy scalpel, advanced retractor and omnimed tool.
+fs-tech-medical-advanced-treatment-bonus = Unlocks the compact defibrillator, medicated sutures, and regenerative mesh at the medical lathe.
 
 fs-tech-medical-mechanized-treatment = Mechanized Treatment
 fs-tech-medical-mechanized-treatment-bonus = Unlocks the advanced topical borg module.
 
-fs-tech-medical-basic-cybernetics = Basic Cybernetics
-fs-tech-medical-basic-cybernetics-bonus = Unlocks cybernetic arms and hands, so a lost limb can be replaced outright instead of reattached.
+fs-tech-medical-bone-setting = Bone Setting
+fs-tech-medical-bone-setting-bonus = Two bruise packs fix a broken bone instead of three, and a mending bone heals in 45 seconds instead of 90.
 
 fs-tech-medical-bluespace-chemistry = Bluespace Chemistry
 fs-tech-medical-bluespace-chemistry-bonus = Unlocks bluespace beakers and syringes - far more volume in the same glassware.
 
-fs-tech-medical-basic-augmentation = Basic Augmentation
-fs-tech-medical-basic-augmentation-bonus = Unlocks augment power cell and recharger casings, the base for powered implants.
+fs-tech-medical-clotting-gauze = Clotting Gauze
+fs-tech-medical-clotting-gauze-bonus = Gauze and sutures leave the patient CLOTTED for 20 seconds, so no new bleeding can start.
 
-fs-tech-medical-advanced-cybernetics = Advanced Cybernetics
-fs-tech-medical-advanced-cybernetics-bonus = Unlocks upgraded cybernetic hearts and lungs, and jaws-of-life arms.
-
-fs-tech-medical-implanted-tools = Implanted Tools
-fs-tech-medical-implanted-tools-bonus = Unlocks tool, utility and botany augment panels - implanted kit that cannot be dropped.
-
-fs-tech-medical-combat-augmentation = Combat Augmentation
-fs-tech-medical-combat-augmentation-bonus = Unlocks strength augment casings and electronics.
-
-fs-tech-medical-high-end-surgery = High-End Surgery
-fs-tech-medical-high-end-surgery-bonus = Unlocks surgical gloves and opens the advanced cybernetics line.
+fs-tech-medical-restart-protocol = Restart Protocol
+fs-tech-medical-restart-protocol-bonus = A defibrillator revive also clears a broken bone and burns.
 
 fs-tech-medical-extended-optics = Extended Optics
 fs-tech-medical-extended-optics-bonus = Medical beam gun reaches 3 metres further.
 
 fs-tech-medical-haemostatic-beam = Haemostatic Beam
-fs-tech-medical-haemostatic-beam-bonus = The beam restores blood far faster while it is attached.
+fs-tech-medical-haemostatic-beam-bonus = The beam clots bleeding twice as fast, one level every second.
 
 fs-tech-medical-focused-emitters = Focused Emitters
 fs-tech-medical-focused-emitters-bonus = Hold two patients on the beam at once. Excludes Rapid Cycling.
@@ -151,7 +139,7 @@ fs-tech-medical-reinforced-canvas = Reinforced Canvas
 fs-tech-medical-reinforced-canvas-bonus = The field hospital stands for twice as long. Excludes Autoclave Kit.
 
 fs-tech-medical-bone-welder = Bone Welder
-fs-tech-medical-bone-welder-bonus = Bone staplers recharge a third faster. Still a partial mend.
+fs-tech-medical-bone-welder-bonus = Bone staplers recharge in 20 seconds instead of 30.
 
 fs-tech-medical-recovery-uplink = Recovery Uplink
 fs-tech-medical-recovery-uplink-bonus = Casualty Recovery recharges in 80 seconds instead of 120.
@@ -211,7 +199,7 @@ fs-tech-medical-defibrillator-output = Defibrillator Output
 fs-tech-medical-defibrillator-output-bonus = Emergency defibrillators bring a patient back at 35% health instead of 20%.
 
 fs-tech-medical-sterile-field = Sterile Field
-fs-tech-medical-sterile-field-bonus = Surgery inside the field hospital runs half again as fast. Only on the tent.
+fs-tech-medical-sterile-field-bonus = The field hospital clears ailments in 4 seconds instead of 8, and its regen heals all the way to full health.
 
 fs-tech-medical-high-flow-manifold = High-Flow Manifold
 fs-tech-medical-high-flow-manifold-bonus = The syringe filler decants more than twice as fast - a full magazine in seconds.
@@ -232,10 +220,10 @@ fs-tech-medical-rapid-recharge = Rapid Recharge
 fs-tech-medical-rapid-recharge-bonus = Medical beam guns recharge 50% faster.
 
 fs-tech-medical-bone-knitter = Bone-Knitter Beam
-fs-tech-medical-bone-knitter-bonus = The beam mends broken bones twice as fast.
+fs-tech-medical-bone-knitter-bonus = The beam can set a broken bone in 6 seconds, or 3 if it is already mending.
 
-fs-tech-medical-limb-mender = Limb-Mender Lattice
-fs-tech-medical-limb-mender-bonus = The beam heals limb wounds 60% faster.
+fs-tech-medical-dermal-lattice = Dermal Lattice
+fs-tech-medical-dermal-lattice-bonus = The beam clears burns after 6 seconds on the patient.
 
 fs-tech-medical-split-beam-tuning = Split-Beam Tuning
 fs-tech-medical-split-beam-tuning-bonus = Holding two patients costs less: each gets 75% of the healing instead of 60%.

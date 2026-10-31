@@ -1,5 +1,4 @@
 using Content.Server.Popups;
-using Content.Server._Shitmed.DelayedDeath;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mobs;
@@ -90,8 +89,6 @@ public sealed partial class FSUndyingSystem : EntitySystem
         ent.Comp.Used = true;
         ent.Comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(seconds);
 
-        RemComp<DelayedDeathComponent>(ent);
-
         _ammo.FillHeld(ent);
         _popup.PopupEntity(Loc.GetString("fs-perk-undying-triggered"), ent, PopupType.LargeCaution);
         ent.Comp.ShownSeconds = (int) MathF.Ceiling(seconds);
@@ -113,7 +110,6 @@ public sealed partial class FSUndyingSystem : EntitySystem
             if (now < end)
             {
                 _ammo.FillHeld(uid);
-                RemComp<DelayedDeathComponent>(uid);
                 var left = (int) Math.Ceiling((end - now).TotalSeconds);
                 if (left != undying.ShownSeconds)
                 {
@@ -126,7 +122,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
             undying.EndTime = null;
             _notify.SendStacksToBody(uid, "Undying", 0);
 
-            // Critical first so the death gasp plays, like DelayedDeathSystem.
+            // Critical first so the death gasp plays.
             _mobState.ChangeMobState(uid, MobState.Critical);
             _mobState.ChangeMobState(uid, MobState.Dead);
         }

@@ -83,7 +83,7 @@ public static class ClientPackaging
             inputPass,
             contentDir,
             "Content.Client",
-            new[] { "Content.Client", "Content.Shared", "Content.Shared.Database", "Content.Goobstation.Common", "Content.Goobstation.Maths" },
+            new[] { "Content.Client", "Content.Shared", "Content.Shared.Database" },
             cancel: cancel);
 
         await RobustClientPackaging.WriteClientResources(

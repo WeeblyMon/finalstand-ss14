@@ -14,6 +14,7 @@ using Content.Server._FinalStand.Titles;
 using Content.Server._FinalStand.Tutorial;
 using Content.Server.Administration;
 using Content.Server.Players.PlayTimeTracking;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
@@ -59,11 +60,17 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSPerkSystem _perks = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
 
     private static readonly string[] Subcommands =
     {
         "state", "hours", "fresh", "waves", "level", "xp", "title", "mastery", "mentor",
-        "firstround", "tip", "tipsreset", "down", "open", "body", "starter", "objective", "weekly", "seed", "clearladder", "special", "discord",
+        "firstround", "tip", "tipsreset", "down", "open", "body", "starter", "objective", "weekly", "seed", "clearladder", "special", "discord", "ailment",
+    };
+
+    private static readonly string[] AilmentKinds =
+    {
+        "bleed", "bone", "burn", "poison", "soaked", "all", "clear",
     };
 
     private static readonly EntProtoId[] SpecialZombies =
@@ -109,6 +116,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
             case "clearladder": ClearLadder(shell); break;
             case "special": Special(shell, rest); break;
             case "discord": Discord(shell); break;
+            case "ailment": Ailment(shell, rest); break;
             default: shell.WriteError($"Unknown subcommand '{args[0]}'.\n{Help}"); break;
         }
     }
@@ -126,6 +134,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
                     .Concat(new[] { "random", "complete", "fail", "progress" })),
             "open" when args.Length == 2 => CompletionResult.FromOptions(new[] { "perks", "ladder" }),
             "special" when args.Length == 2 => CompletionResult.FromOptions(SpecialZombies.Select(p => p.Id).Append("all")),
+            "ailment" when args.Length == 2 => CompletionResult.FromOptions(AilmentKinds),
             "mastery" when args.Length == 2 => CompletionResult.FromOptions(FSPerkDef.All.Keys),
             "title" when args.Length == 2 => CompletionResult.FromOptions(
                 _protos.EnumeratePrototypes<FSTitlePrototype>().Select(p => p.ID)),
@@ -600,6 +609,43 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         _store.DeleteAllRuns();
         _ladder.RefreshBoards();
         shell.WriteLine("Ladder cleared.");
+    }
+
+    private void Ailment(IConsoleShell shell, string[] args)
+    {
+        if (shell.Player?.AttachedEntity is not { } body)
+        {
+            shell.WriteError("Run this as a player with a body.");
+            return;
+        }
+
+        var kind = args.Length > 0 ? args[0].ToLowerInvariant() : "all";
+        if (!AilmentKinds.Contains(kind))
+        {
+            shell.WriteError($"Unknown ailment '{kind}'. Use one of: {string.Join(", ", AilmentKinds)}.");
+            return;
+        }
+
+        if (kind == "clear")
+        {
+            _ailments.ClearAll(body);
+            shell.WriteLine("Ailments cleared.");
+            return;
+        }
+
+        var all = kind == "all";
+        _ailments.Inflict(body, new FSInjurySpec
+        {
+            Bleed = all || kind == "bleed" ? 2 : 0,
+            Fracture = all || kind == "bone",
+            Burn = all || kind == "burn",
+            Poison = all || kind == "poison",
+        });
+
+        if (all || kind == "soaked")
+            _ailments.Apply(body, _ailments.Rules.Soaked);
+
+        shell.WriteLine($"Inflicted {kind} on yourself.");
     }
 
     private void Discord(IConsoleShell shell)

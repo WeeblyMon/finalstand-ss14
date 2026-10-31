@@ -20,6 +20,21 @@ public sealed class SlowOnDamageTest : GameTest
     public override PoolSettings PoolSettings => new() { Connected = false };
 
     private static readonly ProtoId<DamageTypePrototype> Blunt = "Blunt";
+    private static readonly ProtoId<DamageTypePrototype> Slash = "Slash";
+    private const string SlowedHuman = "FSTestSlowOnDamageHuman";
+
+    // Players slow down through ailments rather than raw damage, so the human gets vanilla's damage slowdown back here.
+    [TestPrototypes]
+    private const string Prototypes = $@"
+- type: entity
+  parent: MobHuman
+  id: {SlowedHuman}
+  components:
+  - type: SlowOnDamage
+    speedModifierThresholds:
+      60: 0.7
+      80: 0.5
+";
 
     [Test]
     public async Task DamagedZombieKeepsItsSpeed()
@@ -57,11 +72,12 @@ public sealed class SlowOnDamageTest : GameTest
         // All in one tick, so nothing else on the airless test map gets a turn to change the speed.
         await server.WaitAssertion(() =>
         {
-            var human = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            var human = entMan.SpawnEntity(SlowedHuman, map.GridCoords);
             var speed = entMan.GetComponent<MovementSpeedModifierComponent>(human);
             var full = speed.CurrentSprintSpeed;
 
-            damageable.TryChangeDamage(human, new DamageSpecifier(protos.Index(Blunt), 65), true);
+            // Slash, since a blunt hit this hard also breaks a bone, and a fracture slows on its own.
+            damageable.TryChangeDamage(human, new DamageSpecifier(protos.Index(Slash), 65), true);
             var slowed = speed.CurrentSprintSpeed;
             Assert.That(slowed, Is.LessThan(full), "the human should be slowed by the damage");
 

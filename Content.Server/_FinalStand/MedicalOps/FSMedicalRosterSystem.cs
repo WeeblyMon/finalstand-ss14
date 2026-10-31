@@ -24,7 +24,9 @@ public sealed partial class FSMedicalRosterSystem : EntitySystem
     private static readonly ProtoId<AccessLevelPrototype> CmoAccess = "ChiefMedicalOfficer";
 
     public static readonly ProtoId<JobPrototype> CmoJob = "ChiefMedicalOfficer";
+    public static readonly ProtoId<JobPrototype> DoctorJob = "MedicalDoctor";
     public static readonly ProtoId<JobPrototype> ChemistJob = "Chemist";
+    public static readonly ProtoId<JobPrototype> CombatMedicJob = "CombatMedic";
 
     public string? JobOf(EntityUid mob)
     {

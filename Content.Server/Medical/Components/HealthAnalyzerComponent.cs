@@ -1,4 +1,3 @@
-using Content.Shared._Shitmed.Medical.HealthAnalyzer;
 using Robust.Shared.Audio;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
@@ -68,18 +67,4 @@ public sealed partial class HealthAnalyzerComponent : Component
     /// </summary>
     [DataField]
     public bool Silent;
-
-    // Shitmed Change Start
-    /// <summary>
-    /// The currently selected body part to display detailed wound info for.
-    /// </summary>
-    [DataField]
-    public EntityUid? CurrentBodyPart;
-
-    /// <summary>
-    /// The current display mode of the health analyzer UI.
-    /// </summary>
-    [DataField]
-    public HealthAnalyzerMode CurrentMode = HealthAnalyzerMode.Body;
-    // Shitmed Change End
 }

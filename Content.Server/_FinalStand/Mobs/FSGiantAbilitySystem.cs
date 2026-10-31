@@ -1,5 +1,6 @@
 ﻿using Content.Server._FinalStand.Upgrades.Effects;
 using System.Numerics;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
@@ -12,7 +13,6 @@ using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Projectiles;
-using Content.Shared.Stunnable;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Systems;
 using Microsoft.Extensions.ObjectPool;
@@ -29,6 +29,7 @@ namespace Content.Server._FinalStand.Mobs;
 public sealed partial class FSGiantAbilitySystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SlowingUpgradeSystem _slow = default!;
@@ -38,7 +39,6 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
-    [Dependency] private SharedStunSystem _stun = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -239,7 +239,8 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
             if (distance <= comp.SkyJumpRadius)
             {
                 Shove(victim, away, comp.SkyJumpKnockbackDistance, comp.SkyJumpKnockbackSpeed);
-                _damageable.TryChangeDamage(victim, blast, origin: ent.Owner);
+                _damageable.TryChangeDamage(victim, blast, out var dealt, origin: ent.Owner);
+                _ailments.InflictHit(victim, comp.SkyJumpInjury, dealt.GetTotal().Float(), ent.Owner);
             }
             else
             {
@@ -317,7 +318,8 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
                     continue;
 
                 Shove(victim, heading, comp.DashKnockbackDistance, comp.DashKnockbackSpeed);
-                _damageable.TryChangeDamage(victim, punch, origin: ent.Owner);
+                _damageable.TryChangeDamage(victim, punch, out var dealt, origin: ent.Owner);
+                _ailments.InflictHit(victim, comp.DashInjury, dealt.GetTotal().Float(), ent.Owner);
             }
         }
 

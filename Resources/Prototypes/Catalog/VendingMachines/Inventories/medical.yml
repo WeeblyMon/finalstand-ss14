@@ -1,9 +1,20 @@
+- type: vendingMachineInventory
+  id: NanoMedInventory
+  startingInventory:
+    Gauze: 3
+    Brutepack: 3
+    Ointment: 3
+    Bloodpack: 3
+    ChemistryBottleEpinephrine: 3
+    Syringe: 3
+  contrabandInventory:
+    PowerCellSmall: 2
+
 # All access version. Should reflect the stock of NanoMedInventory, but less powerful
 - type: vendingMachineInventory
   id: NanoMedCivilianWallInventory
   startingInventory:
     HandheldHealthAnalyzer: 1
-    Tourniquet: 3
     Brutepack: 3
     AloeCream: 3 # Currently just a reskin of Ointment but it's something
     Bloodpack: 3
@@ -48,7 +59,6 @@
   id: NanoMedCivilianInventory
   startingInventory:
     HandheldHealthAnalyzer: 3
-    Tourniquet: 5
     Brutepack: 5
     AloeCream: 5
     Bloodpack: 5

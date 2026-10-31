@@ -21,6 +21,8 @@ public static class FSPalette
     public static readonly Color Warn = Color.FromHex("#c08a3e");
     public static readonly Color Ok = Color.FromHex("#7e9464");
     public static readonly Color Money = Color.FromHex("#d2a44e");
+    public static readonly Color Burn = Color.FromHex("#d9702e");
+    public static readonly Color Toxic = Color.FromHex("#a8b83a");
 
     // Podium places on the scoreboard and server records, and the local player's name in them.
     public static readonly Color MedalGold = Color.FromHex("#e3b448");

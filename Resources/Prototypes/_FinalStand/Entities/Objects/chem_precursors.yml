@@ -1,22 +1,10 @@
 - type: entity
+  abstract: true
   parent: BaseItem
-  id: FSEnzymeBottle
-  name: refined enzyme
-  description: A sealed vial of stabilised enzyme. The base for coagulant chemistry.
+  id: FSPrecursorBottle
   components:
-  - type: Sprite
-    sprite: Objects/Specific/Chemistry/bottle.rsi
-    layers:
-    - state: bottle-1
   - type: Item
     size: Tiny
-  - type: SolutionContainerManager
-    solutions:
-      drink:
-        maxVol: 30
-        reagents:
-        - ReagentId: FSRefinedEnzyme
-          Quantity: 30
   - type: DrainableSolution
     solution: drink
   - type: ExaminableSolution
@@ -26,16 +14,8 @@
     maxTransferAmount: 30
     canReceive: false
 
-- type: latheRecipe
-  id: FSEnzymeBottle
-  result: FSEnzymeBottle
-  completetime: 3
-  materials:
-    Steel: 100
-    Plastic: 100
-
 - type: entity
-  parent: FSEnzymeBottle
+  parent: FSPrecursorBottle
   id: FSCatalystBottle
   name: etching catalyst
   description: A sealed vial of corrosive catalyst. The base for armour-etching chemistry.
@@ -62,7 +42,7 @@
     Silver: 50
 
 - type: entity
-  parent: FSEnzymeBottle
+  parent: FSPrecursorBottle
   id: FSAdrenalBottle
   name: adrenal concentrate
   description: A sealed vial of synthesised adrenal extract. The base for adrenal chemistry.
@@ -88,7 +68,7 @@
     Plastic: 100
 
 - type: entity
-  parent: FSEnzymeBottle
+  parent: FSPrecursorBottle
   id: FSAnalgesicBottle
   name: analgesic base
   description: A sealed vial of field analgesic. The base for battlefield pain management.

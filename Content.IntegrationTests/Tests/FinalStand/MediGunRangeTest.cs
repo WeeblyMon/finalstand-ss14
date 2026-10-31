@@ -48,7 +48,7 @@ public sealed class MediGunRangeTest : GameTest
             Assert.That(hands.TryPickupAnyHand(medic, gun), "couldn't hand the medic the medigun");
             Assert.That(wield.TryWield(gun, medic), "couldn't wield the medigun");
 
-            var maxRange = entMan.GetComponent<FSMediGunComponent>(gun).MaxRange;
+            var maxRange = entMan.GetComponent<FSMediGunComponent>(gun).Range;
             far = SpawnPatient(entMan, map.MapId, maxRange + 2f);
             near = SpawnPatient(entMan, map.MapId, maxRange - 2f);
         });
@@ -60,10 +60,10 @@ public sealed class MediGunRangeTest : GameTest
         {
             var comp = entMan.GetComponent<FSMediGunComponent>(gun);
             Click(entMan, medic, gun, far);
-            Assert.That(comp.HealedEntities, Does.Not.Contain(far), "linked a patient past the beam's range");
+            Assert.That(comp.Patients, Does.Not.Contain(far), "linked a patient past the beam's range");
 
             Click(entMan, medic, gun, near);
-            Assert.That(comp.HealedEntities, Does.Contain(near), "didn't link a patient in range");
+            Assert.That(comp.Patients, Does.Contain(near), "didn't link a patient in range");
         });
     }
 

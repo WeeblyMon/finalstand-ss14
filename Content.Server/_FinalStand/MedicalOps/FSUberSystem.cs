@@ -17,6 +17,7 @@ public sealed partial class FSUberSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private FSUberSharedSystem _uberShared = default!;
+    [Dependency] private FSMediGunSystem _mediGun = default!;
 
     public const float FullCharge = 100f;
 
@@ -67,7 +68,7 @@ public sealed partial class FSUberSystem : EntitySystem
 
         Dirty(gun);
 
-        if (before < FullCharge && comp.UberCharge >= FullCharge && comp.ParentEntity is { } medic)
+        if (before < FullCharge && comp.UberCharge >= FullCharge && comp.Medic is { } medic)
         {
             _audio.PlayEntity(ReadySound, medic, medic);
             _popup.PopupEntity(Loc.GetString("fs-uber-ready"), medic, medic, PopupType.Medium);
@@ -85,7 +86,7 @@ public sealed partial class FSUberSystem : EntitySystem
     // A patient keeps the cover only while the beam holds them, so one uber can't be passed round the whole crew.
     public void Uncover(Entity<FSMediGunComponent> gun, EntityUid patient)
     {
-        if (patient == gun.Comp.ParentEntity)
+        if (patient == gun.Comp.Medic)
             return;
 
         _uberShared.EndCover(patient, gun, _timing.CurTime + LinkLossGrace);
@@ -129,12 +130,16 @@ public sealed partial class FSUberSystem : EntitySystem
 
         comp.UberEndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.UberDuration);
         comp.UberMedic = medic;
-        comp.ParentEntity ??= medic;
+        comp.Medic ??= medic;
         Dirty(ent);
 
         Cover(ent, medic);
-        foreach (var patient in comp.HealedEntities)
+        _mediGun.ClearTreatable(ent, medic, medic);
+        foreach (var patient in comp.Patients)
+        {
             Cover(ent, patient);
+            _mediGun.ClearTreatable(ent, patient, medic);
+        }
 
         _audio.PlayPvs(DeploySound, medic);
         comp.UberLoop = _audio.PlayPvs(LoopSound, medic, AudioParams.Default.WithLoop(true).WithVolume(-12f))?.Entity;
@@ -161,7 +166,7 @@ public sealed partial class FSUberSystem : EntitySystem
                 gun.UberCharge = 0f;
                 gun.UberLoop = _audio.Stop(gun.UberLoop);
                 Dirty(uid, gun);
-                if (gun.ParentEntity is { } medic)
+                if (gun.Medic is { } medic)
                     _audio.PlayEntity(EndSound, medic, medic);
                 continue;
             }

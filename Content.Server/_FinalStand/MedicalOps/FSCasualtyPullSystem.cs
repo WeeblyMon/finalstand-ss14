@@ -42,8 +42,6 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
     private static readonly SoundSpecifier PullSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/medic_alert.ogg");
 
-    private const string DoctorJob = "MedicalDoctor";
-
     public override void Initialize()
     {
         base.Initialize();
@@ -55,7 +53,7 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
 
     private void OnSpawn(PlayerSpawnCompleteEvent ev)
     {
-        if (ev.JobId != DoctorJob)
+        if (ev.JobId != FSMedicalRosterSystem.DoctorJob.Id)
             return;
 
         _grants.Grant(ev.Mob, PullActionProto);

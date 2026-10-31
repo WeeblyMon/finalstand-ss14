@@ -9,7 +9,6 @@ using Content.Shared.Interaction;
 using Content.Shared.Interaction.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
-using Content.Shared.Movement.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Storage.Components;
 using Content.Shared.Vehicle.Systems;
@@ -39,7 +38,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] protected VehicleSystem Vehicle = default!;
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private SharedContentEyeSystem _eye = default!; // FINALSTAND: from Monolith
     [Dependency] private Content.Shared._FinalStand.Mech.FSMechMountSystem _mounts = default!; // FINALSTAND
     [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!; // FINALSTAND
     private static readonly Robust.Shared.Audio.SoundSpecifier CycleSound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Machines/button.ogg"); // FINALSTAND
@@ -108,7 +106,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         // Warning: this bypasses most normal interaction blocking components on the user, like drone laws and the like.
         var irelay = EnsureComp<InteractionRelayComponent>(pilot);
         _interaction.SetRelay(pilot, mech, irelay);
-        UpdateMechZoom(pilot, component, false); // FINALSTAND: from Monolith
 
         if (_net.IsClient)
             return;
@@ -122,33 +119,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         RemComp<InteractionRelayComponent>(pilot);
         _actions.RemoveProvidedActions(pilot, mech);
-        if (TryComp<MechComponent>(mech, out var component))
-            UpdateMechZoom(pilot, component, true); // FINALSTAND: from Monolith
-    }
-
-    // FINALSTAND: from Monolith
-    private void UpdateMechZoom(EntityUid pilot, MechComponent component, bool eject)
-    {
-        if (!TryComp<EyeComponent>(pilot, out var eye))
-            return;
-
-        if (eject)
-        {
-            _eye.ResetZoom(pilot);
-            _eye.SetMaxZoom(pilot, eye.Zoom);
-            return;
-        }
-
-        _eye.SetMaxZoom(pilot, component.Zoom);
-        _eye.SetZoom(pilot, component.Zoom);
-    }
-
-    // FINALSTAND: from Monolith
-    [SubscribeLocalEvent]
-    private void OnRefreshMovementSpeed(Entity<MechComponent> ent, ref RefreshMovementSpeedModifiersEvent args)
-    {
-        if (ent.Comp.CriticalPowerState)
-            args.ModifySpeed(ent.Comp.CriticalPowerStateSpeedPenalty);
     }
 
     /// <summary>
@@ -345,7 +315,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return false;
 
-        if (component.Broken) // FINALSTAND: from Monolith
+        if (component.Broken) // FINALSTAND
             return false;
 
         if (!_actionBlocker.CanMove(toInsert))

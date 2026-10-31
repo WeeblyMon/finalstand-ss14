@@ -1,10 +1,11 @@
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared._Shitmed.EntityConditions;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared.EntityConditions.Conditions;
 using Content.Shared.FixedPoint;
+using Content.Shared.MedicalScanner;
 using Content.Shared.Projectiles;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -79,6 +80,28 @@ public sealed partial class FSSafeDoseSystem : EntitySystem
         }
     }
 
+    public List<HealthAnalyzerReagent>? DescribeBlood(EntityUid patient)
+    {
+        if (!TryComp<BloodstreamComponent>(patient, out var bloodstream)
+            || !_solutions.ResolveSolution(patient, bloodstream.BloodSolutionName, ref bloodstream.BloodSolution, out var blood))
+        {
+            return null;
+        }
+
+        var reference = bloodstream.BloodReferenceSolution;
+        var reagents = new List<HealthAnalyzerReagent>();
+        foreach (var (reagent, quantity) in blood.Contents)
+        {
+            var id = reagent.Prototype;
+            if (reference.ContainsPrototype(id))
+                continue;
+
+            reagents.Add(new HealthAnalyzerReagent(id, quantity, HarmfulAt(id) is not { } harmful || quantity < harmful));
+        }
+
+        return reagents;
+    }
+
     private FixedPoint2? HarmfulAt(string reagentId)
     {
         if (_thresholdCache.TryGetValue(reagentId, out var cached))
@@ -95,12 +118,11 @@ public sealed partial class FSSafeDoseSystem : EntitySystem
                 {
                     foreach (var condition in effect.Conditions ?? [])
                     {
-                        if (condition is not ReagentThreshold { Min: > 0f } gate)
+                        if (condition is not ReagentCondition gate || gate.Reagent != reagentId || gate.Min <= FixedPoint2.Zero)
                             continue;
 
-                        var value = FixedPoint2.New(gate.Min);
-                        if (lowest == null || value < lowest)
-                            lowest = value;
+                        if (lowest == null || gate.Min < lowest)
+                            lowest = gate.Min;
                     }
                 }
             }

@@ -147,6 +147,28 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         return state.Comp.UnlockedLookup.Contains(nodeId);
     }
 
+    public static bool IsMedicalNode(FSTechNodePrototype node) => node.Branch == MedicalBranch;
+
+    public int UnlockAllNodes()
+    {
+        var state = GetOrCreateState();
+        var count = 0;
+        foreach (var node in PrototypeManager.EnumeratePrototypes<FSTechNodePrototype>())
+        {
+            if (!IsMedicalNode(node) || IsNodeUnlocked(node.ID))
+                continue;
+
+            state.Comp.UnlockedNodes.Add(node.ID);
+            state.Comp.UnlockedLookup.Add(node.ID);
+            var completed = new FSResearchNodeCompletedEvent(node.ID, Earned: false);
+            RaiseLocalEvent(ref completed);
+            count++;
+        }
+
+        SyncConsoles();
+        return count;
+    }
+
     public void OnBuyNode(EntityUid uid, FSTechDatabaseComponent console, FSSelectResearchNodeMessage args)
     {
         if (console.Track != FSResearchTrack.Medical)

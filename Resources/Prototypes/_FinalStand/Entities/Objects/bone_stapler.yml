@@ -2,19 +2,20 @@
   parent: BaseItem
   id: FSBoneStapler
   name: bone stapler
-  description: Drives a brace into a fractured bone. Enough to get someone walking, not enough to spare them a proper table later.
+  description: Drives a brace into a broken bone and sets it on the spot. With no bone to fix, it staples a heavy bleed shut.
   components:
+  - type: GuideHelp
+    guides: [ FSInjuries ]
   - type: Sprite
     sprite: _FinalStand/Objects/Medical/bone_stapler.rsi
     state: icon
-  # No inhand states of its own yet, so it borrows the bonesetter's.
   - type: Item
     size: Small
-    sprite: _Shitmed/Objects/Specific/Medical/Surgery/bonesetter.rsi
+    sprite: _FinalStand/Objects/Medical/bone_stapler.rsi
   - type: FSBoneStapler
-    repair: 45
   - type: FSMedicalOnly
+  - type: Tag
+    tags:
+    - FSMedicalTool
   - type: UseDelay
-    delay: 45
-  - type: GuideHelp
-    guides: [ Surgery ]
+    delay: 30

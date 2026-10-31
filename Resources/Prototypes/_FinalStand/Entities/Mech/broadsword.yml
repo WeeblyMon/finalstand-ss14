@@ -1,4 +1,4 @@
-# The Broadsword: a slow, heavily armoured combat mech built at the Mech Bay. Ported from Goob-Station's MechDurand onto vanilla's vehicle mechs.
+# The Broadsword: a slow, heavily armoured combat mech built at the Mech Bay.
 - type: damageModifierSet
   id: FSMechArmor
   coefficients:
@@ -53,7 +53,6 @@
     brokenState: broadsword-broken
     maxIntegrity: 4000
     maxEquipmentAmount: 3
-    zoom: 1.3, 1.3
     airtight: true
     equipmentWhitelist:
       tags:
@@ -90,15 +89,16 @@
     fuelCost: 30
     doAfterDelay: 8
   - type: FSCombatMech
+    pilotZoom: 1.3, 1.3
     mountLimits:
       HeavyMechMount: 1
+  - type: FSMechLowPower
   - type: FSSiegeMode
   - type: FSFriendlyFire
   - type: Tag
     tags:
     - DoorBumpOpener
     - FootstepSound
-    - Durand
 
 - type: entity
   parent: BaseMechAction

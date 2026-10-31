@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Damage.Systems;
@@ -25,6 +26,7 @@ namespace Content.Server._FinalStand.Mobs;
 public sealed partial class FSRevenantSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
     [Dependency] private ExamineSystemShared _examine = default!;
     [Dependency] private HTNSystem _htn = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;

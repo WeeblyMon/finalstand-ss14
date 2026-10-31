@@ -55,6 +55,11 @@
     allowedStates:
     - Alive
     damage:
-      groups:
-        Brute: -1.5
-        Burn: -1.5
+      types:
+        Blunt: -0.5
+        Slash: -0.5
+        Piercing: -0.5
+        Heat: -0.38
+        Shock: -0.38
+        Cold: -0.37
+        Caustic: -0.37

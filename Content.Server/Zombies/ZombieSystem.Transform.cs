@@ -5,47 +5,43 @@ using Content.Server.Body.Components;
 using Content.Server.Chat;
 using Content.Server.Chat.Managers;
 using Content.Server.Ghost;
-using Content.Server.Ghost.Roles.Components;
-using Content.Server.Humanoid;
 using Content.Server.Inventory;
 using Content.Server.Mind;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
 using Content.Server.StationEvents.Components;
-using Content.Shared.Speech.Components;
-using Content.Shared.Speech.EntitySystems;
 using Content.Shared.Body;
 using Content.Shared.Body.Components;
 using Content.Shared.CombatMode;
 using Content.Shared.CombatMode.Pacification;
+using Content.Shared.Ghost.Roles.Components;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Humanoid;
+using Content.Shared.IdentityManagement;
 using Content.Shared.Interaction.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared.NameModifier.EntitySystems;
+using Content.Shared.NPC.Prototypes;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Nutrition.AnimalHusbandry;
 using Content.Shared.Nutrition.Components;
 using Content.Shared.Popups;
+using Content.Shared.Prying.Components;
+using Content.Shared.Roles;
+using Content.Shared.Speech.EntitySystems;
+using Content.Shared.Tag;
+using Content.Shared.Temperature.Components;
+using Content.Shared.Traits.Assorted;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Zombies;
-using Content.Shared.Prying.Components;
-using Content.Shared.Traits.Assorted;
 using Robust.Shared.Audio.Systems;
-using Content.Shared.Ghost.Roles.Components;
-using Content.Shared.Humanoid.Markings;
-using Content.Shared.IdentityManagement;
-using Content.Shared.Tag;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
-using Content.Shared.NPC.Prototypes;
-using Content.Shared.Roles;
-using Content.Shared.Temperature.Components;
 using Robust.Shared.Utility;
 
 namespace Content.Server.Zombies;
@@ -65,7 +61,7 @@ public sealed partial class ZombieSystem
     [Dependency] private NpcFactionSystem _faction = default!;
     [Dependency] private GhostSystem _ghost = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
-    [Dependency] private Content.Server.Humanoid.HumanoidAppearanceSystem _humanoid = default!;
+    [Dependency] private SharedVisualBodySystem _visualBody = default!;
     [Dependency] private IdentitySystem _identity = default!;
     [Dependency] private ServerInventorySystem _inventory = default!;
     [Dependency] private MindSystem _mind = default!;
@@ -192,15 +188,44 @@ public sealed partial class ZombieSystem
             _autoEmote.AddEmote(target, "ZombieGroan");
         }
 
-        // Goob port: BloodReagent is a single prototype id, not a full solution; pre-zombify capture removed.
+        if (TryComp<BloodstreamComponent>(target, out var stream) && stream.BloodReferenceSolution is { } reagents)
+            zombiecomp.BeforeZombifiedBloodReagents = reagents.Clone();
 
-        // Goob port: organ-keyed marking/profile gather+apply removed.
-        // FSZombies handle visuals separately; vanilla zombies just get skin/eye recolor.
-        if (TryComp<HumanoidProfileComponent>(target, out var huAppear))
+        if (_visualBody.TryGatherMarkingsData(target, null, out var profiles, out _, out var markings))
         {
-            _humanoid.SetSkinColor(target, zombiecomp.SkinColor, verify: false, humanoid: huAppear);
-            huAppear.EyeColor = zombiecomp.EyeColor;
-            Dirty(target, huAppear);
+            // TODO: My kingdom for ZombieSystem just using cloning system
+            zombiecomp.BeforeZombifiedProfiles = profiles;
+            zombiecomp.BeforeZombifiedMarkings = markings.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.ToDictionary(
+                    it => it.Key,
+                    it => it.Value.ShallowClone()));
+
+            var zombifiedProfiles = profiles.ToDictionary(pair => pair.Key,
+                pair => pair.Value with { EyeColor = zombiecomp.EyeColor, SkinColor = zombiecomp.SkinColor });
+            _visualBody.ApplyProfiles(target, zombifiedProfiles);
+
+            var newMarkings = markings.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.ToDictionary(
+                    it => it.Key,
+                    it => it.Value.ShallowClone()));
+
+            foreach (var markingSet in newMarkings.Values)
+            {
+                foreach (var (layer, layerMarkings) in markingSet)
+                {
+                    if (!AdditionalZombieLayers.Contains(layer))
+                        continue;
+
+                    for (var i = 0; i < layerMarkings.Count; i++)
+                    {
+                        layerMarkings[i] = layerMarkings[i].WithColor(zombiecomp.SkinColor);
+                    }
+                }
+            }
+
+            _visualBody.ApplyMarkings(target, newMarkings);
         }
 
         //We have specific stuff for humanoid zombies because they matter more
@@ -227,7 +252,7 @@ public sealed partial class ZombieSystem
         //NOTE: they are supposed to bleed, just not take damage
         _bloodstream.SetBloodLossThreshold(target, 0f);
         //Give them zombie blood
-        _bloodstream.ChangeBloodReagent(target, zombiecomp.NewBloodReagent);
+        _bloodstream.ChangeBloodReagents(target, zombiecomp.NewBloodReagents);
 
         //This is specifically here to combat insuls, because frying zombies on grilles is funny as shit.
         _inventory.TryUnequip(target, "gloves", true, true);
@@ -235,7 +260,10 @@ public sealed partial class ZombieSystem
         _inventory.TryUnequip(target, "ears", true, true);
 
         //popup
-        _popup.PopupEntity(Loc.GetString("zombie-transform", ("target", target)), target, PopupType.LargeCaution);
+        _popup.PopupEntity(
+            Loc.GetString("zombie-transform", ("target", Identity.Entity(target, EntityManager))),
+            target,
+            PopupType.LargeCaution);
 
         //Make it sentient if it's an animal or something
         _mind.MakeSentient(target);
@@ -281,13 +309,7 @@ public sealed partial class ZombieSystem
 
         if (!HasComp<GhostRoleMobSpawnerComponent>(target) && !hasMind) //this specific component gives build test trouble so pop off, ig
         {
-            //yet more hardcoding. Visit zombie.ftl for more information.
-            var ghostRole = EnsureComp<GhostRoleComponent>(target);
-            EnsureComp<GhostTakeoverAvailableComponent>(target);
-            ghostRole.RoleName = Loc.GetString("zombie-generic");
-            ghostRole.RoleDescription = Loc.GetString("zombie-role-desc");
-            ghostRole.RoleRules = Loc.GetString("zombie-role-rules");
-            ghostRole.MindRoles.Add(MindRoleZombie);
+            MakeGhostRole(target);
         }
 
         if (TryComp<HandsComponent>(target, out var handsComp))

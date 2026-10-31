@@ -189,23 +189,33 @@ public sealed class RookieRoundTest : GameTest
     public async Task ARevivePaysTheMentorPastTheMedicPayoutCap()
     {
         await StartRoundWithARookie();
+        await Server.WaitPost(MakeVeteranAMentor);
+
+        // Three stabilises use up this wave's medic payouts for the rookie, and pay no mentor points. Each goes in its
+        // own tick, since one medic's payouts for one patient within a tick are paid and counted once.
+        for (var i = 0; i < 3; i++)
+        {
+            await Server.WaitPost(() =>
+            {
+                var mobState = SEntMan.System<MobStateSystem>();
+                mobState.ChangeMobState(BodyOf(_rookie), MobState.Critical);
+                mobState.ChangeMobState(BodyOf(_rookie), MobState.Alive, origin: BodyOf(_veteran));
+            });
+            await Server.WaitRunTicks(1);
+        }
 
         await Server.WaitAssertion(() =>
         {
-            MakeVeteranAMentor();
             var mobState = SEntMan.System<MobStateSystem>();
             var rookie = BodyOf(_rookie);
-
-            // Three stabilises use up this wave's medic payouts for the rookie, and pay no mentor points.
-            for (var i = 0; i < 3; i++)
-            {
-                mobState.ChangeMobState(rookie, MobState.Critical);
-                mobState.ChangeMobState(rookie, MobState.Alive, origin: BodyOf(_veteran));
-            }
             Assert.That(MentorPoints(), Is.Zero, "test precondition");
 
+            var credits = Credits(_veteran);
             mobState.ChangeMobState(rookie, MobState.Dead);
             mobState.ChangeMobState(rookie, MobState.Critical, origin: BodyOf(_veteran));
+            // Only the mentor's own revive reward is paid; the medic payout for the revive is over the cap.
+            Assert.That(Credits(_veteran) - credits, Is.EqualTo(FSMentorSystem.ReviveCredits),
+                "test precondition: the medic payout cap was reached");
             Assert.That(MentorPoints(), Is.EqualTo(FSMentorRules.ReviveMp),
                 "the mentor's own cooldown limits revives, not the medic payout cap");
         });
@@ -233,6 +243,9 @@ public sealed class RookieRoundTest : GameTest
             Assert.That(SEntMan.System<FSMentorSystem>().Award(_veteran, _rookie, 1, "fs-mentor-reason-escort"), Is.EqualTo(1),
                 "the pair is only voided for the round it happened in");
         });
+
+        await Pair.Disconnect();
+        await Pair.Connect();
     }
 
     [Test]

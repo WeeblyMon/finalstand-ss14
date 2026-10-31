@@ -1,22 +1,3 @@
-# Auto-injectors craftable at the Medical Assembler.
-
-# Blank medipen shell — solid ingredient consumed by assembler recipes.
-# No solution container; the assembler synthesizes the final reagents into the output pen.
-- type: entity
-  parent: BaseItem
-  id: BlankMediPen
-  name: empty medipen
-  description: An empty medipen with endless potential.
-  components:
-  - type: Sprite
-    sprite: Objects/Specific/Medical/medipen.rsi
-    state: medipen
-  - type: Item
-    sprite: Objects/Specific/Medical/medipen.rsi
-    size: Tiny
-  - type: StaticPrice
-    price: 5
-
 - type: entity
   parent: ChemicalMedipen
   id: LacerinolAutoInjector

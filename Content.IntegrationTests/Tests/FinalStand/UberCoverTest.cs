@@ -92,12 +92,12 @@ public sealed class UberCoverTest : GameTest
             Deploy(entMan, (ownGun, ownComp), ownMedic);
             ownEnd = ownComp.UberEndTime!.Value;
             if (ownLinksDropped)
-                medigun.DisableAllConnections((ownGun, ownComp));
+                medigun.Release((ownGun, ownComp));
 
             var otherGun = entMan.SpawnEntity(Gun, map.GridCoords);
             var otherComp = entMan.GetComponent<FSMediGunComponent>(otherGun);
             otherComp.UberEndTime = timing.CurTime + TimeSpan.FromSeconds(otherSeconds);
-            otherComp.ParentEntity = otherMedic;
+            otherComp.Medic = otherMedic;
 
             medigun.Link((otherGun, otherComp), ownMedic, otherMedic);
             if (beamMovesOn)
@@ -141,14 +141,14 @@ public sealed class UberCoverTest : GameTest
             var gun = entMan.SpawnEntity(Gun, map.GridCoords);
             var comp = entMan.GetComponent<FSMediGunComponent>(gun);
             Deploy(entMan, (gun, comp), deployer);
-            medigun.DisableAllConnections((gun, comp));
+            medigun.Release((gun, comp));
             medigun.Link((gun, comp), patient, holder);
 
             // Another uber medic's beam passes over the new holder and moves on.
             var otherGun = entMan.SpawnEntity(Gun, map.GridCoords);
             var otherComp = entMan.GetComponent<FSMediGunComponent>(otherGun);
             otherComp.UberEndTime = timing.CurTime + TimeSpan.FromSeconds(10);
-            otherComp.ParentEntity = otherMedic;
+            otherComp.Medic = otherMedic;
             medigun.Link((otherGun, otherComp), holder, otherMedic);
             medigun.Link((otherGun, otherComp), otherPatient, otherMedic);
         });

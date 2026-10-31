@@ -1,0 +1,20 @@
+- type: entity
+  parent: ClothingBeltMedical
+  id: FSClothingBeltMedicalCMOFilled
+  suffix: CMO, Filled
+  components:
+  - type: EntityTableContainerFill
+    containers:
+      storagebase: !type:AllSelector
+        children:
+        - id: Brutepack
+        - id: Ointment
+        - id: Gauze
+        - id: ChemistryBottleSaline
+        - id: ChemistryBottleBicaridine
+        - id: ChemistryBottleDexalin
+        - id: ChemistryBottleDylovene
+        - id: ChemistryBottleHyronalin
+        - id: ChemistryBottleKelotane
+        - id: ChemistryBottleEpinephrine
+        - id: PillCanisterTricordrazine

@@ -62,9 +62,6 @@ fs-hud-ready-yes = YES
 fs-hud-ready-no = NO
 fs-hud-ready-count = { $ready } / { $total } ready
 fs-hud-perks = PERKS
-fs-hud-down = YOU ARE DOWN
-fs-hud-down-subline = Wait for a medic, or revive for ${ $cost }
-fs-hud-revive-now = REVIVE NOW
 fs-hud-perk-level = Level { $level } / { $max }
 fs-hud-perk-not-upgraded = Not yet upgraded.
 fs-hud-earnings-credits = +${ $wave }  (${ $game } total)
@@ -84,11 +81,6 @@ fs-hud-bonus-row-speed = Speed
 fs-hud-triage = TRIAGE
 fs-hud-no-casualties = NO CASUALTIES
 fs-hud-triage-range = { $range }m
-fs-hud-pill-bleeding = BLEEDING
-fs-hud-pill-broken-bones = { $count ->
-    [one] BROKEN BONE
-   *[other] { $count } BROKEN BONES
-}
 fs-hud-health = HEALTH
 fs-hud-no-weapon = no weapon
 fs-hud-ammo-type-hint = [{ $key }] hold - ammo type

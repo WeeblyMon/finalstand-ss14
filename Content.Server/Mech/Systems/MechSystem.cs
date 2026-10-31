@@ -39,9 +39,6 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private SharedToolSystem _toolSystem = default!;
-    [Dependency] private Content.Shared.Movement.Systems.MovementSpeedModifierSystem _movementSpeed = default!; // FINALSTAND: from Monolith
-    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!; // FINALSTAND
-    private static readonly Robust.Shared.Audio.SoundSpecifier LowPowerSound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Machines/warning_buzzer.ogg"); // FINALSTAND
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -84,7 +81,6 @@ public sealed partial class MechSystem : SharedMechSystem
 
         component.Energy = _battery.GetCharge((args.Entity, battery));
         component.MaxEnergy = battery.MaxCharge;
-        UpdateCriticalPower(uid, component); // FINALSTAND: from Monolith
 
         Dirty(uid, component);
         Vehicle.RefreshCanRun(uid);
@@ -324,7 +320,6 @@ public sealed partial class MechSystem : SharedMechSystem
             return false;
 
         _battery.SetCharge((battery.Value, batteryComp), _battery.GetCharge((battery.Value, batteryComp)) + delta.Float());
-        UpdateCriticalPower(uid, component); // FINALSTAND: from Monolith
         // TODO: Power cells are predicted now, so no need to duplicate the charge level
         var charge = _battery.GetCharge((battery.Value, batteryComp));
         if (charge != component.Energy) //if there's a discrepency, we have to resync them
@@ -335,20 +330,6 @@ public sealed partial class MechSystem : SharedMechSystem
         }
         Vehicle.RefreshCanRun(uid);
         return true;
-    }
-
-    // FINALSTAND: from Monolith
-    private void UpdateCriticalPower(EntityUid uid, MechComponent component)
-    {
-        var critical = component.MaxEnergy > 0 && component.Energy / component.MaxEnergy <= 0.05;
-        if (critical == component.CriticalPowerState)
-            return;
-
-        component.CriticalPowerState = critical;
-        Dirty(uid, component);
-        if (critical)
-            _audio.PlayPvs(LowPowerSound, uid); // FINALSTAND
-        _movementSpeed.RefreshMovementSpeedModifiers(uid);
     }
 
     public void InsertBattery(EntityUid uid, EntityUid toInsert, MechComponent? component = null, BatteryComponent? battery = null)
@@ -362,7 +343,6 @@ public sealed partial class MechSystem : SharedMechSystem
         _container.Insert(toInsert, component.BatterySlot);
         component.Energy = _battery.GetCharge((toInsert, battery));
         component.MaxEnergy = battery.MaxCharge;
-        UpdateCriticalPower(uid, component); // FINALSTAND: from Monolith
 
         Vehicle.RefreshCanRun(uid);
 
@@ -378,7 +358,6 @@ public sealed partial class MechSystem : SharedMechSystem
         _container.EmptyContainer(component.BatterySlot);
         component.Energy = 0;
         component.MaxEnergy = 0;
-        UpdateCriticalPower(uid, component); // FINALSTAND: from Monolith
 
         Vehicle.RefreshCanRun(uid);
 

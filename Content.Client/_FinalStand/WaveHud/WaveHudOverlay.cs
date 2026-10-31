@@ -42,11 +42,8 @@ public sealed partial class WaveHudOverlay : Overlay
     private Font? _midFont;
     private Font? _tooltipNameFont;
     private Font? _tooltipBodyFont;
-    private Font? _promptFont;
-    private Font? _promptSubFont;
     private int _cachedLabelPt = -1;
     private int _cachedValuePt = -1;
-    private int _cachedPromptPt = -1;
     private float _cachedLabelH;
     private float _cachedValueH;
 
@@ -211,11 +208,6 @@ public sealed partial class WaveHudOverlay : Overlay
     public float HarvestAccrued;
     public float HarvestCap;
 
-    public UIBox2 RespawnButtonBounds = new(-100, -100, -99, -99);
-
-    public event Action? OnRespawnClicked;
-    private float _respawnClickCooldown;
-
     public event Action<bool>? OnReadyUpClicked;
     private bool _prevClickDown;
     private bool _uiHadPointerLastFrame;
@@ -267,14 +259,11 @@ public sealed partial class WaveHudOverlay : Overlay
     private readonly string _labelYes = Loc.GetString("fs-hud-ready-yes");
     private readonly string _labelNo = Loc.GetString("fs-hud-ready-no");
     private readonly string _labelPerks = Loc.GetString("fs-hud-perks");
-    private readonly string _labelDown = Loc.GetString("fs-hud-down");
-    private readonly string _labelReviveNow = Loc.GetString("fs-hud-revive-now");
     private readonly string _labelNotUpgraded = Loc.GetString("fs-hud-perk-not-upgraded");
 
     private readonly FSHudText<int> _surviveText = new(s => $"{s / 60}:{s % 60:D2}");
     private readonly FSHudText<int> _prepText = new(s => $"{s / 60}:{s % 60:D2}");
     private readonly FSHudText<int> _fundText = new(amount => Loc.GetString("fs-hud-medical-fund", ("amount", amount)));
-    private readonly FSHudText<int> _respawnText = new(cost => Loc.GetString("fs-hud-down-subline", ("cost", cost.ToString("N0"))));
     private readonly FSHudText<(int Ready, int Total)> _readyText =
         new(v => Loc.GetString("fs-hud-ready-count", ("ready", v.Ready), ("total", v.Total)));
     private readonly FSHudText<int> _perkLevelText =
@@ -348,13 +337,6 @@ public sealed partial class WaveHudOverlay : Overlay
         _tooltipNameFont ??= new VectorFont(notoRes, 13);
         _tooltipBodyFont ??= new VectorFont(notoRes, 11);
 
-        var promptPt = Math.Max(14, (int)MathF.Round(28f * s));
-        if (_cachedPromptPt != promptPt)
-        {
-            _promptFont = new VectorFont(notoRes, promptPt);
-            _promptSubFont = new VectorFont(notoRes, Math.Max(9, (int)MathF.Round(14f * s)));
-            _cachedPromptPt = promptPt;
-        }
 
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
@@ -411,61 +393,7 @@ public sealed partial class WaveHudOverlay : Overlay
         RightStackHeight = screenSize.Y - BottomBandLift - (weaponTop - 6f - throwH);
 
         if (IsRespawnOfferVisible)
-        {
-            var headline = _labelDown;
-            var subline = _respawnText.Get(RespawnCost);
-
-            var headDims = screen.GetDimensions(_promptFont!, headline, 1f);
-            var subDims = screen.GetDimensions(_promptSubFont!, subline, 1f);
-
-            var promptY = screenSize.Y * 0.30f;
-            var gap = MathF.Round(6f * s);
-
             DrawVignette(screen, screenSize);
-
-            DrawShadowed(screen, _promptFont!,
-                new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
-                headline, FSPalette.DangerSoft);
-
-            DrawShadowed(screen, _promptSubFont!,
-                new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
-                subline, FSPalette.TextBright);
-
-            var afterTextY = promptY + headDims.Y + gap + subDims.Y;
-
-            if (CasualtyStatus is { } casualty)
-            {
-                var casualtyDims = screen.GetDimensions(_promptSubFont!, casualty, 1f);
-                var casualtyColor = CasualtyResponded ? FSPalette.Ok : FSPalette.TextMuted;
-
-                DrawShadowed(screen, _promptSubFont!,
-                    new Vector2((screenSize.X - casualtyDims.X) * 0.5f, afterTextY + gap * 0.5f),
-                    casualty, casualtyColor);
-
-                afterTextY += gap * 0.5f + casualtyDims.Y;
-            }
-
-            var btnLabel = _labelReviveNow;
-            var btnDim = screen.GetDimensions(_labelFont!, btnLabel, 1f);
-            var btnPadX = MathF.Round(20f * s);
-            var btnPadY = MathF.Round(8f * s);
-            var respawnBtnW = btnDim.X + btnPadX * 2f;
-            var respawnBtnH = btnDim.Y + btnPadY * 2f;
-            var btnX = (screenSize.X - respawnBtnW) * 0.5f;
-            var btnY = afterTextY + gap * 2f;
-
-            RespawnButtonBounds = new UIBox2(btnX, btnY, btnX + respawnBtnW, btnY + respawnBtnH);
-            DrawPanel(screen, RespawnButtonBounds, VitalsBack, VitalsEdge, FSPalette.Danger);
-            DrawShadowed(screen,
-                _labelFont!,
-                new Vector2(btnX + btnPadX, btnY + btnPadY),
-                btnLabel,
-                FSPalette.Danger);
-        }
-        else
-        {
-            RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);
-        }
 
         void DrawReadyUpBlock()
         {
@@ -790,9 +718,6 @@ public sealed partial class WaveHudOverlay : Overlay
         if (DirectiveFlash > 0f)
             DirectiveFlash = MathF.Max(0f, DirectiveFlash - args.DeltaSeconds * 2f);
 
-        if (_respawnClickCooldown > 0f)
-            _respawnClickCooldown -= args.DeltaSeconds;
-
         // A ring, the ping wheel, a popup or a window's close button can shut on the click that picks from it, in
         // input handling, which runs before this. The UI having had the pointer the frame before keeps that click its own.
         var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
@@ -809,13 +734,6 @@ public sealed partial class WaveHudOverlay : Overlay
                 OnReadyUpClicked?.Invoke(false);
         }
 
-        if (IsRespawnOfferVisible && pressed && _respawnClickCooldown <= 0f
-            && RespawnButtonBounds.Contains(mousePos))
-        {
-            _respawnClickCooldown = 0.5f;
-            OnRespawnClicked?.Invoke();
-        }
-
         if (pressed)
             HandleThrowableClick(mousePos);
 
@@ -823,9 +741,9 @@ public sealed partial class WaveHudOverlay : Overlay
     }
 
     // The HUD is drawn under the UI, so a click on a window over it (the escape menu, a console, a shop) is that
-    // window's. Otherwise opening the escape menu over the respawn button and clicking it buys the respawn. The build
-    // and upgrade rings and the ping wheel take every click while they're open, and so does an open popup, which a
-    // click anywhere else closes.
+    // window's. Otherwise opening the escape menu over the ready-up buttons and clicking it changes your answer. The
+    // build and upgrade rings and the ping wheel take every click while they're open, and so does an open popup, which
+    // a click anywhere else closes.
     private bool UiHasPointer()
     {
         foreach (var child in _uiManager.PopupRoot.Children)

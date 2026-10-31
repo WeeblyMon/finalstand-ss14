@@ -1,4 +1,16 @@
-# Wrapper nodes over the vanilla CivilianServices medical subset + Shitmed cybernetics chain - self-contained, drops the old cross-branch BasicRobotics prereq on BasicCybernetics.
+- type: technology
+  id: FSAdvancedTreatment
+  name: research-technology-fs-advanced-treatment
+  icon:
+    sprite: Objects/Specific/Medical/defibsmall.rsi
+    state: icon
+  discipline: CivilianServices
+  tier: 1
+  cost: 5000
+  recipeUnlocks:
+  - FSDefibrillatorCompact
+  - FSMedicatedSuture
+  - FSRegenerativeMesh
 
 - type: fsTechNode
   id: FSMedicalBiochemicalStasis
@@ -16,13 +28,13 @@
   id: FSMedicalAdvancedTreatment
   name: fs-tech-medical-advanced-treatment
   icon:
-    sprite: _Shitmed/Objects/Specific/Medical/Surgery/e-scalpel.rsi
-    state: e-scalpel-on
+    sprite: Objects/Specific/Medical/defibsmall.rsi
+    state: icon
   branch: Medical
   tier: 1
   cost: 400
   bonusDescription: fs-tech-medical-advanced-treatment-bonus
-  vanillaTechnologyId: AdvancedTreatment
+  vanillaTechnologyId: FSAdvancedTreatment
 
 - type: fsTechNode
   id: FSMedicalMechanizedTreatment
@@ -39,18 +51,17 @@
   vanillaTechnologyId: MechanizedTreatment
 
 - type: fsTechNode
-  id: FSMedicalBasicCybernetics
-  name: fs-tech-medical-basic-cybernetics
+  id: FSMedicalBoneSetting
+  name: fs-tech-medical-bone-setting
   icon:
-    sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
-    state: eyes
+    sprite: Objects/Specific/Medical/medical.rsi
+    state: brutepack
   branch: Medical
   tier: 2
   cost: 700
   prerequisites:
   - FSMedicalAdvancedTreatment
-  bonusDescription: fs-tech-medical-basic-cybernetics-bonus
-  vanillaTechnologyId: BasicCybernetics
+  bonusDescription: fs-tech-medical-bone-setting-bonus
 
 - type: fsTechNode
   id: FSMedicalBluespaceChemistry
@@ -67,74 +78,30 @@
   vanillaTechnologyId: BluespaceChemistry
 
 - type: fsTechNode
-  id: FSMedicalBasicAugmentation
-  name: fs-tech-medical-basic-augmentation
+  id: FSMedicalClottingGauze
+  name: fs-tech-medical-clotting-gauze
   icon:
-    sprite: _Shitmed/Objects/Augments/power.rsi
-    state: cell
+    sprite: Objects/Specific/Medical/medical.rsi
+    state: gauze
   branch: Medical
   tier: 3
   cost: 1100
   prerequisites:
-  - FSMedicalBasicCybernetics
-  bonusDescription: fs-tech-medical-basic-augmentation-bonus
-  vanillaTechnologyId: BasicAugmentation
+  - FSMedicalBoneSetting
+  bonusDescription: fs-tech-medical-clotting-gauze-bonus
 
 - type: fsTechNode
-  id: FSMedicalAdvancedCybernetics
-  name: fs-tech-medical-advanced-cybernetics
+  id: FSMedicalRestartProtocol
+  name: fs-tech-medical-restart-protocol
   icon:
-    sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
-    state: heart-u-on
-  branch: Medical
-  tier: 4
-  cost: 1600
-  prerequisites:
-  - FSMedicalBasicCybernetics
-  bonusDescription: fs-tech-medical-advanced-cybernetics-bonus
-  vanillaTechnologyId: AdvancedCybernetics
-
-- type: fsTechNode
-  id: FSMedicalImplantedTools
-  name: fs-tech-medical-implanted-tools
-  icon:
-    sprite: _Shitmed/Objects/Augments/arm.rsi
-    state: base
-  branch: Medical
-  tier: 4
-  cost: 1600
-  prerequisites:
-  - FSMedicalBasicAugmentation
-  bonusDescription: fs-tech-medical-implanted-tools-bonus
-  vanillaTechnologyId: ImplantedTools
-
-- type: fsTechNode
-  id: FSMedicalCombatAugmentation
-  name: fs-tech-medical-combat-augmentation
-  icon:
-    sprite: _Shitmed/Objects/Augments/arm.rsi
-    state: strength
-  branch: Medical
-  tier: 4
-  cost: 1600
-  prerequisites:
-  - FSMedicalBasicAugmentation
-  bonusDescription: fs-tech-medical-combat-augmentation-bonus
-  vanillaTechnologyId: CombatAugmentation
-
-- type: fsTechNode
-  id: FSMedicalHighEndSurgery
-  name: fs-tech-medical-high-end-surgery
-  icon:
-    sprite: _Shitmed/Clothing/Hands/surgery_gloves.rsi
+    sprite: Objects/Specific/Medical/defib.rsi
     state: icon
   branch: Medical
-  tier: 5
+  tier: 4
   cost: 2200
   prerequisites:
-  - FSMedicalAdvancedCybernetics
-  bonusDescription: fs-tech-medical-high-end-surgery-bonus
-  vanillaTechnologyId: HighEndSurgery
+  - FSMedicalClottingGauze
+  bonusDescription: fs-tech-medical-restart-protocol-bonus
 
 # ── Line A: Field care (medigun, defibrillator) ───────────────────────────────────────────────
 
@@ -246,8 +213,8 @@
   id: FSMedicalBoneWelder
   name: fs-tech-medical-bone-welder
   icon:
-    sprite: _Shitmed/Objects/Specific/Medical/Surgery/bonesetter.rsi
-    state: bonesetter
+    sprite: _FinalStand/Objects/Medical/bone_stapler.rsi
+    state: icon
   branch: Medical
   tier: 3
   cost: 1100
@@ -557,7 +524,7 @@
   tier: 5
   cost: 2200
   prerequisites:
-  - FSMedicalLimbMender
+  - FSMedicalDermalLattice
   bonusDescription: fs-tech-medical-focused-nanites-bonus
 
 - type: fsTechNode
@@ -613,8 +580,8 @@
   bonusDescription: fs-tech-medical-bone-knitter-bonus
 
 - type: fsTechNode
-  id: FSMedicalLimbMender
-  name: fs-tech-medical-limb-mender
+  id: FSMedicalDermalLattice
+  name: fs-tech-medical-dermal-lattice
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
@@ -623,7 +590,7 @@
   cost: 1600
   prerequisites:
   - FSMedicalBoneKnitter
-  bonusDescription: fs-tech-medical-limb-mender-bonus
+  bonusDescription: fs-tech-medical-dermal-lattice-bonus
 
 - type: fsTechNode
   id: FSMedicalSplitBeamTuning

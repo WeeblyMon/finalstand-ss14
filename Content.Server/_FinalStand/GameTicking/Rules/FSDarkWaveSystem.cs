@@ -204,6 +204,9 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
         _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-dark-wave-warning"), WarningColor);
         if (comp.WarningSound != null)
             _audio.PlayGlobal(comp.WarningSound, Filter.Broadcast(), true);
+
+        var ev = new FSDarkWaveWarningEvent();
+        RaiseLocalEvent(ref ev);
     }
 
     public void FlickerAllLightsOnce()

@@ -3,11 +3,10 @@ using System.Text.Json.Serialization;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
-using JetBrains.Annotations;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Dictionary;
 using Robust.Shared.Utility;
+using Robust.Shared.Serialization;
+using Robust.Shared.Serialization.TypeSerializers.Implementations.Generic;
 
 namespace Content.Shared.Damage
 {
@@ -21,30 +20,11 @@ namespace Content.Shared.Damage
     [DataDefinition, Serializable, NetSerializable]
     public sealed partial class DamageSpecifier : IEquatable<DamageSpecifier>, IRobustCloneable<DamageSpecifier>
     {
-        // Private backing fields for YAML deserialization — DamageDict is the combined result.
-        [JsonPropertyName("types")]
-        [DataField("types", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<FixedPoint2, DamageTypePrototype>))]
-        [UsedImplicitly]
-        private Dictionary<string, FixedPoint2>? _damageTypeDictionary;
-
-        [JsonPropertyName("groups")]
-        [DataField("groups", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<FixedPoint2, DamageGroupPrototype>))]
-        [UsedImplicitly]
-        private Dictionary<string, FixedPoint2>? _damageGroupDictionary;
-
         /// <summary>
         ///     Main DamageSpecifier dictionary. Most DamageSpecifier functions exist to somehow modifying this.
-        ///     Populated from both <c>types:</c> and <c>groups:</c> YAML keys; groups are expanded into their constituent types.
         /// </summary>
-        [JsonIgnore]
-        [IncludeDataField(customTypeSerializer: typeof(DamageSpecifierDictionarySerializer), readOnly: true)]
-        public Dictionary<string, FixedPoint2> DamageDict { get; set; } = new();
-
-        /// <summary>
-        ///     Goobstation: Wound severity multipliers per damage type, used by the wound system.
-        /// </summary>
-        [DataField]
-        public Dictionary<string, FixedPoint2> WoundSeverityMultipliers { get; set; } = new();
+        [DataField("types")]
+        public Dictionary<ProtoId<DamageTypePrototype>, FixedPoint2> DamageDict { get; set; } = new();
 
         /// <summary>
         ///     Returns a sum of the damage values.
@@ -107,10 +87,6 @@ namespace Content.Shared.Damage
         public DamageSpecifier(DamageSpecifier damageSpec)
         {
             DamageDict = new(damageSpec.DamageDict);
-            // FINALSTAND: without this, every copy/derive of a DamageSpecifier (this constructor,
-            // Clone(), the arithmetic operators below) silently resets wound severity to the
-            // default of 1 for that damage type, making the field unusable anywhere past the first hop.
-            WoundSeverityMultipliers = damageSpec.WoundSeverityMultipliers;
         }
 
         /// <summary>
@@ -152,7 +128,7 @@ namespace Content.Shared.Damage
             // Make a copy of the given data. Don't modify the one passed to this function. I did this before, and weapons became
             // duller as you hit walls. Neat, but not FixedPoint2ended. And confusing, when you realize your fists don't work no
             // more cause they're just bloody stumps.
-            DamageSpecifier newDamage = new() { WoundSeverityMultipliers = damageSpec.WoundSeverityMultipliers };
+            DamageSpecifier newDamage = new();
             newDamage.DamageDict.EnsureCapacity(damageSpec.DamageDict.Count);
 
             foreach (var (key, value) in damageSpec.DamageDict)
@@ -365,9 +341,7 @@ namespace Content.Shared.Damage
         #region Operators
         public static DamageSpecifier operator *(DamageSpecifier damageSpec, FixedPoint2 factor)
         {
-            // FINALSTAND: a scalar on the amount of damage does not change the wound-severity
-            // ratio per point of that damage, so it carries over unscaled rather than resetting.
-            DamageSpecifier newDamage = new() { WoundSeverityMultipliers = damageSpec.WoundSeverityMultipliers };
+            DamageSpecifier newDamage = new();
             foreach (var entry in damageSpec.DamageDict)
             {
                 newDamage.DamageDict.Add(entry.Key, entry.Value * factor);
@@ -377,7 +351,7 @@ namespace Content.Shared.Damage
 
         public static DamageSpecifier operator *(DamageSpecifier damageSpec, float factor)
         {
-            DamageSpecifier newDamage = new() { WoundSeverityMultipliers = damageSpec.WoundSeverityMultipliers };
+            DamageSpecifier newDamage = new();
             foreach (var entry in damageSpec.DamageDict)
             {
                 newDamage.DamageDict.Add(entry.Key, entry.Value * factor);

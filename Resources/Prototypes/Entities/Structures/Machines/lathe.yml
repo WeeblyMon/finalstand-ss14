@@ -197,7 +197,6 @@
     unlitRunningState: unlit-building
     staticPacks:
     - ChemistryStatic
-    - SurgeryStatic
     dynamicPacks:
     - AdvancedTools
     - ScienceEquipment
@@ -313,12 +312,6 @@
     - BorgModules
     - MechParts
     - MechEquipment
-    - BasicCybernetics
-    - MedicalCybernetics
-    - AdvancedCybernetics
-    - PowerAugments
-    - ToolAugments
-    - BorgModulesGoob
   - type: MaterialStorage
     whitelist: *StandardMaterialWhitelist
   - type: OreSiloClient
@@ -486,12 +479,9 @@
     - RollerBedsStatic
     - MedicalClothingStatic
     - EmptyMedkitsStatic
-    - SurgeryStatic
+    - FSMedicalInjectorsStatic
     dynamicPacks:
     - Chemistry
-    - Surgery
-    - MedicalMiscRestricted
-    - MedicalBoardsGoob
   - type: Machine
     board: MedicalTechFabCircuitboard
   - type: StealTarget

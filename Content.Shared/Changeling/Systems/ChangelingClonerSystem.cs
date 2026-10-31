@@ -25,10 +25,10 @@ public sealed partial class ChangelingClonerSystem : EntitySystem
     [Dependency] private ISharedAdminLogManager _adminLogger = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedCloningSystem _cloning = default!;
-    [Dependency] private IPrototypeManager _prototype = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private SharedChangelingIdentitySystem _changelingIdentity = default!;
     [Dependency] private SharedForensicsSystem _forensics = default!;
+    [Dependency] private SharedVisualBodySystem _visualBody = default!;
 
     public override void Initialize()
     {
@@ -149,7 +149,7 @@ public sealed partial class ChangelingClonerSystem : EntitySystem
         var targetIdentity = Identity.Entity(target, EntityManager);
         var userMsg = Loc.GetString("changeling-cloner-component-draw-user", ("user", userIdentity), ("target", targetIdentity));
         var targetMsg = Loc.GetString("changeling-cloner-component-draw-target", ("user", userIdentity), ("target", targetIdentity));
-        _popup.PopupClient(userMsg, target, user);
+        _popup.PopupEntity(userMsg, target, user);
 
         if (user != target) // don't show the warning if using the item on yourself
             _popup.PopupEntity(targetMsg, user, target, PopupType.LargeCaution);
@@ -185,7 +185,7 @@ public sealed partial class ChangelingClonerSystem : EntitySystem
         var targetIdentity = Identity.Entity(target, EntityManager);
         var userMsg = Loc.GetString("changeling-cloner-component-inject-user", ("user", userIdentity), ("target", targetIdentity));
         var targetMsg = Loc.GetString("changeling-cloner-component-inject-target", ("user", userIdentity), ("target", targetIdentity));
-        _popup.PopupClient(userMsg, target, user);
+        _popup.PopupEntity(userMsg, target, user);
 
         if (user != target) // don't show the warning if using the item on yourself
             _popup.PopupEntity(targetMsg, user, target, PopupType.LargeCaution);
@@ -238,7 +238,7 @@ public sealed partial class ChangelingClonerSystem : EntitySystem
         if (!HasComp<HumanoidProfileComponent>(target))
             return; // cloning only works for humanoids at the moment
 
-        if (!_prototype.Resolve(ent.Comp.Settings, out var settings))
+        if (!ProtoMan.Resolve(ent.Comp.Settings, out var settings))
             return;
 
         _audio.PlayPredicted(ent.Comp.InjectSound, target, user);
@@ -258,6 +258,7 @@ public sealed partial class ChangelingClonerSystem : EntitySystem
             $"{user} is using {ent.Owner} to inject DNA into {target} changing their identity to {ent.Comp.ClonedBackup.Value}.");
 
         // Do the actual transformation.
+        _visualBody.CopyAppearanceFrom(ent.Comp.ClonedBackup.Value, target);
         _cloning.CloneComponents(ent.Comp.ClonedBackup.Value, target, settings);
         _metaData.SetEntityName(target, Name(ent.Comp.ClonedBackup.Value), raiseEvents: ent.Comp.RaiseNameChangeEvents);
 
@@ -281,7 +282,7 @@ public sealed partial class ChangelingClonerSystem : EntitySystem
         if (user == null)
             return;
 
-        _popup.PopupClient(Loc.GetString("changeling-cloner-component-reset-popup"), user.Value, user.Value);
+        _popup.PopupEntity(Loc.GetString("changeling-cloner-component-reset-popup"), user.Value, user.Value);
     }
 }
 

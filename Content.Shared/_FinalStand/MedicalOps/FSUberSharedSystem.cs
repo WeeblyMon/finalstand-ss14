@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared.Actions;
 using Content.Shared.Damage.Events;
 using Content.Shared.Damage.Systems;
@@ -56,6 +57,13 @@ public sealed partial class FSUberSharedSystem : EntitySystem
         SubscribeLocalEvent<FSMediGunComponent, GetItemActionsEvent>(OnGetActions);
         SubscribeLocalEvent<FSUberedComponent, BeforeDamageChangedEvent>(OnBeforeDamage);
         SubscribeLocalEvent<FSUberedComponent, BeforeStaminaDamageEvent>(OnBeforeStamina);
+        SubscribeLocalEvent<FSUberedComponent, FSAilmentInflictAttemptEvent>(OnInflictAttempt);
+    }
+
+    private void OnInflictAttempt(Entity<FSUberedComponent> ent, ref FSAilmentInflictAttemptEvent args)
+    {
+        if (_timing.CurTime < ent.Comp.EndTime)
+            args.Cancelled = true;
     }
 
     private void OnGetActions(EntityUid uid, FSMediGunComponent comp, GetItemActionsEvent args)
