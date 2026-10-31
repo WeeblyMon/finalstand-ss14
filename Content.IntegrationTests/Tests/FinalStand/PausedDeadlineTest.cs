@@ -1,5 +1,6 @@
 using Content.IntegrationTests.Fixtures;
 using System.Collections.Generic;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
@@ -18,6 +19,7 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestOf(typeof(FSMedicalBonusSystem))]
 [TestOf(typeof(HandTeleporterComponent))]
 [TestOf(typeof(FSTreatmentAttributionComponent))]
+[TestOf(typeof(FSAilmentStateComponent))]
 public sealed class PausedDeadlineTest : GameTest
 {
     private const string NullField = "FSNullFieldDeployed";
@@ -174,6 +176,56 @@ public sealed class PausedDeadlineTest : GameTest
             var treaters = attribution.RecentTreaters;
             Assert.That(treaters[medicMind], Is.GreaterThanOrEqualTo(creditEnds + paused - TimeSpan.FromSeconds(0.1)),
                 "the pause used up the medic's credit window");
+        });
+    }
+
+    // A body's ailment clocks move with the pause too: the down clock, the time of the last hit, recovery, the meters
+    // and the down-clock samples. Left fixed, an unpaused body skipped its regen delay straight away.
+    [Test]
+    public async Task AilmentClocksMoveWithThePause()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var mapSystem = entMan.System<SharedMapSystem>();
+        var map = await Pair.CreateTestMap();
+
+        EntityUid body = default;
+        var start = TimeSpan.Zero;
+        var down = TimeSpan.FromSeconds(30);
+        await server.WaitPost(() =>
+        {
+            body = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            var state = entMan.GetComponent<FSAilmentStateComponent>(body);
+            start = timing.CurTime;
+            state.DownEnd = start + down;
+            state.LastDamage = start;
+            state.RecoveringSince = start;
+            state.Meters[FSAilmentMeter.Bleed] = new FSAilmentMeterState(5f, start, true);
+            state.DownSamples.Clear();
+            state.DownSamples.Enqueue((start, 1f));
+            mapSystem.SetPaused(map.MapId, true);
+        });
+
+        await server.WaitRunTicks(60);
+
+        // Checked as the map unpauses, before the vitals tick gets to move any of it on.
+        await server.WaitAssertion(() =>
+        {
+            var shift = timing.CurTime - start;
+            mapSystem.SetPaused(map.MapId, false);
+
+            var state = entMan.GetComponent<FSAilmentStateComponent>(body);
+            Assert.Multiple(() =>
+            {
+                Assert.That(state.DownEnd, Is.EqualTo(start + down + shift), "the down clock ran during the pause");
+                Assert.That(state.LastDamage, Is.EqualTo(start + shift), "the last hit aged during the pause");
+                Assert.That(state.RecoveringSince, Is.EqualTo(start + shift), "recovery ran during the pause");
+                Assert.That(state.Meters[FSAilmentMeter.Bleed].Updated, Is.EqualTo(start + shift),
+                    "the bleed meter's clock ran during the pause");
+                Assert.That(state.DownSamples.Peek().Time, Is.EqualTo(start + shift),
+                    "the down-clock sample aged during the pause");
+            });
         });
     }
 }

@@ -23,6 +23,8 @@ public sealed partial class FSAilmentStateComponent : Component
     [AutoNetworkedField]
     public bool Recovering;
 
+    // DownEnd, LastDamage, RecoveringSince, the meters and the down samples are all times; FSAilmentSystem moves
+    // them on when the body is unpaused (the pause generator can't reach inside the collections).
     public readonly Dictionary<FSAilmentMeter, FSAilmentMeterState> Meters = new();
 
     public readonly Dictionary<FSAilmentSlot, float> MendProgress = new();

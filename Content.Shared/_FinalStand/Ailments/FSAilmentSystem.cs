@@ -68,6 +68,36 @@ public sealed partial class FSAilmentSystem : EntitySystem
         SubscribeLocalEvent<FSAilmentStateComponent, ReactionEntityEvent>(OnReaction);
         SubscribeLocalEvent<FSAilmentComponent, StatusEffectAppliedEvent>(OnAilmentApplied);
         SubscribeLocalEvent<FSAilmentComponent, StatusEffectRemovedEvent>(OnAilmentRemoved);
+        SubscribeLocalEvent<FSAilmentStateComponent, EntityUnpausedEvent>(OnUnpaused);
+    }
+
+    private void OnUnpaused(Entity<FSAilmentStateComponent> ent, ref EntityUnpausedEvent args)
+    {
+        if (ent.Comp.DownEnd is { } downEnd)
+        {
+            ent.Comp.DownEnd = downEnd + args.PausedTime;
+            DirtyField(ent.AsNullable(), nameof(FSAilmentStateComponent.DownEnd));
+        }
+
+        // Zero is "never hit" and stays that way.
+        if (ent.Comp.LastDamage != TimeSpan.Zero)
+            ent.Comp.LastDamage += args.PausedTime;
+
+        if (ent.Comp.RecoveringSince is { } since)
+            ent.Comp.RecoveringSince = since + args.PausedTime;
+
+        foreach (var meter in ent.Comp.Meters.Keys.ToArray())
+        {
+            var state = ent.Comp.Meters[meter];
+            ent.Comp.Meters[meter] = state with { Updated = state.Updated + args.PausedTime };
+        }
+
+        var samples = ent.Comp.DownSamples.Count;
+        for (var i = 0; i < samples; i++)
+        {
+            var (time, damage) = ent.Comp.DownSamples.Dequeue();
+            ent.Comp.DownSamples.Enqueue((time + args.PausedTime, damage));
+        }
     }
 
     public override void Update(float frameTime)
