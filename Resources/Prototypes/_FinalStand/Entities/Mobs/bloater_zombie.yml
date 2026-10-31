@@ -22,8 +22,8 @@
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/boomer.png
   - type: FSBoomOnDeath
     explosionRadius: 4.5
-    explosionDamage: 15
-    causticDamage: 30
+    explosionDamage: 7.5
+    causticDamage: 15
     injury:
       poison: true
   - type: MobThresholds
