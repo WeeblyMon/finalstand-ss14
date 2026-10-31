@@ -1,4 +1,3 @@
-// Shared look for the HUD's panels and buttons, so every surface draws from one palette.
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface.Controls;
 

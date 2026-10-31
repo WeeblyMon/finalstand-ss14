@@ -1,8 +1,8 @@
 - type: entity
+  parent: MarkerBase
   id: FSRespawnPoint
   name: Respawn Point
   description: Downed players are revived here at the end of each wave.
-  parent: MarkerBase
   components:
   - type: FSRespawnPoint
   - type: Sprite

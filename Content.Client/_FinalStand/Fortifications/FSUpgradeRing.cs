@@ -1,4 +1,3 @@
-// The hammer's upgrade picker, in the same ring style as the RCD: the disc explains the hovered upgrade and what it costs.
 using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.RCD;

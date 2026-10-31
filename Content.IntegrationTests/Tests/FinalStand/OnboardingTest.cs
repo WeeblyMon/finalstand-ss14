@@ -85,9 +85,11 @@ public sealed class OnboardingTest : GameTest
             onboarding.RefreshPlayer(session, mindId, body);
 
             var lvl = SEntMan.GetComponent<FSPlayerLevelComponent>(mindId);
+#pragma warning disable RA0002
             lvl.Level = 50;
             lvl.Experience = 0;
             lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(50);
+#pragma warning restore RA0002
 
             var ev = new WaveEndedEvent(3);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref ev);
@@ -133,8 +135,8 @@ public sealed class OnboardingTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(PerkPoints(mindId), Is.EqualTo(afterStarter + levelUpPoints + FSRookieRules.FirstRoundPerkPoints));
-                Assert.That(titles.GetOwned(session.UserId).Select(t => t.Id), Does.Contain(FSRookieRules.FirstRoundTitle));
-                Assert.That(titles.GetEquipped(session.UserId)?.Id, Is.EqualTo(FSRookieRules.FirstRoundTitle),
+                Assert.That(titles.GetOwned(session.UserId), Does.Contain(FSRookieRules.FirstRoundTitle));
+                Assert.That(titles.GetEquipped(session.UserId), Is.EqualTo(FSRookieRules.FirstRoundTitle),
                     "a first title is worn automatically so the player sees it");
             });
         });
@@ -164,7 +166,7 @@ public sealed class OnboardingTest : GameTest
             {
                 Assert.That(PerkPoints(mindId), Is.EqualTo(asRookie + FSRookieRules.GraduationPerkPoints),
                     "graduation pays once, not on every spawn after the threshold");
-                Assert.That(titles.GetOwned(session.UserId).Select(t => t.Id), Does.Contain(FSRookieRules.GraduationTitle));
+                Assert.That(titles.GetOwned(session.UserId), Does.Contain(FSRookieRules.GraduationTitle));
                 Assert.That(SEntMan.GetComponent<FSPlayerBadgeComponent>(body).Rookie, Is.False);
                 Assert.That(SEntMan.GetComponent<FSPlayerLevelComponent>(mindId).CatchUpMultiplier, Is.EqualTo(1f));
             });
@@ -224,8 +226,8 @@ public sealed class OnboardingTest : GameTest
 
             Assert.That(titles.TryResolve(session.UserId, "survivor", out var resolved), Is.True,
                 "players type the display name, not the prototype id");
-            Assert.That(resolved.Id, Is.EqualTo(FSRookieRules.GraduationTitle));
-            Assert.That(SEntMan.GetComponent<FSPlayerBadgeComponent>(body).Title?.Id, Is.EqualTo(FSRookieRules.GraduationTitle));
+            Assert.That(resolved, Is.EqualTo(FSRookieRules.GraduationTitle));
+            Assert.That(SEntMan.GetComponent<FSPlayerBadgeComponent>(body).Title, Is.EqualTo(FSRookieRules.GraduationTitle));
 
             Assert.That(titles.Equip(session.UserId, null), Is.True);
             Assert.That(SEntMan.GetComponent<FSPlayerBadgeComponent>(body).Title, Is.Null);

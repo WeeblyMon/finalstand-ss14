@@ -26,7 +26,7 @@ public sealed partial class FSStunningStrikesSystem : EntitySystem
         SubscribeLocalEvent<FSPlayerMeleeHitEvent>(OnPlayerMeleeHit);
     }
 
-    private void OnPlayerMeleeHit(FSPlayerMeleeHitEvent ev)
+    private void OnPlayerMeleeHit(ref FSPlayerMeleeHitEvent ev)
     {
         var hit = ev.Hit;
         if (!HasComp<FSRiotShieldComponent>(hit.Weapon)
@@ -65,10 +65,4 @@ public sealed partial class FSStunningStrikesSystem : EntitySystem
 
         return _stun.TryForceStun(zombie, TimeSpan.FromSeconds(seconds), visualized: true);
     }
-}
-
-[RegisterComponent]
-public sealed partial class FSStunningStrikesCooldownComponent : Component
-{
-    public TimeSpan NextAllowed;
 }

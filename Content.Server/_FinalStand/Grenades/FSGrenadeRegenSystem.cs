@@ -1,5 +1,5 @@
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Grenades;
-using Content.Shared._FinalStand.GameTicking;
 
 namespace Content.Server._FinalStand.Grenades;
 
@@ -13,7 +13,7 @@ public sealed partial class FSGrenadeRegenSystem : EntitySystem
         SubscribeLocalEvent<WavePrepStartedEvent>(OnWavePrepStarted);
     }
 
-    private void OnWavePrepStarted(WavePrepStartedEvent _)
+    private void OnWavePrepStarted(ref WavePrepStartedEvent _)
     {
         var query = EntityQueryEnumerator<FSGrenadePackComponent>();
         while (query.MoveNext(out var uid, out var pack))

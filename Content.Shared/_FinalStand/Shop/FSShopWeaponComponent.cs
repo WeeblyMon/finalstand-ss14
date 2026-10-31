@@ -46,7 +46,7 @@ public sealed partial class FSShopWeaponComponent : Component
     public int StarterAmmoCount = 1;
 
     [DataField]
-    public string Category = "";
+    public LocId? Category;
 
     [DataField] public int StatDamage = 50;
     [DataField] public int StatFireRate = 50;

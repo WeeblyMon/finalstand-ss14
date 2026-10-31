@@ -2,7 +2,7 @@
 
 - type: fsTechNode
   id: FSLogisticsHydroponics
-  name: Hydroponics
+  name: fs-tech-logistics-hydroponics
   icon:
     sprite: Structures/Machines/seed_extractor.rsi
     state: seedextractor
@@ -13,7 +13,7 @@
 
 - type: fsTechNode
   id: FSLogisticsCritterMechs
-  name: Critter Mechs
+  name: fs-tech-logistics-critter-mechs
   icon:
     sprite: Objects/Specific/Mech/mecha.rsi
     state: hamtr
@@ -24,7 +24,7 @@
 
 - type: fsTechNode
   id: FSLogisticsAudioVisualCommunication
-  name: Audio-Visual Communication
+  name: fs-tech-logistics-audio-visual-communication
   icon:
     sprite: Structures/Wallmounts/camera.rsi
     state: cameracase
@@ -35,7 +35,7 @@
 
 - type: fsTechNode
   id: FSLogisticsAdvancedEntertainment
-  name: Advanced Entertainment
+  name: fs-tech-logistics-advanced-entertainment
   icon:
     sprite: Structures/Machines/computers.rsi
     state: television
@@ -46,7 +46,7 @@
 
 - type: fsTechNode
   id: FSLogisticsMeatManipulation
-  name: Meat Manipulation
+  name: fs-tech-logistics-meat-manipulation
   icon:
     sprite: Structures/Machines/fat_sucker.rsi
     state: display
@@ -57,7 +57,7 @@
 
 - type: fsTechNode
   id: FSLogisticsFauxAstroTiles
-  name: Faux Astro Tiles
+  name: fs-tech-logistics-faux-astro-tiles
   icon:
     sprite: Objects/Tiles/tile.rsi
     state: astroice
@@ -70,7 +70,7 @@
 
 - type: fsTechNode
   id: FSLogisticsAdvancedCleaning
-  name: Advanced Cleaning
+  name: fs-tech-logistics-advanced-cleaning
   icon:
     sprite: Objects/Specific/Janitorial/advmop.rsi
     state: advmop
@@ -83,7 +83,7 @@
 
 - type: fsTechNode
   id: FSLogisticsHONKMech
-  name: HONK Mech
+  name: fs-tech-logistics-honk-mech
   icon:
     sprite: Objects/Specific/Mech/mecha.rsi
     state: honker
@@ -96,7 +96,7 @@
 
 - type: fsTechNode
   id: FSLogisticsBluespaceCargoTransport
-  name: Bluespace Cargo Transport
+  name: fs-tech-logistics-bluespace-cargo-transport
   icon:
     sprite: Structures/cargo_telepad.rsi
     state: display
@@ -109,7 +109,7 @@
 
 - type: fsTechNode
   id: FSLogisticsAdvancedSpray
-  name: Advanced Spray
+  name: fs-tech-logistics-advanced-spray
   icon:
     sprite: Objects/Weapons/Guns/Basic/spraynozzle.rsi
     state: icon
@@ -122,7 +122,7 @@
 
 - type: fsTechNode
   id: FSLogisticsPushHorn
-  name: Push Horn
+  name: fs-tech-logistics-push-horn
   icon:
     sprite: Objects/Fun/push_horn.rsi
     state: icon

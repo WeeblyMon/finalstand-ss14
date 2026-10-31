@@ -1,3 +1,4 @@
+// FINALSTAND: fork file, kept next to the vanilla partial it extends.
 using System.Collections.Generic;
 using System.Linq;
 using Content.Client.Stylesheets;

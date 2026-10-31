@@ -5,7 +5,7 @@ using Content.Shared.RCD.Components;
 using Robust.Client.Placement;
 using Robust.Client.Player;
 using Robust.Shared.Enums;
-using Robust.Shared.Timing; // FS
+using Robust.Shared.Timing; // FINALSTAND
 
 namespace Content.Client.RCD;
 
@@ -19,9 +19,9 @@ public sealed partial class RCDConstructionGhostSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IPlacementManager _placementManager = default!;
     [Dependency] private HandsSystem _hands = default!;
-    [Dependency] private IGameTiming _timing = default!; // FS
+    [Dependency] private IGameTiming _timing = default!; // FINALSTAND
 
-    private TimeSpan _nextDirectionSync; // FS
+    private TimeSpan _nextDirectionSync; // FINALSTAND
 
     public override void Update(float frameTime)
     {
@@ -64,7 +64,7 @@ public sealed partial class RCDConstructionGhostSystem : EntitySystem
             return;
         }
 
-        // FS: resend whenever the held RCD disagrees with the ghost, not only when the ghost turns
+        // FINALSTAND: resend whenever the held RCD disagrees with the ghost, not only when the ghost turns
         if (rcd.ConstructionDirection != _placementManager.Direction && _timing.RealTime >= _nextDirectionSync)
         {
             _nextDirectionSync = _timing.RealTime + TimeSpan.FromSeconds(0.25);

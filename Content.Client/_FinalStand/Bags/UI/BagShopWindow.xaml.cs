@@ -4,13 +4,14 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Client.UserInterface.XAML;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Bags.UI;
 
 [GenerateTypedNameReferences]
 public sealed partial class BagShopWindow : DefaultWindow
 {
-    public event Action<string>? OnBuyPressed;
+    public event Action<EntProtoId>? OnBuyPressed;
 
     public BagShopWindow()
     {
@@ -40,10 +41,10 @@ public sealed partial class BagShopWindow : DefaultWindow
             HorizontalExpand = true,
             VerticalAlignment = VAlignment.Center,
         };
-        text.AddChild(new Label { Text = entry.Name, StyleClasses = { "LabelHeading" } });
+        text.AddChild(new Label { Text = Loc.GetString(entry.Name), StyleClasses = { "LabelHeading" } });
 
-        if (!string.IsNullOrWhiteSpace(entry.Description))
-            text.AddChild(new Label { Text = entry.Description, StyleClasses = { "FSMuted" } });
+        if (entry.Description is { } description)
+            text.AddChild(new Label { Text = Loc.GetString(description), StyleClasses = { "FSMuted" } });
 
         row.AddChild(text);
 
@@ -55,7 +56,7 @@ public sealed partial class BagShopWindow : DefaultWindow
             VerticalAlignment = VAlignment.Center,
             Disabled = credits < entry.Price,
         };
-        buy.OnPressed += _ => OnBuyPressed?.Invoke(entry.ProtoId);
+        buy.OnPressed += _ => OnBuyPressed?.Invoke(entry.Proto);
         row.AddChild(buy);
 
         return row;

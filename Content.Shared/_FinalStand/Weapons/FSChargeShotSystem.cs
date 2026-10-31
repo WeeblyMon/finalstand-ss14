@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared._FinalStand.Shop;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -30,6 +31,42 @@ public sealed partial class FSChargeShotSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSChargeShotComponent, AttemptShootEvent>(OnAttemptShoot);
+    }
+
+    // Shop upgrades that reshape the charged shot. False for an upgrade type this weapon doesn't take.
+    public bool TryUpgrade(Entity<FSChargeShotComponent> ent, WeaponUpgradeType type, float value)
+    {
+        var comp = ent.Comp;
+        switch (type)
+        {
+            case WeaponUpgradeType.ChargeSpeed:
+                comp.MaxChargeTime = MathF.Max(0.2f, comp.MaxChargeTime * (1f - value));
+                break;
+            case WeaponUpgradeType.BounceCount:
+                comp.MaxBounces += (int) value;
+                break;
+            case WeaponUpgradeType.BounceRetention:
+                comp.BounceDamageRetained = MathF.Min(1f, comp.BounceDamageRetained + value);
+                comp.BounceSpeedRetained = MathF.Min(1f, comp.BounceSpeedRetained + value);
+                break;
+            case WeaponUpgradeType.ChargePierce:
+                comp.MaxBonusPierce += (int) value;
+                break;
+            case WeaponUpgradeType.BounceRefund:
+                comp.BounceRefund = true;
+                break;
+            case WeaponUpgradeType.BounceCrit:
+                comp.BounceCrit = true;
+                break;
+            case WeaponUpgradeType.FractureRounds:
+                comp.Fracture = true;
+                break;
+            default:
+                return false;
+        }
+
+        Dirty(ent);
+        return true;
     }
 
     private void OnAttemptShoot(Entity<FSChargeShotComponent> ent, ref AttemptShootEvent args)

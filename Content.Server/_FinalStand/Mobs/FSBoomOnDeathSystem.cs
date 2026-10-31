@@ -6,6 +6,7 @@ using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Ghost;
@@ -16,12 +17,16 @@ using Content.Shared.Mobs.Components;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Mobs;
 
 public sealed partial class FSBoomOnDeathSystem : EntitySystem
 {
+    private static readonly ProtoId<DamageTypePrototype> Blunt = "Blunt";
+    private static readonly ProtoId<DamageTypePrototype> Caustic = "Caustic";
+
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FSAilmentSystem _ailments = default!;
@@ -48,7 +53,6 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
             if (comp.Exploded)
                 continue;
 
-            // Proximity countdown in progress
             if (comp.PendingExplosion)
             {
                 comp.ExplosionTimer -= frameTime;
@@ -76,7 +80,6 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
                 continue;
             }
 
-            // Alive — check if player within proximity range
             if (comp.ProximityRange <= 0f)
                 continue;
 
@@ -128,8 +131,8 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
         _audio.PlayPvs(comp.ExplosionSound, coords, comp.ExplosionSound.Params);
 
         var blastDamage = new DamageSpecifier();
-        blastDamage.DamageDict["Blunt"] = FixedPoint2.New(comp.ExplosionDamage);
-        blastDamage.DamageDict["Caustic"] = FixedPoint2.New(comp.CausticDamage);
+        blastDamage.DamageDict[Blunt] = FixedPoint2.New(comp.ExplosionDamage);
+        blastDamage.DamageDict[Caustic] = FixedPoint2.New(comp.CausticDamage);
 
         var inRange = _damageableSetPool.Get();
         _lookup.GetEntitiesInRange<DamageableComponent>(epicenter, comp.ExplosionRadius, inRange);

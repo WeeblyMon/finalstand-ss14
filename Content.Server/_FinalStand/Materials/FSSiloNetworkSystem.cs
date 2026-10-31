@@ -1,4 +1,3 @@
-// Every silo shares one pool: the silo nearest the CCC holds it, the others pass deposits on, and anything near a silo draws from it.
 using Content.Server.Administration.Logs;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Materials;
@@ -16,6 +15,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Materials;
 
+// All silos share one pool, held by the silo nearest the CCC; the others pass deposits on.
 public sealed partial class FSSiloNetworkSystem : EntitySystem
 {
     [Dependency] private SharedMaterialStorageSystem _storage = default!;
@@ -31,6 +31,8 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
 
     private readonly Dictionary<ProtoId<StackPrototype>, (string Material, int PerSheet)?> _sheetMaterials = new();
     private readonly Dictionary<string, int> _reserved = new();
+    private readonly Dictionary<ProtoId<StackPrototype>, int> _fromHand = new();
+    private readonly Dictionary<string, int> _fromPool = new();
     private EntityUid? _pool;
     private bool _dirty;
     private bool _moving;
@@ -237,7 +239,7 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
 
     private Robust.Shared.Map.MapCoordinates? CccPosition()
     {
-        var query = EntityQueryEnumerator<FinalStandCCCTagComponent, TransformComponent>();
+        var query = EntityQueryEnumerator<FinalStandCCCComponent, TransformComponent>();
         return query.MoveNext(out var uid, out _, out _) ? _transform.GetMapCoordinates(uid) : null;
     }
 
@@ -305,14 +307,7 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
 
     public bool Has(EntityUid user, IReadOnlyDictionary<ProtoId<StackPrototype>, int> materials)
     {
-        var carried = _carried.CountAll(user);
-        foreach (var (stack, need) in materials)
-        {
-            if (carried.GetValueOrDefault(stack) + Sheets(user, stack) < need)
-                return false;
-        }
-
-        return true;
+        return TryPlan(user, materials);
     }
 
     public Dictionary<ProtoId<StackPrototype>, int> Missing(EntityUid user, IReadOnlyDictionary<ProtoId<StackPrototype>, int> materials)
@@ -331,31 +326,52 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
 
     public bool TryConsume(EntityUid user, IReadOnlyDictionary<ProtoId<StackPrototype>, int> materials)
     {
-        if (!Has(user, materials))
+        if (!TryPlan(user, materials))
             return false;
 
+        if (_fromHand.Count > 0 && !_carried.TryConsume(user, _fromHand))
+            return false;
+
+        if (_fromPool.Count > 0 && Pool is { } pool)
+        {
+            foreach (var (material, volume) in _fromPool)
+                _storage.TryChangeMaterialAmount(pool, material, -volume);
+            _adminLog.Add(LogType.RCD, LogImpact.Low,
+                $"{ToPrettyString(user):user} drew {string.Join(", ", _fromPool)} from the silo network");
+        }
+
+        return true;
+    }
+
+    // Carried stacks first, the silo for the rest. Silo volume is totalled per material because
+    // different stacks can draw on the same one (sheets and rods are both steel).
+    private bool TryPlan(EntityUid user, IReadOnlyDictionary<ProtoId<StackPrototype>, int> materials)
+    {
+        _fromHand.Clear();
+        _fromPool.Clear();
+
         var carried = _carried.CountAll(user);
-        var fromHand = new Dictionary<ProtoId<StackPrototype>, int>();
-        var fromPool = new Dictionary<string, int>();
+        var inReach = PoolFor(user) != null;
         foreach (var (stack, need) in materials)
         {
             var hand = Math.Min(need, carried.GetValueOrDefault(stack));
             if (hand > 0)
-                fromHand[stack] = hand;
+                _fromHand[stack] = hand;
 
-            if (need - hand > 0 && SheetMaterial(stack) is { } sheet)
-                fromPool[sheet.Material] = fromPool.GetValueOrDefault(sheet.Material) + (need - hand) * sheet.PerSheet;
+            var rest = need - hand;
+            if (rest <= 0)
+                continue;
+
+            if (!inReach || SheetMaterial(stack) is not { PerSheet: > 0 } sheet)
+                return false;
+
+            _fromPool[sheet.Material] = _fromPool.GetValueOrDefault(sheet.Material) + rest * sheet.PerSheet;
         }
 
-        if (fromHand.Count > 0 && !_carried.TryConsume(user, fromHand))
-            return false;
-
-        if (fromPool.Count > 0 && Pool is { } pool)
+        foreach (var (material, volume) in _fromPool)
         {
-            foreach (var (material, volume) in fromPool)
-                _storage.TryChangeMaterialAmount(pool, material, -volume);
-            _adminLog.Add(LogType.RCD, LogImpact.Low,
-                $"{ToPrettyString(user):user} drew {string.Join(", ", fromPool)} from the silo network");
+            if (Free(material) < volume)
+                return false;
         }
 
         return true;

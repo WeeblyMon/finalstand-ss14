@@ -8,7 +8,7 @@
 
 - type: fsTechNode
   id: FSOrdnanceL6BasicMunitions
-  name: Basic Munitions
+  name: fs-tech-ordnance-l6-basic-munitions
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Casings/ammo_casing.rsi
     state: base
@@ -18,11 +18,11 @@
   materialCost:
     Steel: 2
     Plastic: 2
-  bonusDescription: +5% Magazine Capacity (Team)
+  bonusDescription: fs-tech-ordnance-l6-basic-munitions-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6HeavyDutyReceivers
-  name: Heavy-Duty Receivers
+  name: fs-tech-ordnance-l6-heavy-duty-receivers
   icon:
     sprite: Objects/Tools/wrench.rsi
     state: icon
@@ -34,11 +34,11 @@
     Plastic: 6
   prerequisites:
   - FSOrdnanceL6BasicMunitions
-  bonusDescription: +2% Damage (Team)
+  bonusDescription: fs-tech-ordnance-l6-heavy-duty-receivers-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6GasPistonHarnessing
-  name: Gas-Piston Harnessing
+  name: fs-tech-ordnance-l6-gas-piston-harnessing
   icon:
     sprite: Objects/Tools/welder.rsi
     state: icon
@@ -50,13 +50,11 @@
     Plastic: 14
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
-  bonusDescription: |-
-    +1.5% Fire Rate (Team)
-    +1.5% Fire Rate (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-gas-piston-harnessing-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6FeedSystem
-  name: Feed System
+  name: fs-tech-ordnance-l6-feed-system
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Boxes/light_rifle.rsi
     state: base
@@ -68,13 +66,11 @@
     Plastic: 24
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
-  bonusDescription: |-
-    +2% Reload Speed (Team)
-    +2% Reload Speed (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-feed-system-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6BarrelInterchange
-  name: Barrel Interchange
+  name: fs-tech-ordnance-l6-barrel-interchange
   icon:
     sprite: Objects/Tools/drill.rsi
     state: drill_bolt
@@ -86,13 +82,11 @@
     Plastic: 24
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
-  bonusDescription: |-
-    +1.5% Accuracy (Team)
-    +1.5% Accuracy (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-barrel-interchange-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6ReceiverDesign
-  name: Receiver Design
+  name: fs-tech-ordnance-l6-receiver-design
   icon:
     sprite: Objects/Tools/screwdriver.rsi
     state: screwdriver
@@ -104,13 +98,11 @@
     Plastic: 24
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
-  bonusDescription: |-
-    +2.5% Recoil Control (Team)
-    +2.5% Recoil Control (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-receiver-design-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6SoftPackAmmoBags
-  name: Soft-Pack Ammo Bags
+  name: fs-tech-ordnance-l6-soft-pack-ammo-bags
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Magazine/LightRifle/light_rifle_mag.rsi
     state: base
@@ -123,13 +115,11 @@
   prerequisites:
   - FSOrdnanceL6FeedSystem
   exclusiveGroup: FSOrdnanceL6FeedChoice
-  bonusDescription: |-
-    +12% Reload Speed (L6-SAW)
-    -10% Magazine Capacity (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-soft-pack-ammo-bags-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6DisintegratingBeltLinks
-  name: Disintegrating Belt Links
+  name: fs-tech-ordnance-l6-disintegrating-belt-links
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Magazine/LightRifle/pk_box.rsi
     state: mag-3
@@ -142,13 +132,11 @@
   prerequisites:
   - FSOrdnanceL6FeedSystem
   exclusiveGroup: FSOrdnanceL6FeedChoice
-  bonusDescription: |-
-    +5% Magazine Capacity (L6-SAW)
-    -10% Reload Speed (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-disintegrating-belt-links-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6QuickChangeBarrels
-  name: Quick-Change Barrels
+  name: fs-tech-ordnance-l6-quick-change-barrels
   icon:
     sprite: Objects/Tools/drill.rsi
     state: drill_screw
@@ -161,13 +149,11 @@
   prerequisites:
   - FSOrdnanceL6BarrelInterchange
   exclusiveGroup: FSOrdnanceL6BarrelChoice
-  bonusDescription: |-
-    +15% Overclocked Ramp Ceiling (L6-SAW)
-    -6% Projectile Speed (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-quick-change-barrels-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6FlutedBarrels
-  name: Fluted Barrels
+  name: fs-tech-ordnance-l6-fluted-barrels
   icon:
     sprite: Objects/Tools/multitool.rsi
     state: icon
@@ -180,14 +166,11 @@
   prerequisites:
   - FSOrdnanceL6BarrelInterchange
   exclusiveGroup: FSOrdnanceL6BarrelChoice
-  bonusDescription: |-
-    +6% Accuracy (L6-SAW)
-    +8% Projectile Speed (L6-SAW)
-    -15% Overclocked Ramp Ceiling (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-fluted-barrels-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6OpenBoltFiring
-  name: Open-Bolt Firing
+  name: fs-tech-ordnance-l6-open-bolt-firing
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Casings/large_casing.rsi
     state: base
@@ -200,13 +183,11 @@
   prerequisites:
   - FSOrdnanceL6ReceiverDesign
   exclusiveGroup: FSOrdnanceL6ReceiverChoice
-  bonusDescription: |-
-    +10% Fire Rate (L6-SAW)
-    +8° First-Shot Spread (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-open-bolt-firing-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6ConstantRecoilSystem
-  name: Constant-Recoil System
+  name: fs-tech-ordnance-l6-constant-recoil-system
   icon:
     sprite: Objects/Tools/access_configurator.rsi
     state: icon
@@ -219,14 +200,11 @@
   prerequisites:
   - FSOrdnanceL6ReceiverDesign
   exclusiveGroup: FSOrdnanceL6ReceiverChoice
-  bonusDescription: |-
-    +10% Recoil Control (L6-SAW)
-    -4° Min Spread (L6-SAW)
-    -8% Fire Rate (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-constant-recoil-system-bonus
 
 - type: fsTechNode
   id: FSOrdnanceL6ModernAutomaticSaw
-  name: L6 Saw
+  name: fs-tech-ordnance-l6-modern-automatic-saw
   icon:
     sprite: Objects/Weapons/Guns/LMGs/l6.rsi
     state: base
@@ -242,11 +220,7 @@
   - - FSOrdnanceL6QuickChangeBarrels
     - FSOrdnanceL6FlutedBarrels
   weaponShopUnlock: FSWeaponShopL6Saw
-  bonusDescription: |-
-    Unlocks the L6-SAW shop.
-    +5% Damage (L6-SAW)
-    +5% Fire Rate (L6-SAW)
-    +5% Crit Chance (L6-SAW)
+  bonusDescription: fs-tech-ordnance-l6-modern-automatic-saw-bonus
 
 # Minigun sub-tree - shares the L6-SAW trunk (Basic Munitions, Heavy-Duty Receivers) above, then
 # splits into Internal Feed Drives (left) and Multi-Barrel Metallurgy (right), converging at
@@ -257,7 +231,7 @@
 
 - type: fsTechNode
   id: FSOrdnanceMinigunHighTorqueGearboxes
-  name: High-Torque Gearboxes
+  name: fs-tech-ordnance-minigun-high-torque-gearboxes
   icon:
     sprite: Objects/Tools/omnitool.rsi
     state: omnitool-wrenching
@@ -269,13 +243,11 @@
     Plastic: 14
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
-  bonusDescription: |-
-    +2.5% Fire Rate (Team)
-    +2% Fire Rate (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-high-torque-gearboxes-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunExtendedDrumTuning
-  name: Extended Drum Tuning
+  name: fs-tech-ordnance-minigun-extended-drum-tuning
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Casings/rocket_shell.rsi
     state: base
@@ -287,11 +259,11 @@
     Plastic: 38
   prerequisites:
   - FSOrdnanceMinigunHighTorqueGearboxes
-  bonusDescription: +50 Magazine Capacity per Extended Drum level (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-extended-drum-tuning-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunDisintegratingLinks
-  name: Disintegrating Links
+  name: fs-tech-ordnance-minigun-disintegrating-links
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Magazine/LightRifle/pk_box.rsi
     state: base
@@ -303,13 +275,11 @@
     Plastic: 24
   prerequisites:
   - FSOrdnanceMinigunHighTorqueGearboxes
-  bonusDescription: |-
-    +2.5% Reload Speed (Team)
-    +2% Reload Speed (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-disintegrating-links-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunAxialFeedChutes
-  name: Axial Feed Chutes
+  name: fs-tech-ordnance-minigun-axial-feed-chutes
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Magazine/Dart/darts.rsi
     state: base
@@ -321,13 +291,11 @@
     Plastic: 38
   prerequisites:
   - FSOrdnanceMinigunDisintegratingLinks
-  bonusDescription: |-
-    +2% Damage (Team)
-    +2% Damage (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-axial-feed-chutes-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunSynchronizedFeedGates
-  name: Synchronized Feed Gates
+  name: fs-tech-ordnance-minigun-synchronized-feed-gates
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Magazine/Dart/darts.rsi
     state: mag-unshaded-1
@@ -339,13 +307,11 @@
     Plastic: 54
   prerequisites:
   - FSOrdnanceMinigunExtendedDrumTuning
-  bonusDescription: |-
-    +5% Magazine Capacity (Team)
-    +5% Magazine Capacity (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-synchronized-feed-gates-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigun12vElectricActuators
-  name: 12V Electric Actuators
+  name: fs-tech-ordnance-minigun12v-electric-actuators
   icon:
     sprite: Objects/Tools/network_configurator.rsi
     state: icon
@@ -357,13 +323,11 @@
     Plastic: 74
   prerequisites:
   - FSOrdnanceMinigunSynchronizedFeedGates
-  bonusDescription: |-
-    +3% Fire Rate (Team)
-    +2.5% Fire Rate (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun12v-electric-actuators-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunBarrelOverclockSync
-  name: Barrel Overclock Sync
+  name: fs-tech-ordnance-minigun-barrel-overclock-sync
   icon:
     sprite: Objects/Tools/omnitool.rsi
     state: omnitool-pulsing
@@ -375,11 +339,11 @@
     Plastic: 96
   prerequisites:
   - FSOrdnanceMinigun12vElectricActuators
-  bonusDescription: +0.2 Fire Rate per Overclocked Barrel level (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-barrel-overclock-sync-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunArmouredSolenoids
-  name: Armoured Solenoids
+  name: fs-tech-ordnance-minigun-armoured-solenoids
   icon:
     sprite: Objects/Tools/crowbar.rsi
     state: icon
@@ -391,15 +355,13 @@
     Plastic: 96
   prerequisites:
   - FSOrdnanceMinigun12vElectricActuators
-  bonusDescription: |-
-    +3% Reload Speed (Team, 2nd source)
-    +2.5% Reload Speed (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-armoured-solenoids-bonus
 
 # -- Right sub-branch: Barrel Arrays & Target Acquisition --
 
 - type: fsTechNode
   id: FSOrdnanceMinigunClusterBarrelCollars
-  name: Cluster Barrel Collars
+  name: fs-tech-ordnance-minigun-cluster-barrel-collars
   icon:
     sprite: Objects/Tools/omnitool.rsi
     state: omnitool-snipping
@@ -411,13 +373,11 @@
     Plastic: 14
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
-  bonusDescription: |-
-    +2.5% Accuracy (Team)
-    +2% Accuracy (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-cluster-barrel-collars-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunIronBeastBracing
-  name: Iron Beast Bracing
+  name: fs-tech-ordnance-minigun-iron-beast-bracing
   icon:
     sprite: Objects/Tools/rcl.rsi
     state: rcl-30
@@ -429,11 +389,11 @@
     Plastic: 38
   prerequisites:
   - FSOrdnanceMinigunClusterBarrelCollars
-  bonusDescription: Iron Beast resist 20% -> 25% (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-iron-beast-bracing-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunChromedBoreLinings
-  name: Chromed Bore Linings
+  name: fs-tech-ordnance-minigun-chromed-bore-linings
   icon:
     sprite: Objects/Tools/omnitool.rsi
     state: omnitool-prying
@@ -445,13 +405,11 @@
     Plastic: 24
   prerequisites:
   - FSOrdnanceMinigunClusterBarrelCollars
-  bonusDescription: |-
-    +2% Projectile Speed (Team)
-    +1.5% Projectile Speed (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-chromed-bore-linings-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunHeatSinkJackets
-  name: Heat-Sink Jackets
+  name: fs-tech-ordnance-minigun-heat-sink-jackets
   icon:
     sprite: Objects/Tools/rcl.rsi
     state: rcl-20
@@ -463,13 +421,11 @@
     Plastic: 38
   prerequisites:
   - FSOrdnanceMinigunChromedBoreLinings
-  bonusDescription: |-
-    +2.5% Projectile Speed (Team, 2nd source)
-    +2% Projectile Speed (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-heat-sink-jackets-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunRotaryDriveShafts
-  name: Rotary Drive Shafts
+  name: fs-tech-ordnance-minigun-rotary-drive-shafts
   icon:
     sprite: Objects/Tools/rcl.rsi
     state: rcl-10
@@ -481,15 +437,13 @@
     Plastic: 54
   prerequisites:
   - FSOrdnanceMinigunIronBeastBracing
-  bonusDescription: |-
-    +3% Fire Rate (Team)
-    +2.5% Fire Rate (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-rotary-drive-shafts-bonus
 
 # -- Convergence: left and right sub-branches meet here --
 
 - type: fsTechNode
   id: FSOrdnanceMinigunOpticalSightMounts
-  name: Optical Sight Mounts
+  name: fs-tech-ordnance-minigun-optical-sight-mounts
   icon:
     sprite: Objects/Tools/handheld_mass_scanner.rsi
     state: icon
@@ -502,13 +456,11 @@
   prerequisites:
   - FSOrdnanceMinigunRotaryDriveShafts
   - FSOrdnanceMinigunBarrelOverclockSync
-  bonusDescription: |-
-    +3.5% Accuracy (Team)
-    +3% Accuracy (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-optical-sight-mounts-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunCoreCastingVats
-  name: Core Casting Vats
+  name: fs-tech-ordnance-minigun-core-casting-vats
   icon:
     sprite: Objects/Tools/rcl.rsi
     state: rcl-0
@@ -520,11 +472,11 @@
     Plastic: 150
   prerequisites:
   - FSOrdnanceMinigunOpticalSightMounts
-  bonusDescription: +5% Damage once Depleted Core is owned (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-core-casting-vats-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunBallisticCalculators
-  name: Ballistic Calculators
+  name: fs-tech-ordnance-minigun-ballistic-calculators
   icon:
     sprite: Objects/Tools/handheld_mass_scanner.rsi
     state: scanner
@@ -536,13 +488,11 @@
     Plastic: 150
   prerequisites:
   - FSOrdnanceMinigunOpticalSightMounts
-  bonusDescription: |-
-    +2.5% Crit Chance (Team)
-    +2% Crit Chance (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-ballistic-calculators-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunCounterWeightBuffers
-  name: Counter-Weight Buffers
+  name: fs-tech-ordnance-minigun-counter-weight-buffers
   icon:
     sprite: Objects/Tools/cable-coils.rsi
     state: coilmv-30
@@ -555,15 +505,13 @@
   prerequisites:
   - FSOrdnanceMinigunBallisticCalculators
   - FSOrdnanceMinigunCoreCastingVats
-  bonusDescription: |-
-    +3.5% Recoil Control (Team)
-    +3% Recoil Control (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-counter-weight-buffers-bonus
 
 # -- Mutually exclusive power fork (off Armoured Solenoids) --
 
 - type: fsTechNode
   id: FSOrdnanceMinigunExternalPowerDriveHookups
-  name: External Power-Drive Hookups
+  name: fs-tech-ordnance-minigun-external-power-drive-hookups
   icon:
     sprite: Objects/Tools/cable-coils.rsi
     state: coilhv-20
@@ -576,13 +524,11 @@
   prerequisites:
   - FSOrdnanceMinigunArmouredSolenoids
   exclusiveGroup: FSOrdnanceMinigunPowerChoice
-  bonusDescription: |-
-    +12% Fire Rate (Minigun)
-    -10% Move Speed while wielded (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-external-power-drive-hookups-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunInternalBatteryPacks
-  name: Internal Battery Packs
+  name: fs-tech-ordnance-minigun-internal-battery-packs
   icon:
     sprite: Objects/Tools/cable-coils.rsi
     state: coillv-30
@@ -595,13 +541,11 @@
   prerequisites:
   - FSOrdnanceMinigunArmouredSolenoids
   exclusiveGroup: FSOrdnanceMinigunPowerChoice
-  bonusDescription: |-
-    +8% Move Speed while wielded (Minigun)
-    -8% Fire Rate (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-internal-battery-packs-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigunGyroMatrixAugment
-  name: Gyro Matrix Augment
+  name: fs-tech-ordnance-minigun-gyro-matrix-augment
   icon:
     sprite: Objects/Tools/cable-coils.rsi
     state: coilex-30
@@ -613,13 +557,13 @@
     Plastic: 150
   prerequisites:
   - FSOrdnanceMinigunInternalBatteryPacks
-  bonusDescription: +2° Accuracy per Gyro Stabilizer level (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-gyro-matrix-augment-bonus
 
 # -- Bottleneck and final assembly --
 
 - type: fsTechNode
   id: FSOrdnanceMinigunKnockbackRage
-  name: Knockback Rage
+  name: fs-tech-ordnance-minigun-knockback-rage
   icon:
     sprite: Objects/Tools/cable-coils.rsi
     state: coilex-20
@@ -634,11 +578,11 @@
   prerequisiteGroups:
   - - FSOrdnanceMinigunExternalPowerDriveHookups
     - FSOrdnanceMinigunGyroMatrixAugment
-  bonusDescription: +5% Pushback Force per Knockback Rage level (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-knockback-rage-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMinigun
-  name: Minigun
+  name: fs-tech-ordnance-minigun
   icon:
     sprite: Objects/Weapons/Guns/HMGs/minigun.rsi
     state: icon
@@ -651,11 +595,7 @@
   prerequisites:
   - FSOrdnanceMinigunKnockbackRage
   weaponShopUnlock: FSWeaponShopMinigun
-  bonusDescription: |-
-    Unlocks the Minigun shop.
-    +5% Damage (Minigun)
-    +5% Fire Rate (Minigun)
-    +5% Accuracy (Minigun)
+  bonusDescription: fs-tech-ordnance-minigun-bonus
 
 # Explosive line - shared root (Steps 1-3), then splits into the Hydra sub-tree (rotary/mechanical
 # parts) and the RPG-7 sub-tree (rocketry/propulsion parts), each ending in a mutually-exclusive
@@ -663,7 +603,7 @@
 
 - type: fsTechNode
   id: FSOrdnanceExplosiveTechnology
-  name: Explosive Technology
+  name: fs-tech-ordnance-explosive-technology
   icon:
     sprite: Objects/Devices/payload.rsi
     state: payload-explosive-armed
@@ -674,11 +614,11 @@
     Steel: 3
     Plastic: 2
     Gold: 2
-  bonusDescription: +2% Damage (Team)
+  bonusDescription: fs-tech-ordnance-explosive-technology-bonus
 
 - type: fsTechNode
   id: FSOrdnancePercussionCapFusing
-  name: Percussion-Cap Fusing
+  name: fs-tech-ordnance-percussion-cap-fusing
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Casings/capgun_casing.rsi
     state: base
@@ -691,11 +631,11 @@
     Gold: 6
   prerequisites:
   - FSOrdnanceExplosiveTechnology
-  bonusDescription: +2% Damage (Team, 2nd source)
+  bonusDescription: fs-tech-ordnance-percussion-cap-fusing-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHighLowGasChambers
-  name: High-Low Gas Chambers
+  name: fs-tech-ordnance-high-low-gas-chambers
   icon:
     sprite: Objects/Devices/payload.rsi
     state: payload-empty
@@ -708,13 +648,13 @@
     Gold: 14
   prerequisites:
   - FSOrdnancePercussionCapFusing
-  bonusDescription: +2.5% Accuracy (Team)
+  bonusDescription: fs-tech-ordnance-high-low-gas-chambers-bonus
 
 # -- Grenade sub-tree (unlocks grenade shop upgrades) --
 
 - type: fsTechNode
   id: FSOrdnanceClusterMunitions
-  name: Cluster Munitions
+  name: fs-tech-ordnance-cluster-munitions
   icon:
     sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
     state: icon
@@ -727,11 +667,11 @@
     Gold: 14
   prerequisites:
   - FSOrdnancePercussionCapFusing
-  bonusDescription: Unlocks the Cluster Grenade upgrade at the frag grenade shop
+  bonusDescription: fs-tech-ordnance-cluster-munitions-bonus
 
 - type: fsTechNode
   id: FSOrdnanceGravatonImplosion
-  name: Gravaton Implosion Cores
+  name: fs-tech-ordnance-gravaton-implosion
   icon:
     sprite: _FinalStand/Objects/Weapons/Grenades/GravatonBomb.rsi
     state: icon
@@ -744,13 +684,13 @@
     Gold: 24
   prerequisites:
   - FSOrdnanceClusterMunitions
-  bonusDescription: Unlocks the Singularity upgrade at the pipe bomb shop
+  bonusDescription: fs-tech-ordnance-gravaton-implosion-bonus
 
 # -- Hydra sub-tree (rotary engineering parts) --
 
 - type: fsTechNode
   id: FSOrdnanceHeavyCylinderIndexing
-  name: Heavy Cylinder Indexing
+  name: fs-tech-ordnance-heavy-cylinder-indexing
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Magazine/Grenade/grenade_cartridge.rsi
     state: base
@@ -763,11 +703,11 @@
     Gold: 24
   prerequisites:
   - FSOrdnanceHighLowGasChambers
-  bonusDescription: +4% Fire Rate (Hydra)
+  bonusDescription: fs-tech-ordnance-heavy-cylinder-indexing-bonus
 
 - type: fsTechNode
   id: FSOrdnance40mmRimmedCasings
-  name: 40mm Rimmed Casings
+  name: fs-tech-ordnance40mm-rimmed-casings
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Boxes/anti_materiel.rsi
     state: base
@@ -780,11 +720,11 @@
     Gold: 38
   prerequisites:
   - FSOrdnanceHeavyCylinderIndexing
-  bonusDescription: +6% Reload Speed (Hydra)
+  bonusDescription: fs-tech-ordnance40mm-rimmed-casings-bonus
 
 - type: fsTechNode
   id: FSOrdnanceInternalGasPistons
-  name: Internal Gas Pistons
+  name: fs-tech-ordnance-internal-gas-pistons
   icon:
     sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
     state: bolt-open
@@ -797,11 +737,11 @@
     Gold: 54
   prerequisites:
   - FSOrdnance40mmRimmedCasings
-  bonusDescription: +3% Damage (Hydra)
+  bonusDescription: fs-tech-ordnance-internal-gas-pistons-bonus
 
 - type: fsTechNode
   id: FSOrdnanceSpigotSleeves
-  name: Spigot Sleeves
+  name: fs-tech-ordnance-spigot-sleeves
   icon:
     sprite: Objects/Tools/wirecutters.rsi
     state: cutters
@@ -815,13 +755,11 @@
   prerequisites:
   - FSOrdnanceInternalGasPistons
   exclusiveGroup: FSOrdnanceHydraBarrelChoice
-  bonusDescription: |-
-    +10% Projectile Speed & Range (Hydra)
-    +6° Spread (Hydra)
+  bonusDescription: fs-tech-ordnance-spigot-sleeves-bonus
 
 - type: fsTechNode
   id: FSOrdnanceVentedChambers
-  name: Vented Chambers
+  name: fs-tech-ordnance-vented-chambers
   icon:
     sprite: Objects/Devices/payload.rsi
     state: payload-chemical-left
@@ -835,13 +773,11 @@
   prerequisites:
   - FSOrdnanceInternalGasPistons
   exclusiveGroup: FSOrdnanceHydraBarrelChoice
-  bonusDescription: |-
-    +15% Chamber Capacity (Hydra)
-    -10% Projectile Speed (Hydra)
+  bonusDescription: fs-tech-ordnance-vented-chambers-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHydra
-  name: Hydra Grenade Launcher
+  name: fs-tech-ordnance-hydra
   icon:
     sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
     state: icon
@@ -856,16 +792,13 @@
   - - FSOrdnanceSpigotSleeves
     - FSOrdnanceVentedChambers
   weaponShopUnlock: FSWeaponShopHydra
-  bonusDescription: |-
-    Unlocks the Hydra shop.
-    +5% Damage (Hydra)
-    +5% Fire Rate (Hydra)
+  bonusDescription: fs-tech-ordnance-hydra-bonus
 
 # -- RPG-7 sub-tree (rocketry propulsion parts) --
 
 - type: fsTechNode
   id: FSOrdnanceCounterMassVentingTubes
-  name: Counter-Mass Venting Tubes
+  name: fs-tech-ordnance-counter-mass-venting-tubes
   icon:
     sprite: Objects/Weapons/Guns/Launchers/rocket.rsi
     state: mag-0
@@ -878,11 +811,11 @@
     Gold: 24
   prerequisites:
   - FSOrdnanceHighLowGasChambers
-  bonusDescription: +5% Accuracy (RPG-7)
+  bonusDescription: fs-tech-ordnance-counter-mass-venting-tubes-bonus
 
 - type: fsTechNode
   id: FSOrdnanceVenturiExhaustNozzles
-  name: Venturi Exhaust Nozzles
+  name: fs-tech-ordnance-venturi-exhaust-nozzles
   icon:
     sprite: Objects/Weapons/Guns/Launchers/rocket.rsi
     state: mag-1
@@ -895,11 +828,11 @@
     Gold: 38
   prerequisites:
   - FSOrdnanceCounterMassVentingTubes
-  bonusDescription: +8% Projectile Speed (RPG-7)
+  bonusDescription: fs-tech-ordnance-venturi-exhaust-nozzles-bonus
 
 - type: fsTechNode
   id: FSOrdnanceStabilizingFinAssemblies
-  name: Stabilizing Fin Assemblies
+  name: fs-tech-ordnance-stabilizing-fin-assemblies
   icon:
     sprite: Objects/Devices/pinpointer.rsi
     state: pinpointer
@@ -912,11 +845,11 @@
     Gold: 54
   prerequisites:
   - FSOrdnanceVenturiExhaustNozzles
-  bonusDescription: +5% Accuracy (RPG-7, 2nd source)
+  bonusDescription: fs-tech-ordnance-stabilizing-fin-assemblies-bonus
 
 - type: fsTechNode
   id: FSOrdnanceTandemWarheads
-  name: Tandem Warheads
+  name: fs-tech-ordnance-tandem-warheads
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Explosives/explosives.rsi
     state: rpg
@@ -930,13 +863,11 @@
   prerequisites:
   - FSOrdnanceStabilizingFinAssemblies
   exclusiveGroup: FSOrdnanceRpgWarheadChoice
-  bonusDescription: |-
-    +12% Armor Shred (RPG-7)
-    -1 Blast Radius (RPG-7)
+  bonusDescription: fs-tech-ordnance-tandem-warheads-bonus
 
 - type: fsTechNode
   id: FSOrdnanceThermobaricPayloads
-  name: Thermobaric Payloads
+  name: fs-tech-ordnance-thermobaric-payloads
   icon:
     sprite: Objects/Weapons/Guns/Ammunition/Explosives/explosives.rsi
     state: blast
@@ -950,13 +881,11 @@
   prerequisites:
   - FSOrdnanceStabilizingFinAssemblies
   exclusiveGroup: FSOrdnanceRpgWarheadChoice
-  bonusDescription: |-
-    +2 Blast Radius (RPG-7)
-    -10% Direct-Hit Damage (RPG-7)
+  bonusDescription: fs-tech-ordnance-thermobaric-payloads-bonus
 
 - type: fsTechNode
   id: FSOrdnanceRpg7
-  name: RPG-7
+  name: fs-tech-ordnance-rpg7
   icon:
     sprite: Objects/Weapons/Guns/Launchers/rocket.rsi
     state: base
@@ -971,18 +900,14 @@
   - - FSOrdnanceTandemWarheads
     - FSOrdnanceThermobaricPayloads
   weaponShopUnlock: FSWeaponShopRpg
-  bonusDescription: |-
-    Unlocks the RPG-7 shop.
-    +5% Damage (RPG-7)
-    +1 Blast Radius (RPG-7)
-    +5% Projectile Speed (RPG-7)
+  bonusDescription: fs-tech-ordnance-rpg7-bonus
 
 # Energy line - shared root (WeaponizedLaserManipulation + High-Output Capacitors) feeding the
 # team energy nodes and the Tesla Gun branch. The X-Ray Cannon lives on the Harvester line.
 
 - type: fsTechNode
   id: FSOrdnanceWeaponizedLaserManipulation
-  name: Weaponized Laser Manipulation
+  name: fs-tech-ordnance-weaponized-laser-manipulation
   icon:
     sprite: Objects/Weapons/Guns/Battery/laser_gun.rsi
     state: icon
@@ -992,11 +917,11 @@
   materialCost:
     Steel: 2
     Gold: 1
-  bonusDescription: +2% Damage (Team)
+  bonusDescription: fs-tech-ordnance-weaponized-laser-manipulation-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHighOutputCapacitors
-  name: High-Output Capacitors
+  name: fs-tech-ordnance-high-output-capacitors
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: high
@@ -1008,11 +933,11 @@
     Gold: 5
   prerequisites:
   - FSOrdnanceWeaponizedLaserManipulation
-  bonusDescription: +5% Charge Rate (Team)
+  bonusDescription: fs-tech-ordnance-high-output-capacitors-bonus
 
 - type: fsTechNode
   id: FSOrdnanceConcentratedLaserWeaponry
-  name: Concentrated Laser Weaponry
+  name: fs-tech-ordnance-concentrated-laser-weaponry
   icon:
     sprite: Objects/Weapons/Guns/Battery/laser_cannon.rsi
     state: icon
@@ -1024,13 +949,11 @@
     Gold: 12
   prerequisites:
   - FSOrdnanceHighOutputCapacitors
-  bonusDescription: |-
-    +3% Damage (Team)
-    +2% Damage (X-Ray)
+  bonusDescription: fs-tech-ordnance-concentrated-laser-weaponry-bonus
 
 - type: fsTechNode
   id: FSOrdnanceCryogenicCoolingPumps
-  name: Cryogenic Cooling Pumps
+  name: fs-tech-ordnance-cryogenic-cooling-pumps
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: antique
@@ -1042,15 +965,13 @@
     Gold: 21
   prerequisites:
   - FSOrdnanceConcentratedLaserWeaponry
-  bonusDescription: |-
-    +4% Charge Rate (Team, 2nd source)
-    +2% Charge Rate (X-Ray)
+  bonusDescription: fs-tech-ordnance-cryogenic-cooling-pumps-bonus
 
 # -- Tesla Gun branch --
 
 - type: fsTechNode
   id: FSOrdnanceSubAtomicParticleIonizers
-  name: Sub-Atomic Particle Ionizers
+  name: fs-tech-ordnance-sub-atomic-particle-ionizers
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: microreactor
@@ -1062,13 +983,11 @@
     Gold: 12
   prerequisites:
   - FSOrdnanceHighOutputCapacitors
-  bonusDescription: |-
-    +3% Charge Rate (Team)
-    +2% Charge Rate (Tesla)
+  bonusDescription: fs-tech-ordnance-sub-atomic-particle-ionizers-bonus
 
 - type: fsTechNode
   id: FSOrdnanceOverclockedTiming
-  name: Overclocked Timing
+  name: fs-tech-ordnance-overclocked-timing
   icon:
     sprite: Objects/Devices/signaller.rsi
     state: advanced
@@ -1080,11 +999,11 @@
     Gold: 21
   prerequisites:
   - FSOrdnanceSubAtomicParticleIonizers
-  bonusDescription: +0.5 Fire Rate once Overcharged Coil is owned (Tesla)
+  bonusDescription: fs-tech-ordnance-overclocked-timing-bonus
 
 - type: fsTechNode
   id: FSOrdnanceMagnetoHydrodynamicCores
-  name: Magneto-Hydrodynamic Cores
+  name: fs-tech-ordnance-magneto-hydrodynamic-cores
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: potato
@@ -1096,13 +1015,11 @@
     Gold: 21
   prerequisites:
   - FSOrdnanceSubAtomicParticleIonizers
-  bonusDescription: |-
-    +3% Damage (Team)
-    +2% Damage (Tesla)
+  bonusDescription: fs-tech-ordnance-magneto-hydrodynamic-cores-bonus
 
 - type: fsTechNode
   id: FSOrdnanceToroidalInductionFields
-  name: Toroidal Induction Fields
+  name: fs-tech-ordnance-toroidal-induction-fields
   icon:
     sprite: Objects/Tools/cable-coils.rsi
     state: coilhv-30
@@ -1115,13 +1032,11 @@
   prerequisites:
   - FSOrdnanceMagnetoHydrodynamicCores
   - FSOrdnanceOverclockedTiming
-  bonusDescription: |-
-    +3% Accuracy (Team)
-    +2% Accuracy (Tesla)
+  bonusDescription: fs-tech-ordnance-toroidal-induction-fields-bonus
 
 - type: fsTechNode
   id: FSOrdnancePulseWidthModulators
-  name: Pulse-Width Modulators
+  name: fs-tech-ordnance-pulse-width-modulators
   icon:
     sprite: Objects/Devices/signaller.rsi
     state: signaller
@@ -1133,13 +1048,11 @@
     Gold: 47
   prerequisites:
   - FSOrdnanceToroidalInductionFields
-  bonusDescription: |-
-    +3% Fire Rate (Team)
-    +2% Fire Rate (Tesla)
+  bonusDescription: fs-tech-ordnance-pulse-width-modulators-bonus
 
 - type: fsTechNode
   id: FSOrdnanceDenseLithiumStorage
-  name: Dense Lithium Storage
+  name: fs-tech-ordnance-dense-lithium-storage
   icon:
     sprite: Objects/Power/powersink.rsi
     state: powersink
@@ -1151,11 +1064,11 @@
     Gold: 64
   prerequisites:
   - FSOrdnancePulseWidthModulators
-  bonusDescription: +10 effective shots once Energy Cell Upgrade is owned (Tesla)
+  bonusDescription: fs-tech-ordnance-dense-lithium-storage-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHeavyStepUpTransformers
-  name: Heavy Step-Up Transformers
+  name: fs-tech-ordnance-heavy-step-up-transformers
   icon:
     sprite: Objects/Power/power_cages.rsi
     state: high
@@ -1167,13 +1080,11 @@
     Gold: 64
   prerequisites:
   - FSOrdnancePulseWidthModulators
-  bonusDescription: |-
-    +3% Charge Rate (Team)
-    +2% Charge Rate (Tesla)
+  bonusDescription: fs-tech-ordnance-heavy-step-up-transformers-bonus
 
 - type: fsTechNode
   id: FSOrdnanceArcStabilizingGroundRods
-  name: Arc-Stabilizing Ground Rods
+  name: fs-tech-ordnance-arc-stabilizing-ground-rods
   icon:
     sprite: Structures/Power/Generation/Tesla/coil.rsi
     state: grounding_rod
@@ -1186,13 +1097,11 @@
   prerequisites:
   - FSOrdnanceHeavyStepUpTransformers
   - FSOrdnanceDenseLithiumStorage
-  bonusDescription: |-
-    +3% Damage (Team)
-    +2% Damage (Tesla)
+  bonusDescription: fs-tech-ordnance-arc-stabilizing-ground-rods-bonus
 
 - type: fsTechNode
   id: FSOrdnanceCascadeDischargeRelays
-  name: Cascade Discharge Relays
+  name: fs-tech-ordnance-cascade-discharge-relays
   icon:
     sprite: Objects/Power/AME/ame_jar.rsi
     state: jar
@@ -1204,13 +1113,11 @@
     Gold: 105
   prerequisites:
   - FSOrdnanceArcStabilizingGroundRods
-  bonusDescription: |-
-    +3.5% Damage (Team)
-    +2% Damage (Tesla)
+  bonusDescription: fs-tech-ordnance-cascade-discharge-relays-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHighFrequencyTeslaCoils
-  name: High-Frequency Tesla Coils
+  name: fs-tech-ordnance-high-frequency-tesla-coils
   icon:
     sprite: Structures/Power/Generation/Tesla/coil.rsi
     state: coil
@@ -1222,13 +1129,11 @@
     Gold: 130
   prerequisites:
   - FSOrdnanceCascadeDischargeRelays
-  bonusDescription: |-
-    +4% Projectile Speed (Team)
-    +2% Projectile Speed (Tesla)
+  bonusDescription: fs-tech-ordnance-high-frequency-tesla-coils-bonus
 
 - type: fsTechNode
   id: FSOrdnanceIonizedAtmosphericPath
-  name: Ionized Atmospheric Path
+  name: fs-tech-ordnance-ionized-atmospheric-path
   icon:
     sprite: Objects/Power/light_tube.rsi
     state: normal
@@ -1240,11 +1145,11 @@
     Gold: 157
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
-  bonusDescription: +0.5m Arc Range per Extended Arc level (Tesla)
+  bonusDescription: fs-tech-ordnance-ionized-atmospheric-path-bonus
 
 - type: fsTechNode
   id: FSOrdnanceChainLightningBridging
-  name: Chain-Lightning Bridging
+  name: fs-tech-ordnance-chain-lightning-bridging
   icon:
     sprite: Objects/Power/power_cages.rsi
     state: o1
@@ -1257,13 +1162,11 @@
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
   exclusiveGroup: FSOrdnanceTeslaDischargeChoice
-  bonusDescription: |-
-    +1 Chain Target (Tesla)
-    -8% Damage per arc hit (Tesla)
+  bonusDescription: fs-tech-ordnance-chain-lightning-bridging-bonus
 
 - type: fsTechNode
   id: FSOrdnanceOverchargeCapacitors
-  name: Overcharge Capacitors
+  name: fs-tech-ordnance-overcharge-capacitors
   icon:
     sprite: Objects/Power/power_cages.rsi
     state: o2
@@ -1276,13 +1179,11 @@
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
   exclusiveGroup: FSOrdnanceTeslaDischargeChoice
-  bonusDescription: |-
-    +10% Charge Rate (Tesla)
-    -5% Projectile Speed (Tesla)
+  bonusDescription: fs-tech-ordnance-overcharge-capacitors-bonus
 
 - type: fsTechNode
   id: FSOrdnanceFluxTuning
-  name: Flux Tuning
+  name: fs-tech-ordnance-flux-tuning
   icon:
     sprite: Objects/Power/power_cages.rsi
     state: medium
@@ -1294,11 +1195,11 @@
     Gold: 187
   prerequisites:
   - FSOrdnanceOverchargeCapacitors
-  bonusDescription: +25% Capacitor Boost recharge multiplier once owned (Tesla)
+  bonusDescription: fs-tech-ordnance-flux-tuning-bonus
 
 - type: fsTechNode
   id: FSOrdnanceSingularityHarnessing
-  name: Singularity Harnessing
+  name: fs-tech-ordnance-singularity-harnessing
   icon:
     sprite: Objects/Devices/singularity_beacon.rsi
     state: icon
@@ -1311,11 +1212,11 @@
   prerequisiteGroups:
   - - FSOrdnanceChainLightningBridging
     - FSOrdnanceFluxTuning
-  bonusDescription: +15% Graviton Core pull radius & velocity once owned (Tesla)
+  bonusDescription: fs-tech-ordnance-singularity-harnessing-bonus
 
 - type: fsTechNode
   id: FSOrdnanceTeslaCannon
-  name: Tesla Gun
+  name: fs-tech-ordnance-tesla-cannon
   icon:
     sprite: Objects/Weapons/Guns/Battery/tesla_gun.rsi
     state: base
@@ -1328,18 +1229,14 @@
   prerequisites:
   - FSOrdnanceSingularityHarnessing
   weaponShopUnlock: FSWeaponShopTeslaGun
-  bonusDescription: |-
-    Unlocks the Tesla Gun shop.
-    +5% Damage (Tesla)
-    +5% Charge Rate (Tesla)
-    +5% Arc Range (Tesla)
+  bonusDescription: fs-tech-ordnance-tesla-cannon-bonus
 
 # Harvester line - Science's own weapon, previously excluded from every other Ordnance bonus.
 # Small independent root cluster (own tier axis, not fed by or feeding into the other trunks).
 
 - type: fsTechNode
   id: FSOrdnanceHarvesterFocusingLens
-  name: Focusing Lens
+  name: fs-tech-ordnance-harvester-focusing-lens
   icon:
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: base
@@ -1349,11 +1246,11 @@
   materialCost:
     Steel: 5
     Gold: 2
-  bonusDescription: +5% Damage (Harvester)
+  bonusDescription: fs-tech-ordnance-harvester-focusing-lens-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHarvesterCoolantLoop
-  name: Coolant Loop
+  name: fs-tech-ordnance-harvester-coolant-loop
   icon:
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: base
@@ -1363,11 +1260,11 @@
   materialCost:
     Steel: 5
     Gold: 2
-  bonusDescription: +5% Fire Rate (Harvester)
+  bonusDescription: fs-tech-ordnance-harvester-coolant-loop-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHarvesterCapacitorBank
-  name: Capacitor Bank
+  name: fs-tech-ordnance-harvester-capacitor-bank
   icon:
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: base
@@ -1379,11 +1276,11 @@
     Gold: 10
   prerequisites:
   - FSOrdnanceHarvesterFocusingLens
-  bonusDescription: +5% Damage (Harvester, 2nd source)
+  bonusDescription: fs-tech-ordnance-harvester-capacitor-bank-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHarvesterOscillatorTuning
-  name: Oscillator Tuning
+  name: fs-tech-ordnance-harvester-oscillator-tuning
   icon:
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: base
@@ -1395,11 +1292,11 @@
     Gold: 10
   prerequisites:
   - FSOrdnanceHarvesterCoolantLoop
-  bonusDescription: +5% Fire Rate (Harvester, 2nd source)
+  bonusDescription: fs-tech-ordnance-harvester-oscillator-tuning-bonus
 
 - type: fsTechNode
   id: FSOrdnanceHarvesterOverdrive
-  name: Harvester Overdrive
+  name: fs-tech-ordnance-harvester-overdrive
   icon:
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: base
@@ -1412,15 +1309,13 @@
   prerequisiteGroups:
   - - FSOrdnanceHarvesterCapacitorBank
     - FSOrdnanceHarvesterOscillatorTuning
-  bonusDescription: |-
-    +8% Damage (Harvester)
-    +8% Fire Rate (Harvester)
+  bonusDescription: fs-tech-ordnance-harvester-overdrive-bonus
 
 # X-Ray Cannon - Science's heavy weapon, continuing the Harvester line.
 
 - type: fsTechNode
   id: FSOrdnanceWaveParticleHarnessing
-  name: Wave Particle Harnessing
+  name: fs-tech-ordnance-wave-particle-harnessing
   icon:
     sprite: Objects/Weapons/Guns/Battery/xray.rsi
     state: icon
@@ -1432,11 +1327,11 @@
     Gold: 30
   prerequisites:
   - FSOrdnanceHarvesterOverdrive
-  bonusDescription: +8% Hitscan Range (X-Ray)
+  bonusDescription: fs-tech-ordnance-wave-particle-harnessing-bonus
 
 - type: fsTechNode
   id: FSOrdnanceXrayCannon
-  name: X-Ray Cannon
+  name: fs-tech-ordnance-xray-cannon
   icon:
     sprite: Objects/Weapons/Guns/Battery/xray.rsi
     state: icon
@@ -1448,15 +1343,11 @@
     Gold: 45
   prerequisites:
   - FSOrdnanceWaveParticleHarnessing
-  bonusDescription: |-
-    Unlocks X-Ray Conversion at the Harvester shop. The X-Ray still feeds research on every hit.
-    +5% Damage (X-Ray)
-    +5% Charge Rate (X-Ray)
-    +1 Pierce (X-Ray)
+  bonusDescription: fs-tech-ordnance-xray-cannon-bonus
 
 - type: fsTechNode
   id: FSOrdnanceLeadLinedEmitters
-  name: Lead-Lined Emitters
+  name: fs-tech-ordnance-lead-lined-emitters
   icon:
     sprite: Objects/Tools/geiger.rsi
     state: geiger_base
@@ -1468,11 +1359,11 @@
     Gold: 55
   prerequisites:
   - FSOrdnanceXrayCannon
-  bonusDescription: +5% Armor Shred (X-Ray)
+  bonusDescription: fs-tech-ordnance-lead-lined-emitters-bonus
 
 - type: fsTechNode
   id: FSOrdnanceIsotopeSynthesiser
-  name: Isotope Synthesiser
+  name: fs-tech-ordnance-isotope-synthesiser
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: o1
@@ -1484,11 +1375,11 @@
     Gold: 55
   prerequisites:
   - FSOrdnanceXrayCannon
-  bonusDescription: +5% Radiation Coating tick damage per level (X-Ray)
+  bonusDescription: fs-tech-ordnance-isotope-synthesiser-bonus
 
 - type: fsTechNode
   id: FSOrdnanceFocusingCrystalPrisms
-  name: Focusing Crystal Prisms
+  name: fs-tech-ordnance-focusing-crystal-prisms
   icon:
     sprite: Objects/Materials/Shards/crystal.rsi
     state: shard1
@@ -1502,13 +1393,11 @@
   - - FSOrdnanceLeadLinedEmitters
     - FSOrdnanceIsotopeSynthesiser
   exclusiveGroup: FSOrdnanceXrayCoolingChoice
-  bonusDescription: |-
-    +10% Damage (X-Ray)
-    -8% Charge Rate (X-Ray)
+  bonusDescription: fs-tech-ordnance-focusing-crystal-prisms-bonus
 
 - type: fsTechNode
   id: FSOrdnanceFocalOverdrive
-  name: Focal Overdrive
+  name: fs-tech-ordnance-focal-overdrive
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: hyper
@@ -1520,4 +1409,4 @@
     Gold: 80
   prerequisiteGroups:
   - - FSOrdnanceFocusingCrystalPrisms
-  bonusDescription: +5% Damage once Overloaded Emitter is owned (X-Ray)
+  bonusDescription: fs-tech-ordnance-focal-overdrive-bonus

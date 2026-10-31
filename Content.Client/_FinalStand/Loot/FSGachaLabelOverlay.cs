@@ -13,9 +13,18 @@ public sealed class FSGachaLabelOverlay : FSWorldLabelOverlay<FSGachaCacheCompon
     protected override bool ShowArrow => false;
     protected override bool Bob => false;
 
+    private readonly Dictionary<int, string> _labels = new();
+
     protected override bool ShouldDraw(EntityUid uid, FSGachaCacheComponent cache, TransformComponent xform)
         => cache.UsesLeft > 0;
 
     protected override string GetLabel(EntityUid uid, FSGachaCacheComponent cache)
-        => $"PAY {cache.Price}";
+    {
+        if (_labels.TryGetValue(cache.Price, out var label))
+            return label;
+
+        label = Loc.GetString("fs-world-label-gacha-price", ("price", cache.Price.ToString()));
+        _labels[cache.Price] = label;
+        return label;
+    }
 }

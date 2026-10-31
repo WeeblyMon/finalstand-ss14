@@ -34,6 +34,7 @@ namespace Content.Client.UserInterface.Controls
 
         private readonly Label _chargesLabel;
         private IEntityManager? _entMan;
+        private int _shownStock = -1; // FINALSTAND
 
         public EntityUid? Entity => SpriteView.Entity;
 
@@ -127,7 +128,7 @@ namespace Content.Client.UserInterface.Controls
         public bool EntityHover => HoverSpriteView.Sprite != null;
         public bool MouseIsHovering;
 
-        private Label? FSLabelControl;
+        private Label? FSLabelControl; // FINALSTAND
 
         public string FSLabel
         {
@@ -136,7 +137,7 @@ namespace Content.Client.UserInterface.Controls
                 if (FSLabelControl == null)
                     return;
 
-                FSLabelControl.Text = value;
+                FSLabelControl.Text = value; // FINALSTAND
                 FSLabelControl.Visible = !string.IsNullOrEmpty(value);
 
                 if (!FSLabelControl.Visible)
@@ -151,7 +152,7 @@ namespace Content.Client.UserInterface.Controls
                 SpriteView.Visible = false;
                 HoverSpriteView.Visible = false;
 
-                var width = FSLabelControl.MinSize.X + FSLabelTextPad * 2f;
+                var width = FSLabelControl.MinSize.X + FSLabelTextPad * 2f; // FINALSTAND
                 MinSize = new Vector2(MathF.Max(MinSize.X, width), MinSize.Y);
             }
         }
@@ -234,7 +235,7 @@ namespace Content.Client.UserInterface.Controls
 
             AddChild(AdminOverlays = new Control());
 
-            AddChild(FSLabelControl = new Label
+            AddChild(FSLabelControl = new Label // FINALSTAND
             {
                 Visible = false,
                 HorizontalAlignment = HAlignment.Center,
@@ -294,23 +295,27 @@ namespace Content.Client.UserInterface.Controls
         {
             base.FrameUpdate(args);
 
+            // FINALSTAND: stock count for grenade packs and deployables
             _entMan ??= IoCManager.Resolve<IEntityManager>();
             if (Entity is { } ent && _entMan.TryGetComponent<FSGrenadePackComponent>(ent, out var pack))
-            {
-                _chargesLabel.Text = pack.Stock.ToString();
-                _chargesLabel.Visible = true;
-                _chargesLabel.FontColorOverride = pack.Stock == 0 ? Color.Gray : Color.White;
-            }
+                ShowStock(pack.Stock);
             else if (Entity is { } deployableEnt && _entMan.TryGetComponent<FSDeployableItemComponent>(deployableEnt, out var deployable))
-            {
-                _chargesLabel.Text = deployable.Stock.ToString();
-                _chargesLabel.Visible = true;
-                _chargesLabel.FontColorOverride = deployable.Stock == 0 ? Color.Gray : Color.White;
-            }
+                ShowStock(deployable.Stock);
             else
-            {
                 _chargesLabel.Visible = false;
+        }
+
+        // FINALSTAND: the Text setter always remeasures, so only write it when the count changes.
+        private void ShowStock(int stock)
+        {
+            if (stock != _shownStock)
+            {
+                _shownStock = stock;
+                _chargesLabel.Text = stock.ToString();
+                _chargesLabel.FontColorOverride = stock == 0 ? Color.Gray : Color.White;
             }
+
+            _chargesLabel.Visible = true;
         }
 
         public void ClearHover()

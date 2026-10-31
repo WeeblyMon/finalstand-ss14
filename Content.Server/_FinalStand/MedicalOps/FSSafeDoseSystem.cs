@@ -37,19 +37,24 @@ public sealed partial class FSSafeDoseSystem : EntitySystem
     private void OnEmbed(Entity<FSAllyProjectileComponent> ent, ref EmbedEvent args)
     {
         var ally = HasComp<FSFriendlyFireComponent>(args.Embedded);
+        var loaded = _solutions.TryGetSolution(ent.Owner, ent.Comp.Solution, out var soln, out var dart)
+                     && dart.Volume > 0;
 
         if (args.Shooter is { } shooter && ally)
         {
-            _credit.RegisterDelivery(args.Embedded, shooter);
-            _attribution.RecordTreatment(args.Embedded, shooter, ent.Owner);
             _audio.PlayEntity(DartHit, shooter, args.Embedded);
+
+            // An empty or plain dart isn't a treatment and earns no supplier cut.
+            if (loaded && dart != null)
+            {
+                _attribution.RecordTreatment(args.Embedded, shooter, ent.Owner);
+                if (_credit.AppliesCombatBuff(dart))
+                    _credit.RegisterDelivery(args.Embedded, shooter);
+            }
         }
 
-        if (!_solutions.TryGetSolution(ent.Owner, ent.Comp.Solution, out var soln, out var dart)
-            || dart.Volume <= 0)
-        {
+        if (!loaded || soln is not { } dartSoln || dart == null)
             return;
-        }
 
         if (!TryComp<BloodstreamComponent>(args.Embedded, out var bloodstream)
             || !_solutions.ResolveSolution(args.Embedded, bloodstream.BloodSolutionName,
@@ -71,7 +76,7 @@ public sealed partial class FSSafeDoseSystem : EntitySystem
                 continue;
 
             var excess = quantity.Quantity - FixedPoint2.Max(room, FixedPoint2.Zero);
-            _solutions.RemoveReagent(soln.Value, quantity.Reagent, excess);
+            _solutions.RemoveReagent(dartSoln, quantity.Reagent, excess);
         }
     }
 

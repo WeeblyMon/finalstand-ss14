@@ -198,7 +198,7 @@ namespace Content.Client.Access.UI
                 jobIndex = _jobPrototypeIds.IndexOf(_defaultJob);
             }
 
-            if (jobIndex >= 0)
+            if (jobIndex >= 0) // FINALSTAND: neither the card's job nor the default is in the list on FS maps; SelectId(-1) errors
                 JobPresetOptionButton.SelectId(jobIndex);
 
             _lastFullName = state.TargetIdFullName;

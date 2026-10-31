@@ -1,8 +1,10 @@
+using Content.Server._FinalStand.Fortifications;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Emplacement;
 
 [RegisterComponent]
+[Access(typeof(FSEmplacementSystem))]
 public sealed partial class FSEmplacementComponent : Component
 {
     [DataField(required: true)]
@@ -30,13 +32,22 @@ public sealed partial class FSEmplacementComponent : Component
 }
 
 [RegisterComponent]
+[Access(typeof(FSEmplacementSystem))]
 public sealed partial class FSEmplacementPieceComponent : Component
 {
     public EntityUid Core;
 }
 
 [RegisterComponent]
+[Access(typeof(FSEmplacementSystem))]
 public sealed partial class FSEmplacementCoverComponent : Component
 {
     public float MeleeDamage = 1f;
+}
+
+// On a packed kit: each piece's upgrades, in piece order, so the next deploy gets them back.
+[RegisterComponent]
+public sealed partial class FSPackedEmplacementComponent : Component
+{
+    public List<FSUpgradeSnapshot?> Pieces = new();
 }

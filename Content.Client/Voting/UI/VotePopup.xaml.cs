@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Linq; // FINALSTAND
 using Content.Client.Stylesheets;
 using Content.Shared.Ghost;
 using Content.Shared.Ghost.Systems;
@@ -22,7 +22,7 @@ namespace Content.Client.Voting.UI
         private readonly VoteManager.ActiveVote _vote;
         private readonly Button[] _voteButtons;
         private readonly NetEntity? _targetEntity;
-        private const int LongOptionLength = 18;
+        private const int LongOptionLength = 18; // FINALSTAND: longer options get one full-width column
 
         public VotePopup(VoteManager.ActiveVote vote)
         {
@@ -40,7 +40,7 @@ namespace Content.Client.Voting.UI
             }
 
             Modulate = Color.White.WithAlpha(0.75f);
-            VoteOptionsContainer.Columns = vote.Entries.Any(e => e.Text.Length > LongOptionLength) ? 1 : 3;
+            VoteOptionsContainer.Columns = vote.Entries.Any(e => e.Text.Length > LongOptionLength) ? 1 : 3; // FINALSTAND: 3 is the XAML default
             _voteButtons = new Button[vote.Entries.Length];
             var group = new ButtonGroup();
 
@@ -50,7 +50,7 @@ namespace Content.Client.Voting.UI
                 {
                     ToggleMode = true,
                     Group = group,
-                    HorizontalExpand = true
+                    HorizontalExpand = true // FINALSTAND
                 };
                 _voteButtons[i] = button;
                 VoteOptionsContainer.AddChild(button);

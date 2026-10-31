@@ -1,13 +1,9 @@
-// Engineer income and stats: pays owners for wave damage their structures soak and for repairing that damage,
-// counts equipment kills, sends each engineer a report card when a wave ends, and writes the engineering block of the
-// round-end summary.
 using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Server.GameTicking;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
@@ -45,6 +41,7 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSDeployedByComponent, DamageChangedEvent>(OnStructureDamageChanged);
+        SubscribeLocalEvent<FSDeployedByComponent, ComponentShutdown>(OnStructureShutdown);
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnEnemyDied);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEnd, after: [typeof(FSLevelingSystem)]);
@@ -60,10 +57,16 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
         _unpaid.Clear();
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         _absorbedThisWave.Clear();
         _repairedThisWave.Clear();
+    }
+
+    // Outstanding damage outlives the wave on purpose (repairs land in prep), so it goes with the structure instead.
+    private void OnStructureShutdown(Entity<FSDeployedByComponent> ent, ref ComponentShutdown args)
+    {
+        _waveDamage.Remove(ent.Owner);
     }
 
     private void OnStructureDamageChanged(Entity<FSDeployedByComponent> ent, ref DamageChangedEvent args)
@@ -104,7 +107,10 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
 
         var outstanding = _waveDamage.GetValueOrDefault(structure);
         var eligible = MathF.Min(amount, outstanding);
-        _waveDamage[structure] = outstanding - eligible;
+        if (outstanding - eligible > 0f)
+            _waveDamage[structure] = outstanding - eligible;
+        else
+            _waveDamage.Remove(structure);
 
         var key = (mindId, structure);
         var prior = _repairedThisWave.GetValueOrDefault(key);
@@ -168,7 +174,7 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
                 continue;
 
             args.AddLine(Loc.GetString("fs-engineer-roundend-line",
-                ("name", mind.CharacterName ?? "Unknown"),
+                ("name", mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name")),
                 ("absorbed", (int) stats.Absorbed),
                 ("repaired", (int) stats.Repaired),
                 ("kills", stats.EquipmentKills)));

@@ -2,67 +2,67 @@
 # The starter melee. Free. Designed for early-wave economy.
 
 - type: entity
-  id: FSWeaponShopSurvivalKnife
   parent: FSWeaponShopBase
+  id: FSWeaponShopSurvivalKnife
   name: Survival Knife
   description: A basic carp-killer. Free to take and cheap to improve.
   components:
   - type: FSShopWeapon
     weaponProtoId: SurvivalKnife
     price: 0
-    category: Melee Knife
+    category: fs-weapon-shop-category-melee-knife
     statDamage: 15
     statFireRate: 60
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: knife-quick-slash
-      name: Quick Slash
-      description: Lighter grip increases attack speed by 33%.
+      name: fs-upgrade-knife-quick-slash
+      description: fs-upgrade-knife-quick-slash-desc
       maxLevel: 1
       baseCost: 2000
       type: AttackSpeed
       valuePerLevel: 0.33
     - id: knife-sharpened
-      name: Sharpened Blade
-      description: Hones the edge for +50% damage per level (up to x2 total).
+      name: fs-upgrade-knife-sharpened
+      description: fs-upgrade-knife-sharpened-desc
       maxLevel: 2
       baseCost: 3000
       type: Damage
       valuePerLevel: 0.5
     - id: knife-golden
-      name: Golden Blade
-      description: Gilded blade pays out +8% money on each kill.
+      name: fs-upgrade-knife-golden
+      description: fs-upgrade-knife-golden-desc
       maxLevel: 1
       baseCost: 500
       type: MoneyGainPercent
       valuePerLevel: 0.08
     - id: knife-bloodthirster
-      name: Blood Thirster
-      description: Each hit heals you for 85% of its base damage per level.
+      name: fs-upgrade-knife-bloodthirster
+      description: fs-upgrade-knife-bloodthirster-desc
       maxLevel: 2
       baseCost: 3000
       type: LifeSteal
       valuePerLevel: 0.85
     - id: knife-coup-de-grace
-      name: Coup de Grâce
-      description: An execution readies your next swing instantly, so executions chain.
+      name: fs-upgrade-knife-coup-de-grace
+      description: fs-upgrade-knife-coup-de-grace-desc
       maxLevel: 1
       baseCost: 3500
       type: MeleeSignature
       signature: CoupDeGrace
       valuePerLevel: 1
     - id: knife-hemorrhage
-      name: Hemorrhage
-      description: Bleeding zombies can be executed without being staggered first.
+      name: fs-upgrade-knife-hemorrhage
+      description: fs-upgrade-knife-hemorrhage-desc
       maxLevel: 1
       baseCost: 3000
       type: MeleeSignature
       signature: Hemorrhage
       valuePerLevel: 1
     - id: knife-opportunist
-      name: Opportunist
-      description: +50% damage to zombies attacking someone else.
+      name: fs-upgrade-knife-opportunist
+      description: fs-upgrade-knife-opportunist-desc
       maxLevel: 1
       baseCost: 2500
       type: MeleeSignature

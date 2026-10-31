@@ -39,7 +39,7 @@ public sealed partial class NPCBlackboard : IEnumerable<KeyValuePair<string, obj
     /// <summary>
     /// The specific blackboard for this NPC.
     /// </summary>
-    private readonly Dictionary<string, object> _blackboard = new();
+    private readonly Dictionary<string, object> _blackboard;
 
     /// <summary>
     /// Should we allow setting values on the blackboard. This is true when we are planning.
@@ -54,14 +54,21 @@ public sealed partial class NPCBlackboard : IEnumerable<KeyValuePair<string, obj
         _blackboard.Clear();
     }
 
+    public NPCBlackboard()
+    {
+        _blackboard = new Dictionary<string, object>();
+    }
+
+    // FINALSTAND: the planner clones the blackboard for every compound task it decomposes, for every NPC.
+    // The copy constructor sizes once and copies buckets instead of re-inserting key by key.
+    private NPCBlackboard(Dictionary<string, object> values)
+    {
+        _blackboard = new Dictionary<string, object>(values);
+    }
+
     public NPCBlackboard ShallowClone()
     {
-        var dict = new NPCBlackboard();
-        foreach (var item in _blackboard)
-        {
-            dict.SetValue(item.Key, item.Value);
-        }
-        return dict;
+        return new NPCBlackboard(_blackboard);
     }
 
     [Pure]

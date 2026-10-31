@@ -16,6 +16,8 @@ public sealed partial class PelletCountUpgradeSystem : EntitySystem
 {
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private FSPierceSystem _pierce = default!;
+    [Dependency] private FSHomingProjectileSystem _homing = default!;
 
     public void HandleAmmoShot(EntityUid uid, FSWeaponUpgradeStateComponent state, AmmoShotEvent args)
     {
@@ -71,11 +73,7 @@ public sealed partial class PelletCountUpgradeSystem : EntitySystem
                 np.Damage = projComp.Damage;
 
                 if (addPierce)
-                {
-                    np.DeleteOnCollide = false;
-                    var pierce = EnsureComp<FSPierceComponent>(newProj);
-                    pierce.RemainingPierces = Math.Max(pierce.RemainingPierces, 1);
-                }
+                    _pierce.GrantPierces(newProj, 1, np);
             }
 
             if (TryComp<FSProjectileFlagsComponent>(firstProj, out var flags))
@@ -86,7 +84,7 @@ public sealed partial class PelletCountUpgradeSystem : EntitySystem
             }
 
             if (TryComp<FSHomingProjectileComponent>(firstProj, out var homing))
-                EnsureComp<FSHomingProjectileComponent>(newProj).TurnRateDegrees = homing.TurnRateDegrees;
+                _homing.Home(newProj, homing.TurnRateDegrees);
         }
     }
 }

@@ -1,13 +1,14 @@
-// The Chief Engineer's Defensive Emplacement: unfolds whole, feeds its hardpoint sentries, covers whoever stands inside, and folds back to the CE when the wave ends.
 using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Engineering;
+using Content.Server._FinalStand.Fortifications;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.NPC;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.Emplacement;
+using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Placement;
 using Content.Shared.Alert;
@@ -52,6 +53,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSFlairSystem _flair = default!;
+    [Dependency] private FSUpgradeSystem _upgrades = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
     private static readonly ProtoId<FSParticleEmitterPrototype> DustRing = "FSDustRing";
@@ -66,6 +68,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
 
     private readonly Dictionary<(EntityUid Grid, Vector2i Tile), FSEmplacementComponent> _coverTiles = new();
     private readonly Dictionary<EntityUid, float> _covered = new();
+    private readonly List<EntityUid> _uncovered = new();
     private TimeSpan _next;
     private float _feedCarry;
 
@@ -79,7 +82,8 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         SubscribeLocalEvent<FSEmplacementComponent, EntityTerminatingEvent>(OnCoreTerminating);
         SubscribeLocalEvent<FSEmplacementCoverComponent, DamageModifyEvent>(OnDamageModify);
         SubscribeLocalEvent<FSEmplacementPieceComponent, DamageModifyEvent>(OnPieceDamageModify);
-        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
+        // Prep start, so a wave replayed after a lost CCC life gets the resupply too.
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
     private void OnPlace(Entity<FSEmplacementKitComponent> kit, ref FSPlacementConfirmedEvent args)
@@ -99,16 +103,29 @@ public sealed partial class FSEmplacementSystem : EntitySystem
 
         var core = Spawn(kit.Comp.Core, center);
         _transform.SetLocalRotation(core, args.Direction.ToAngle());
+        if (!Transform(core).Anchored)
+            _transform.AnchorEntity(core);
+
         var comp = Comp<FSEmplacementComponent>(core);
         comp.Deployed = true;
         comp.OwnerMind = _mind.TryGetMind(args.User, out var mindId, out _) ? mindId : null;
 
+        TryComp<FSPackedEmplacementComponent>(kit, out var packed);
         foreach (var piece in Pieces(kit.Comp))
         {
             var uid = Spawn(piece.Proto, FSEmplacementRuleSystem.TileOf(center, piece.Offset, args.Direction));
             _transform.SetLocalRotation(uid, FSEmplacementRuleSystem.RotationOf(piece, args.Direction));
             if (!Transform(uid).Anchored)
                 _transform.AnchorEntity(uid);
+
+            var index = comp.Pieces.Count;
+            if (packed != null
+                && index < packed.Pieces.Count
+                && packed.Pieces[index] is { } snapshot
+                && TryComp<FSUpgradeableComponent>(uid, out var upgradeable))
+            {
+                _upgrades.Restore((uid, upgradeable), snapshot);
+            }
 
             EnsureComp<FSEmplacementPieceComponent>(uid).Core = core;
             var deployedBy = EnsureComp<FSDeployedByComponent>(uid);
@@ -154,11 +171,22 @@ public sealed partial class FSEmplacementSystem : EntitySystem
                 return Loc.GetString("fs-rcd-next-to-space");
         }
 
-        foreach (var piece in kit.Comp.Pieces)
+        foreach (var piece in Pieces(kit.Comp))
         {
             var tile = FSEmplacementRuleSystem.TileOf(center, piece.Offset, facing);
             if (_deployable.IsOccupied(tile, FSEmplacementRuleSystem.RotationOf(piece, facing).GetCardinalDir()))
                 return Loc.GetString("fs-deployable-occupied");
+        }
+
+        // The research hardpoint is server-only, so the shared footprint checks never saw its tile.
+        if (kit.Comp.ResearchHardpoint is { } hardpoint && _research.Has(FSEngineeringNodes.ThirdHardpoint))
+        {
+            var tile = FSEmplacementRuleSystem.TileOf(center, hardpoint.Offset, facing);
+            if (!_rules.IsTileFree(tile))
+                return Loc.GetString("fs-emplacement-no-room");
+
+            if (_breach.IsAdjacentToSpace(tile))
+                return Loc.GetString("fs-rcd-next-to-space");
         }
 
         return null;
@@ -217,8 +245,16 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         ent.Comp.Packed = true;
         var kit = Spawn(ent.Comp.Kit, _transform.GetMapCoordinates(ent));
         _audio.PlayPvs(FoldSound, kit);
+
+        // It packs up every wave, so without this the hardpoints' upgrades were lost each time.
+        var packed = EnsureComp<FSPackedEmplacementComponent>(kit);
         foreach (var piece in ent.Comp.Pieces)
+        {
+            packed.Pieces.Add(!TerminatingOrDeleted(piece) && TryComp<FSUpgradeableComponent>(piece, out var upgradeable)
+                ? _upgrades.Snapshot(upgradeable)
+                : null);
             QueueDel(piece);
+        }
 
         if (!TerminatingOrDeleted(ent))
             QueueDel(ent);
@@ -235,7 +271,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         ReturnToEngineers(kit, ent.Comp.OwnerMind);
     }
 
-    private void OnWaveEnded(ref WaveEndedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var query = EntityQueryEnumerator<FSEmplacementComponent>();
         var cores = new List<Entity<FSEmplacementComponent>>();
@@ -352,12 +388,16 @@ public sealed partial class FSEmplacementSystem : EntitySystem
             }
         }
 
+        _uncovered.Clear();
         var buffed = EntityQueryEnumerator<FSEmplacementCoverComponent>();
         while (buffed.MoveNext(out var uid, out _))
         {
-            if (_covered.ContainsKey(uid))
-                continue;
+            if (!_covered.ContainsKey(uid))
+                _uncovered.Add(uid);
+        }
 
+        foreach (var uid in _uncovered)
+        {
             RemComp<FSEmplacementCoverComponent>(uid);
             _alerts.ClearAlert(uid, CoverAlert);
         }

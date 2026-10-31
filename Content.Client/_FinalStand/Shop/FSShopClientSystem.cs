@@ -1,4 +1,5 @@
-﻿using Content.Shared._FinalStand.Economy;
+﻿using Content.Client._FinalStand.Visuals;
+using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Departments;
@@ -12,6 +13,7 @@ using Content.Shared.Inventory;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
+using Robust.Shared.Timing;
 using Robust.Client;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -27,6 +29,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
     [Dependency] private IBaseClient _client = default!;
     [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceCache _resourceCache = default!;
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
@@ -72,7 +75,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
         SubscribeNetworkEvent<FSShopSellCompletedEvent>(OnSellCompleted);
         SubscribeNetworkEvent<FSShopSellFailedEvent>(OnSellFailed);
         SubscribeNetworkEvent<FSResearchUnlocksChangedEvent>(OnResearchUnlocksChanged);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeNetworkEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
         SubscribeLocalEvent<HandDeselectedEvent>(OnHandDeselected);
         SubscribeLocalEvent<DidEquipHandEvent>(OnDidEquipHand);
@@ -82,6 +85,9 @@ public sealed partial class FSShopClientSystem : EntitySystem
 
         _lockTexture = _resourceCache.GetResource<TextureResource>("/Textures/_FinalStand/Interface/Shop/lock_icon.png").Texture;
     }
+
+    private static readonly TimeSpan GlowRefreshInterval = TimeSpan.FromSeconds(0.25);
+    private TimeSpan _nextGlowRefresh;
 
     public override void Shutdown()
     {
@@ -93,6 +99,11 @@ public sealed partial class FSShopClientSystem : EntitySystem
 
     public override void FrameUpdate(float frameTime)
     {
+        // Glow only changes with credits, research or what you're carrying; a few refreshes a second is plenty.
+        if (_timing.RealTime < _nextGlowRefresh)
+            return;
+
+        _nextGlowRefresh = _timing.RealTime + GlowRefreshInterval;
         var player = _player.LocalSession?.AttachedEntity;
 
         var science = false;
@@ -140,7 +151,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
                 continue;
 
             _lastGlowState[uid] = state;
-            ApplyOutline(sprite, state);
+            ApplyOutline((uid, sprite), state);
             ApplyLockOverlay(uid, sprite, state == ShopGlowState.Locked);
         }
     }
@@ -444,7 +455,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
         }
     }
 
-    private void ApplyOutline(SpriteComponent sprite, ShopGlowState state)
+    private void ApplyOutline(Entity<SpriteComponent> sprite, ShopGlowState state)
     {
         if (!_glowShaders.TryGetValue(state, out var shader))
         {
@@ -459,7 +470,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
             _glowShaders[state] = shader;
         }
 
-        sprite.PostShader = shader;
+        FSPostShaders.SetOutline(_sprite, sprite, FSPostShaders.ShopGlow, shader);
     }
 
     private void ClearAllShaders()
@@ -467,7 +478,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
         var query = EntityQueryEnumerator<FSShopWeaponComponent, SpriteComponent>();
         while (query.MoveNext(out _, out _, out var sprite))
         {
-            sprite.PostShader = null;
+            _sprite.RemovePostShader(sprite, FSPostShaders.ShopGlow);
         }
         _lastGlowState.Clear();
     }

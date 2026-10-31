@@ -12,6 +12,12 @@ public sealed partial class WaveGameRuleSystem
 {
     [Dependency] private IPrototypeManager _proto = default!;
 
+    private static readonly Color ModifierColor = Color.FromHex("#CE93D8");
+    private static readonly Color WeeklyColor = Color.FromHex("#FFB300");
+
+    // The reroll vote runs half as long as the difficulty vote, but never shorter than this.
+    private const int MinRerollVoteSeconds = 5;
+
     private IVoteHandle? _rerollVote;
 
     private void RollModifiers(WaveGameRuleComponent comp)
@@ -36,12 +42,12 @@ public sealed partial class WaveGameRuleSystem
         {
             _chatManager.DispatchServerMarkupAnnouncement(Loc.GetString("fs-modifier-announce",
                 ("name", Loc.GetString(modifier.Name)),
-                ("description", Loc.GetString(modifier.Description))), Color.FromHex("#CE93D8"));
+                ("description", Loc.GetString(modifier.Description))), ModifierColor);
         }
 
         _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-modifier-bonus",
             ("percent", MathF.Round((FSRoundModifierRules.RewardMultiplier(modifiers) - 1f) * 100f))),
-            Color.FromHex("#CE93D8"));
+            ModifierColor);
     }
 
     public IEnumerable<FSRoundModifierPrototype> GetModifiers(WaveGameRuleComponent comp)
@@ -54,14 +60,24 @@ public sealed partial class WaveGameRuleSystem
     }
 
     public IReadOnlyList<FSRoundModifierPrototype> GetActiveModifiers()
-        => TryGetActiveRule(out _, out var comp, out _) ? GetModifiers(comp).ToList() : Array.Empty<FSRoundModifierPrototype>();
+        => TryGetActiveRule(out _, out var comp) ? GetModifiers(comp).ToList() : Array.Empty<FSRoundModifierPrototype>();
 
+    // Runs for every spawned enemy, so it walks the ids rather than an iterator.
     public float ModifierFactor(WaveGameRuleComponent comp, Func<FSRoundModifierPrototype, float> factor)
-        => FSRoundModifierRules.Product(GetModifiers(comp), factor);
+    {
+        var product = 1f;
+        foreach (var id in comp.Modifiers)
+        {
+            if (_proto.TryIndex(id, out var modifier))
+                product *= factor(modifier);
+        }
+
+        return product;
+    }
 
     public bool TrySetModifiers(IReadOnlyList<ProtoId<FSRoundModifierPrototype>> ids)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked || comp.WeeklyKey != null)
+        if (!TryGetActiveRule(out _, out var comp) || comp.DifficultyLocked || comp.WeeklyKey != null)
             return false;
 
         var modifiers = new List<FSRoundModifierPrototype>();
@@ -82,7 +98,7 @@ public sealed partial class WaveGameRuleSystem
     public bool TryStartRerollVote(ICommonSession? initiator, out string error)
     {
         error = string.Empty;
-        if (!TryGetActiveRule(out _, out var comp, out _))
+        if (!TryGetActiveRule(out _, out var comp))
         {
             error = Loc.GetString("fs-modifier-reroll-no-round");
             return false;
@@ -103,7 +119,7 @@ public sealed partial class WaveGameRuleSystem
         var options = new VoteOptions
         {
             Title = Loc.GetString("fs-modifier-reroll-title"),
-            Duration = TimeSpan.FromSeconds(Math.Max(5, _cfg.GetCVar(CCVars.FSDifficultyVoteSeconds) / 2)),
+            Duration = TimeSpan.FromSeconds(Math.Max(MinRerollVoteSeconds, _cfg.GetCVar(CCVars.FSDifficultyVoteSeconds) / 2)),
             Options =
             {
                 (Loc.GetString("fs-modifier-reroll-yes"), true),
@@ -124,7 +140,7 @@ public sealed partial class WaveGameRuleSystem
             return;
         _rerollVote = null;
 
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked)
+        if (!TryGetActiveRule(out _, out var comp) || comp.DifficultyLocked)
             return;
 
         comp.ModifiersRerolled = true;
@@ -152,7 +168,7 @@ public sealed partial class WaveGameRuleSystem
 
     public bool TryStartWeekly(FSWeeklyChallengePrototype challenge, string weekKey)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked || comp.WeeklyKey != null)
+        if (!TryGetActiveRule(out _, out var comp) || comp.DifficultyLocked || comp.WeeklyKey != null)
             return false;
 
         if (!TrySetModifiers(challenge.Modifiers) || !TrySetDifficulty(challenge.Difficulty))
@@ -164,7 +180,7 @@ public sealed partial class WaveGameRuleSystem
         CancelDifficultyVote();
         CancelRerollVote();
         _chatManager.DispatchServerMarkupAnnouncement(Loc.GetString("fs-weekly-started",
-            ("name", Loc.GetString(challenge.Name)), ("wave", challenge.ClearWave)), Color.FromHex("#FFB300"));
+            ("name", Loc.GetString(challenge.Name)), ("wave", challenge.ClearWave)), WeeklyColor);
         return true;
     }
 
@@ -172,7 +188,7 @@ public sealed partial class WaveGameRuleSystem
     {
         challenge = default!;
         weekKey = string.Empty;
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.WeeklyChallenge is not { } id || comp.WeeklyKey is not { } key)
+        if (!TryGetActiveRule(out _, out var comp) || comp.WeeklyChallenge is not { } id || comp.WeeklyKey is not { } key)
             return false;
 
         if (!_proto.TryIndex(id, out var proto))
@@ -183,5 +199,5 @@ public sealed partial class WaveGameRuleSystem
         return true;
     }
 
-    public bool IsLocked() => TryGetActiveRule(out _, out var comp, out _) && comp.DifficultyLocked;
+    public bool IsLocked() => TryGetActiveRule(out _, out var comp) && comp.DifficultyLocked;
 }

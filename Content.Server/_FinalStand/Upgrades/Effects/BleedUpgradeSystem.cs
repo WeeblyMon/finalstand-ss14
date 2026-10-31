@@ -17,7 +17,6 @@ public sealed partial class BleedUpgradeSystem : EntitySystem
     private readonly List<EntityUid> _expired = new();
 
     private static readonly TimeSpan BleedDuration = TimeSpan.FromSeconds(3);
-    private const float BleedScalePerLevel = 0.2f;
 
     public override void Initialize()
     {
@@ -51,14 +50,14 @@ public sealed partial class BleedUpgradeSystem : EntitySystem
             RemComp<FSBleedingComponent>(uid);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;
         if (ev.State is not { } state || state.BleedLevel <= 0)
             return;
 
-        var dps = ev.Damage.GetTotal().Float() * BleedScalePerLevel * state.BleedLevel;
+        var dps = ev.Damage.GetTotal().Float() * state.BleedScale;
         if (dps <= 0f)
             return;
 

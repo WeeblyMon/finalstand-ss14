@@ -31,6 +31,8 @@ public static class FSWeeklyRules
 {
     public const int ClearPerkPoints = 2;
 
+    private const int LastCallHourUtc = 18;
+
     private static readonly DateTime Epoch = new(2001, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     public static string WeekKey(DateTime utc)
@@ -52,5 +54,5 @@ public static class FSWeeklyRules
     }
 
     public static bool IsLastCall(DateTime utc)
-        => utc.DayOfWeek == DayOfWeek.Sunday && utc.Hour >= 18;
+        => utc.DayOfWeek == DayOfWeek.Sunday && utc.Hour >= LastCallHourUtc;
 }

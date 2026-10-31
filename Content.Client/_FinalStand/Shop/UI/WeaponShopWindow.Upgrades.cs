@@ -25,7 +25,7 @@ public sealed partial class WeaponShopWindow
     private static readonly Color GoldEdge = Color.FromHex("#e3bd70");
     private const float ButtonColumn = 124f;
 
-    private Control BuildStatBar(string label, float fill, string numericText,
+    private Control BuildStatBar(string labelKey, float fill, string numericText,
         Color? valueColor = null, string? valueTooltip = null)
     {
         var tile = new PanelContainer { HorizontalExpand = true };
@@ -34,7 +34,7 @@ public sealed partial class WeaponShopWindow
         var head = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
         head.AddChild(new Label
         {
-            Text = label.ToUpperInvariant(),
+            Text = Loc.GetString(labelKey).ToUpperInvariant(),
             FontOverride = _fontCaption,
             FontColorOverride = FSUiPalette.TextMuted,
             HorizontalExpand = true,
@@ -79,7 +79,7 @@ public sealed partial class WeaponShopWindow
             BaseText = numericText,
             BaseColor = valueColor,
         };
-        _statBarRefs[label] = refs;
+        _statBarRefs[labelKey] = refs;
         ApplyStatBar(refs, fill, numericText, valueColor, false);
 
         return tile;
@@ -97,7 +97,7 @@ public sealed partial class WeaponShopWindow
 
         if (visible.Count == 0)
         {
-            UpgradesContainer.AddChild(new Label { Text = "No upgrades available.", FontColorOverride = FSUiPalette.TextMuted });
+            UpgradesContainer.AddChild(new Label { Text = Loc.GetString("fs-weapon-shop-no-upgrades"), FontColorOverride = FSUiPalette.TextMuted });
             return;
         }
 
@@ -115,19 +115,19 @@ public sealed partial class WeaponShopWindow
         var statUps = visible.Where(d => IsStatUpgrade(d.Type)).ToList();
         var special = visible.Where(d => !IsStatUpgrade(d.Type)).ToList();
         if (statUps.Count > 0)
-            UpgradesContainer.AddChild(BuildGroup("STAT UPGRADES", "Hover to preview on the stat tiles", statUps));
+            UpgradesContainer.AddChild(BuildGroup(Loc.GetString("fs-weapon-shop-group-stat"), Loc.GetString("fs-weapon-shop-group-stat-hint"), statUps));
         if (special.Count > 0)
-            UpgradesContainer.AddChild(BuildGroup(statUps.Count > 0 ? "SPECIAL" : "UPGRADES", "", special));
+            UpgradesContainer.AddChild(BuildGroup(statUps.Count > 0 ? Loc.GetString("fs-weapon-shop-group-special") : Loc.GetString("fs-weapon-shop-group-upgrades"), "", special));
     }
 
     private string WeaponGroupTitle(string? protoId)
     {
         if (protoId == null)
-            return "GENERAL UPGRADES";
+            return Loc.GetString("fs-weapon-shop-group-general");
 
         return _proto.TryIndex<EntityPrototype>(protoId, out var proto)
-            ? $"{proto.Name.ToUpperInvariant()} UPGRADES"
-            : "UPGRADES";
+            ? Loc.GetString("fs-weapon-shop-group-weapon", ("weapon", proto.Name.ToUpperInvariant()))
+            : Loc.GetString("fs-weapon-shop-group-upgrades");
     }
 
     private void RefreshProgress(int bought, int total)
@@ -261,7 +261,7 @@ public sealed partial class WeaponShopWindow
         {
             text.AddChild(new Label
             {
-                Text = $"Unlocks with research: {lockedBy}",
+                Text = Loc.GetString("fs-weapon-shop-unlocks-with-research", ("node", lockedBy!)),
                 FontOverride = _fontCaption,
                 FontColorOverride = FSUiPalette.StateResearch,
             });
@@ -330,7 +330,7 @@ public sealed partial class WeaponShopWindow
             var badge = new PanelContainer { MinHeight = 38, PanelOverride = Box(MaxedFill, MaxedEdge, new Thickness(1)) };
             badge.AddChild(new Label
             {
-                Text = "MAXED",
+                Text = Loc.GetString("fs-weapon-shop-upgrade-maxed"),
                 FontOverride = _fontBold,
                 FontColorOverride = FSUiPalette.Currency,
                 HorizontalAlignment = HAlignment.Center,
@@ -351,32 +351,32 @@ public sealed partial class WeaponShopWindow
 
         if (def.IsStub)
         {
-            button.Text = "SOON";
-            sub = "Not available yet";
+            button.Text = Loc.GetString("fs-weapon-shop-upgrade-soon");
+            sub = Loc.GetString("fs-weapon-shop-upgrade-soon-sub");
             (btnFill, btnEdge, btnText) = (FSUiPalette.BgElevated, FSUiPalette.BgTrack, FSUiPalette.TextMuted);
         }
         else if (locked)
         {
-            button.Text = "LOCKED";
+            button.Text = Loc.GetString("fs-weapon-shop-upgrade-locked");
             button.ToolTip = Loc.GetString("shop-upgrade-locked-research", ("node", lockedBy!));
-            sub = "Needs research";
+            sub = Loc.GetString("fs-weapon-shop-upgrade-needs-research");
             subColor = FSUiPalette.StateResearch;
             (btnFill, btnEdge, btnText) = (Color.FromHex("#221c27"), LockedEdge, FSUiPalette.StateResearch);
         }
         else if (!_owned)
         {
-            sub = "Own it first";
+            sub = Loc.GetString("fs-weapon-shop-upgrade-own-first");
             (btnFill, btnEdge, btnText) = (FSUiPalette.BgElevated, FSUiPalette.BgTrack, FSUiPalette.TextMuted);
         }
         else if (!afford)
         {
-            sub = $"{Money(cost - _credits)} short";
+            sub = Loc.GetString("fs-weapon-shop-upgrade-short", ("amount", Money(cost - _credits)));
             subColor = FSUiPalette.StateNegative;
             (btnFill, btnEdge, btnText) = (FSUiPalette.BgElevated, FSUiPalette.BgTrack, FSUiPalette.TextMuted);
         }
         else
         {
-            sub = level == 0 ? "Unlock" : $"To level {level + 1}";
+            sub = level == 0 ? Loc.GetString("fs-weapon-shop-upgrade-unlock") : Loc.GetString("fs-weapon-shop-upgrade-to-level", ("level", level + 1));
             (btnFill, btnEdge, btnText) = (FSUiPalette.Currency, GoldEdge, FSUiPalette.BgDeep);
         }
 
@@ -395,7 +395,7 @@ public sealed partial class WeaponShopWindow
     private static string Delta(string from, string to)
     {
         if (!TryLeadingNumber(from, out var a) || !TryLeadingNumber(to, out var b))
-            return "NEW";
+            return Loc.GetString("fs-weapon-shop-delta-new");
         var d = b - a;
         var text = Math.Abs(d % 1f) < 0.001f ? d.ToString("0", CultureInfo.InvariantCulture) : d.ToString("0.0#", CultureInfo.InvariantCulture);
         return d > 0 ? "+" + text : text;

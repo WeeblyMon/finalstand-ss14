@@ -1,4 +1,3 @@
-// Red-tints weapons carrying FSCritReadyComponent for the Pirate crit visual.
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Robust.Client.GameObjects;
 

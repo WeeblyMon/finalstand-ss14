@@ -1,4 +1,3 @@
-// Keeps a job audible while it runs: plays a short cycle of tool sounds at the work site until it finishes or is cancelled.
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;

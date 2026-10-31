@@ -28,6 +28,9 @@ public static class FSLadder
 {
     public const int PageSize = 10;
 
+    // Joins a run's player names; the record board splits them back on it.
+    public const string PlayerSeparator = ", ";
+
     public static FSPlayerBracket BracketFor(int players) => players switch
     {
         <= 1 => FSPlayerBracket.Solo,
@@ -35,7 +38,7 @@ public static class FSLadder
         _ => FSPlayerBracket.Crew,
     };
 
-    public static string BracketLocId(FSPlayerBracket bracket) => bracket switch
+    public static LocId BracketLocId(FSPlayerBracket bracket) => bracket switch
     {
         FSPlayerBracket.Squad => "fs-ladder-bracket-squad",
         FSPlayerBracket.Crew => "fs-ladder-bracket-crew",

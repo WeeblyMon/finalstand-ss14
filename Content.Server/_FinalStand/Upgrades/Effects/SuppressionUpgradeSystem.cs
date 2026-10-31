@@ -36,7 +36,7 @@ public sealed partial class SuppressionUpgradeSystem : EntitySystem
         }
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;

@@ -1,4 +1,3 @@
-// Part of FSPlayerUpgradesSystem: gun statistics: rate of fire, spread, capacity, reload, firing mode.
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
@@ -34,27 +33,27 @@ public sealed partial class FSPlayerUpgradesSystem
                     Dirty(weapon, gunA);
                 }
                 {
-                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
+                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - WeaponUpgradeDef.PelletSpreadCutPerLevel);
                 }
                 break;
             case WeaponUpgradeType.Accuracy:
                 if (TryComp<GunComponent>(weapon, out var gunAcc))
                 {
-                    var d = def.ValuePerLevel;
+                    var (dMin, dMax, dInc) = def.AngleDeltaPerLevel();
 #pragma warning disable RA0002
-                    gunAcc.MinAngle = Angle.FromDegrees(Math.Max(0.0, gunAcc.MinAngle.Degrees - d * 0.5));
-                    gunAcc.MaxAngle = Angle.FromDegrees(Math.Max(gunAcc.MinAngle.Degrees, gunAcc.MaxAngle.Degrees - d * 0.2));
-                    gunAcc.AngleIncrease = Angle.FromDegrees(Math.Max(0.0, gunAcc.AngleIncrease.Degrees - d * 0.3));
+                    gunAcc.MinAngle = Angle.FromDegrees(Math.Max(0.0, gunAcc.MinAngle.Degrees - dMin));
+                    gunAcc.MaxAngle = Angle.FromDegrees(Math.Max(gunAcc.MinAngle.Degrees, gunAcc.MaxAngle.Degrees - dMax));
+                    gunAcc.AngleIncrease = Angle.FromDegrees(Math.Max(0.0, gunAcc.AngleIncrease.Degrees - dInc));
                     gunAcc.MinAngleModified = gunAcc.MinAngle;
                     gunAcc.MaxAngleModified = gunAcc.MaxAngle;
                     gunAcc.AngleIncreaseModified = gunAcc.AngleIncrease;
 #pragma warning restore RA0002
                     Dirty(weapon, gunAcc);
                 }
-                // WieldBonus is intentionally left unchanged — scaling it too drives MaxAngleModified negative, inverting CurrentAngle clamping when wielded.
+                // WieldBonus stays unchanged; scaling it too drives MaxAngleModified negative, inverting CurrentAngle clamping when wielded.
                 _gun.RefreshModifiers(weapon);
                 {
-                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
+                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - WeaponUpgradeDef.PelletSpreadCutPerLevel);
                 }
                 break;
             case WeaponUpgradeType.MagazineSize:

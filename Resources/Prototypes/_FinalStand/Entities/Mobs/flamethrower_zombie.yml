@@ -1,10 +1,11 @@
 # FINALSTAND: Flamethrower zombie — stops moving and sprays a fire cone when players are in range.
 # Spawns wave 9+, weighted at ~12.5% of wave composition via weighted selection.
 - type: entity
-  id: FSZombieFlamethrower
   parent: FSZombieFootsoldierBase
-  suffix: Flamethrower
+  id: FSZombieFlamethrower
   name: flamethrower zombie
+  suffix: Flamethrower
+  description: A corpse rigged with a flamethrower. It plants its feet, then hoses everything in front of it with fire.
   components:
   - type: FSSignatureAilment
     ailments:
@@ -23,6 +24,7 @@
   - type: FSFlamethrower
     flameRange: 8
     fireProjectileSpeed: 14
+    fireStacks: 0.3
     attackCooldown: 3
     trackingRotationSpeed: 4.5
   - type: MobThresholds

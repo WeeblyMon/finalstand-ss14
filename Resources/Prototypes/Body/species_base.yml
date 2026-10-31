@@ -157,7 +157,7 @@
 - type: entity
   abstract: true
   parent:
-  - FSPlayerVitals
+  - FSPlayerVitals # FINALSTAND
   - MobBloodstream
   - MobRespirator
   - MobAtmosStandard
@@ -166,10 +166,12 @@
   - BaseMobDestructible
   id: BaseSpeciesMobOrganic
   save: false
+  # FINALSTAND: vanilla's SlowOnDamage, PassiveDamage, Satiation (hunger/thirst) and Stripping are left off the
+  # species bases on purpose; ailments handle slowdown and regen. Don't bring them back with an upstream sync.
   components:
   - type: Flammable
     fireSpread: false
-  - type: FSSprint
+  - type: FSSprint # FINALSTAND
   - type: Barotrauma
     damage:
       types:

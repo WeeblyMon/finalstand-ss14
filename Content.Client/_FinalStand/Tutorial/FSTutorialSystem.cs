@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Tutorial;
+using Content.Shared.Administration;
 using Robust.Client.GameObjects;
 using Robust.Shared.Console;
 using Robust.Shared.Prototypes;
@@ -50,6 +51,8 @@ public sealed partial class FSTutorialSystem : EntitySystem
     }
 }
 
+// Any player: the escape menu's Tutorial button runs it.
+[AnyCommand]
 public sealed partial class FSTutorialCommand : LocalizedEntityCommands
 {
     [Dependency] private FSTutorialSystem _tutorial = default!;

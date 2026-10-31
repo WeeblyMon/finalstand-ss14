@@ -11,7 +11,7 @@ public sealed partial class FSDevastatorComponent : Component
     [DataField] public float LifestealAmount = 15f;
     [DataField] public float ArmorBypassFraction = 0.5f;
 
-    // 0 = full HP, 1 = near death — networked so client can drive tint + glow
+    // 0 = full HP, 1 = near death. Networked so the client can drive tint and glow.
     [AutoNetworkedField] public float BerserkRatio = 0f;
 
     // Server-only runtime state

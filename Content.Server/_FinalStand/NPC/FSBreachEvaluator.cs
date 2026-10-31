@@ -39,13 +39,14 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSUpgradeSystem _upgrades = default!;
 
-    // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
+    // Reused across ticks; these queries run at 10 Hz per zombie and must not allocate.
     private readonly HashSet<Entity<DestructibleComponent>> _destructibleBuffer = new();
-    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _peerBuffer = new();
 
+    // How many zombies are breaching each structure, counted once per tick across the horde. A radius scan per
+    // evaluation made every breacher look at every other one.
     private readonly Dictionary<EntityUid, int> _attackerTally = new();
-
-    private const float AttackerTallyRadius = 8f;
+    private GameTick _tallyTick;
+    private EntityUid? _ownTarget;
 
     private static readonly TimeSpan SelectionWindow = TimeSpan.FromSeconds(15);
     private const int BlacklistThreshold = 3;
@@ -53,21 +54,27 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     private static readonly Vector2i[] CardinalOffsets =
         [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
 
-    public void BuildAttackerTally(MapCoordinates epicenter, EntityUid exclude)
+    private void PrepareAttackerTally(EntityUid zombie)
     {
-        _attackerTally.Clear();
-        _peerBuffer.Clear();
-        _lookup.GetEntitiesInRange(epicenter, AttackerTallyRadius, _peerBuffer);
+        _ownTarget = TryComp<HTNComponent>(zombie, out var ownHtn)
+                     && ownHtn.Blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.BreachTarget, out var own, EntityManager)
+            ? own
+            : null;
 
-        foreach (var (peer, _) in _peerBuffer)
+        if (_tallyTick == _timing.CurTick)
+            return;
+
+        _tallyTick = _timing.CurTick;
+        _attackerTally.Clear();
+
+        var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
+        while (query.MoveNext(out _, out _, out _, out var htn))
         {
-            if (peer == exclude) continue;
-            if (!TryComp<HTNComponent>(peer, out var peerHtn)) continue;
-            if (!peerHtn.Blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.BreachTarget, out var bt, EntityManager))
+            if (!htn.Blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.BreachTarget, out var target, EntityManager))
                 continue;
 
-            _attackerTally.TryGetValue(bt, out var count);
-            _attackerTally[bt] = count + 1;
+            _attackerTally.TryGetValue(target, out var count);
+            _attackerTally[target] = count + 1;
         }
     }
 
@@ -95,7 +102,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         float baseDamage, Vector2 zombieWorldPos, MapId mapId, FSBreachStateComponent? state,
         TimeSpan curTime, float cachedScore, out EntityUid better, out float betterScore)
     {
-        BuildAttackerTally(epicenter, zombie);
+        PrepareAttackerTally(zombie);
         _destructibleBuffer.Clear();
         _lookup.GetEntitiesInRange(epicenter, 4f, _destructibleBuffer);
 
@@ -207,7 +214,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         var epicenter = new MapCoordinates(zombieWorldPos, mapId);
         var curTime = _timing.CurTime;
 
-        BuildAttackerTally(epicenter, zombie);
+        PrepareAttackerTally(zombie);
 
         if (state != null)
             PruneExpiredBlacklist(state, curTime);
@@ -217,9 +224,12 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         if (best == EntityUid.Invalid)
             (best, score) = BestInRange(epicenter, 6f, zombie, baseDamage, zombieWorldPos, mapId, state, curTime, mazeTargetPos);
 
+        // Stalled with nothing to chase, the bar drops the longer nothing clears it, and in the end the best there is
+        // will do: without a path through it an intact wall scores under 0.005, so a zombie shut in by solid walls
+        // only got out if a wander happened to path through one.
         var minScore = isMazeMode
             ? MazeMinScore
-            : (failCount >= 5 ? 0.005f : 0.01f);
+            : failCount >= TakeAnythingAfterFails ? 0f : failCount >= 5 ? 0.005f : 0.01f;
 
         if (best == EntityUid.Invalid || score < minScore)
             return null;
@@ -235,6 +245,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     }
 
     public const float MazeMinScore = 0.015f;
+    private const int TakeAnythingAfterFails = 8;
 
     public static void PruneExpiredBlacklist(FSBreachStateComponent state, TimeSpan curTime)
     {
@@ -315,6 +326,10 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     private float PackBonus(EntityUid structure)
     {
         _attackerTally.TryGetValue(structure, out var attackers);
+        // The zombie's own vote doesn't count towards the pack.
+        if (structure == _ownTarget)
+            attackers--;
+
         return 1f + MathF.Min(attackers, 5) * 0.2f;
     }
 

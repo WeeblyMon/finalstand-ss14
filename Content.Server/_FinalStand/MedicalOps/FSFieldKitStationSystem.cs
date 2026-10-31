@@ -134,7 +134,8 @@ public sealed partial class FSFieldKitStationSystem : EntitySystem
     // Runs the kit's reaction at the station and puts only the products in the jug, so a full jug brews its whole volume.
     private void OnBrew(Entity<FSFieldKitStationComponent> ent, ref FSFieldKitBrewMessage args)
     {
-        if (!Ready(ent, args.Actor, out var jugItem, out var jug, out var jugSolution)
+        if (args.Kit.Id is null
+            || !Ready(ent, args.Actor, out var jugItem, out var jug, out var jugSolution)
             || !_prototypes.TryIndex(args.Kit, out var kit)
             || kit.Reaction is not { } reactionId
             || !_prototypes.TryIndex(reactionId, out ReactionPrototype? reaction)
@@ -212,7 +213,7 @@ public sealed partial class FSFieldKitStationSystem : EntitySystem
     // Tissue goes back to the tank rather than down the drain.
     private void OnDiscard(Entity<FSFieldKitStationComponent> ent, ref FSFieldKitDiscardMessage args)
     {
-        if (!TryGetJug(ent, out _, out var jug, out var jugSolution))
+        if (args.Reagent is null || !TryGetJug(ent, out _, out var jug, out var jugSolution))
             return;
 
         var removed = _solutions.RemoveReagent(jug, args.Reagent, jugSolution.GetTotalPrototypeQuantity(args.Reagent));
@@ -243,7 +244,10 @@ public sealed partial class FSFieldKitStationSystem : EntitySystem
 
     private void OnLabel(Entity<FSFieldKitStationComponent> ent, ref FSFieldKitLabelMessage args)
     {
-        var label = args.Label.Trim();
+        if (args.Label is not { } raw)
+            return;
+
+        var label = raw.Trim();
         if (label.Length > SharedChemMaster.LabelMaxLength)
             label = label[..(int) SharedChemMaster.LabelMaxLength];
 

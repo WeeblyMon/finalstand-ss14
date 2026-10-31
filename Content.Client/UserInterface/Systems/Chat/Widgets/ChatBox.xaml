@@ -10,6 +10,7 @@
     <PanelContainer Name="ChatWindowPanel" Access="Public" HorizontalExpand="True" VerticalExpand="True"
                     StyleClasses="StyleNano.StyleClassChatPanel">
         <BoxContainer Orientation="Vertical" SeparationOverride="4" HorizontalExpand="True" VerticalExpand="True">
+            <!-- FINALSTAND: drag grip and collapse toggle -->
             <BoxContainer Name="FSGrip" Access="Public" Orientation="Horizontal" MouseFilter="Ignore"
                           MinSize="0 16" Margin="6 3 4 0">
                 <Label Name="FSGripLabel" Access="Public" Text="CHAT" />

@@ -29,13 +29,14 @@ public sealed class FSRiotShieldStatusControl : PollingItemStatusControl<FSRiotS
     {
         if (data.Broken)
         {
-            _label.SetMarkup("Shield: [color=red]BROKEN[/color]");
+            _label.SetMarkup(Loc.GetString("fs-riot-shield-status-broken"));
             return;
         }
 
         var pct = data.Max > 0f ? data.Current / data.Max : 0f;
         var color = pct > 0.5f ? "lime" : pct > 0.25f ? "yellow" : "red";
-        _label.SetMarkup($"Shield: [color={color}]{(int)data.Current}[/color] / {(int)data.Max}");
+        _label.SetMarkup(Loc.GetString("fs-riot-shield-status",
+            ("color", color), ("current", (int) data.Current), ("max", (int) data.Max)));
     }
 
     public record struct Data(float Current, float Max, bool Broken);

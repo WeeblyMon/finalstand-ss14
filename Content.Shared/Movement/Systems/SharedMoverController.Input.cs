@@ -135,7 +135,9 @@ namespace Content.Shared.Movement.Systems
             args.State = new InputMoverComponentState()
             {
                 CanMove = entity.Comp.CanMove,
-                RelativeEntity = GetNetEntity(entity.Comp.RelativeEntity),
+                // FINALSTAND: the old relative can be deleted inside the second before the mover takes its new grid
+                // (dungeon fill deletes its temporary map), and naming a deleted entity logs an error per session.
+                RelativeEntity = TryGetNetEntity(entity.Comp.RelativeEntity, out var relative) ? relative : null,
                 LerpTarget = entity.Comp.LerpTarget,
                 HeldMoveButtons = entity.Comp.HeldMoveButtons,
                 RelativeRotation = entity.Comp.RelativeRotation,
@@ -188,7 +190,8 @@ namespace Content.Shared.Movement.Systems
             // 2. If we go from grid -> grid then (after lerp time) snap to nearest cardinal (probably imperceptible)
             // 3. If we go from map -> grid then (after lerp time) snap to nearest cardinal
 
-            if (mover.RelativeEntity.Equals(relative))
+            // FINALSTAND: ==, not Equals(object), which boxed the argument for every mover every tick.
+            if (mover.RelativeEntity == relative)
                 return false;
 
             // Okay need to get our old relative rotation with respect to our new relative rotation

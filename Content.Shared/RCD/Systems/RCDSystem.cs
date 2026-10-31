@@ -72,7 +72,7 @@ public sealed partial class RCDSystem : EntitySystem
         // On init, set the RCD to its first available recipe
         if (component.AvailablePrototypes.Count > 0)
         {
-            if (!HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid))
+            if (!HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)) // FINALSTAND
                 component.ProtoId = component.AvailablePrototypes.ElementAt(0);
             Dirty(uid, component);
 
@@ -125,7 +125,7 @@ public sealed partial class RCDSystem : EntitySystem
 
     private void OnAfterInteract(EntityUid uid, RCDComponent component, AfterInteractEvent args)
     {
-        if (args.Handled || !args.CanReach && !HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)) // FS
+        if (args.Handled || !args.CanReach && !HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)) // FINALSTAND
             return;
 
         var user = args.User;
@@ -216,9 +216,9 @@ public sealed partial class RCDSystem : EntitySystem
 
         #endregion
 
-        var delayEv = new Content.Shared._FinalStand.RCD.FSRCDDelayEvent(user, location, delay); // FS
-        RaiseLocalEvent(uid, ref delayEv); // FS
-        delay = delayEv.Delay; // FS
+        var delayEv = new Content.Shared._FinalStand.RCD.FSRCDDelayEvent(user, location, delay); // FINALSTAND
+        RaiseLocalEvent(uid, ref delayEv); // FINALSTAND
+        delay = delayEv.Delay; // FINALSTAND
 
         // Try to start the do after
         var effect = Spawn(effectPrototype, _mapSystem.ToCenterCoordinates(tile, mapGrid));
@@ -238,7 +238,7 @@ public sealed partial class RCDSystem : EntitySystem
             AttemptFrequency = AttemptFrequency.EveryTick,
             CancelDuplicate = false,
             BlockDuplicate = false,
-            DistanceThreshold = Reach(uid) // FS
+            DistanceThreshold = Reach(uid) // FINALSTAND
         };
 
         args.Handled = true;
@@ -311,7 +311,7 @@ public sealed partial class RCDSystem : EntitySystem
 
         // Play audio and consume charges
         _audio.PlayPredicted(component.SuccessSound, uid, args.User);
-        if (!HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid))
+        if (!HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)) // FINALSTAND
             _sharedCharges.AddCharges(uid, -args.Cost);
     }
 
@@ -338,7 +338,7 @@ public sealed partial class RCDSystem : EntitySystem
 
     #region Entity construction/deconstruction rule checks
 
-    public float Reach(EntityUid uid) => CompOrNull<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)?.Reach ?? SharedInteractionSystem.InteractionRange; // FS
+    public float Reach(EntityUid uid) => CompOrNull<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)?.Reach ?? SharedInteractionSystem.InteractionRange; // FINALSTAND
 
     public bool IsRCDOperationStillValid(EntityUid uid, RCDComponent component, EntityUid gridUid, MapGridComponent mapGrid, TileRef tile, Vector2i position, EntityUid? target, EntityUid user, bool popMsgs = true)
     {
@@ -348,7 +348,7 @@ public sealed partial class RCDSystem : EntitySystem
     public bool IsRCDOperationStillValid(EntityUid uid, RCDComponent component, EntityUid gridUid, MapGridComponent mapGrid, TileRef tile, Vector2i position, Direction direction, EntityUid? target, EntityUid user, bool popMsgs = true)
     {
         var prototype = ProtoMan.Index(component.ProtoId);
-        var materialCosts = HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid);
+        var materialCosts = HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid); // FINALSTAND
 
         // Check that the RCD has enough ammo to get the job done
         var charges = _sharedCharges.GetCurrentCharges(uid);
@@ -372,8 +372,8 @@ public sealed partial class RCDSystem : EntitySystem
 
         // Exit if the target / target location is obstructed
         var unobstructed = (target == null)
-            ? _interaction.InRangeUnobstructed(user, _mapSystem.GridTileToWorld(gridUid, mapGrid, position), Reach(uid), popup: popMsgs) // FS
-            : _interaction.InRangeUnobstructed(user, target.Value, Reach(uid), popup: popMsgs); // FS
+            ? _interaction.InRangeUnobstructed(user, _mapSystem.GridTileToWorld(gridUid, mapGrid, position), Reach(uid), popup: popMsgs) // FINALSTAND
+            : _interaction.InRangeUnobstructed(user, target.Value, Reach(uid), popup: popMsgs); // FINALSTAND
 
         if (!unobstructed)
             return false;
@@ -604,7 +604,7 @@ public sealed partial class RCDSystem : EntitySystem
                     return;
 
                 _tile.ReplaceTile(tile, (ContentTileDefinition)tileDef, gridUid, mapGrid);
-                var tileBuilt = new Content.Shared._FinalStand.RCD.FSRCDTileBuiltEvent(user, _mapSystem.GridTileToLocal(gridUid, mapGrid, position));
+                var tileBuilt = new Content.Shared._FinalStand.RCD.FSRCDTileBuiltEvent(user, _mapSystem.GridTileToLocal(gridUid, mapGrid, position)); // FINALSTAND
                 RaiseLocalEvent(uid, ref tileBuilt);
                 _adminLogger.Add(LogType.RCD, LogImpact.High, $"{ToPrettyString(user):user} used RCD to set grid: {gridUid} {position} to {prototype.Prototype}");
                 break;
@@ -629,8 +629,8 @@ public sealed partial class RCDSystem : EntitySystem
                 var ent = SpawnAttachedTo(prototype.Prototype, _mapSystem.GridTileToLocal(gridUid, mapGrid, position), rotation: rotation);
 
                 _adminLogger.Add(LogType.RCD, LogImpact.High, $"{ToPrettyString(user):user} used RCD to spawn {ToPrettyString(ent)} at {position} on grid {gridUid}");
-                var built = new Content.Shared._FinalStand.RCD.FSRCDBuiltEvent(user, ent, direction); // FS
-                RaiseLocalEvent(uid, ref built); // FS
+                var built = new Content.Shared._FinalStand.RCD.FSRCDBuiltEvent(user, ent, direction); // FINALSTAND
+                RaiseLocalEvent(uid, ref built); // FINALSTAND
                 break;
 
             case RcdMode.Deconstruct:

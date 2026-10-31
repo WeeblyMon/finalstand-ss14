@@ -4,6 +4,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._FinalStand.MedicalOps;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSMedicalBonusSystem))]
 public sealed partial class FSMedicalBonusComponent : Component
 {
     [DataField, AutoNetworkedField]

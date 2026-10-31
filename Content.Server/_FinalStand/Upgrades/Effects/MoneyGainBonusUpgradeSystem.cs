@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Mind;
@@ -10,6 +11,7 @@ namespace Content.Server._FinalStand.Upgrades.Effects;
 public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
 {
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSWaveRewardsSystem _rewards = default!;
     [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()
@@ -19,30 +21,37 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSPendingKillBonusComponent, MobStateChangedEvent>(OnEnemyDied);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;
         if (ev.State is not { } state)
             return;
 
-        if (state.MoneyGainBonusPerKill > 0 || state.MoneyGainPercentPerKill > 0f)
-        {
-            var bonus = EnsureComp<FSPendingKillBonusComponent>(ev.Target);
-            bonus.MoneyBonus = state.MoneyGainBonusPerKill;
-            bonus.MoneyPercent = state.MoneyGainPercentPerKill;
-        }
+        Mark(ev.Target, ev.Shooter, state.MoneyGainBonusPerKill, state.MoneyGainPercentPerKill);
+    }
+
+    // The latest hitter's weapon decides the bonus, and only they collect it.
+    public void Mark(EntityUid target, EntityUid? owner, int bonus, float percent)
+    {
+        if ((bonus <= 0 && percent <= 0f) || owner == null || !HasComp<WaveSpawnedTagComponent>(target))
+            return;
+
+        var pending = EnsureComp<FSPendingKillBonusComponent>(target);
+        pending.MoneyBonus = bonus;
+        pending.MoneyPercent = percent;
+        pending.Payee = owner;
     }
 
     private void OnEnemyDied(EntityUid uid, FSPendingKillBonusComponent bonus, ref MobStateChangedEvent args)
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead)
             return;
-        if (bonus.MoneyBonus <= 0)
-            return;
-        if (args.Origin == null || !_mind.TryGetMind(args.Origin.Value, out var mindId, out var mindComp))
+        if (args.Origin is not { } killer || killer != bonus.Payee || !_mind.TryGetMind(killer, out var mindId, out _))
             return;
 
-        _wallet.GiveCredits(mindId, bonus.MoneyBonus);
+        var credits = bonus.MoneyBonus + (int) MathF.Round(bonus.MoneyPercent * _rewards.KillCredits(uid));
+        if (credits > 0)
+            _wallet.GiveCredits(mindId, credits);
     }
 }

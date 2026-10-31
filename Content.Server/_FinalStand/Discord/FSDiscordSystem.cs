@@ -10,7 +10,6 @@ using Content.Server.Discord;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
-using Content.Shared._FinalStand.Titles;
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
@@ -46,6 +45,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
 
     private WebhookIdentifier? _webhook;
     private FSRunRecordedEvent? _run;
+    private int? _victoryWave;
     private readonly List<(FSRunRecord Run, FSRunRecord? Previous)> _records = new();
     private readonly List<(string Player, string Title)> _rareTitles = new();
     private TimeSpan? _lastLivePing;
@@ -58,7 +58,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
     {
         base.Initialize();
 
-        _cfg.OnValueChanged(CCVars.FSDiscordWebhook, url =>
+        Subs.CVar(_cfg, CCVars.FSDiscordWebhook, url =>
         {
             _webhook = null;
             if (string.IsNullOrWhiteSpace(url))
@@ -72,6 +72,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
         }, true);
 
         SubscribeLocalEvent<FSRunRecordedEvent>(OnRunRecorded);
+        SubscribeLocalEvent<FSRoundVictoryEvent>(OnVictory);
         SubscribeLocalEvent<FSLadderRecordEvent>(OnLadderRecord);
         SubscribeLocalEvent<FSTitleEarnedEvent>(OnTitleEarned);
         SubscribeLocalEvent<RoundEndMessageEvent>(OnRoundEndMessage);
@@ -116,11 +117,15 @@ public sealed partial class FSDiscordSystem : EntitySystem
     private void ResetRound()
     {
         _run = null;
+        _victoryWave = null;
         _records.Clear();
         _rareTitles.Clear();
     }
 
     private void OnRunRecorded(ref FSRunRecordedEvent ev) => _run = ev;
+
+    // Endless keeps the run going past the win, so the run's wave count isn't the wave it was won at.
+    private void OnVictory(ref FSRoundVictoryEvent ev) => _victoryWave = ev.WaveNumber;
 
     private void OnLadderRecord(ref FSLadderRecordEvent ev) => _records.Add((ev.Run, ev.Previous));
 
@@ -144,6 +149,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
             _baseServer.ServerName,
             _ticker.RoundId,
             recorded.Run,
+            _victoryWave,
             FindMvp(byRevives: false),
             FindMvp(byRevives: true),
             _records.ToList(),
@@ -162,7 +168,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
         {
             var kills = _leveling.GetRoundStats(mindId).Kills;
             var revives = _medicalStats.GetStats(mindId).Revives;
-            var candidate = new FSDiscordMessages.Mvp(mind.CharacterName ?? "Unknown", kills, revives);
+            var candidate = new FSDiscordMessages.Mvp(mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name"), kills, revives);
             var score = byRevives ? revives : kills;
             var bestScore = best == null ? 0 : byRevives ? best.Value.Revives : best.Value.Kills;
             if (score > bestScore)
@@ -208,11 +214,11 @@ public sealed partial class FSDiscordSystem : EntitySystem
         {
             var response = await _discord.CreateMessage(webhook, payload);
             if (!response.IsSuccessStatusCode)
-                Log.Warning($"[FSDiscord] Webhook returned {(int) response.StatusCode}");
+                Log.Warning($"Webhook returned {(int) response.StatusCode}");
         }
         catch (Exception e)
         {
-            Log.Error($"[FSDiscord] Failed to post to Discord: {e.Message}");
+            Log.Error($"Failed to post to Discord: {e.Message}");
         }
     }
 }

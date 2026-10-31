@@ -1,11 +1,12 @@
-// Recovers wave zombies that stop making progress: nudges the boxed-in, relocates the stranded.
 using System.Numerics;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.Systems;
 using Content.Shared.CCVar;
+using Content.Shared.Mobs.Components;
 using Content.Shared.NPC;
+using Content.Shared.Weapons.Melee.Events;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
@@ -25,7 +26,8 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
 
-    private record struct StuckState(Vector2 LastPos, TimeSpan LastMoveTime, TimeSpan LastNudge, int NudgeCount, TimeSpan NoPathSince);
+    private record struct StuckState(Vector2 LastPos, TimeSpan LastMoveTime, TimeSpan LastNudge, int NudgeCount, TimeSpan NoPathSince,
+        TimeSpan LastStructureHit);
     private readonly Dictionary<EntityUid, StuckState> _state = new();
 
     private readonly List<EntityUid> _removeBuffer = new();
@@ -40,6 +42,10 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     private const float NudgeCooldown = 8f;
     private const float PurgeInterval = 30f;
     private const float NoPathGraceSeconds = 5f;
+    private const float QueueRange = 3f;
+    private const int CrowdedNeighbours = 4;
+    // Breaking through something (a barricade, a door) keeps a boxed-in zombie from being deleted for this long.
+    private static readonly TimeSpan StructureHitGrace = TimeSpan.FromSeconds(5);
 
     // Stuck detection works on a 20s horizon, so sampling faster than 1 Hz buys nothing.
     private const float TickInterval = 1f;
@@ -51,6 +57,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     {
         base.Initialize();
         UpdatesAfter.Add(typeof(NPCSteeringSystem));
+        SubscribeLocalEvent<WaveSpawnedTagComponent, MeleeHitEvent>(OnMeleeHit);
         Subs.CVar(_cfg, CCVars.WaveZombiePathingEnabled, v => _enabled = v, true);
         Subs.CVar(_cfg, CCVars.WaveZombieStuckNudgeLimit, v => _nudgeLimit = v, true);
     }
@@ -89,7 +96,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
             if (!_state.TryGetValue(uid, out var s))
             {
-                _state[uid] = new StuckState(worldPos, curTime, TimeSpan.Zero, 0, TimeSpan.Zero);
+                _state[uid] = new StuckState(worldPos, curTime, TimeSpan.Zero, 0, TimeSpan.Zero, TimeSpan.Zero);
                 continue;
             }
 
@@ -115,6 +122,12 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
                 _state[uid] = s = s with { NoPathSince = TimeSpan.Zero };
             }
 
+            if (IsFighting(uid, worldPos))
+            {
+                _state[uid] = s with { LastPos = worldPos, LastMoveTime = curTime, NudgeCount = 0 };
+                continue;
+            }
+
             if ((worldPos - s.LastPos).LengthSquared() >= StuckDistance * StuckDistance)
             {
                 _state[uid] = s with { LastPos = worldPos, LastMoveTime = curTime, NudgeCount = 0 };
@@ -127,6 +140,41 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
             TryRecover(uid, xform, ref s, curTime);
             _state[uid] = s;
         }
+    }
+
+    // A zombie is its own weapon, so its hits are raised on it.
+    private void OnMeleeHit(Entity<WaveSpawnedTagComponent> ent, ref MeleeHitEvent args)
+    {
+        if (!_state.TryGetValue(ent, out var s))
+            return;
+
+        foreach (var hit in args.HitEntities)
+        {
+            if (HasComp<MobStateComponent>(hit))
+                continue;
+
+            _state[ent] = s with { LastStructureHit = _timing.CurTime };
+            return;
+        }
+    }
+
+    // Standing at a target swinging, or queued just behind the ones that are, isn't being stuck.
+    // Without this, zombies holding the CCC got teleported around and then deleted.
+    private bool IsFighting(EntityUid uid, Vector2 worldPos)
+    {
+        // Holding behind another wave zombie (steering's queue) is waiting a turn, not being stuck.
+        if (TryComp<NPCSteeringComponent>(uid, out var steering) && steering.QueuedUntil != TimeSpan.Zero)
+            return true;
+
+        if (!TryComp<NPCMeleeCombatComponent>(uid, out var melee))
+            return false;
+
+        if (melee.Status == CombatStatus.Normal)
+            return true;
+
+        return melee.Status == CombatStatus.TargetOutOfRange
+               && TryComp(melee.Target, out TransformComponent? targetXform)
+               && (_transform.GetWorldPosition(targetXform) - worldPos).LengthSquared() <= QueueRange * QueueRange;
     }
 
     private bool IsFlowReachable(TransformComponent xform)
@@ -147,14 +195,14 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         if (_spawnerBuffer.Count == 0)
         {
-            Log.Info($"[FSStuckRecovery] Deleting stranded {ToPrettyString(uid)}: no reachable spawner");
+            Log.Info($"Deleting stranded {ToPrettyString(uid)}: no reachable spawner");
             QueueDel(uid);
             return;
         }
 
         _transform.SetCoordinates(uid, _random.Pick(_spawnerBuffer));
         ResetSteering(uid);
-        Log.Info($"[FSStuckRecovery] Relocated stranded {ToPrettyString(uid)} to reachable spawner.");
+        Log.Info($"Relocated stranded {ToPrettyString(uid)} to reachable spawner.");
     }
 
     private void CollectActiveSpawners()
@@ -190,9 +238,24 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
     private void TryRecover(EntityUid uid, TransformComponent xform, ref StuckState s, TimeSpan curTime)
     {
+        // Waiting in a crowd (the back rows at the CCC, a choke point) isn't being stuck.
+        if (xform.GridUid is { } crowdGrid && CountNeighbours(crowdGrid, xform) >= CrowdedNeighbours)
+        {
+            s = s with { LastPos = _transform.GetWorldPosition(xform), LastMoveTime = curTime, NudgeCount = 0 };
+            return;
+        }
+
         if (s.NudgeCount >= _nudgeLimit)
         {
-            Log.Info($"[FSStuckRecovery] Deleting wave zombie {ToPrettyString(uid)} after {s.NudgeCount} nudges.");
+            // Boxed in while breaking out: steering smashes the barricade or door in its way directly, not through
+            // melee combat, and a lone zombie on a tough barricade outlasts the nudges.
+            if (curTime - s.LastStructureHit < StructureHitGrace)
+            {
+                s = s with { LastPos = _transform.GetWorldPosition(xform), LastMoveTime = curTime, NudgeCount = 0 };
+                return;
+            }
+
+            Log.Info($"Deleting wave zombie {ToPrettyString(uid)} after {s.NudgeCount} nudges.");
             QueueDel(uid);
             return;
         }
@@ -202,7 +265,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         if (xform.GridUid is not { } gridUid)
         {
-            Log.Info($"[FSStuckRecovery] Deleting wave zombie {ToPrettyString(uid)} — off-map.");
+            Log.Info($"Deleting wave zombie {ToPrettyString(uid)} — off-map.");
             QueueDel(uid);
             return;
         }
@@ -210,7 +273,6 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         var (ourLayer, ourMask) = _physics.GetHardCollision(uid);
         var localPos = xform.LocalPosition;
         var myTile = HordeFlowFieldSystem.ToTile(localPos);
-        BuildNeighborCrowd(gridUid, myTile);
 
         EntityCoordinates? goalCoords = null;
         if (TryComp<NPCSteeringComponent>(uid, out var steering))
@@ -258,8 +320,8 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         if (target == null)
         {
-            s = s with { LastNudge = TimeSpan.Zero, NudgeCount = s.NudgeCount + 1 };
-            Log.Info($"[FSStuckRecovery] Wave zombie {ToPrettyString(uid)} at {myTile} fully boxed in (attempt {s.NudgeCount}/{_nudgeLimit}).");
+            s = s with { LastNudge = curTime, NudgeCount = s.NudgeCount + 1 };
+            Log.Info($"Wave zombie {ToPrettyString(uid)} at {myTile} fully boxed in (attempt {s.NudgeCount}/{_nudgeLimit}).");
             return;
         }
 
@@ -268,7 +330,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         var newWorldPos = _transform.GetWorldPosition(xform);
         s = s with { LastPos = newWorldPos, LastMoveTime = curTime, LastNudge = curTime, NudgeCount = s.NudgeCount + 1 };
-        Log.Info($"[FSStuckRecovery] Nudged wave zombie {ToPrettyString(uid)} from {myTile} (nudge {s.NudgeCount}/{_nudgeLimit}).");
+        Log.Info($"Nudged wave zombie {ToPrettyString(uid)} from {myTile} (nudge {s.NudgeCount}/{_nudgeLimit}).");
     }
 
     private void ResetSteering(EntityUid uid)
@@ -281,6 +343,23 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         steering.FailedPathCount = 0;
         steering.PathfindToken?.Cancel();
         steering.PathfindToken = null;
+    }
+
+    // Builds the per-tile crowd around the zombie and returns how many other zombies are next to it.
+    private int CountNeighbours(EntityUid gridUid, TransformComponent xform)
+    {
+        var myTile = HordeFlowFieldSystem.ToTile(xform.LocalPosition);
+        BuildNeighborCrowd(gridUid, myTile);
+
+        var total = 0;
+        foreach (var (tile, count) in _neighborCrowd)
+        {
+            if (Math.Abs(tile.X - myTile.X) <= 1 && Math.Abs(tile.Y - myTile.Y) <= 1)
+                total += count;
+        }
+
+        // The zombie itself is in its own tile.
+        return total - 1;
     }
 
     // Counts wave zombies per surrounding tile so the nudge prefers the least crowded step out.

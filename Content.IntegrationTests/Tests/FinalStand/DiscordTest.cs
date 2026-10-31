@@ -1,10 +1,13 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.Discord;
+using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Ladder;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
 using Content.Shared.GameTicking;
+using Robust.Shared;
+using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
@@ -14,6 +17,75 @@ public sealed class DiscordTest : GameTest
 {
     private static readonly DateTime At = new(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc);
 
+    // Test servers have no webhook. A timer or process hook would keep every discarded server alive (a stopping
+    // server never calls Shutdown), which ran the full suite out of memory.
+    [Test]
+    public async Task AServerWithoutAWebhookHoldsNoProcessHooks()
+    {
+        await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.System<FSDiscordStatusSystem>().HoldsProcessHooks, Is.False));
+    }
+
+    // Two servers run from one folder share a database. Keyed by webhook alone, both edited one message, so the
+    // channel only showed whichever server wrote last.
+    [Test]
+    public async Task EachServerKeepsItsOwnStatusMessage()
+    {
+        var status = SEntMan.System<FSDiscordStatusSystem>();
+        var store = SEntMan.System<FSPlayerDataStore>();
+        const string webhook = "test-webhook";
+
+        await Server.WaitAssertion(() =>
+        {
+            store.SetMeta("discord_status_message:" + webhook, "123");
+            try
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.That(status.LoadMessageId(webhook, 1212), Is.EqualTo(123ul), "the first server keeps the old shared message");
+                    Assert.That(status.LoadMessageId(webhook, 1213), Is.Null, "the second server posts a message of its own");
+                    Assert.That(status.LoadMessageId(webhook, 1212), Is.EqualTo(123ul), "the first server's message is stored under its port");
+                });
+            }
+            finally
+            {
+                store.SetMeta("discord_status_message:" + webhook, "");
+                store.SetMeta($"discord_status_message:{webhook}:1212", "");
+                store.SetMeta($"discord_status_message:{webhook}:1213", "");
+            }
+        });
+    }
+
+    // At process exit the server has already cleared its settings, so the offline message is built from the last
+    // live report instead of reading them again.
+    [Test]
+    public async Task TheOfflineReportKeepsWhatTheLastLiveReportSaid()
+    {
+        var status = SEntMan.System<FSDiscordStatusSystem>();
+        var cfg = Server.ResolveDependency<IConfigurationManager>();
+
+        await Server.WaitAssertion(() =>
+        {
+            var name = cfg.GetCVar(CVars.GameHostName);
+            var live = status.BuildReport(offline: false);
+            cfg.SetCVar(CVars.GameHostName, "renamed after the last report");
+            try
+            {
+                var offline = status.OfflineReport();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(offline.Phase, Is.EqualTo(FSDiscordMessages.StatusPhase.Offline));
+                    Assert.That(offline.ServerName, Is.EqualTo(live.ServerName), "the offline report read the settings again");
+                    Assert.That(offline.Players, Is.Zero);
+                });
+            }
+            finally
+            {
+                cfg.SetCVar(CVars.GameHostName, name);
+            }
+        });
+    }
+
     [Test]
     public async Task ARecordVictoryReportCarriesEverythingTheChannelNeeds()
     {
@@ -22,7 +94,7 @@ public sealed class DiscordTest : GameTest
             var run = new FSRunRecord("Ada, Bo", FSDifficulty.Hard, FSPlayerBracket.Squad, 30, true, 5025, 2400, At);
             var previous = run with { Players = "Cy", Victory = false, Waves = 22 };
             var payload = FSDiscordMessages.RoundSummary(new FSDiscordMessages.RoundReport(
-                "Final Stand EU", 42, run,
+                "Final Stand EU", 42, run, 30,
                 new FSDiscordMessages.Mvp("Ada", 1300, 2),
                 new FSDiscordMessages.Mvp("Bo", 200, 9),
                 new[] { (run, (FSRunRecord) previous) },
@@ -36,6 +108,7 @@ public sealed class DiscordTest : GameTest
                 Assert.That(embed.Title, Is.Not.Empty);
                 Assert.That(embed.Color, Is.EqualTo(FSDiscordMessages.RecordColor), "a record outranks a plain victory colour");
                 Assert.That(text, Does.Contain("Ada, Bo"));
+                Assert.That(text, Does.Contain("Hard · 2-4 players"), "the ladder is named by difficulty and bracket");
                 Assert.That(text, Does.Contain("1300").Or.Contain("1,300"), "the MVP's kills are named");
                 Assert.That(text, Does.Contain("Cy"), "the old record holder is named, which is what pulls them back");
                 Assert.That(text, Does.Contain("Nightmare Breaker"));
@@ -47,6 +120,21 @@ public sealed class DiscordTest : GameTest
     }
 
     [Test]
+    public async Task AnEndlessWinNamesTheWaveItWasWonAt()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var run = new FSRunRecord("Ada", FSDifficulty.Normal, FSPlayerBracket.Solo, 37, true, 9000, 5000, At);
+            var payload = FSDiscordMessages.RoundSummary(new FSDiscordMessages.RoundReport(
+                "S", 1, run, 30, null, null, Array.Empty<(FSRunRecord, FSRunRecord)>(),
+                Array.Empty<(string, string)>(), null));
+
+            var result = payload.Embeds!.Single().Fields[0].Value;
+            Assert.That(result, Is.EqualTo("Victory at wave 30"), "endless waves after the win don't move the victory wave");
+        });
+    }
+
+    [Test]
     public async Task ANearMissIsCalledOut()
     {
         await Server.WaitAssertion(() =>
@@ -54,7 +142,7 @@ public sealed class DiscordTest : GameTest
             var holder = new FSRunRecord("Vex", FSDifficulty.Normal, FSPlayerBracket.Crew, 28, false, 7000, 3000, At);
             var run = holder with { Players = "Rook", Waves = 26, EndedAtUtc = At.AddDays(1) };
             var payload = FSDiscordMessages.RoundSummary(new FSDiscordMessages.RoundReport(
-                "S", 1, run, null, null, Array.Empty<(FSRunRecord, FSRunRecord)>(),
+                "S", 1, run, null, null, null, Array.Empty<(FSRunRecord, FSRunRecord)>(),
                 Array.Empty<(string, string)>(), holder));
 
             var text = string.Join("\n", payload.Embeds!.Single().Fields.Select(f => f.Value));

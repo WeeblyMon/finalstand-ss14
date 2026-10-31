@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using Content.Server._FinalStand.Discord;
 using Content.Server._FinalStand.Economy;
@@ -30,7 +28,6 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Robust.Server.Player;
 using Robust.Shared.Console;
-using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -61,6 +58,8 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
     [Dependency] private WaveEnemySpawningSystem _spawning = default!;
     [Dependency] private SharedMindSystem _minds = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSPerkSystem _perks = default!;
     [Dependency] private FSAilmentSystem _ailments = default!;
 
     private static readonly string[] Subcommands =
@@ -74,11 +73,13 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         "bleed", "bone", "burn", "poison", "soaked", "all", "clear",
     };
 
-    private static readonly string[] SpecialZombies =
+    private static readonly EntProtoId[] SpecialZombies =
     {
         "FSZombieRunner", "FSZombieArmoured", "FSZombieBloater", "FSZombieFlamethrower",
         "FSZombieTesla", "FSZombieDevastator", "FSZombieRevenant",
     };
+
+    private static readonly EntProtoId BodyProto = "MobHuman";
 
     public override string Command => "fsdbg";
 
@@ -112,7 +113,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
             case "objective": Objective(shell, rest); break;
             case "weekly": Weekly(shell, rest); break;
             case "seed": Seed(shell, rest); break;
-            case "clearladder": _store.DeleteAllRuns(); shell.WriteLine("Ladder cleared."); break;
+            case "clearladder": ClearLadder(shell); break;
             case "special": Special(shell, rest); break;
             case "discord": Discord(shell); break;
             case "ailment": Ailment(shell, rest); break;
@@ -132,7 +133,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
                 _protos.EnumeratePrototypes<FSWaveObjectivePrototype>().Select(p => p.ID)
                     .Concat(new[] { "random", "complete", "fail", "progress" })),
             "open" when args.Length == 2 => CompletionResult.FromOptions(new[] { "perks", "ladder" }),
-            "special" when args.Length == 2 => CompletionResult.FromOptions(SpecialZombies.Append("all")),
+            "special" when args.Length == 2 => CompletionResult.FromOptions(SpecialZombies.Select(p => p.Id).Append("all")),
             "ailment" when args.Length == 2 => CompletionResult.FromOptions(AilmentKinds),
             "mastery" when args.Length == 2 => CompletionResult.FromOptions(FSPerkDef.All.Keys),
             "title" when args.Length == 2 => CompletionResult.FromOptions(
@@ -254,17 +255,12 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
 
         var user = session.UserId;
         _store.DeleteProgress(user.UserId);
-        ForgetUser(_mastery, "_cache", user);
-        ForgetUser(_tutorial, "_cache", user);
+        _mastery.Forget(user);
+        _tutorial.Forget(user);
         _playTime.AddTimeToOverallPlaytime(session, -_playTime.GetOverallPlaytime(session));
 
-        if (EntityManager.TryGetComponent<FSPlayerLevelComponent>(mindId, out var lvl))
-        {
-            lvl.Level = 1;
-            lvl.Experience = 0;
-            lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(1);
-            _leveling.SaveLeveling(mindId, 1, 0, lvl.PrestigeLevel);
-        }
+        if (!_leveling.TrySetLevel(mindId, 1))
+            shell.WriteError("No loaded level data on that player, so the level was left alone.");
 
         if (EntityManager.TryGetComponent<FSPlayerWalletComponent>(mindId, out var wallet))
             _wallet.TryDeductPerkPoints(mindId, wallet.PerkPoints);
@@ -273,25 +269,12 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         shell.WriteLine($"{session.Name} is a brand-new player again: progress wiped, 0 h, level 1. The starter grant runs on this refresh.");
     }
 
-    private static void ForgetUser(object system, string field, NetUserId user)
-    {
-        if (system.GetType().GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(system) is IDictionary cache)
-            cache.Remove(user);
-    }
-
     private void Waves(IConsoleShell shell, string[] args)
     {
         if (!TryInt(shell, args, 0, out var waves) || !TryTarget(shell, args, 1, out var session, out _))
             return;
 
-        var field = typeof(FSRoundPresenceSystem).GetField("_presence", BindingFlags.Instance | BindingFlags.NonPublic);
-        if (field?.GetValue(_presence) is not Dictionary<NetUserId, (int Waves, int Highest)> presence)
-        {
-            shell.WriteError("Couldn't reach the presence table.");
-            return;
-        }
-
-        presence[session.UserId] = (Math.Max(0, waves), Math.Max(waves, _waveRule.GetWaveNumber()));
+        _presence.SetPresence(session.UserId, Math.Max(0, waves), Math.Max(waves, _waveRule.GetWaveNumber()));
         shell.WriteLine($"{session.Name} now counts as present for {waves} wave(s) this round.");
     }
 
@@ -300,18 +283,13 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         if (!TryInt(shell, args, 0, out var level) || !TryTarget(shell, args, 1, out var session, out var mindId))
             return;
 
-        if (!EntityManager.TryGetComponent<FSPlayerLevelComponent>(mindId, out var lvl))
+        if (!_leveling.TrySetLevel(mindId, level))
         {
-            shell.WriteError("No level data on that player.");
+            shell.WriteError("No loaded level data on that player.");
             return;
         }
 
-        lvl.Level = Math.Max(1, level);
-        lvl.Experience = 0;
-        lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(lvl.Level);
-        _leveling.SaveLeveling(mindId, lvl.Level, 0, lvl.PrestigeLevel);
-        _leveling.SendLevelingUpdate(mindId, lvl);
-        shell.WriteLine($"{session.Name} is now level {lvl.Level}.");
+        shell.WriteLine($"{session.Name} is now level {Math.Max(1, level)}.");
     }
 
     private void Xp(IConsoleShell shell, string[] args)
@@ -319,14 +297,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         if (!TryInt(shell, args, 0, out var amount) || !TryTarget(shell, args, 1, out var session, out var mindId))
             return;
 
-        var give = typeof(FSLevelingSystem).GetMethod("GiveExperience", BindingFlags.Instance | BindingFlags.NonPublic);
-        if (give == null)
-        {
-            shell.WriteError("Couldn't reach the XP method.");
-            return;
-        }
-
-        give.Invoke(_leveling, new object[] { mindId, amount, "debug", false });
+        _leveling.GiveRawExperience(mindId, amount);
         shell.WriteLine($"Gave {session.Name} {amount} raw XP (multipliers apply, level-ups pay as normal).");
     }
 
@@ -425,10 +396,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         if (!TryTarget(shell, args, 0, out var session, out _))
             return;
 
-        _store.ClearTutorial(session.UserId.UserId);
-        ForgetUser(_tutorial, "_cache", session.UserId);
-        var seen = typeof(FSNewPlayerTipSystem).GetField("_enemiesSeen", BindingFlags.Instance | BindingFlags.NonPublic);
-        (seen?.GetValue(_tutorial) as HashSet<FSTutorialTip>)?.Clear();
+        _tutorial.ResetSeen(session.UserId);
         shell.WriteLine($"{session.Name} has seen no tips now. Rookies get them again; veterans need 'tutorial on'.");
     }
 
@@ -473,7 +441,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         {
             var shops = EntityManager.EntityQueryEnumerator<FSPerkShopComponent, TransformComponent>();
             if (shops.MoveNext(out _, out _, out var shopXform))
-                EntityManager.System<SharedTransformSystem>().SetCoordinates(body, shopXform.Coordinates.Offset(new System.Numerics.Vector2(0f, -1f)));
+                _transform.SetCoordinates(body, shopXform.Coordinates.Offset(new System.Numerics.Vector2(0f, -1f)));
         }
 
         EntityManager.EntityNetManager.SendSystemNetworkMessage(message, session.Channel);
@@ -491,16 +459,13 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
             return;
         }
 
-        var body = EntityManager.SpawnEntity("MobHuman", EntityManager.GetComponent<TransformComponent>(current).Coordinates);
+        var body = EntityManager.SpawnEntity(BodyProto, EntityManager.GetComponent<TransformComponent>(current).Coordinates);
         _minds.TransferTo(mindId, body, ghostCheckOverride: true);
 
-        var spawned = new Content.Shared.GameTicking.PlayerSpawnCompleteEvent(body, session, null, true, true, 0,
-            EntityUid.Invalid, Content.Shared.Preferences.HumanoidCharacterProfile.DefaultWithSpecies());
-        foreach (var system in new object[] { _wallet, _leveling, EntityManager.System<FSPerkSystem>(), _onboarding })
-        {
-            system.GetType().GetMethod("OnPlayerSpawnComplete", BindingFlags.Instance | BindingFlags.NonPublic)
-                ?.Invoke(system, new object[] { spawned });
-        }
+        // Taking the body already loaded the perks; the rest is what a spawn sets up.
+        _wallet.SetUpSpawnedMind(mindId, session);
+        _leveling.SetUpSpawnedMind(mindId, session);
+        Refresh(session, mindId);
 
         shell.WriteLine($"{session.Name} now has a body, set up as if they had just spawned.");
     }
@@ -514,7 +479,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
             return;
         }
 
-        EntityManager.System<FSPerkSystem>().ApplyStarterBuild(session, args[0]);
+        _perks.ApplyStarterBuild(session, args[0]);
         shell.WriteLine($"Applied {args[0]} for {session.Name} with the PP they have.");
     }
 
@@ -533,9 +498,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
                 return;
             case "complete":
             case "fail":
-                var method = typeof(FSWaveObjectiveSystem).GetMethod(args[0].Equals("complete", StringComparison.OrdinalIgnoreCase) ? "Complete" : "Fail",
-                    BindingFlags.Instance | BindingFlags.NonPublic);
-                method?.Invoke(_objectives, null);
+                _objectives.ForceResult(args[0].Equals("complete", StringComparison.OrdinalIgnoreCase));
                 shell.WriteLine(_objectives.Current is { } done ? $"Objective is now {done.Result}." : "No objective running.");
                 return;
             case "progress":
@@ -545,7 +508,12 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
                     return;
                 }
 
-                current.Progress = Math.Clamp(progress, 0, current.Target);
+                if (!_objectives.SetProgress(progress))
+                {
+                    shell.WriteError($"The objective is already {current.Result}.");
+                    return;
+                }
+
                 shell.WriteLine($"Progress set to {current.Progress}/{current.Target}. The next kill or check settles it.");
                 return;
         }
@@ -618,12 +586,12 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
 
         var which = args.Length == 0 || args[0].Equals("all", StringComparison.OrdinalIgnoreCase)
             ? SpecialZombies
-            : new[] { args[0] };
+            : new EntProtoId[] { args[0] };
 
         var coords = EntityManager.GetComponent<TransformComponent>(body).Coordinates;
         foreach (var proto in which)
         {
-            if (!_protos.HasIndex<EntityPrototype>(proto))
+            if (!_protos.HasIndex(proto))
             {
                 shell.WriteError($"No entity '{proto}'.");
                 continue;
@@ -634,6 +602,13 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         }
 
         shell.WriteLine($"Spawned {which.Length} wave enemy(s) near you. Each special type shows its tip the first time per round.");
+    }
+
+    private void ClearLadder(IConsoleShell shell)
+    {
+        _store.DeleteAllRuns();
+        _ladder.RefreshBoards();
+        shell.WriteLine("Ladder cleared.");
     }
 
     private void Ailment(IConsoleShell shell, string[] args)

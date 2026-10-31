@@ -1,4 +1,3 @@
-// Where a placeable may go. Shared so the client ghost and the server confirm cannot disagree.
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.Maps;
 using Content.Shared.Mobs.Components;
@@ -9,6 +8,7 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Shared._FinalStand.Placement;
 
+// Shared so the client ghost and the server confirm cannot disagree.
 public sealed partial class FSPlacementRuleSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;

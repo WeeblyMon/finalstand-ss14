@@ -38,7 +38,7 @@ public sealed partial class OverkillUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnHit);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;
@@ -76,7 +76,7 @@ public sealed partial class OverkillUpgradeSystem : EntitySystem
         var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(targetPos, mapId), range, nearby);
 
-        // Nearest, not first — the set is unordered.
+        // Nearest, not first; the set is unordered.
         EntityUid? nearest = null;
         var nearestDistSq = float.MaxValue;
         foreach (var candidate in nearby)

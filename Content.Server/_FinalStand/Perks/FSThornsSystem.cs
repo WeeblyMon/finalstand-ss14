@@ -1,4 +1,3 @@
-// Thorns perk: kills bank stacks; each zombie hit spends one and reflects part of the damage.
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage.Systems;

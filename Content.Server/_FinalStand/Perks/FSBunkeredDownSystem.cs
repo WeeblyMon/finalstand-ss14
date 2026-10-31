@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.CCC;
+using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mind;
 using Robust.Shared.Timing;
@@ -15,8 +15,6 @@ public sealed partial class FSBunkeredDownSystem : EntitySystem
     private TimeSpan _nextCheck;
     private readonly HashSet<EntityUid> _bunkered = [];
     private readonly HashSet<EntityUid> _wasBunkered = [];
-
-    public bool IsBunkered(EntityUid mindId) => _bunkered.Contains(mindId);
 
     public float GetDamageMultiplier(EntityUid mindId, FSPerkLevelsComponent perks)
     {

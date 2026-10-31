@@ -16,7 +16,7 @@ public sealed partial class MenuButton : ContainerButton
     public const string StyleClassLabelTopButton = "topButtonLabel";
 
     // TODO: KIIIIIILLLLLLLLLLLLLLLLLLLLLLLLLLL --kaylie.
-    private static readonly Color ColorNormal = FSPalette.TextBright;
+    private static readonly Color ColorNormal = FSPalette.TextBright; // FINALSTAND
     private static readonly Color ColorHovered = FSPalette.TextBright;
     private static readonly Color ColorPressed = FSPalette.TextDim;
 

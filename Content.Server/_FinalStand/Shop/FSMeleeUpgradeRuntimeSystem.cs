@@ -1,7 +1,6 @@
+using Content.Shared._FinalStand.Crit;
 using Content.Server._FinalStand.Crit;
-using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Perks;
-using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Atmos.EntitySystems;
@@ -15,7 +14,6 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
-using Content.Shared.Mind;
 using Content.Shared.Popups;
 using Content.Shared.Stunnable;
 using Content.Shared.Weapons.Melee.Events;
@@ -24,7 +22,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Shop;
 
-// melee upgrade effects; all on directed (FSWeaponUpgradeStateComponent, MeleeHitEvent) — undirected MeleeHitEvent is dead
+// All on directed (FSWeaponUpgradeStateComponent, MeleeHitEvent); undirected MeleeHitEvent is dead.
 public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
@@ -32,20 +30,15 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private StaminaSystem _stamina = default!;
     [Dependency] private FlammableSystem _flammable = default!;
-    [Dependency] private FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private FSStunOverrideSystem _fsStun = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSPerkCritSystem _perkCrit = default!;
-    [Dependency] private FSUndyingSystem _undying = default!;
+    [Dependency] private MoneyGainBonusUpgradeSystem _killBonus = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
 
-    private const float StaminaDrainPerLevel = 15f;
     private const float StaminaRestorePerLevel = 10f;
-    private const float SetOnFireStacksPerHit = 3f;
-    private const float BleedScalePerLevel = 0.2f;
     private const float WhileBurningDamageMultiplier = 2.0f;
     private static readonly TimeSpan BleedDuration = TimeSpan.FromSeconds(3);
 
@@ -77,7 +70,7 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
             && _random.NextFloat() < FSPerkCritSystem.CombineChance(state.CritChance, _perkCrit.GetCritChanceBonus(user, weapon, melee: true)))
         {
             didCrit = true;
-            var multiplier = state.CritDamageMultiplier + _perkCrit.GetCritMultiplierBonus(user, weapon);
+            var multiplier = FSCritMath.Multiplier(CompOrNull<CritComponent>(weapon), state) + _perkCrit.GetCritMultiplierBonus(user, weapon);
             args.BonusDamage += args.BaseDamage * (multiplier - 1f);
         }
 
@@ -91,12 +84,12 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
             if (state.ConcussionClubStunMs > 0 && heavyAttack)
             {
                 if (_fsStun.TryForceStun(target, TimeSpan.FromMilliseconds(state.ConcussionClubStunMs)))
-                    _popup.PopupEntity("Stunned!", target, PopupType.SmallCaution);
+                    _popup.PopupEntity(Loc.GetString("fs-melee-stunned"), target, PopupType.SmallCaution);
             }
             if (state.StunOnHitMs > 0)
             {
                 if (_fsStun.TryForceStun(target, TimeSpan.FromMilliseconds(state.StunOnHitMs)))
-                    _popup.PopupEntity("Stunned!", target, PopupType.SmallCaution);
+                    _popup.PopupEntity(Loc.GetString("fs-melee-stunned"), target, PopupType.SmallCaution);
             }
 
             if (state.CritVsStunned && HasComp<StunnedComponent>(target))
@@ -115,21 +108,21 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
 
             if (state.SetOnFireEnabled && !_ffQuery.HasComponent(target) && TryComp<FlammableComponent>(target, out var igniteFlammable))
             {
-                igniteFlammable.FireStacks += SetOnFireStacksPerHit;
+                igniteFlammable.FireStacks += state.SetOnFireStacks;
                 _flammable.Ignite(target, user, igniteFlammable, ignitionSourceUser: user);
             }
 
             if (state.StaminaStealLevel > 0)
             {
                 if (HasComp<StaminaComponent>(target))
-                    _stamina.TakeStaminaDamage(target, state.StaminaStealLevel * StaminaDrainPerLevel, source: user);
+                    _stamina.TakeStaminaDamage(target, state.StaminaStealDrain, source: user);
                 if (HasComp<StaminaComponent>(user))
                     _stamina.TakeStaminaDamage(user, -(state.StaminaStealLevel * StaminaRestorePerLevel));
             }
 
             if (state.BleedLevel > 0 && totalBaseDamage > 0f && !_ffQuery.HasComponent(target))
             {
-                var dps = totalBaseDamage * BleedScalePerLevel * state.BleedLevel;
+                var dps = totalBaseDamage * state.BleedScale;
                 if (dps > 0f)
                 {
                     var bleed = EnsureComp<FSBleedingComponent>(target);
@@ -140,15 +133,8 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 }
             }
 
-            if (state.MoneyGainBonusPerKill > 0 || state.MoneyGainPercentPerKill > 0f)
-            {
-                var bonus = EnsureComp<FSPendingKillBonusComponent>(target);
-                bonus.MoneyBonus = state.MoneyGainBonusPerKill;
-                bonus.MoneyPercent = state.MoneyGainPercentPerKill;
-            }
+            _killBonus.Mark(target, user, state.MoneyGainBonusPerKill, state.MoneyGainPercentPerKill);
 
-            if (state.MoneyPerHitBonus > 0 && HasComp<WaveSpawnedTagComponent>(target) && !_undying.IsActive(user) && _mind.TryGetMind(user, out var mindId, out _))
-                _wallet.GiveCredits(mindId, state.MoneyPerHitBonus);
         }
 
         if (state.LifeStealPercent > 0f && totalBaseDamage > 0f)

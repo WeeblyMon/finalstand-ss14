@@ -18,14 +18,14 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (newMag == null)
         {
             if (!isChainReload)
-                _popup.PopupEntity("No compatible magazine found.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-no-magazine"), gun, user);
             return;
         }
 
         if (TryGetMagazineCount(newMag.Value, out var newCount) && newCount == 0)
         {
             if (!isChainReload)
-                _popup.PopupEntity("All magazines are empty.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-magazines-empty"), gun, user);
             return;
         }
 
@@ -91,7 +91,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (args.Chosen is { } chosenNet)
         {
             var chosen = GetEntity(chosenNet);
-            if (chosen.IsValid() && !TerminatingOrDeleted(chosen))
+            if (chosen.IsValid() && !TerminatingOrDeleted(chosen) && _transform.ContainsEntity(args.User, chosen))
                 newMag = chosen;
         }
 

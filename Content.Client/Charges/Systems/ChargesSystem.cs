@@ -14,7 +14,7 @@ public sealed partial class ChargesSystem : SharedChargesSystem
     public override void Initialize()
     {
         base.Initialize();
-        // FS: the hand teleporter draws its own charge line
+        // FINALSTAND: the hand teleporter draws its own charge line
         Subs.ItemStatus<LimitedChargesComponent>(entity => HasComp<HandTeleporterComponent>(entity) ? null : new ChargeStatusControl(entity));
     }
 

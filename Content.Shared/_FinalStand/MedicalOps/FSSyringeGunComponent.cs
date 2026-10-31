@@ -3,6 +3,7 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._FinalStand.MedicalOps;
 
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(FSSyringeGunExamineSystem))]
 public sealed partial class FSSyringeGunComponent : Component
 {
     [DataField]

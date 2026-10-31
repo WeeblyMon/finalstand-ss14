@@ -1,6 +1,7 @@
 ﻿namespace Content.Server._FinalStand.Upgrades;
 
 [RegisterComponent]
+[Access(typeof(FSPierceSystem))]
 public sealed partial class FSPierceComponent : Component
 {
     public int RemainingPierces;

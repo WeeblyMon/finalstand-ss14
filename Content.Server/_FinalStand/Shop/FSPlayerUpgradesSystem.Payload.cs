@@ -1,4 +1,3 @@
-// Part of FSPlayerUpgradesSystem: upgrades that hand the player an item.
 using Content.Shared._FinalStand.Shop;
 
 namespace Content.Server._FinalStand.Shop;

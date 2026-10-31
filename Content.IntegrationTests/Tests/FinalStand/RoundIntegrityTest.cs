@@ -16,7 +16,6 @@ using Content.Shared._FinalStand.Ladder;
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
-using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 
@@ -123,7 +122,7 @@ public sealed class RoundIntegrityTest : GameTest
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(SEntMan.System<FSWeeklyChallengeSystem>().StartWeekly(challenge), Is.True);
             EndWave(1);
-            waveRule.ForceNextWave(Server.ResolveDependency<IServerConsoleHost>().LocalShell, challenge.ClearWave + 1);
+            waveRule.ForceNextWave(challenge.ClearWave + 1);
             Assert.That(waveRule.TryGetRoundSummary(out var summary), Is.True);
             Assert.That(summary.Assisted, Is.True);
 
@@ -266,13 +265,12 @@ public sealed class RoundIntegrityTest : GameTest
         {
             var ticker = SEntMan.System<GameTicker>();
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             EnsurePlayer(map.GridCoords);
 
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
             EndWave(1);
-            waveRule.ForceNextWave(shell, 30);
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave(30);
+            waveRule.ForceNextWave();
             Assert.That(waveRule.IsAwaitingEndless(), Is.True, "test precondition");
 
             foreach (var vote in Server.ResolveDependency<IVoteManager>().ActiveVotes.ToList())
@@ -297,22 +295,21 @@ public sealed class RoundIntegrityTest : GameTest
             var ticker = SEntMan.System<GameTicker>();
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
             var titles = SEntMan.System<Content.Server._FinalStand.Titles.FSTitleSystem>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             SEntMan.System<FSPlayerDataStore>().DeleteProgress(ServerSession!.UserId.UserId);
             var mindId = EnsurePlayer(map.GridCoords);
             var wallet = SEntMan.GetComponent<FSPlayerWalletComponent>(mindId);
 
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
-            waveRule.ForceNextWave(shell, 30);
+            waveRule.ForceNextWave(30);
             SEntMan.RemoveComponent<FSPlayerLevelComponent>(mindId);
             var before = wallet.PerkPoints;
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave();
 
             Assert.Multiple(() =>
             {
                 Assert.That(wallet.PerkPoints, Is.EqualTo(before), "someone who wasn't present for a single wave earns no victory PP");
                 Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id),
-                    Does.Not.Contain(Content.Server._FinalStand.Records.FSRecordsSystem.VictoryTitle));
+                    Does.Not.Contain(Content.Server._FinalStand.Records.FSRecordsSystem.VictoryTitle.Id));
             });
         });
     }

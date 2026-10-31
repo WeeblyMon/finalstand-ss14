@@ -1,4 +1,3 @@
-// How each ping type looks: icon, colour and marker shape. Shape follows the category so colour-blind players can tell them apart.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;
@@ -8,6 +7,7 @@ using Robust.Client.ResourceManagement;
 
 namespace Content.Client._FinalStand.Pings;
 
+// Shape follows the category so colour-blind players can tell pings apart.
 public enum FSPingShape : byte
 {
     Diamond,

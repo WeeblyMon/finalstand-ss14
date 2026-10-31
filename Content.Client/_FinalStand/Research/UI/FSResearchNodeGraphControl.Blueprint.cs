@@ -166,11 +166,11 @@ public sealed partial class FSResearchNodeGraphControl
         var tagFont = FontOf(_boldFont, 9f);
         var tagAt = c + new Vector2(r - 4f * K, -r - 12f * K);
         if (look.Shared)
-            DrawTag(handle, tagFont, tagAt, "RD", Gold, Paper);
+            DrawTag(handle, tagFont, tagAt, _tagShared, Gold, Paper);
         else if (look.Mine)
-            DrawTag(handle, tagFont, tagAt, "YOU", OffWhite, Paper);
+            DrawTag(handle, tagFont, tagAt, _tagMine, OffWhite, Paper);
         else if (node.IsCapstone && !look.Done)
-            DrawTag(handle, tagFont, tagAt, "SHOP", AmberDark, GoldLight, Amber);
+            DrawTag(handle, tagFont, tagAt, _tagShop, AmberDark, GoldLight, Amber);
 
         if (node.QueuePosition > 0 && !look.Done)
         {

@@ -25,8 +25,8 @@
     Heat: 12
 
 - type: entity
-  id: FSMechBroadsword
   parent: BaseMech
+  id: FSMechBroadsword
   name: Broadsword
   description: A slow combat mech with heavy armour and hard punches. Plant it in siege mode to hold a lane.
   components:
@@ -116,8 +116,8 @@
     event: !type:FSSiegeModeActionEvent
 
 - type: entity
-  id: FSMechBroadswordBattery
   parent: FSMechBroadsword
+  id: FSMechBroadswordBattery
   suffix: Battery
   components:
   - type: ContainerFill

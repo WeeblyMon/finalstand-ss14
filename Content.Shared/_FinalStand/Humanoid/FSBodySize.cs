@@ -32,11 +32,12 @@ public sealed partial class FSBodySize
 
     public float ClampHeight(float height)
     {
-        return height <= 0f ? DefaultHeight : Math.Clamp(height, MinHeight, MaxHeight);
+        // A profile comes from the client, and Math.Clamp passes NaN straight through.
+        return !float.IsFinite(height) || height <= 0f ? DefaultHeight : Math.Clamp(height, MinHeight, MaxHeight);
     }
 
     public float ClampWidth(float width)
     {
-        return width <= 0f ? DefaultWidth : Math.Clamp(width, MinWidth, MaxWidth);
+        return !float.IsFinite(width) || width <= 0f ? DefaultWidth : Math.Clamp(width, MinWidth, MaxWidth);
     }
 }

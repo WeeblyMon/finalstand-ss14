@@ -1,5 +1,5 @@
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Perks;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.RiotShield;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Blocking;
@@ -87,7 +87,7 @@ public sealed partial class FSRiotShieldSystem : EntitySystem
         }
     }
 
-    private void OnWavePrepStarted(WavePrepStartedEvent _)
+    private void OnWavePrepStarted(ref WavePrepStartedEvent _)
     {
         var query = EntityQueryEnumerator<FSRiotShieldComponent>();
         while (query.MoveNext(out var uid, out var comp))
@@ -104,5 +104,14 @@ public sealed partial class FSRiotShieldSystem : EntitySystem
         comp.CurrentDurability = maxDurability;
         comp.IsBroken = false;
         Dirty(uid, comp);
+    }
+
+    // Bulwark: a melee kill mends part of the shield, which brings a broken one back into use.
+    public void Mend(Entity<FSRiotShieldComponent> shield, float fraction)
+    {
+        var max = shield.Comp.BaseDurability * shield.Comp.DurabilityMultiplier;
+        shield.Comp.CurrentDurability = MathF.Min(max, shield.Comp.CurrentDurability + max * fraction);
+        shield.Comp.IsBroken = shield.Comp.CurrentDurability <= 0f;
+        Dirty(shield);
     }
 }

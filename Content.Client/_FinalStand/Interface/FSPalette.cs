@@ -1,8 +1,8 @@
-// The one place HUD colour is defined.
 using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Interface;
 
+// The one place HUD colour is defined.
 public static class FSPalette
 {
     public static readonly Color PanelBack = Color.FromHex("#121010").WithAlpha(0.84f);
@@ -23,6 +23,12 @@ public static class FSPalette
     public static readonly Color Money = Color.FromHex("#d2a44e");
     public static readonly Color Burn = Color.FromHex("#d9702e");
     public static readonly Color Toxic = Color.FromHex("#a8b83a");
+
+    // Podium places on the scoreboard and server records, and the local player's name in them.
+    public static readonly Color MedalGold = Color.FromHex("#e3b448");
+    public static readonly Color MedalSilver = Color.FromHex("#c9ccd1");
+    public static readonly Color MedalBronze = Color.FromHex("#c27c48");
+    public static readonly Color OwnName = Color.FromHex("#FFE45C");
 
     public static readonly Color BarTrack = Color.White.WithAlpha(0.06f);
     public static readonly Color BarSheen = Color.White.WithAlpha(0.12f);

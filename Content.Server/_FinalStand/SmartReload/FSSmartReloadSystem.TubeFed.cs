@@ -18,21 +18,21 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (HasComp<FSMinigunComponent>(gun))
         {
             if (!isChainReload)
-                _popup.PopupEntity("Minigun can only be reloaded from ammo resupply.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-minigun"), gun, user);
             return;
         }
 
         if (comp.Count >= comp.Capacity)
         {
             if (!isChainReload)
-                _popup.PopupEntity("Already full.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-already-full"), gun, user);
             return;
         }
 
         if (HasMixedAmmoBallistic(comp))
         {
             if (!isChainReload)
-                _popup.PopupEntity("Mixed ammo loaded — reload manually.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-tube-mixed"), gun, user);
             return;
         }
 
@@ -40,7 +40,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (shell == null)
         {
             if (!isChainReload)
-                _popup.PopupEntity("No compatible ammo found.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-no-ammo"), gun, user);
             return;
         }
 
@@ -80,15 +80,13 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         }
         else
         {
-            _activeShellInserts.Remove(gun);
-            SetReloading(gun, false);
+            EndShellInsert(gun);
         }
     }
 
     private void OnBulkShellInsertComplete(EntityUid gun, BallisticAmmoProviderComponent comp, FSBulkShellInsertDoAfterEvent args)
     {
-        _activeShellInserts.Remove(gun);
-        SetReloading(gun, false);
+        EndShellInsert(gun);
 
         if (args.Cancelled || args.Used == null || !args.User.IsValid())
             return;
@@ -127,8 +125,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         }
         else
         {
-            _activeShellInserts.Remove(gun);
-            SetReloading(gun, false);
+            EndShellInsert(gun);
         }
     }
 
@@ -146,79 +143,47 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
     private void OnShellInsertComplete(EntityUid gun, BallisticAmmoProviderComponent comp, FSShellInsertDoAfterEvent args)
     {
-        if (args.Cancelled || args.Used == null || !args.User.IsValid())
+        // Every way out but starting the next shell has to clear the insert, or the gun stays locked mid-reload.
+        if (args.Cancelled
+            || args.Used == null
+            || !args.User.IsValid()
+            || _reloadAborted.Remove(gun)
+            || !TryResolveRound(args.Used.Value, out var toInsert))
         {
-            _activeShellInserts.Remove(gun);
-            SetReloading(gun, false);
+            EndShellInsert(gun);
             return;
         }
-
-        if (_reloadAborted.Remove(gun))
-        {
-            _activeShellInserts.Remove(gun);
-            SetReloading(gun, false);
-            return;
-        }
-
-        if (!TryResolveRound(args.Used.Value, out var toInsert))
-            return;
 
         var prevCount = comp.Count;
         _gunSystem.TryBallisticInsert((gun, comp), toInsert, args.User);
 
-        if (comp.Count > prevCount)
-        {
-            var reloaded = new FSGunReloadedEvent(gun, args.User);
-            RaiseLocalEvent(ref reloaded);
-        }
-
         if (comp.Count == prevCount)
         {
-            _activeShellInserts.Remove(gun);
-            SetReloading(gun, false);
-            return; // insert failed — stop chain
+            EndShellInsert(gun);
+            return;
         }
+
+        var reloaded = new FSGunReloadedEvent(gun, args.User);
+        RaiseLocalEvent(ref reloaded);
 
         if (comp.Count >= comp.Capacity)
         {
-            _activeShellInserts.Remove(gun);
-            SetReloading(gun, false);
+            EndShellInsert(gun);
             return;
         }
 
         var nextSource = NextChainSource(args.Used.Value, args.User, comp.Whitelist, gun);
-        if (nextSource.IsValid())
-        {
-            if (HasComp<FSBulkLoaderComponent>(nextSource))
-                StartBulkShellInsert(gun, args.User, nextSource);
-            else
-                StartShellInsert(gun, args.User, nextSource, args.IsChainReload);
-        }
+        if (!nextSource.IsValid())
+            EndShellInsert(gun);
+        else if (HasComp<FSBulkLoaderComponent>(nextSource))
+            StartBulkShellInsert(gun, args.User, nextSource);
         else
-        {
-            _activeShellInserts.Remove(gun);
-            SetReloading(gun, false);
-        }
+            StartShellInsert(gun, args.User, nextSource, args.IsChainReload);
     }
 
-    private void DumpAllTubeShells(EntityUid gun, BallisticAmmoProviderComponent comp)
+    private void EndShellInsert(EntityUid gun)
     {
-        var coords = Transform(gun).Coordinates;
-
-#pragma warning disable RA0002
-        foreach (var entity in comp.Entities.ToList())
-            _containers.Remove((entity, null, null), comp.Container, force: true);
-
-        comp.Entities.Clear();
-
-        if (comp.Proto != null)
-        {
-            for (var i = 0; i < comp.UnspawnedCount; i++)
-                Spawn(comp.Proto.Value, coords);
-        }
-
-        comp.UnspawnedCount = 0;
-#pragma warning restore RA0002
-        Dirty(gun, comp);
+        _activeShellInserts.Remove(gun);
+        SetReloading(gun, false);
     }
 }

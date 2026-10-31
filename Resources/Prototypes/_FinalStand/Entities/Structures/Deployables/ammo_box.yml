@@ -1,10 +1,10 @@
 # ── Ammo Box - held item (planted via use-in-hand) ────────────────────────────────────────────
 - type: entity
-  id: FSAmmoBoxItem
   parent: BaseItem
+  id: FSAmmoBoxItem
+  categories: [ HideSpawnMenu ]
   name: ammo resupply box
   description: A portable resupply crate. Plant it and interact to refill your magazines. Limited uses, and you can lock it to yourself.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Item
     size: Normal
@@ -33,9 +33,9 @@
 # ── Ammo Box - placed/anchored ───────────────────────────────────────────────────────────────
 - type: entity
   id: FSAmmoBoxDeployed
+  categories: [ HideSpawnMenu ]
   name: ammo resupply box
   description: A deployed resupply crate. Interact to refill magazines while it has charges left.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: Objects

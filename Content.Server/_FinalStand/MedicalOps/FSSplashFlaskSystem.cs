@@ -1,9 +1,7 @@
 using Content.Server.Fluids.EntitySystems;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
-using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Coordinates.Helpers;
 using Content.Shared.Maps;
 using Content.Shared.Popups;
@@ -12,7 +10,6 @@ using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
-using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -27,7 +24,6 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
     [Dependency] private FSChemCreditSystem _credit = default!;
     [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
-    [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
     private static readonly SoundSpecifier BurstSound =
@@ -76,7 +72,7 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
             _crewBuffer.Clear();
             _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
 
-            var buff = AppliesCombatBuff(payload);
+            var buff = _credit.AppliesCombatBuff(payload);
             foreach (var crew in _crewBuffer)
             {
                 _attribution.RecordTreatment(crew, thrower, ent);
@@ -86,28 +82,5 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
         }
 
         QueueDel(ent);
-    }
-
-    private bool AppliesCombatBuff(Solution payload)
-    {
-        foreach (var quantity in payload.Contents)
-        {
-            if (!_prototypes.TryIndex(quantity.Reagent.Prototype, out ReagentPrototype? reagent))
-                continue;
-
-            if (reagent.ReactiveEffects == null)
-                continue;
-
-            foreach (var (_, reactive) in reagent.ReactiveEffects)
-            {
-                foreach (var effect in reactive.Effects)
-                {
-                    if (effect is FSApplyCombatBuff)
-                        return true;
-                }
-            }
-        }
-
-        return false;
     }
 }

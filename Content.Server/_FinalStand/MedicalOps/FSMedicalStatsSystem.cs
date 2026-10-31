@@ -6,7 +6,6 @@ using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Ailments;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -40,6 +39,9 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private FSAilmentSystem _ailments = default!;
     [Dependency] private FSCasualtySystem _casualty = default!;
 
+    // Revives and stabilises share one cap, so bouncing a patient across crit can't be farmed.
+    private const int RecoveriesPaidPerPatientPerWave = 3;
+
     private static readonly TimeSpan MinSurvivalForSave = TimeSpan.FromSeconds(60);
 
     public readonly record struct FSMedicalRoundStats(
@@ -49,6 +51,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _topicalsPaid = new();
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _curesPaid = new();
+    private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _recoveriesPaid = new();
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), FSMedicalLine> _linesThisTick = new();
     private readonly Dictionary<EntityUid, (int Count, TimeSpan Until)> _massPaid = new();
     private readonly Dictionary<(string Job, string Source), (int Credits, int Fund)> _waveIncome = new();
@@ -85,12 +88,13 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         _roundStats.Clear();
         _topicalsPaid.Clear();
         _curesPaid.Clear();
+        _recoveriesPaid.Clear();
         _linesThisTick.Clear();
         _massPaid.Clear();
         _waveIncome.Clear();
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var query = EntityQueryEnumerator<FSMedicalPatientComponent>();
         while (query.MoveNext(out _, out var comp))
@@ -120,6 +124,14 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
                && mind.UserId != null;
     }
 
+    // A body whose player has left the server is just a sponge for heals, cures, topicals and revives.
+    private bool IsAbandoned(EntityUid body)
+    {
+        return _mind.TryGetMind(body, out _, out var mind)
+               && mind.UserId is { } user
+               && !_players.TryGetSessionById(user, out _);
+    }
+
     private void OnPatientDamageChanged(EntityUid uid, FSMedicalPatientComponent comp, DamageChangedEvent args)
     {
         if (args.DamageDelta is null || args.DamageDelta.Empty || _ailments.InInternalDamage)
@@ -135,6 +147,11 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         var healed = -(float)args.DamageDelta.GetTotal();
         if (healed <= 0f)
+            return;
+
+        // The body healing itself (regen comes from the patient) isn't anyone's treatment, however recently a medic
+        // touched it.
+        if (args.Origin == uid)
             return;
 
         if (!TryGetPlayerMind(args.Origin, out var healerMind)
@@ -162,6 +179,9 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         comp.HealedSinceReset[healerMind] = prior + healed;
 
         if (_mind.TryGetMind(uid, out var patientMind, out _) && patientMind == healerMind)
+            return;
+
+        if (IsAbandoned(uid))
             return;
 
         var points = (int)MathF.Round(paid);
@@ -207,6 +227,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         _combatMedic.OnHealedAlly(args.User, args.Target);
 
         if (args.User == args.Target
+            || IsAbandoned(args.Target)
             || !_roster.IsMedical(args.User)
             || !TryGetPlayerMind(args.User, out var medicMind)
             || !UnderCap(_topicalsPaid, medicMind, args.Target, FSMedicalPayoutRates.TopicalsPaidPerPatientPerWave))
@@ -238,6 +259,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (args.Tier == FSAilmentTier.None
             || !TryComp<FSMedicalPatientComponent>(args.Patient, out var patient)
             || !patient.EnemyCaused.Remove(args.Slot)
+            || IsAbandoned(args.Patient)
             || !TryGetCureMedic(args, out var medicMind)
             || (_mind.TryGetMind(args.Patient, out var patientMind, out _) && patientMind == medicMind))
             return;
@@ -275,7 +297,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         var line = args.Tier == FSAilmentTier.Major ? FSMedicalPayoutRates.MajorCure : FSMedicalPayoutRates.MinorCure;
         var scale = automatic ? FSMedicalPayoutRates.AutomaticMultiplier : 1f;
-        var kill = WaveGameRuleSystem.GetWaveKillMultiplier(_waveRule.GetWaveNumber());
+        var kill = FSWaveRewardsSystem.KillMultiplier(_waveRule.GetWaveNumber());
         return line.Scale(kill * scale, scale);
     }
 
@@ -343,15 +365,28 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (IsDownward(args.OldMobState, args.NewMobState))
             comp.PendingSaveCredit = null;
 
-        if (args.Origin == uid || !TryGetPlayerMind(args.Origin, out var healerMind))
+        if (args.Origin == uid || !TryGetPlayerMind(args.Origin, out var healerMind) || IsAbandoned(uid))
             return;
 
-        if (args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive)
-        {
-            PayLine(healerMind, uid, Prioritised(uid, FSMedicalPayoutRates.Revive), "revive", revives: 1);
+        var revive = args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive;
+        if (!revive && !(args.OldMobState == MobState.Critical && args.NewMobState == MobState.Alive))
+            return;
 
+        // Mentor points have their own cooldown per pair, so a revive counts for them past the payout cap.
+        if (revive)
+        {
             var revived = new FSAllyRevivedEvent(healerMind, uid);
             RaiseLocalEvent(ref revived);
+        }
+
+        if (!UnderCap(_recoveriesPaid, healerMind, uid, RecoveriesPaidPerPatientPerWave))
+            return;
+
+        if (revive)
+        {
+            // A revive and a stabilise in the same tick pay (and count) once.
+            if (PayLine(healerMind, uid, Prioritised(uid, FSMedicalPayoutRates.Revive), "revive", revives: 1))
+                CountCap(_recoveriesPaid, healerMind, uid);
 
             comp.PendingSaveCredit = healerMind;
             comp.PendingSaveWave = _waveRule.GetWaveNumber();
@@ -362,13 +397,11 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             return;
         }
 
-        if (args.OldMobState == MobState.Critical && args.NewMobState == MobState.Alive)
-        {
-            PayLine(healerMind, uid, Prioritised(uid, FSMedicalPayoutRates.Stabilise), "stabilise", stabilises: 1);
+        if (PayLine(healerMind, uid, Prioritised(uid, FSMedicalPayoutRates.Stabilise), "stabilise", stabilises: 1))
+            CountCap(_recoveriesPaid, healerMind, uid);
 
-            _adminLogger.Add(LogType.Healed, LogImpact.Low,
-                $"{ToPrettyString(healerMind):healer} stabilised {ToPrettyString(uid):patient} for {FSMedicalPayoutRates.Stabilise.Credits} credits");
-        }
+        _adminLogger.Add(LogType.Healed, LogImpact.Low,
+            $"{ToPrettyString(healerMind):healer} stabilised {ToPrettyString(uid):patient} for {FSMedicalPayoutRates.Stabilise.Credits} credits");
     }
 
     private FSMedicalLine Prioritised(EntityUid patient, FSMedicalLine line)
@@ -461,14 +494,20 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (sorted.Count == 0)
             return;
 
-        args.AddLine("══ MEDICAL ═══════════════════════════════════");
+        args.AddLine(Loc.GetString("fs-medical-roundend-header"));
         foreach (var (mindId, stats) in sorted)
         {
             if (!TryComp<MindComponent>(mindId, out var mind)) continue;
-            var name = mind.CharacterName ?? "Unknown";
-            args.AddLine($"  {name,-16} {stats.HealingPoints,7:N0} HP   {stats.Revives} revives  {stats.Stabilises} stabilised  {stats.PatientsSaved} saved  {stats.AilmentsTreated} treated");
+            var name = mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name");
+            args.AddLine(Loc.GetString("fs-medical-roundend-line",
+                ("name", name.PadRight(16)),
+                ("hp", stats.HealingPoints.ToString("N0").PadLeft(7)),
+                ("revives", stats.Revives),
+                ("stabilised", stats.Stabilises),
+                ("saved", stats.PatientsSaved),
+                ("treated", stats.AilmentsTreated)));
         }
-        args.AddLine($"  Department funds earned: ${_medFund.GetLifetimeEarned():N0}");
-        args.AddLine("══════════════════════════════════════════════");
+        args.AddLine(Loc.GetString("fs-medical-roundend-funds", ("funds", _medFund.GetLifetimeEarned().ToString("N0"))));
+        args.AddLine(Loc.GetString("fs-medical-roundend-footer"));
     }
 }

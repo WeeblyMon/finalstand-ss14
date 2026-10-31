@@ -13,7 +13,7 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class RecordsTest : GameTest
 {
-    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true, DummyTicker = false };
 
     [Test]
     public async Task ARespawnedPlayerIsRecordedOncePerRound()
@@ -38,14 +38,53 @@ public sealed class RecordsTest : GameTest
 
             var wave = new WaveEndedEvent(7);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref wave);
+
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
+            Assert.That(records.GetProfile(session.UserId).RoundsPlayed, Is.Zero, "a scoreboard thrown mid-round records nothing");
+
+            SEntMan.System<GameTicker>().EndRound();
             SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
 
             var profile = records.GetProfile(session.UserId);
             Assert.Multiple(() =>
             {
-                Assert.That(profile.RoundsPlayed, Is.EqualTo(1), "two minds in one round are still one round");
+                Assert.That(profile.RoundsPlayed, Is.EqualTo(1),
+                    "two minds in one round are still one round, and throwing the scoreboard again doesn't count it twice");
                 Assert.That(profile.FurthestWave, Is.EqualTo(7));
             });
+        });
+    }
+
+    [Test]
+    public async Task RoundEndXpIsPaidOnceAtTheRealEnd()
+    {
+        var map = await Pair.CreateTestMap();
+
+        await Server.WaitAssertion(() =>
+        {
+            var ticker = SEntMan.System<GameTicker>();
+            var minds = SEntMan.System<SharedMindSystem>();
+            var session = ServerSession!;
+            SEntMan.System<FSPlayerDataStore>().DeleteProgress(session.UserId.UserId);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
+
+            var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            var mindId = minds.CreateMind(session.UserId, "Survivor");
+            minds.TransferTo(mindId, body, mind: SEntMan.GetComponent<MindComponent>(mindId));
+            var lvl = SEntMan.EnsureComponent<FSPlayerLevelComponent>(mindId);
+            (int, int) Progress() => (lvl.Level, lvl.Experience);
+
+            var start = Progress();
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
+            Assert.That(Progress(), Is.EqualTo(start), "a scoreboard thrown mid-round pays no XP");
+
+            ticker.EndRound();
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
+            var paid = Progress();
+            Assert.That(paid, Is.Not.EqualTo(start), "the real round end pays the round-end XP");
+
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
+            Assert.That(Progress(), Is.EqualTo(paid), "throwing the scoreboard again pays nothing more");
         });
     }
 

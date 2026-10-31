@@ -216,7 +216,23 @@ public sealed partial class PathfindingSystem
             }
 
             comp.DirtyChunks.Clear();
+            comp.Version++; // FINALSTAND
         }
+    }
+
+    // FINALSTAND
+    public int GetNavmeshVersion(EntityUid grid)
+    {
+        return TryComp(grid, out GridPathfindingComponent? comp) ? comp.Version : 0;
+    }
+
+    // FINALSTAND: whether a path planned now sees every change the grid had when this version was read; either
+    // nothing is waiting to be rebuilt or it has been rebuilt since.
+    public bool IsNavmeshCurrent(EntityUid grid, int version)
+    {
+        return !TryComp(grid, out GridPathfindingComponent? comp)
+               || comp.DirtyChunks.Count == 0
+               || comp.Version != version;
     }
 
     // Loose furniture is cheap to break but quick to walk around, so a short detour should win.

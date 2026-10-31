@@ -1,10 +1,12 @@
 using System.Numerics;
 using Content.Shared._FinalStand.Particles;
+using Content.Shared.Physics;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Graphics.RSI;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
@@ -19,13 +21,25 @@ public sealed partial class FSParticleSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IEyeManager _eye = default!;
+    [Dependency] private RayCastSystem _rayCast = default!;
 
     public const int MaxParticles = 1500;
+
+    // Emitters this far outside the view stop spawning; what they already made still finishes.
+    private const float EmitMargin = 8f;
+    // How far short of a wall a stopped particle's centre sits.
+    private const float WallMargin = 0.2f;
+
+    private static readonly QueryFilter WallFilter = new() { MaskBits = (int) CollisionGroup.Impassable };
 
     public struct Particle
     {
         public MapId Map;
         public Vector2 Position;
+        public Vector2 Origin;
+        // Distance from Origin where a wall stops it; infinite when nothing does.
+        public float Stop;
         public Vector2 Velocity;
         public float Age;
         public float Life;
@@ -34,6 +48,7 @@ public sealed partial class FSParticleSystem : EntitySystem
         public float Rotation;
         public float Spin;
         public Color Color;
+        public Color EndColor;
         public FSParticleEmitterPrototype Emitter;
         public Texture[] Frames;
     }
@@ -44,6 +59,7 @@ public sealed partial class FSParticleSystem : EntitySystem
         public FSParticleEmitterPrototype Emitter = default!;
         public Color Tint;
         public float RateScale = 1f;
+        public float SpeedScale = 1f;
         public float Owed;
         public Vector2? Last;
         public float? Heading;
@@ -109,6 +125,12 @@ public sealed partial class FSParticleSystem : EntitySystem
             attachment.RateScale = scale;
     }
 
+    public void SetSpeedScale(int handle, float scale)
+    {
+        if (_attachments.TryGetValue(handle, out var attachment))
+            attachment.SpeedScale = scale;
+    }
+
     public void SetTint(int handle, Color tint)
     {
         if (_attachments.TryGetValue(handle, out var attachment))
@@ -121,6 +143,9 @@ public sealed partial class FSParticleSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
 
+        var eye = _eye.CurrentEye.Position.MapId;
+        var view = _eye.GetWorldViewport().Enlarged(EmitMargin);
+
         foreach (var (handle, attachment) in _attachments)
         {
             if (TerminatingOrDeleted(attachment.Entity))
@@ -132,15 +157,23 @@ public sealed partial class FSParticleSystem : EntitySystem
             if (attachment.Emitter.AlignToHeading && !TrackHeading(attachment))
                 continue;
 
+            var (position, rotation) = _xform.GetWorldPositionRotation(attachment.Entity);
+            var map = Transform(attachment.Entity).MapID;
+            if (map != eye || !view.Contains(position))
+            {
+                attachment.Owed = 0f;
+                continue;
+            }
+
             attachment.Owed += attachment.Emitter.Rate * attachment.RateScale * frameTime;
             if (attachment.Owed < 1f)
                 continue;
 
-            var at = _xform.GetMapCoordinates(attachment.Entity);
+            var turn = attachment.Emitter.RotateWithEntity ? (float) rotation.Degrees : 0f;
             while (attachment.Owed >= 1f)
             {
                 attachment.Owed -= 1f;
-                Spawn(attachment.Emitter, at.MapId, at.Position, attachment.Tint, attachment.Heading);
+                Spawn(attachment.Emitter, map, position, attachment.Tint, attachment.Heading, turn, attachment.SpeedScale);
             }
         }
 
@@ -182,35 +215,67 @@ public sealed partial class FSParticleSystem : EntitySystem
             if (emitter.Drag > 0f)
                 p.Velocity *= MathF.Max(0f, 1f - emitter.Drag * dt);
             p.Position += p.Velocity * dt;
+            if (float.IsFinite(p.Stop))
+            {
+                var travelled = p.Position - p.Origin;
+                if (travelled.LengthSquared() > p.Stop * p.Stop)
+                {
+                    p.Position = p.Origin + Vector2.Normalize(travelled) * p.Stop;
+                    p.Velocity = Vector2.Zero;
+                }
+            }
+
             p.Rotation += p.Spin * dt;
             i++;
         }
     }
 
-    private void Spawn(FSParticleEmitterPrototype emitter, MapId map, Vector2 origin, Color tint, float? rotation = null)
+    private void Spawn(FSParticleEmitterPrototype emitter, MapId map, Vector2 origin, Color tint, float? rotation = null, float turn = 0f, float speedScale = 1f)
     {
         if (ParticleCount >= MaxParticles || GetFrames(emitter) is not { } frames)
             return;
 
-        var angle = MathHelper.DegreesToRadians(emitter.Direction + _random.NextFloat(-emitter.Spread, emitter.Spread) / 2f);
+        var angle = MathHelper.DegreesToRadians(emitter.Direction + turn + _random.NextFloat(-emitter.Spread, emitter.Spread) / 2f);
         var dir = new Vector2(MathF.Cos((float) angle), MathF.Sin((float) angle));
-        var speed = _random.NextFloat(emitter.Speed.X, MathF.Max(emitter.Speed.X, emitter.Speed.Y));
+        var speed = _random.NextFloat(emitter.Speed.X, MathF.Max(emitter.Speed.X, emitter.Speed.Y)) * speedScale;
         var offset = emitter.SpawnRadius > 0f
             ? _random.NextAngle().ToVec() * emitter.SpawnRadius * MathF.Sqrt(_random.NextFloat())
             : Vector2.Zero;
         var jitter = 1f + _random.NextFloat(-emitter.SizeJitter, emitter.SizeJitter);
+        var life = _random.NextFloat(emitter.Lifetime.X, MathF.Max(emitter.Lifetime.X, emitter.Lifetime.Y));
+        var start = origin + emitter.Offset + offset;
+        var stop = float.PositiveInfinity;
+
+        // One ray at birth decides where it stops, so a particle can't drift through a wall and nothing has to
+        // react to it touching one. Cast from the emitter itself, which can't be inside the wall.
+        if (emitter.StopAtWalls)
+        {
+            var length = emitter.ForwardOffset + speed * life;
+            var hit = _rayCast.CastRayClosest(map, start, dir * length, WallFilter);
+            if (hit.Hit)
+                stop = MathF.Max(0f, hit.Results[0].Fraction * length - emitter.ForwardOffset - WallMargin);
+        }
+
+        start += dir * emitter.ForwardOffset;
+
+        var color = emitter.Tinted ? Multiply(emitter.Color, tint) : emitter.Color;
+        var endColor = emitter.EndColor is not { } end ? color
+            : emitter.Tinted ? Multiply(end, tint) : end;
 
         Particles[ParticleCount++] = new Particle
         {
             Map = map,
-            Position = origin + emitter.Offset + offset,
+            Position = start,
+            Origin = start,
+            Stop = stop,
             Velocity = dir * speed,
-            Life = _random.NextFloat(emitter.Lifetime.X, MathF.Max(emitter.Lifetime.X, emitter.Lifetime.Y)),
+            Life = life,
             Size0 = emitter.Size.X * jitter,
             Size1 = emitter.Size.Y * jitter,
             Rotation = rotation ?? _random.NextFloat(0f, MathF.Tau),
             Spin = MathHelper.DegreesToRadians(_random.NextFloat(emitter.Spin.X, MathF.Max(emitter.Spin.X, emitter.Spin.Y))),
-            Color = emitter.Tinted ? Multiply(emitter.Color, tint) : emitter.Color,
+            Color = color,
+            EndColor = endColor,
             Emitter = emitter,
             Frames = frames,
         };

@@ -1,4 +1,3 @@
-// The mech HUD's combat toggle: 1/2/3 pick weapons while piloting, so combat mode needs its own button.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;
@@ -9,6 +8,7 @@ using Robust.Shared.Input;
 
 namespace Content.Client._FinalStand.Mech;
 
+// 1/2/3 pick weapons while piloting, so combat mode needs its own button.
 public sealed class FSMechCombatButton : Control
 {
     private static readonly Color Back = Color.FromHex("#080a0c");

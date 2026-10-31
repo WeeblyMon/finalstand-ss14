@@ -1,14 +1,14 @@
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.EntityEffects;
-using Robust.Shared.GameStates;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent]
+// Only the server reads it.
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FSArmorPiercingComponent : Component
 {
-    [DataField]
+    [DataField, AutoPausedField]
     public TimeSpan Until;
 }
 

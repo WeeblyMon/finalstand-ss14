@@ -1,7 +1,9 @@
 using System.Numerics;
 using Content.Server._FinalStand.Crit;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Shop;
+using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Atmos.EntitySystems;
@@ -89,7 +91,6 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const int RipAndTearStacks = 5;
     private const float RipAndTearMoney = 0.5f;
     private const float SlamFireStacks = 3f;
-    private const float CrashBleedScale = 0.2f;
     private const float RicochetSpeed = 0.6f;
     private const float RicochetProbe = 0.8f;
     private static readonly TimeSpan RicochetFlight = TimeSpan.FromSeconds(0.35);
@@ -124,7 +125,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private readonly HashSet<Entity<MobStateComponent>> _nearby = new();
     private readonly HashSet<Entity<MobStateComponent>> _burning = new();
     private readonly HashSet<(EntityUid User, EntityUid Target)> _revDumps = new();
-    private readonly List<(EntityUid Target, float Percent)> _ripAndTear = new();
+    private readonly List<(EntityUid Target, int Money, float Percent, EntityUid? Payee)> _ripAndTear = new();
     private readonly List<EntityUid> _launched = new();
 
     public override void Initialize()
@@ -164,8 +165,18 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _damageable.HealEvenly(user, FixedPoint2.New(-feed * living));
             foreach (var target in targets)
             {
+                if (!HasComp<WaveSpawnedTagComponent>(target))
+                    continue;
+
                 var bonus = EnsureComp<FSPendingKillBonusComponent>(target);
-                _ripAndTear.Add((target, bonus.MoneyPercent));
+                _ripAndTear.Add((target, bonus.MoneyBonus, bonus.MoneyPercent, bonus.Payee));
+                if (bonus.Payee != user)
+                {
+                    bonus.MoneyBonus = 0;
+                    bonus.MoneyPercent = 0f;
+                    bonus.Payee = user;
+                }
+
                 bonus.MoneyPercent = Math.Max(bonus.MoneyPercent, RipAndTearMoney);
             }
         }
@@ -428,7 +439,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     }
 
     // Cleaned between waves.
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         _aftershocks.Clear();
         _whirlWarned.Clear();
@@ -547,7 +558,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         // The bat crits every body it bowls over, and Lucille opens them up.
         var crit = CompOrNull<FSMeleeJuiceComponent>(launched.Weapon)?.CritWhen == FSMeleeCritWhen.Crash;
         var damage = crit ? launched.Damage * _crit.CalculateCritMultiplier(launched.Weapon) : launched.Damage;
-        var bleed = CompOrNull<FSWeaponUpgradeStateComponent>(launched.Weapon)?.BleedLevel ?? 0;
+        var bleed = CompOrNull<FSWeaponUpgradeStateComponent>(launched.Weapon)?.BleedScale ?? 0f;
         foreach (var mob in struck)
         {
             _hitsThisTick[(user, mob)] = (launched.Weapon, true, false);
@@ -556,10 +567,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                 _crit.MarkPendingCrit(user, mob);
             _damageable.ChangeDamage(mob, damage, origin: user);
 
-            if (bleed > 0)
+            if (bleed > 0f)
             {
                 var bleeding = EnsureComp<FSBleedingComponent>(mob);
-                bleeding.DamagePerSecond = damage.GetTotal().Float() * CrashBleedScale * bleed;
+                bleeding.DamagePerSecond = damage.GetTotal().Float() * bleed;
                 bleeding.ExpiresAt = Timing.CurTime + CrashBleedTime;
                 bleeding.NextTickAt = Timing.CurTime;
                 bleeding.Instigator = user;
@@ -808,10 +819,14 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         base.Update(frameTime);
         _hitsThisTick.Clear();
         _revDumps.Clear();
-        foreach (var (target, percent) in _ripAndTear)
+        foreach (var (target, money, percent, payee) in _ripAndTear)
         {
-            if (!TerminatingOrDeleted(target) && TryComp<FSPendingKillBonusComponent>(target, out var bonus))
-                bonus.MoneyPercent = percent;
+            if (TerminatingOrDeleted(target) || !TryComp<FSPendingKillBonusComponent>(target, out var bonus))
+                continue;
+
+            bonus.MoneyBonus = money;
+            bonus.MoneyPercent = percent;
+            bonus.Payee = payee;
         }
 
         _ripAndTear.Clear();

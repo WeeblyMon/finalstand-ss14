@@ -1,3 +1,4 @@
+// FINALSTAND: fork file, kept next to the vanilla partial it extends.
 using Robust.Shared.Configuration;
 
 namespace Content.Shared.CCVar;
@@ -9,6 +10,10 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<int> FSLagCompensationMaxRewindMs =
         CVarDef.Create("fs.lagcomp_max_rewind_ms", 500, CVar.SERVER | CVar.REPLICATED);
+
+    // Rewind allowed past how far a player's view should trail (buffer plus round trip), for jitter.
+    public static readonly CVarDef<int> FSLagCompensationRewindSlackMs =
+        CVarDef.Create("fs.lagcomp_rewind_slack_ms", 100, CVar.SERVER);
 
     public static readonly CVarDef<float> FSLagCompensationMargin =
         CVarDef.Create("fs.lagcomp_margin", 0.1f, CVar.SERVER | CVar.REPLICATED);

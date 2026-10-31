@@ -69,7 +69,7 @@ public sealed partial class DefaultGameScreen : InGameScreen
     {
         RobustXamlLoader.Load(this);
 
-        _classic = FSClassicHud.Enabled;
+        _classic = FSClassicHud.Enabled; // FINALSTAND
 
         AutoscaleMaxResolution = new Vector2i(1080, 770);
 
@@ -209,11 +209,18 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
         var left = storage.GlobalPosition.X - InventoryBarGap - size.X;
         var bottom = storage.GlobalPosition.Y + storage.Size.Y;
+        var position = new Vector2(left, bottom - size.Y);
 
-        SetPosition(Inventory, new Vector2(left, bottom - size.Y));
+        // Runs every frame, and SetPosition rearranges the whole screen even when nothing moved.
+        if (_inventoryBarPosition == position)
+            return;
+
+        _inventoryBarPosition = position;
+        SetPosition(Inventory, position);
     }
 
     private const float InventoryBarGap = 6f;
+    private Vector2? _inventoryBarPosition;
 
     private void ReflowChatForScreen()
     {
@@ -346,7 +353,7 @@ public sealed partial class DefaultGameScreen : InGameScreen
         Inventory.InventoryButton.SetButtonSize(WaveHudOverlay.HudSlotSize);
         Inventory.InventoryButton.ToolTip = Loc.GetString("fs-hud-worn-tooltip");
 
-        Hotbar.FSWornSlot.AddChild(Inventory.InventoryButton);
+        Hotbar.FSWornSlot.AddChild(Inventory.InventoryButton); // FINALSTAND
     }
 
     private void SetupChatToggle()
@@ -359,7 +366,7 @@ public sealed partial class DefaultGameScreen : InGameScreen
             Visible = false,
         };
 
-        FSHudStyle.StyleButton(_chatDock, padX: 2, padY: 2);
+        FSHudStyle.StyleButton(_chatDock, padX: 2, padY: 2); // FINALSTAND
 
         AddChild(_chatDock);
         SetAnchorPreset(_chatDock, LayoutPreset.TopLeft);
@@ -368,7 +375,7 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
         _chatDock.OnPressed += _ => SetChatCollapsed(false);
 
-        Chat.FSToggle.Text = "▶";
+        Chat.FSToggle.Text = "▶"; // FINALSTAND
         Chat.FSToggle.ToolTip = Loc.GetString("fs-chat-toggle-tooltip");
         Chat.FSToggle.MinSize = new Vector2(ChatToggleWidth, 16);
         FSHudStyle.StyleButton(Chat.FSToggle, padX: 2, padY: 0);
@@ -377,7 +384,7 @@ public sealed partial class DefaultGameScreen : InGameScreen
         Chat.FSGripLabel.ModulateSelfOverride = FSPalette.TextDim;
 
         Chat.FSGripHint.StyleClasses.Add("LabelSubText");
-        Chat.FSGripHint.ModulateSelfOverride = FSPalette.TextMuted;
+        Chat.FSGripHint.ModulateSelfOverride = FSPalette.TextMuted; // FINALSTAND
     }
 
     private void SetChatCollapsed(bool collapsed)

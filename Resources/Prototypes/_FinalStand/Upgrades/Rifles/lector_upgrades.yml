@@ -3,8 +3,8 @@
 # TODO(finalstand): add Lector burst fire upgrade when designed
 
 - type: entity
-  id: FSWeaponShopLecter
   parent: FSWeaponShopBase
+  id: FSWeaponShopLecter
   name: Lecter
   description: Gas-operated full-auto combat rifle. High stopping power per shot, rewarding accuracy. Uses .20 rifle magazines.
   components:
@@ -13,57 +13,57 @@
     price: 20000
     starterAmmoProtoId: FSMagazineRifle
     starterAmmoCount: 2
-    category: .20 Full-Auto Rifle
+    category: fs-weapon-shop-category-20-full-auto-rifle
     statDamage: 85
     statFireRate: 55
     statAccuracy: 65
     statCapacity: 60
     upgrades:
     - id: lecter-damage
-      name: Heavy Rounds
-      description: Higher-grain ammunition increases damage dealt by 15% per level.
+      name: fs-upgrade-lecter-damage
+      description: fs-upgrade-lecter-damage-desc
       maxLevel: 7
       baseCost: 3000
       type: Damage
       valuePerLevel: 0.15
     - id: lecter-recoil
-      name: Reduced Recoil
-      description: Muzzle compensator tightens spread by 0.5° per level. More rounds on target.
+      name: fs-upgrade-lecter-recoil
+      description: fs-upgrade-lecter-recoil-desc
       maxLevel: 3
       baseCost: 3000
       type: Accuracy
       valuePerLevel: 0.5
     - id: lecter-ap
-      name: AP Rounds
-      description: Armor-piercing ammunition. Rounds bypass enemy armor entirely.
+      name: fs-upgrade-lecter-ap
+      description: fs-upgrade-lecter-ap-desc
       maxLevel: 1
       baseCost: 5250
       type: APRounds
       valuePerLevel: 1
     - id: lecter-reload
-      name: Speed Loader
-      description: Faster magazine change per level.
+      name: fs-upgrade-lecter-reload
+      description: fs-upgrade-lecter-reload-desc
       maxLevel: 5
       baseCost: 3000
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: lecter-overkill
-      name: Overkill
-      description: Excess damage on a killing shot transfers to the nearest enemy. Higher levels increase transfer range.
+      name: fs-upgrade-lecter-overkill
+      description: fs-upgrade-lecter-overkill-desc
       maxLevel: 3
       baseCost: 9000
       type: Overkill
       valuePerLevel: 1
     - id: lecter-execution
-      name: Execution
-      description: Deals 5× damage against targets below 25% HP. Finish them.
+      name: fs-upgrade-lecter-execution
+      description: fs-upgrade-lecter-execution-desc
       maxLevel: 1
       baseCost: 5250
       type: Execution
       valuePerLevel: 1
     - id: lecter-penetrator
-      name: Penetrator
-      description: Shots pierce enemies. Each level adds a target, max 4; damage halves per hit.
+      name: fs-upgrade-lecter-penetrator
+      description: fs-upgrade-lecter-penetrator-desc
       maxLevel: 4
       baseCost: 5250
       type: Pierce

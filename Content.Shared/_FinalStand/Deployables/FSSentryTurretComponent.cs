@@ -5,7 +5,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._FinalStand.Deployables;
 
 // deployed autoturret: fires at wave enemies in range until its magazine runs dry
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSSentryTurretComponent : Component
 {
     [DataField, AutoNetworkedField]
@@ -46,7 +46,7 @@ public sealed partial class FSSentryTurretComponent : Component
 
     public readonly Queue<EntityUid> Casings = new();
 
-    public TimeSpan NextFire;
+    [AutoPausedField] public TimeSpan NextFire;
 
     public bool HasTarget;
 }

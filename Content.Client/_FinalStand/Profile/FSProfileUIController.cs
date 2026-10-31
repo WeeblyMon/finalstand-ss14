@@ -12,7 +12,7 @@ public sealed partial class FSProfileUIController : UIController, IOnSystemChang
     private FSTitlesWindow? _titles;
     private FSMentorWindow? _mentor;
 
-    public string? EquippedTitle { get; private set; }
+    public ProtoId<FSTitlePrototype>? EquippedTitle { get; private set; }
 
     public event Action? EquippedTitleChanged;
 
@@ -58,7 +58,7 @@ public sealed partial class FSProfileUIController : UIController, IOnSystemChang
 
     public (string? Name, Color Color) EquippedTitleDisplay()
     {
-        return EquippedTitle != null && _proto.TryIndex<FSTitlePrototype>(EquippedTitle, out var title)
+        return EquippedTitle is { } equipped && _proto.TryIndex(equipped, out var title)
             ? (Loc.GetString(title.Name), title.Color)
             : (null, Color.White);
     }

@@ -119,7 +119,7 @@ public sealed partial class BatteryWeaponFireModesSystem : EntitySystem
         {
             batteryAmmoProviderComponent.Prototype = fireMode.Prototype;
             batteryAmmoProviderComponent.FireCost = fireMode.FireCost;
-            if (TryComp<FSWeaponUpgradeStateComponent>(ent, out var fsState) && fsState.BatteryFireCostReduction > 0f)
+            if (TryComp<FSWeaponUpgradeStateComponent>(ent, out var fsState) && fsState.BatteryFireCostReduction > 0f) // FINALSTAND
             {
                 var floor = fireMode.FireCost * 0.4f;
                 batteryAmmoProviderComponent.FireCost = Math.Max(floor, fireMode.FireCost - fsState.BatteryFireCostReduction);

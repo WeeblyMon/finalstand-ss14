@@ -22,9 +22,9 @@
             <Button Name="CharacterSetup" Text="{Loc 'lobby-character-preview-panel-character-setup-button'}"
                     HorizontalAlignment="Center"
                     Margin="0 5 0 0"/>
+            <!-- FINALSTAND: perk points / level / XP / perk shop -->
             <Label Name="PerkPointsLabel" HorizontalAlignment="Center" Margin="3 3"
                    FontColorOverride="#FFD700"/>
-            <!-- FINALSTAND: level / XP / prestige -->
             <Label Name="LevelLabel" HorizontalAlignment="Center" Margin="1 1"
                    FontColorOverride="#FFD700"/>
             <Label Name="TitleLabel" HorizontalAlignment="Center" Margin="1 1" Visible="False"/>
@@ -35,7 +35,8 @@
                 <Button Name="TitlesButton" Text="{Loc 'fs-lobby-titles-button'}"/>
                 <Button Name="MentorButton" Text="{Loc 'fs-lobby-mentor-button'}"/>
             </BoxContainer>
-            <Button Name="PrestigeButton" Text="✦ PRESTIGE"
+            <!-- FINALSTAND -->
+            <Button Name="PrestigeButton" Text="{Loc 'fs-lobby-prestige-button'}"
                     HorizontalAlignment="Center"
                     Margin="0 4 0 0"
                     Visible="False"/>

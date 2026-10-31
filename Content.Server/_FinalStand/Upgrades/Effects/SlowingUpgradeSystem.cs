@@ -74,7 +74,7 @@ public sealed partial class SlowingUpgradeSystem : EntitySystem
         _movement.RefreshMovementSpeedModifiers(uid);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;

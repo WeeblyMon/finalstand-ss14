@@ -53,4 +53,4 @@ fs-cmo-doctrine-short = Triage Doctrine
 
 fs-cmo-dividend = Dividend
 fs-cmo-dividend-name = Department Dividend
-fs-cmo-dividend-effects = Converts $1,500 of department funds into $1,200 split across every medic on duty.
+fs-cmo-dividend-effects = Converts $1,500 of department funds into $1,800 split across every medic on duty.

@@ -34,6 +34,7 @@ public sealed partial class FSMedicalBonusSystem : EntitySystem
     private readonly List<float> _scratch = new();
     private readonly List<string> _expired = new();
     private readonly List<(EntityUid Uid, FSMedicalBonusComponent Comp)> _pruning = new();
+    private readonly List<EntityUid> _holders = new();
 
     private EntityQuery<FSMedicalBonusComponent> _bonusQuery;
     private EntityQuery<PullerComponent> _pullerQuery;
@@ -62,10 +63,24 @@ public sealed partial class FSMedicalBonusSystem : EntitySystem
 
         SubscribeLocalEvent<FSMedicalBonusComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovespeed);
         SubscribeLocalEvent<FSMedicalBonusComponent, GetDoAfterDamageThresholdEvent>(OnGetDamageThreshold);
+        SubscribeLocalEvent<FSMedicalBonusComponent, EntityUnpausedEvent>(OnUnpaused);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
 
         SubscribeLocalEvent<MetaDataComponent, GetMeleeDamageEvent>(OnGetMeleeDamage);
         SubscribeLocalEvent<MetaDataComponent, AmmoShotEvent>(OnAmmoShot);
+    }
+
+    // The deadlines sit inside the buffs, out of reach of the generated pause handling, so they're moved here or a
+    // pause longer than a buff used all of it up.
+    private void OnUnpaused(Entity<FSMedicalBonusComponent> ent, ref EntityUnpausedEvent args)
+    {
+        foreach (var buff in ent.Comp.Active.Values)
+        {
+            if (buff.EndTime is { } end)
+                buff.EndTime = end + args.PausedTime;
+        }
+
+        Dirty(ent);
     }
 
     public void ApplyGunModifiers(EntityUid holder, ref GunRefreshModifiersEvent args)
@@ -210,6 +225,21 @@ public sealed partial class FSMedicalBonusSystem : EntitySystem
 
         _movement.RefreshMovementSpeedModifiers(uid);
         RefreshHeldGuns(uid);
+    }
+
+    // Every holder, not just bodies with a session: a medic who disconnects keeps their body and the buff on it.
+    public void RemoveBuffFromAll(string source)
+    {
+        _holders.Clear();
+        var query = EntityQueryEnumerator<FSMedicalBonusComponent>();
+        while (query.MoveNext(out var uid, out var comp))
+        {
+            if (comp.Active.ContainsKey(source))
+                _holders.Add(uid);
+        }
+
+        foreach (var uid in _holders)
+            RemoveBuff(uid, source);
     }
 
     public bool HasBuff(EntityUid uid, string source)

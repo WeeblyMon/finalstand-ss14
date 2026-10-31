@@ -1,9 +1,9 @@
-// The Chief Engineer's folded emplacement: what it unfolds into, laid out as if it faces south.
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Emplacement;
 
+// The unfolded layout is given as if the emplacement faces south.
 [RegisterComponent, NetworkedComponent]
 public sealed partial class FSEmplacementKitComponent : Component
 {

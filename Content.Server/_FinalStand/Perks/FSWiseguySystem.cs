@@ -1,7 +1,6 @@
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Perks;
-using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 
@@ -19,13 +18,7 @@ public sealed partial class FSWiseguySystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
-        _wallet.CreditsGiven += OnCreditsGiven;
-    }
-
-    public override void Shutdown()
-    {
-        base.Shutdown();
-        _wallet.CreditsGiven -= OnCreditsGiven;
+        SubscribeLocalEvent<FSWiseguyComponent, FSCreditsGivenEvent>(OnCreditsGiven);
     }
 
     public float GetBonus(EntityUid mindId)
@@ -75,27 +68,20 @@ public sealed partial class FSWiseguySystem : EntitySystem
         }
     }
 
-    private void OnCreditsGiven(EntityUid mindId, int amount)
+    private void OnCreditsGiven(Entity<FSWiseguyComponent> ent, ref FSCreditsGivenEvent args)
     {
-        var bonus = GetBonus(mindId);
-        if (bonus <= 0f || !TryComp<FSWiseguyComponent>(mindId, out var wiseguy))
+        var bonus = GetBonus(ent);
+        if (bonus <= 0f)
             return;
 
-        wiseguy.Remainder += amount * bonus;
-        var paid = (int) wiseguy.Remainder;
+        ent.Comp.Remainder += args.Amount * bonus;
+        var paid = (int) ent.Comp.Remainder;
         if (paid <= 0)
             return;
 
-        wiseguy.Remainder -= paid;
-        _wallet.GiveCredits(mindId, paid, earned: false);
-        _earnings.RecordCredits(mindId, "Wiseguy", paid);
+        // Not an earning, so it doesn't raise FSCreditsGivenEvent and compound itself.
+        ent.Comp.Remainder -= paid;
+        _wallet.AddCredits(ent, paid);
+        _earnings.RecordCredits(ent, "Wiseguy", paid);
     }
-}
-
-[RegisterComponent]
-public sealed partial class FSWiseguyComponent : Component
-{
-    public int Streak;
-    public bool DownedThisWave;
-    public float Remainder;
 }

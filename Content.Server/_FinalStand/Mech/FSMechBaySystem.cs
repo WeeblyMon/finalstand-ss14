@@ -1,5 +1,3 @@
-// Runs the Mech Bay: engineers weld the frame and limbs, carried parts fit straight on, engineers build mech guns at it,
-// and a mech parked on it recharges and gets patched up.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.Materials;

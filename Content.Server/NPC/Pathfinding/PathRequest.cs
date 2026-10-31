@@ -17,9 +17,16 @@ public abstract class PathRequest
     public Task<PathResult> Task => Tcs.Task;
     public readonly TaskCompletionSource<PathResult> Tcs;
 
+    // FINALSTAND: vanilla passed the token to the TaskCompletionSource, which took it as its state object, so
+    // cancelling never cancelled anything and abandoned requests ran to the end.
+    public readonly CancellationToken CancelToken;
+
     public List<PathPoly> Polys = new();
 
     public bool Started = false;
+
+    // FINALSTAND: nodes expanded over every time slice so far; the limits are for the whole search.
+    public int Expanded;
 
     #region Pathfinding state
 
@@ -44,7 +51,8 @@ public abstract class PathRequest
         Flags = flags;
         CollisionLayer = layer;
         CollisionMask = mask;
-        Tcs = new TaskCompletionSource<PathResult>(cancelToken);
+        CancelToken = cancelToken;
+        Tcs = new TaskCompletionSource<PathResult>(); // FINALSTAND
     }
 }
 

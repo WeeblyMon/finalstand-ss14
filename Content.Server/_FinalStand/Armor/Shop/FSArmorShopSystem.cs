@@ -3,6 +3,8 @@ using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Armor.Shop;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Perks;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
 using Content.Shared.Mind;
@@ -22,8 +24,10 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
-    private readonly Dictionary<EntityUid, string> _purchasedTier = new();
+    private readonly Dictionary<EntityUid, ProtoId<FSArmorTierPrototype>> _purchasedTier = new();
 
     public override void Initialize()
     {
@@ -42,8 +46,11 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         var player = args.Actor;
         if (!_mind.TryGetMind(player, out var mindId, out _)) return;
 
-        _purchasedTier.TryGetValue(mindId, out var tierId);
-        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tierId, _wallet.GetCredits(mindId)), player);
+        ProtoId<FSArmorTierPrototype>? equipped = null;
+        if (_purchasedTier.TryGetValue(mindId, out var tierId))
+            equipped = tierId;
+
+        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(equipped, _wallet.GetCredits(mindId)), player);
     }
 
     private void OnBuy(EntityUid uid, FSArmorShopComponent comp, FSArmorShopBuyMessage args)
@@ -58,25 +65,46 @@ public sealed partial class FSArmorShopSystem : EntitySystem
             return;
         }
 
-        var tier = FSArmorShopDefs.GetTier(args.TierId);
-        if (tier == null) return;
-
-        _purchasedTier.TryGetValue(mindId, out var oldId);
-        if (oldId == tier.Id) return;
-
-        var netCost = FSArmorShopDefs.GetNetCost(oldId, tier);
-
-        if (!_wallet.TryDeductCredits(mindId, netCost))
+        if (args.Tier.Id is null || !_proto.TryIndex(args.Tier, out var tier))
             return;
 
-        if (!ApplyArmorToMob(player, tier))
+        FSArmorTierPrototype? old = null;
+        if (_purchasedTier.TryGetValue(mindId, out var oldId))
+            _proto.TryIndex(oldId, out old);
+
+        if (old == tier)
+            return;
+
+        // The trade-in only counts for the suit being handed back; one taken off and passed on earns nothing.
+        var tradeIn = old != null && Wears(player, old) ? old : null;
+        if (old != null && tradeIn == null)
+            _popup.PopupEntity(Loc.GetString("fs-armor-shop-trade-in-missing"), uid, player);
+
+        var netCost = FSArmorShopDefs.GetNetCost(tradeIn, tier);
+
+        if (netCost > 0 && !_wallet.TryDeductCredits(mindId, netCost))
         {
-            _wallet.GiveCredits(mindId, netCost, earned: false);
+            _popup.PopupEntity(Loc.GetString("fs-armor-shop-cant-afford", ("price", netCost)), uid, player);
             return;
         }
 
-        _purchasedTier[mindId] = tier.Id;
-        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.Id, _wallet.GetCredits(mindId)), player);
+        if (!ApplyArmorToMob(player, tier))
+        {
+            if (netCost > 0)
+                _wallet.AddCredits(mindId, netCost);
+            return;
+        }
+
+        // A step down refunds the difference.
+        if (netCost < 0)
+            _wallet.AddCredits(mindId, -netCost);
+
+        var from = old?.ID ?? "none";
+        _adminLogger.Add(netCost >= 0 ? LogType.StorePurchase : LogType.StoreRefund, LogImpact.Low,
+            $"{ToPrettyString(player):player} switched armor from {from} to {tier.ID} for {netCost} credits at {ToPrettyString(uid):store}");
+
+        _purchasedTier[mindId] = tier.ID;
+        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.ID, _wallet.GetCredits(mindId)), player);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
@@ -87,12 +115,19 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out _)) return;
-        if (!_purchasedTier.TryGetValue(mindId, out var tierId)) return;
-        var tier = FSArmorShopDefs.GetTier(tierId);
-        if (tier != null && !HasComp<FSMedievalistComponent>(ev.Mob)) ApplyArmorToMob(ev.Mob, tier);
+        if (_purchasedTier.TryGetValue(mindId, out var tierId)
+            && _proto.TryIndex(tierId, out var tier)
+            && !HasComp<FSMedievalistComponent>(ev.Mob))
+            ApplyArmorToMob(ev.Mob, tier);
     }
 
-    private bool ApplyArmorToMob(EntityUid mob, FSArmorTierDef tier)
+    private bool Wears(EntityUid mob, FSArmorTierPrototype tier)
+    {
+        return _inventory.TryGetSlotEntity(mob, "outerClothing", out var worn)
+               && MetaData(worn.Value).EntityPrototype?.ID == tier.Spawn.Id;
+    }
+
+    private bool ApplyArmorToMob(EntityUid mob, FSArmorTierPrototype tier)
     {
         if (_inventory.TryGetSlotEntity(mob, "outerClothing", out var existing))
         {
@@ -103,7 +138,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
                 Del(existing.Value);
         }
 
-        var item = Spawn(tier.SpawnId, Transform(mob).Coordinates);
+        var item = Spawn(tier.Spawn, Transform(mob).Coordinates);
 
         if (_inventory.TryEquip(mob, item, "outerClothing", silent: true, force: true))
             return true;

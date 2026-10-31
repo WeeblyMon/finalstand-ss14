@@ -14,7 +14,6 @@ using Content.Shared.Mind;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
-using Robust.Server.Console;
 using Robust.Server.Player;
 using Robust.Shared.Enums;
 using Robust.Shared.GameObjects;
@@ -81,9 +80,8 @@ public sealed class ReconnectHudTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
-            waveRule.ForceNextWave(shell, 3);
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave(3);
+            waveRule.ForceNextWave();
             Assert.That(waveRule.TryGetWaveStatus(out serverWave, out serverPhase), Is.True);
             Assert.That(serverPhase, Is.EqualTo(WavePhase.Prep), "test precondition: between waves");
             var rule = SEntMan.EntityQuery<WaveGameRuleComponent>().Single();
@@ -91,8 +89,10 @@ public sealed class ReconnectHudTest : GameTest
             Assert.That(wavesHeld, Is.GreaterThan(0), "test precondition");
 
             var lvl = SEntMan.GetComponent<FSPlayerLevelComponent>(mindId);
+#pragma warning disable RA0002
             lvl.Level = serverLevel;
             lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(serverLevel);
+#pragma warning restore RA0002
         });
 
         await Connect(name);

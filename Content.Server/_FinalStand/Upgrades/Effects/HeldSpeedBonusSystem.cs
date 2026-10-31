@@ -1,4 +1,3 @@
-// Applies a movement-speed bonus to the wielder ONLY while a weapon with HeldSpeedBonusPercent is held.
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;

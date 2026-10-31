@@ -47,7 +47,7 @@ public static class FSDifficultyRules
         _ => 0,
     };
 
-    public static string NameLocId(FSDifficulty difficulty) => difficulty switch
+    public static LocId NameLocId(FSDifficulty difficulty) => difficulty switch
     {
         FSDifficulty.Hard => "fs-difficulty-hard",
         FSDifficulty.Nightmare => "fs-difficulty-nightmare",

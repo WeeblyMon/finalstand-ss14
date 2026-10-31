@@ -1,4 +1,3 @@
-// Part of FSPlayerUpgradesSystem: grenade packs and deployables.
 using Content.Shared._FinalStand.Shop;
 
 using Content.Shared._FinalStand.Deployables;

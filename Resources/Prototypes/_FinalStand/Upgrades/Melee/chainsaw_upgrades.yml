@@ -1,68 +1,68 @@
 # Chainsaw shop entry. Top-tier melee.
 
 - type: entity
-  id: FSWeaponShopChainsaw
   parent: FSWeaponShopBase
+  id: FSWeaponShopChainsaw
   name: Chainsaw
   description: A very large chainsaw. Every hit in a row builds rev and makes it hit harder. Right click dumps all the rev into one big rip.
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponChainsaw
     price: 15000
-    category: Melee Power
+    category: fs-weapon-shop-category-melee-power
     statDamage: 70
     statFireRate: 70
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: chainsaw-overclock
-      name: Overclock
-      description: Higher RPM increases attack speed by 25% per level.
+      name: fs-upgrade-chainsaw-overclock
+      description: fs-upgrade-chainsaw-overclock-desc
       maxLevel: 2
       baseCost: 17000
       type: AttackSpeed
       valuePerLevel: 0.25
     - id: chainsaw-steel-chains
-      name: Steel Chains
-      description: Hardened links add +75% damage per level.
+      name: fs-upgrade-chainsaw-steel-chains
+      description: fs-upgrade-chainsaw-steel-chains-desc
       maxLevel: 3
       baseCost: 12500
       type: Damage
       valuePerLevel: 0.75
     - id: chainsaw-hungry-chains
-      name: Hungry Chains
-      description: Saw drinks back +0.5 lifesteal per hit.
+      name: fs-upgrade-chainsaw-hungry-chains
+      description: fs-upgrade-chainsaw-hungry-chains-desc
       maxLevel: 1
       baseCost: 22000
       type: LifeSteal
       valuePerLevel: 0.5
     - id: chainsaw-rip-and-tear
-      name: Rip and Tear
-      description: A right click spending 5 or more rev heals you 3 health per zombie it hits, and those kills pay 50% more.
+      name: fs-upgrade-chainsaw-rip-and-tear
+      description: fs-upgrade-chainsaw-rip-and-tear-desc
       maxLevel: 1
       baseCost: 18000
       type: MeleeSignature
       signature: RipAndTear
       valuePerLevel: 3
     - id: chainsaw-redline
-      name: Redline
-      description: Rev builds up to 10 instead of 6.
+      name: fs-upgrade-chainsaw-redline
+      description: fs-upgrade-chainsaw-redline-desc
       maxLevel: 1
       baseCost: 16000
       type: MeleeSignature
       signature: Redline
       valuePerLevel: 4
     - id: chainsaw-bloodthirsty
-      name: Bloodthirsty
-      description: A kill from a right-click rev dump makes your next grind hit a guaranteed crit.
+      name: fs-upgrade-chainsaw-bloodthirsty
+      description: fs-upgrade-chainsaw-bloodthirsty-desc
       maxLevel: 1
       baseCost: 14000
       type: MeleeSignature
       signature: Bloodthirsty
       valuePerLevel: 1
     - id: chainsaw-protective-saw
-      name: Protective Saw
-      description: While wielded, take 20% less damage.
+      name: fs-upgrade-chainsaw-protective-saw
+      description: fs-upgrade-chainsaw-protective-saw-desc
       maxLevel: 1
       baseCost: 22000
       type: WielderResistance

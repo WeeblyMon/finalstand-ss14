@@ -2,22 +2,25 @@ using Content.Server._FinalStand.Shop;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.SmartReload;
+using Content.Shared.ActionBlocker;
 using Content.Shared.Explosion.Components;
+using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction.Events;
-using Content.Shared.Mobs.Systems;
 using Content.Shared.Tag;
 using Content.Shared.Throwing;
 using Content.Shared.Trigger.Components.Triggers;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Grenades;
 
 public sealed partial class FSQuickGrenadeSystem : EntitySystem
 {
     [Dependency] private FSGrenadeSelectActionSystem _grenadeSelect = default!;
-    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private ActionBlockerSystem _actionBlocker = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
@@ -31,6 +34,8 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
     // Matches baitDuration on FSGrenadePackPipe - the unupgraded value, to recover how much upgrades added.
     private const float PipeBaseBaitDuration = 8f;
 
+    private static readonly TimeSpan ThrowCooldown = TimeSpan.FromSeconds(0.5);
+
     public override void Initialize()
     {
         base.Initialize();
@@ -43,8 +48,19 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         if (user == null)
             return;
 
-        if (_mobState.IsIncapacitated(user.Value))
+        // The cursor comes from the client; NaN slips past the range clamp and poisons the throw's physics.
+        if (!float.IsFinite(msg.CursorWorldPos.X) || !float.IsFinite(msg.CursorWorldPos.Y))
             return;
+
+        // The grenade never passes through a hand, so check what a hand throw would: crit, stun, cuffs, sleep.
+        if (!_actionBlocker.CanInteract(user.Value, null) || _containers.IsEntityInContainer(user.Value))
+            return;
+
+        var cooldown = EnsureComp<FSQuickGrenadeCooldownComponent>(user.Value);
+        if (_timing.CurTime < cooldown.NextThrow)
+            return;
+
+        cooldown.NextThrow = _timing.CurTime + ThrowCooldown;
 
         if (TryComp<FSActiveGrenadeComponent>(user.Value, out var active))
         {
@@ -115,11 +131,11 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         var fallback = FindGrenadeInInventory(user.Value);
         if (fallback == null)
         {
-            _popup.PopupEntity("No grenade found.", user.Value, user.Value);
+            _popup.PopupEntity(Loc.GetString("fs-quick-grenade-none"), user.Value, user.Value);
             return;
         }
 
-        // Yank directly out of whatever container it's in (pocket, bag, belt) — no hand needed.
+        // Yank directly out of whatever container it's in (pocket, bag, belt); no hand needed.
         if (_containers.TryGetContainingContainer(fallback.Value, out var container))
             _containers.Remove(fallback.Value, container, destination: Transform(user.Value).Coordinates);
 
@@ -138,6 +154,11 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         var dir = cursorWorldPos - playerWorldPos;
         if (dir.LengthSquared() < 0.01f)
             dir = _transform.GetWorldRotation(user).ToWorldVec();
+
+        // Cursor position comes from the client, so cap it like a normal hand throw.
+        var range = CompOrNull<HandsComponent>(user)?.ThrowRange ?? 8f;
+        if (dir.Length() > range)
+            dir = dir.Normalized() * range;
 
         _throwing.TryThrow(grenade, dir, 10f, user);
     }

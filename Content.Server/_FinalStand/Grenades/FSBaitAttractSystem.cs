@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
 using Content.Shared._FinalStand.Grenades;
@@ -47,8 +48,19 @@ public sealed partial class FSBaitAttractSystem : EntitySystem
         var query = EntityQueryEnumerator<FSBaitDecoyComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var xform))
         {
+            // Picked back up: it stops drawing the horde rather than leading it to whoever holds it.
             if (_container.IsEntityInContainer(uid))
+            {
+                if (TryComp<FSBaitAttractTrackerComponent>(uid, out var held) && held.ZombieToBait.Count > 0)
+                {
+                    foreach (var (npcUid, _) in held.ZombieToBait)
+                        ReleaseBait(npcUid, uid);
+
+                    held.ZombieToBait.Clear();
+                }
+
                 continue;
+            }
 
             var tracker = EnsureComp<FSBaitAttractTrackerComponent>(uid);
             var worldPos = _transform.GetWorldPosition(uid);
@@ -59,6 +71,9 @@ public sealed partial class FSBaitAttractSystem : EntitySystem
 
             foreach (var (npcUid, _) in zombieCandidates)
             {
+                if (!HasComp<WaveSpawnedTagComponent>(npcUid))
+                    continue;
+
                 // Re-asserted every tick. Other branches clear the key, and a one-shot set
                 // meant a zombie that lost it never re-acquired the bait.
                 tracker.ZombieToBait[npcUid] = uid;
@@ -76,8 +91,7 @@ public sealed partial class FSBaitAttractSystem : EntitySystem
             foreach (var npcUid in _released)
             {
                 tracker.ZombieToBait.Remove(npcUid);
-                if (TryComp<HTNComponent>(npcUid, out var htn))
-                    htn.Blackboard.Remove<EntityUid>(FSAIBlackboardKeys.BaitTarget);
+                ReleaseBait(npcUid, uid);
             }
 
             _htnSetPool.Return(zombieCandidates);
@@ -100,9 +114,16 @@ public sealed partial class FSBaitAttractSystem : EntitySystem
     private void OnTrackerShutdown(Entity<FSBaitAttractTrackerComponent> ent, ref ComponentShutdown args)
     {
         foreach (var (zombieUid, _) in ent.Comp.ZombieToBait)
+            ReleaseBait(zombieUid, ent.Owner);
+    }
+
+    // Another bait may have claimed the zombie since, so only clear the key if it's still ours.
+    private void ReleaseBait(EntityUid zombie, EntityUid bait)
+    {
+        if (TryComp<HTNComponent>(zombie, out var htn)
+            && htn.Blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.BaitTarget, out var current, EntityManager)
+            && current == bait)
         {
-            if (!TryComp<HTNComponent>(zombieUid, out var htn))
-                continue;
             htn.Blackboard.Remove<EntityUid>(FSAIBlackboardKeys.BaitTarget);
         }
     }

@@ -209,7 +209,7 @@ namespace Content.Client.Lobby.UI
                 OnSkinColorOnValueChanged();
             };
 
-            InitializeBodySize();
+            InitializeBodySize(); // FINALSTAND: height/width sliders
 
             #region Skin
 
@@ -285,7 +285,7 @@ namespace Content.Client.Lobby.UI
             #endregion Jobs
 
             TabContainer.SetTabTitle(2, Loc.GetString("humanoid-profile-editor-antags-tab"));
-            TabContainer.SetTabVisible(2, false);
+            TabContainer.SetTabVisible(2, false); // FINALSTAND: WaveSurvival has no antags — hide the tab entirely.
 
             RefreshTraits();
 
@@ -387,7 +387,7 @@ namespace Content.Client.Lobby.UI
             UpdateSpawnPriorityControls();
             UpdateAgeEdit();
             UpdateEyePickers();
-            UpdateBodySize();
+            UpdateBodySize(); // FINALSTAND
             UpdateSaveButton();
             UpdateMarkings();
 

@@ -36,7 +36,7 @@ public sealed partial class HealthAnalyzerSystem : EntitySystem
     [Dependency] private TransformSystem _transformSystem = default!;
     [Dependency] private SharedPopupSystem _popupSystem = default!;
     [Dependency] private BloodstreamSystem _bloodstreamSystem = default!;
-    [Dependency] private FSSafeDoseSystem _safeDose = default!;
+    [Dependency] private FSSafeDoseSystem _safeDose = default!; // FINALSTAND
 
     public override void Initialize()
     {
@@ -260,7 +260,7 @@ public sealed partial class HealthAnalyzerSystem : EntitySystem
             unrevivable
         )
         {
-            Reagents = _safeDose.DescribeBlood(entity),
+            Reagents = _safeDose.DescribeBlood(entity), // FINALSTAND: safe-dose readout
         };
     }
 }

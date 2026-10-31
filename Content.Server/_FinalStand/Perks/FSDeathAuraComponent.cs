@@ -1,8 +1,9 @@
 ﻿namespace Content.Server._FinalStand.Perks;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
+[Access(typeof(FSDeathAuraSystem))]
 public sealed partial class FSDeathAuraComponent : Component
 {
     public int Stacks;
-    public TimeSpan LastKillTime;
+    [AutoPausedField] public TimeSpan LastKillTime;
 }

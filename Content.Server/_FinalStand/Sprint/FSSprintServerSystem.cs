@@ -49,7 +49,7 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
     {
         EnsureComp<FSSprintComponent>(ev.Mob);
 
-        // FS sprint players use their own HUD overlay — skip vanilla alert.
+        // FS sprint players use their own HUD overlay, so skip the vanilla alert.
         if (TryComp<StaminaComponent>(ev.Mob, out var stamina))
             _alerts.ClearAlert(ev.Mob, stamina.StaminaAlert);
     }

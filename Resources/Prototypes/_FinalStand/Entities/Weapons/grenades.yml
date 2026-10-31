@@ -71,9 +71,9 @@
 # ─── Grenade pack items (sit in player's pockets) ─────────────────────────────
 
 - type: entity
-  id: FSGrenadePackBase
-  parent: BaseItem
   abstract: true
+  parent: BaseItem
+  id: FSGrenadePackBase
   components:
   - type: Item
     size: Small
@@ -161,9 +161,9 @@
 - type: entity
   parent: [TimerGrenadeBase]
   id: FSGrenadeFrag
+  categories: [ HideSpawnMenu ]
   name: frag grenade
   description: A fragmentation grenade with a short fuse.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Tag
     tags:
@@ -199,9 +199,9 @@
 - type: entity
   parent: [TimerGrenadeBase]
   id: FSGrenadeIncendiary
+  categories: [ HideSpawnMenu ]
   name: incendiary grenade
   description: Creates a sustained fire zone on detonation.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/Incendiary.rsi
@@ -235,9 +235,9 @@
 - type: entity
   parent: [TimerGrenadeBase]
   id: FSGrenadeFlash
+  categories: [ HideSpawnMenu ]
   name: flash grenade
   description: Stuns all zombies in a wide radius. Does not affect players.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/Stungrenade.rsi
@@ -275,9 +275,9 @@
 - type: entity
   parent: [TimerGrenadeBase]
   id: FSGrenadePipe
+  categories: [ HideSpawnMenu ]
   name: pipe bomb
   description: Detonates to create a decoy that attracts zombie attention.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Tag
     tags:
@@ -316,9 +316,9 @@
 - type: entity
   parent: [TimerGrenadeBase]
   id: FSGrenadeSingularity
+  categories: [ HideSpawnMenu ]
   name: gravaton bomb
   description: Collapses into a miniature singularity that drags nearby enemies into its centre.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Tag
     tags:
@@ -355,9 +355,9 @@
 
 - type: entity
   id: FSSingularityEffect
+  categories: [ HideSpawnMenu ]
   name: singularity
   description: A collapsing point of gravity.
-  categories: [ HideSpawnMenu ]
   components:
   - type: FSSingularity
   - type: Sprite
@@ -381,9 +381,9 @@
 - type: entity
   parent: [TimerGrenadeBase]
   id: FSGrenadeFragCluster
+  categories: [ HideSpawnMenu ]
   name: cluster frag grenade
   description: Detonates into three sub-munitions that scatter and explode.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
@@ -420,9 +420,9 @@
 - type: entity
   parent: [TimerGrenadeBase]
   id: FSGrenadeFragSub
+  categories: [ HideSpawnMenu ]
   name: frag sub-munition
   description: A small shaped charge that detonates shortly after landing.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Tag
     tags:
@@ -453,9 +453,9 @@
 
 - type: entity
   id: FSFireZoneEffect
+  categories: [ HideSpawnMenu ]
   name: fire zone
   description: Burning fire!
-  categories: [ HideSpawnMenu ]
   components:
   - type: FSFireZone
     radius: 2.5
@@ -470,9 +470,9 @@
 
 - type: entity
   id: FSFireZoneFlame
+  categories: [ HideSpawnMenu ]
   name: flames
   description: Burning fire!
-  categories: [ HideSpawnMenu ]
   components:
   - type: Transform
     anchored: true
@@ -492,9 +492,9 @@
 
 - type: entity
   id: FSBaitDecoy
+  categories: [ HideSpawnMenu ]
   name: bait signal
   description: An electronic decoy that mimics a living target.
-  categories: [ HideSpawnMenu ]
   components:
   - type: FSBaitDecoy
   - type: FSPlayerDamageImmune

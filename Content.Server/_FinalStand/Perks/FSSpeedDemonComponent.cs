@@ -1,9 +1,10 @@
 ﻿namespace Content.Server._FinalStand.Perks;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
+[Access(typeof(FSSpeedDemonSystem))]
 public sealed partial class FSSpeedDemonComponent : Component
 {
     public int Stacks;
-    public TimeSpan LastKillTime;
+    [AutoPausedField] public TimeSpan LastKillTime;
     public float DecayAccumulator;
 }

@@ -1,4 +1,3 @@
-// Built To Last perk: the builder's barricades take less damage, and heal the builder when destroyed.
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage.Systems;

@@ -5,6 +5,8 @@ using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared.GameTicking;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Hands.EntitySystems;
@@ -21,11 +23,16 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private FSUndyingSystem _undying = default!;
+    [Dependency] private FSPerkEarningsSystem _earnings = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
 
     private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
     private EntityQuery<FSArmorComponent> _armorQuery;
     private EntityQuery<FSHarvesterComponent> _harvesterQuery;
+    private EntityQuery<FSPerkLevelsComponent> _perksQuery;
+
+    // Profiteer's share is a few percent of a hit, so the fraction carries over rather than rounding to nothing.
+    private readonly Dictionary<EntityUid, float> _profiteerRemainder = new();
 
     private const int BaseMoneyPerHit = 30;
 
@@ -41,10 +48,21 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
         _upgradeQuery = GetEntityQuery<FSWeaponUpgradeStateComponent>();
         _armorQuery = GetEntityQuery<FSArmorComponent>();
         _harvesterQuery = GetEntityQuery<FSHarvesterComponent>();
+        _perksQuery = GetEntityQuery<FSPerkLevelsComponent>();
 
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _profiteerRemainder.Clear());
         SubscribeLocalEvent<FSMoneyOnHitCapComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<FSDeployableProjectileComponent, ProjectileHitEvent>(OnDeployableHit);
         SubscribeLocalEvent<FSFlatMoneyProjectileComponent, ProjectileHitEvent>(OnFlatHit);
+    }
+
+    // A projectile hit and its damage happen in the same call. If the hit changed no damage (armour, a resisted
+    // hit) the flag would otherwise linger and mislabel someone else's next hit on that enemy.
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        _deployableHitTarget = null;
+        _flatHit = null;
     }
 
     private void OnDeployableHit(Entity<FSDeployableProjectileComponent> ent, ref ProjectileHitEvent args)
@@ -95,6 +113,23 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
 
         var give = Math.Min(payout, max - alreadyGiven);
         cap.MoneyGivenPerPlayer[mindId] = alreadyGiven + give;
-        _wallet.GiveCredits(mindId, give);
+        _wallet.GiveCredits(mindId, give + ProfiteerShare(mindId, give));
+    }
+
+    // Profiteer is a percentage of hit money, so it follows the same cap, armour and Harvester rules.
+    private int ProfiteerShare(EntityUid mindId, int amount)
+    {
+        if (!_perksQuery.TryComp(mindId, out var perks))
+            return 0;
+
+        var level = perks.GetSlottedLevel("Profiteer");
+        if (level <= 0)
+            return 0;
+
+        var share = amount * level * FSPerkBonusConstants.ProfiteerFraction + _profiteerRemainder.GetValueOrDefault(mindId);
+        var whole = (int) share;
+        _profiteerRemainder[mindId] = share - whole;
+        _earnings.RecordCredits(mindId, "Profiteer", whole);
+        return whole;
     }
 }

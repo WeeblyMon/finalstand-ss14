@@ -1,4 +1,3 @@
-// Fits an overclock to its gun (in hand, or mounted on a mech it's used on) and applies it to every shot.
 using Content.Shared.Examine;
 using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
@@ -14,6 +13,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Mech;
 
+// Fits to the gun in hand, or to a mounted gun when used on its mech.
 public sealed partial class FSMechOverclockSystem : EntitySystem
 {
     [Dependency] private INetManager _net = default!;

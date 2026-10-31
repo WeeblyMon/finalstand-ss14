@@ -1,6 +1,6 @@
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Utility;
-using System.Numerics;
+using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
@@ -8,6 +8,7 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
@@ -17,6 +18,7 @@ public sealed partial class BeamChainingUpgradeSystem : EntitySystem
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
 
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
@@ -27,7 +29,7 @@ public sealed partial class BeamChainingUpgradeSystem : EntitySystem
     private readonly List<(EntityUid Uid, float DistSq)> _candidates = new();
 
     private const float ChainRange = 5f;
-    private const string ChainBeamSegment = "FSChainBeamSegment";
+    private static readonly EntProtoId ChainBeamSegment = "FSChainBeamSegment";
 
     public override void Initialize()
     {
@@ -35,7 +37,7 @@ public sealed partial class BeamChainingUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnHit);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;
@@ -64,33 +66,8 @@ public sealed partial class BeamChainingUpgradeSystem : EntitySystem
         for (var i = 0; i < chainCount; i++)
         {
             _damageable.TryChangeDamage(_candidates[i].Uid, ev.Damage, ignoreResistances: false, origin: ev.Shooter);
-            DrawChainBeam(ev.Target, _candidates[i].Uid);
-        }
-    }
-
-    // Physics-free sprites only — BeamSystem spawns physics entities that cancel primary damage.
-    private void DrawChainBeam(EntityUid from, EntityUid to)
-    {
-        var fromMapCoords = _transform.GetMapCoordinates(from);
-        var toMapCoords   = _transform.GetMapCoordinates(to);
-
-        if (fromMapCoords.MapId != toMapCoords.MapId)
-            return;
-
-        var dir = toMapCoords.Position - fromMapCoords.Position;
-        if (dir.LengthSquared() < 0.01f)
-            return;
-
-        var distance   = dir.Length();
-        var normalized = Vector2.Normalize(dir);
-        var angle      = dir.ToAngle();
-        var segCount   = Math.Max(1, (int)Math.Ceiling(distance));
-
-        for (var i = 0; i < segCount; i++)
-        {
-            var pos = new MapCoordinates(fromMapCoords.Position + normalized * i, fromMapCoords.MapId);
-            var seg = Spawn(ChainBeamSegment, pos);
-            _transform.SetWorldRotation(seg, angle);
+            // Sprite-only: BeamSystem spawns physics entities that cancel primary damage.
+            _flair.Beam(ev.Target, _candidates[i].Uid, ChainBeamSegment);
         }
     }
 }

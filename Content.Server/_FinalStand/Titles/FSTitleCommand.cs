@@ -6,9 +6,9 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.Titles;
 
 [AnyCommand]
-public sealed partial class FSTitleCommand : LocalizedCommands
+public sealed partial class FSTitleCommand : LocalizedEntityCommands
 {
-    [Dependency] private IEntityManager _entMan = default!;
+    [Dependency] private FSTitleSystem _titles = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
     public override string Command => "title";
@@ -21,18 +21,16 @@ public sealed partial class FSTitleCommand : LocalizedCommands
             return;
         }
 
-        var titles = _entMan.System<FSTitleSystem>();
-
         if (args.Length == 0)
         {
-            var owned = titles.GetOwned(player.UserId);
+            var owned = _titles.GetOwned(player.UserId);
             if (owned.Count == 0)
             {
                 shell.WriteLine(Loc.GetString("cmd-title-none-owned"));
                 return;
             }
 
-            var equipped = titles.GetEquipped(player.UserId);
+            var equipped = _titles.GetEquipped(player.UserId);
             shell.WriteLine(Loc.GetString("cmd-title-list-header"));
             foreach (var id in owned)
             {
@@ -44,20 +42,22 @@ public sealed partial class FSTitleCommand : LocalizedCommands
             return;
         }
 
-        if (string.Equals(argStr.Trim(), "none", StringComparison.OrdinalIgnoreCase))
+        // argStr is the whole typed line, command name included; titles have spaces, so rejoin the arguments.
+        var query = string.Join(' ', args);
+        if (string.Equals(query, "none", StringComparison.OrdinalIgnoreCase))
         {
-            titles.Equip(player.UserId, null);
+            _titles.Equip(player.UserId, null);
             shell.WriteLine(Loc.GetString("cmd-title-cleared"));
             return;
         }
 
-        if (!titles.TryResolve(player.UserId, argStr.Trim(), out var titleId))
+        if (!_titles.TryResolve(player.UserId, query, out var titleId))
         {
-            shell.WriteError(Loc.GetString("cmd-title-not-owned", ("query", argStr.Trim())));
+            shell.WriteError(Loc.GetString("cmd-title-not-owned", ("query", query)));
             return;
         }
 
-        titles.Equip(player.UserId, titleId);
+        _titles.Equip(player.UserId, titleId);
         shell.WriteLine(Loc.GetString("cmd-title-equipped", ("title", Loc.GetString(_proto.Index(titleId).Name))));
     }
 
@@ -66,7 +66,7 @@ public sealed partial class FSTitleCommand : LocalizedCommands
         if (args.Length != 1 || shell.Player is not { } player)
             return CompletionResult.Empty;
 
-        var options = _entMan.System<FSTitleSystem>().GetOwned(player.UserId)
+        var options = _titles.GetOwned(player.UserId)
             .Select(id => new CompletionOption(Loc.GetString(_proto.Index(id).Name)))
             .Append(new CompletionOption("none"));
         return CompletionResult.FromHintOptions(options, Loc.GetString("cmd-title-hint"));

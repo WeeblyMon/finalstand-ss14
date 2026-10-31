@@ -3,22 +3,22 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSCmoPanelComponent : Component
 {
     [DataField, AutoNetworkedField]
     public FSMedicalDirective? ActiveDirective;
 
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan McpReadyAt;
 
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan MobilisationReadyAt;
 
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan DirectiveReadyAt;
 
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan DividendReadyAt;
 
     [DataField, AutoNetworkedField]

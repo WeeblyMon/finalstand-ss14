@@ -1,8 +1,8 @@
 ﻿# ── Sniper Shops ──────────────────────────────────────────────────────────────
 
 - type: entity
-  id: FSWeaponShopMosin
   parent: FSWeaponShopBase
+  id: FSWeaponShopMosin
   name: Kardashev-Mosin
   description: A legendary bolt-action relic. Hits hard and hits true. Uses .30 light rifle rounds.
   components:
@@ -11,71 +11,71 @@
     price: 10000
     starterAmmoProtoId: FSStripperClipMosin
     starterAmmoCount: 4
-    category: .30 Bolt-Action Sniper
+    category: fs-weapon-shop-category-30-bolt-action-sniper
     statDamage: 80
     statFireRate: 20
     statAccuracy: 85
     statCapacity: 35
     upgrades:
     - id: mosin-marksmans-rhythm
-      name: Marksman's Rhythm
-      description: Each consecutive hit builds a stack. Each stack adds 10% damage. Miss a shot and lose all stacks. Stacks decay after 10 seconds of not firing.
+      name: fs-upgrade-mosin-marksmans-rhythm
+      description: fs-upgrade-mosin-marksmans-rhythm-desc
       maxLevel: 1
       baseCost: 6000
       type: MarksmansRhythm
       valuePerLevel: 1
     - id: mosin-full-auto
-      name: Custom Receiver
-      description: Fully automatic conversion. Enables full-auto and doubles fire rate.
+      name: fs-upgrade-mosin-full-auto
+      description: fs-upgrade-mosin-full-auto-desc
       maxLevel: 1
       baseCost: 8000
       type: FullAuto
       valuePerLevel: 2
     - id: mosin-lucky-shot
-      name: Lucky Shot
-      description: Adds a 15% critical hit chance per level. Maxes out at 100%.
+      name: fs-upgrade-mosin-lucky-shot
+      description: fs-upgrade-mosin-lucky-shot-desc
       maxLevel: 5
       baseCost: 4000
       type: CritChance
       valuePerLevel: 0.15
     - id: mosin-damage
-      name: Heavy Grain
-      description: Higher-grain ammunition increases damage by 50% per level.
+      name: fs-upgrade-mosin-damage
+      description: fs-upgrade-mosin-damage-desc
       maxLevel: 3
       baseCost: 5500
       type: Damage
       valuePerLevel: 0.5
     - id: mosin-skull-breaker
-      name: Skull Breaker
-      description: Critical hits deal 50% additional damage per level.
+      name: fs-upgrade-mosin-skull-breaker
+      description: fs-upgrade-mosin-skull-breaker-desc
       maxLevel: 2
       baseCost: 6000
       type: CritDamage
       valuePerLevel: 0.5
     - id: mosin-extended-mag
-      name: Extended Magazine
-      description: Extended internal magazine adds 5 rounds per level.
+      name: fs-upgrade-mosin-extended-mag
+      description: fs-upgrade-mosin-extended-mag-desc
       maxLevel: 2
       baseCost: 4500
       type: MagazineSize
       valuePerLevel: 5
     - id: mosin-fast-hands
-      name: Fast Hands
-      description: Decreases reload time by 25% per level.
+      name: fs-upgrade-mosin-fast-hands
+      description: fs-upgrade-mosin-fast-hands-desc
       maxLevel: 2
       baseCost: 4500
       type: ReloadSpeed
       valuePerLevel: 0.25
     - id: mosin-pierce
-      name: Piercing Rounds
-      description: Armor-piercing rounds pierce enemies. Each level adds a target; damage halves per hit.
+      name: fs-upgrade-mosin-pierce
+      description: fs-upgrade-mosin-pierce-desc
       maxLevel: 3
       baseCost: 6000
       type: Pierce
       valuePerLevel: 1
     - id: mosin-stripper-clip
-      name: Stripper Clip
-      description: Spawns a 5-round stripper clip per purchase per level, letting you reload multiple rounds at once instead of one at a time.
+      name: fs-upgrade-mosin-stripper-clip
+      description: fs-upgrade-mosin-stripper-clip-desc
       maxLevel: 5
       baseCost: 500
       type: SpawnItem
@@ -88,8 +88,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopEstoc
   parent: FSWeaponShopBase
+  id: FSWeaponShopEstoc
   name: Estoc DMR
   description: Precision burst-fire DMR. Three rounds, one target, zero survivors. Uses .20 rifle magazines.
   components:
@@ -98,57 +98,57 @@
     price: 70000
     starterAmmoProtoId: MagazineRifle
     starterAmmoCount: 2
-    category: .20 Burst-Fire DMR
+    category: fs-weapon-shop-category-20-burst-fire-dmr
     statDamage: 75
     statFireRate: 50
     statAccuracy: 80
     statCapacity: 65
     upgrades:
     - id: estoc-full-auto
-      name: Custom Receiver
-      description: Fully automatic conversion. Removes burst mode.
+      name: fs-upgrade-estoc-full-auto
+      description: fs-upgrade-estoc-full-auto-desc
       maxLevel: 1
       baseCost: 9000
       type: FullAuto
       valuePerLevel: 1
     - id: estoc-damage
-      name: Match Grade Ammo
-      description: Precision-loaded ammunition increases damage by 35% per level.
+      name: fs-upgrade-estoc-damage
+      description: fs-upgrade-estoc-damage-desc
       maxLevel: 4
       baseCost: 5500
       type: Damage
       valuePerLevel: 0.35
     - id: estoc-extended-mag
-      name: Extended Magazine
-      description: Extended magazine adds 10 rounds per level.
+      name: fs-upgrade-estoc-extended-mag
+      description: fs-upgrade-estoc-extended-mag-desc
       maxLevel: 2
       baseCost: 5500
       type: MagazineSize
       valuePerLevel: 10
     - id: estoc-hv-rounds
-      name: HV Rounds
-      description: High-velocity ammunition increases projectile speed by 50% per level.
+      name: fs-upgrade-estoc-hv-rounds
+      description: fs-upgrade-estoc-hv-rounds-desc
       maxLevel: 2
       baseCost: 6500
       type: Range
       valuePerLevel: 10
     - id: estoc-fast-hands
-      name: Fast Hands
-      description: Decreases reload time by 10% per level.
+      name: fs-upgrade-estoc-fast-hands
+      description: fs-upgrade-estoc-fast-hands-desc
       maxLevel: 3
       baseCost: 5000
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: estoc-lucky-shot
-      name: Lucky Shot
-      description: Adds a 5% critical hit chance per level.
+      name: fs-upgrade-estoc-lucky-shot
+      description: fs-upgrade-estoc-lucky-shot-desc
       maxLevel: 5
       baseCost: 4500
       type: CritChance
       valuePerLevel: 0.05
     - id: estoc-pierce
-      name: Piercing Rounds
-      description: Armor-piercing rounds pierce enemies. Each level adds a target; damage halves per hit.
+      name: fs-upgrade-estoc-pierce
+      description: fs-upgrade-estoc-pierce-desc
       maxLevel: 2
       baseCost: 7000
       type: Pierce
@@ -160,8 +160,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopHristov
   parent: FSWeaponShopBase
+  id: FSWeaponShopHristov
   name: Hristov
   description: Anti-materiel precision rifle. Makes anything regret existing. Uses .60 anti-materiel rounds.
   components:
@@ -170,43 +170,43 @@
     price: 90000
     starterAmmoProtoId: FSMagazineBoxAntiMateriel
     starterAmmoCount: 1
-    category: .60 Anti-Materiel Sniper
+    category: fs-weapon-shop-category-60-anti-materiel-sniper
     statDamage: 95
     statFireRate: 10
     statAccuracy: 90
     statCapacity: 20
     upgrades:
     - id: hristov-damage
-      name: AP Rounds
-      description: Armor-piercing ammunition increases damage by 190% per level.
+      name: fs-upgrade-hristov-damage
+      description: fs-upgrade-hristov-damage-desc
       maxLevel: 5
       baseCost: 15000
       type: Damage
       valuePerLevel: 1.9
     - id: hristov-skull-breaker
-      name: Skull Breaker
-      description: Critical hits deal 100% bonus damage.
+      name: fs-upgrade-hristov-skull-breaker
+      description: fs-upgrade-hristov-skull-breaker-desc
       maxLevel: 1
       baseCost: 12000
       type: CritDamage
       valuePerLevel: 1.0
     - id: hristov-fully-loaded
-      name: Fully Loaded
-      description: Extended internal magazine adds 1 round per level.
+      name: fs-upgrade-hristov-fully-loaded
+      description: fs-upgrade-hristov-fully-loaded-desc
       maxLevel: 3
       baseCost: 8000
       type: MagazineSize
       valuePerLevel: 1
     - id: hristov-pierce
-      name: Piercing Rounds
-      description: Your shots pierce enemies. Each level adds a target; damage halves per hit.
+      name: fs-upgrade-hristov-pierce
+      description: fs-upgrade-hristov-pierce-desc
       maxLevel: 10
       baseCost: 10000
       type: Pierce
       valuePerLevel: 1
     - id: hristov-hv-rounds
-      name: HV Rounds
-      description: High-velocity casings increase projectile speed by 100% per level.
+      name: fs-upgrade-hristov-hv-rounds
+      description: fs-upgrade-hristov-hv-rounds-desc
       maxLevel: 2
       baseCost: 8000
       type: Range

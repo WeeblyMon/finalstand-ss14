@@ -1,4 +1,5 @@
 ﻿using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Titles;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -7,14 +8,9 @@ using Content.Shared.Players;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
-using Content.Server._FinalStand.Titles;
 
 namespace Content.Server._FinalStand.Perks;
 
-[ByRefEvent]
-public readonly record struct FSPlayerHurtEvent(EntityUid Player);
-
-// Owns (ActorComponent, DamageModifyEvent) for Untouchable and (ActorComponent, FSHealingPotencyEvent) for Field Medic.
 public sealed partial class FSPlayerDamageModifySystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
@@ -47,10 +43,10 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
                 continue;
             }
 
-            if (unt.CurrentCharges < maxCharges && now >= unt.NextChargeTime && unt.NextChargeTime != default)
+            if (unt.CurrentCharges < maxCharges && unt.NextChargeTime is { } next && now >= next)
             {
                 unt.CurrentCharges++;
-                unt.NextChargeTime = unt.CurrentCharges < maxCharges ? now + ChargeReloadTime : default;
+                unt.NextChargeTime = unt.CurrentCharges < maxCharges ? now + ChargeReloadTime : null;
                 SendChargesUpdate(uid, unt.CurrentCharges);
             }
         }
@@ -77,7 +73,7 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
         {
             var unt = EnsureComp<FSUntouchableComponent>(uid);
             // Pre-load charges on first creation (CurrentCharges==0 with no timer means brand-new component).
-            if (unt.CurrentCharges == 0 && unt.NextChargeTime == default)
+            if (unt.CurrentCharges == 0 && unt.NextChargeTime == null)
             {
                 unt.CurrentCharges = untouchableLevel;
                 SendChargesUpdate(uid, unt.CurrentCharges);
@@ -86,8 +82,7 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
             {
                 args.Damage = new DamageSpecifier();
                 unt.CurrentCharges--;
-                if (unt.NextChargeTime == default)
-                    unt.NextChargeTime = _timing.CurTime + ChargeReloadTime;
+                unt.NextChargeTime ??= _timing.CurTime + ChargeReloadTime;
                 SendChargesUpdate(uid, unt.CurrentCharges);
             }
         }

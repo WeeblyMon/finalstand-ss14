@@ -1,5 +1,3 @@
-// Fakes a Skyfall missile's arc: the missile layer climbs and grows over its shadow, then drops back as it dives. Leaves a smoke trail
-// and marks what each missile has locked on to.
 using System.Numerics;
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.Mech;
@@ -11,6 +9,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Mech;
 
+// Fakes the missile's arc by climbing and growing its layer over the shadow.
 public sealed partial class FSSkyfallVisualSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;

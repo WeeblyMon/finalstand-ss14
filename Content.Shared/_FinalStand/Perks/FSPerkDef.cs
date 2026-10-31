@@ -1,18 +1,16 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Linq;
 
 namespace Content.Shared._FinalStand.Perks;
 
 public enum PerkCategory { Red, Blue, Green, Yellow, Purple }
 
+// Text lives in perks.ftl under fs-perk-<id>-*; the numbers in each level line come from FSPerkBonusConstants,
+// so the shop can never advertise a rate the maths does not pay.
 public sealed class FSPerkDef
 {
-    public string Id          { get; }
-    public string Name        { get; }
-    public string Description { get; }
+    public string Id { get; }
     public PerkCategory Category { get; }
-
-    public string[] LevelEffects { get; }
 
     public string? IconFile { get; init; }  // filename without extension; defaults to Id.ToLowerInvariant()
 
@@ -21,58 +19,114 @@ public sealed class FSPerkDef
 
     public static int CostForUpgrade(int currentLevel) => currentLevel + 1;
 
-    public FSPerkDef(string id, string name, string description,
-        PerkCategory category, string[] levelEffects)
-    {
-        if (levelEffects.Length != MaxLevel)
-            throw new ArgumentException(
-                $"FSPerkDef '{id}': expected {MaxLevel} level effects, got {levelEffects.Length}. " +
-                $"Every perk must have exactly one string per level.");
-        if (description.Length > 90)
-            throw new ArgumentException(
-                $"FSPerkDef '{id}': description is {description.Length} chars (max 90). " +
-                $"Keep descriptions concise — the info panel has a fixed width.");
+    public readonly string NameKey;
+    public readonly string DescriptionKey;
 
-        Id = id; Name = name; Description = description;
-        Category = category; LevelEffects = levelEffects;
+    private readonly string _levelKey;
+    private readonly string[] _fixedLevelKeys;
+
+    // Arguments for each level's line; null where the line is fixed text with a key of its own.
+    private readonly (string, object)[]?[] _levelArgs;
+
+    private FSPerkDef(string id, PerkCategory category, (string, object)[]?[] levelArgs)
+    {
+        if (levelArgs.Length != MaxLevel)
+            throw new ArgumentException($"FSPerkDef '{id}': expected {MaxLevel} levels, got {levelArgs.Length}.");
+
+        Id = id;
+        Category = category;
+        _levelArgs = levelArgs;
+
+        var key = "fs-perk-" + Kebab(id);
+        NameKey = key + "-name";
+        DescriptionKey = key + "-desc";
+        _levelKey = key + "-level";
+        _fixedLevelKeys = Enumerable.Range(1, MaxLevel).Select(level => $"{key}-level-{level}").ToArray();
     }
 
-    // Level text is generated from FSPerkBonusConstants so the shop can never advertise a rate the
-    // maths does not pay. Pct scales by 100, Flat does not.
-    private static string[] Pct(string format, params float[] rates) => Rows(format, 100f, rates);
+    public string Name => Loc.GetString(NameKey);
 
-    private static string[] Flat(string format, params float[] amounts) => Rows(format, 1f, amounts);
+    public string Description => Loc.GetString(DescriptionKey);
+
+    // Index 0 is level 1.
+    public string LevelEffect(int index)
+    {
+        return _levelArgs[index] is { } args
+            ? Loc.GetString(_levelKey, args)
+            : Loc.GetString(_fixedLevelKeys[index]);
+    }
+
+    public IEnumerable<string> LevelKeys()
+    {
+        for (var i = 0; i < MaxLevel; i++)
+            yield return _levelArgs[i] != null ? _levelKey : _fixedLevelKeys[i];
+    }
+
+    private static string Kebab(string id)
+    {
+        var chars = new List<char>(id.Length + 4);
+        for (var i = 0; i < id.Length; i++)
+        {
+            if (i > 0 && char.IsUpper(id[i]))
+                chars.Add('-');
+
+            chars.Add(char.ToLowerInvariant(id[i]));
+        }
+
+        return new string(chars.ToArray());
+    }
+
+    private static readonly string[] ArgNames = ["value", "value2"];
+
+    private static (string, object)[] Args(params object[] values)
+    {
+        var args = new (string, object)[values.Length];
+        for (var i = 0; i < values.Length; i++)
+        {
+            // Not Convert: the client sandbox doesn't allow it.
+            args[i] = (ArgNames[i], values[i] switch
+            {
+                float f => ((double) f).ToString("0.##", CultureInfo.InvariantCulture),
+                double d => d.ToString("0.##", CultureInfo.InvariantCulture),
+                int n => n.ToString(CultureInfo.InvariantCulture),
+                var other => other.ToString() ?? string.Empty,
+            });
+        }
+
+        return args;
+    }
+
+    // Pct scales by 100, Flat does not; both multiply the per-level rate by the level.
+    private static (string, object)[]?[] Pct(params float[] rates) => Rows(100f, rates);
+
+    private static (string, object)[]?[] Flat(params float[] amounts) => Rows(1f, amounts);
 
     // For perks that don't scale linearly, so the table itself is the source of truth.
-    private static string[] Table(string format, float[] perLevel)
+    private static (string, object)[]?[] Table(float[] perLevel)
     {
         if (perLevel.Length != MaxLevel)
             throw new ArgumentException($"Perk table needs {MaxLevel} entries, got {perLevel.Length}.");
 
-        return perLevel
-            .Select(v => string.Format(CultureInfo.InvariantCulture, format,
-                v.ToString("0.##", CultureInfo.InvariantCulture)))
-            .ToArray();
+        return perLevel.Select(v => ((string, object)[]?) Args(v)).ToArray();
     }
 
-    private static string[] Levels(string format, Func<int, object[]> args)
-        => Enumerable.Range(0, MaxLevel)
-            .Select(i => string.Format(CultureInfo.InvariantCulture, format, args(i)))
-            .ToArray();
+    private static (string, object)[]?[] PctTable(float[] perLevel) => Table(perLevel.Select(v => v * 100f).ToArray());
 
-    private static string[] PctTable(string format, float[] perLevel) =>
-        Table(format, perLevel.Select(v => v * 100f).ToArray());
+    private static (string, object)[]?[] Levels(Func<int, object[]> args)
+        => Enumerable.Range(0, MaxLevel).Select(i => ((string, object)[]?) Args(args(i))).ToArray();
 
-    private static string[] Rows(string format, float scale, float[] perLevel)
+    private static (string, object)[]?[] Fixed() => new (string, object)[]?[MaxLevel];
+
+    private static (string, object)[]?[] Rows(float scale, float[] perLevel)
     {
-        var rows = new string[MaxLevel];
+        var rows = new (string, object)[]?[MaxLevel];
         for (var level = 1; level <= MaxLevel; level++)
         {
-            var args = new object[perLevel.Length];
+            var values = new object[perLevel.Length];
             for (var i = 0; i < perLevel.Length; i++)
-                args[i] = (perLevel[i] * level * scale).ToString("0.##", CultureInfo.InvariantCulture);
+                values[i] = perLevel[i] * level * scale;
 
-            rows[level - 1] = string.Format(CultureInfo.InvariantCulture, format, args);
+            rows[level - 1] = Args(values);
         }
 
         return rows;
@@ -84,361 +138,162 @@ public sealed class FSPerkDef
     {
         FSPerkDef[] list =
         [
-            new("StoppingPower", "Stopping Power",
-                "Deal increased projectile damage. Does not apply to launchers.",
-                PerkCategory.Red,
-                Pct("+{0}% Damage", FSPerkBonusConstants.StoppingPowerPerLevel)),
-
-            new("BulletStorm", "Bullet Storm",
-                "Increase fire rate on all firearms.",
-                PerkCategory.Red,
-                Pct("+{0}% Fire Rate", FSPerkBonusConstants.BulletStormPerLevel)),
-
-            new("Juggernaught", "Juggernaught",
-                "Take less damage from zombies.",
-                PerkCategory.Blue,
-                Pct("+{0} Resistance", FSPerkBonusConstants.JuggernaughtPerLevel)),
-
-            new("Lightweight", "Lightweight",
-                "Increases your movement speed.",
-                PerkCategory.Green,
-                Pct("+{0}% Speed", FSPerkBonusConstants.LightweightPerLevel)),
-
-            new("Profiteer", "Profiteer",
-                "Increases the amount of money you earn.",
-                PerkCategory.Yellow,
-                Pct("+{0}% Money", FSPerkBonusConstants.ProfiteerFraction)),
-
-            new("SwordAndShield", "Sword and Shield",
-                "Increases your melee damage and damage resistance while wielding a melee weapon.",
-                PerkCategory.Purple,
-                Pct("+{0}% Damage / +{1} Resistance", FSPerkBonusConstants.SwordAndShieldPerLevel, FSPerkBonusConstants.SwordAndShieldResistPerLevel)),
-
-            new("DeathAura", "Death Aura",
-                "Kills grant stacks, increasing your damage by 2% per stack. Lose all stacks after 8s.",
-                PerkCategory.Red,
-                Flat("+{0} Max Stacks", FSPerkBonusConstants.DeathAuraStacksPerLevel)),
-
-            new("Adrenaline", "Adrenaline",
-                "Killing an enemy grants unlimited stamina for a few seconds.",
-                PerkCategory.Green,
-                Table("+{0}s Duration", FSPerkBonusConstants.AdrenalineSeconds)),
-
-            new("SpeedDemon", "Speed Demon",
-                "Kills increase your movement speed up to 7 stacks. Lose 1 stack/s after 5s.",
-                PerkCategory.Green,
-                Pct("+{0}% Speed/Stack", FSPerkBonusConstants.SpeedDemonPerLevel)),
-
-            new("Rampage", "Rampage",
-                "Melee kills increase resistance, health regen, and speed. 5 stacks max.",
-                PerkCategory.Purple,
-                ["+3 Resist/+0.2 Regen/+2% Speed", "+6/+0.4/+4%",
-                 "+9/+0.6/+6%", "+12/+0.8/+8%"]),
-
-            new("Showstopper", "Showstopper",
-                "Your style rank boosts melee damage. Melee kills at S rank or higher heal you.",
-                PerkCategory.Purple,
-                Levels("+{0:0.##}% Damage per Rank / +{1:0.##} HP per Kill",
-                    i => [FSPerkBonusConstants.ShowstopperPerRankPerLevel * (i + 1) * 100f, FSPerkBonusConstants.ShowstopperHealPerLevel * (i + 1)])),
-
-            new("Investor", "Investor",
-                "At the end of each wave your money gains interest.",
-                PerkCategory.Yellow,
-                Pct("+{0}% Return", FSPerkBonusConstants.InvestorPerLevel)),
-
-            new("MutualFund", "Mutual Fund",
-                "At the end of each wave your team's money gains interest.",
-                PerkCategory.Yellow,
-                Pct("+{0}% Team Return", FSPerkBonusConstants.MutualFundPerLevel)),
-
-            new("LifeLeech", "Life Leech",
-                "Regenerate health after every zombie you kill.",
-                PerkCategory.Blue,
-                Table("+{0} Health", FSPerkBonusConstants.LifeLeechHeal)),
-
-            new("Untouchable", "Untouchable",
-                "Automatically blocks one incoming hit. Charges refill after 30 seconds.",
-                PerkCategory.Blue,
-                ["+1 Max Charge", "+2 Max Charges", "+3 Max Charges", "+4 Max Charges"]),
-
-            new("Martyr", "Martyr",
-                "Going down triggers an explosion at your feet. 20 second cooldown.",
-                PerkCategory.Red,
-                ["Small Explosion", "Medium Explosion", "Large Explosion", "Max Explosion"]),
-
-            new("GlassCannon", "Glass Cannon",
-                "Take 100% more damage, but deal more damage.",
-                PerkCategory.Red,
-                Pct("+{0}% Damage", FSPerkBonusConstants.GlassCannonPerLevel)),
-
-            new("Pacifist", "Pacifist",
-                "Deal 25% less damage, but gain significant damage resistance.",
-                PerkCategory.Blue,
-                Pct("+{0} Resistance", FSPerkBonusConstants.PacifistResistPerLevel)),
-
-            new("FieldMedic", "Field Medic",
-                "Bandages, ointments and medigun beams you apply heal more.",
-                PerkCategory.Blue,
-                Pct("+{0}% Healing", FSPerkBonusConstants.FieldMedicPerLevel)),
-
-            new("Cargonian", "Cargonian",
-                "Reduces the movement speed penalty from dragging bodies.",
-                PerkCategory.Green,
-                ["-33% Drag Penalty", "-67% Drag Penalty", "-100% Drag Penalty", "-100% Drag Penalty"]),
-
-            new("LegBreaker", "Leg Breaker",
-                "Critical hits stagger enemies with stamina damage.",
-                PerkCategory.Blue,
-                Flat("{0} Stamina Damage on Crit", FSPerkBonusConstants.LegBreakerStaminaPerLevel)),
-
-            new("BackBreaker", "Back Breaker",
-                "Critical shots knock enemies back.",
-                PerkCategory.Green,
-                ["+3 Knockback", "+6 Knockback", "+9 Knockback", "+12 Knockback"]),
-
-            new("KnockbackBlast", "Knockback Blast",
-                "Your shotgun shots knock enemies back.",
-                PerkCategory.Blue,
-                ["+3 Knockback", "+6 Knockback", "+9 Knockback", "+12 Knockback"]),
-
-            new("DeepImpact", "Deep Impact",
-                "Your shots pierce through enemies, halving damage with each one.",
-                PerkCategory.Red,
-                ["+1 Pierce", "+2 Pierce", "+3 Pierce", "+4 Pierce"]),
-
-            new("Officer", "Officer",
-                "Using a whistle near allies increases their damage for 8 seconds.",
-                PerkCategory.Green,
-                Pct("+{0}% Ally Damage", FSPerkBonusConstants.OfficerBuffPerLevel)),
-
-            new("HarvesterTuning", "Harvester Tuning",
-                "Increases research points gained per Harvester hit.",
-                PerkCategory.Yellow,
-                ["+1 RP/Hit", "+2 RP/Hit", "+3 RP/Hit", "+4 RP/Hit"]),
-
-            new("CombatMedic", "Combat Medic",
-                "Healing an ally grants you both increased damage for 15 seconds.",
-                PerkCategory.Blue,
-                Pct("+{0}% Damage", FSPerkBonusConstants.CombatMedicPerLevel)),
-
-            new("Ravage", "Ravage",
-                "Increases critical hit chance and attack speed with melee weapons.",
-                PerkCategory.Red,
-                Pct("+{0}% Crit Chance / +{1}% Attack Speed", FSPerkBonusConstants.RavageCritPerLevel, FSPerkBonusConstants.RavageAttackSpeedPerLevel)),
-
-            new("CriticalPlus", "Critical Plus",
-                "Increases your critical hit damage multiplier.",
-                PerkCategory.Red,
-                Pct("+{0}% Crit Damage", FSPerkBonusConstants.CriticalPlusPerLevel)),
-
-            new("Implosion", "Implosion",
-                "Increases your explosive damage, but your explosions are 25% smaller.",
-                PerkCategory.Red,
-                PctTable("+{0}% Explosive Damage", FSPerkBonusConstants.ImplosionDamage)),
-
-            new("Rifleman", "Rifleman",
-                "Increases crit chance and crit damage with the Mosin, Estoc and Hristov.",
-                PerkCategory.Red,
-                Pct("+{0}% Crit Chance/Damage", FSPerkBonusConstants.RiflemanPerLevel)),
-
-            new("Berserker", "Berserker",
-                "The lower your health, the more damage you deal. Halved for ranged damage.",
-                PerkCategory.Red,
-                Pct("Up to +{0}% Damage", FSPerkBonusConstants.BerserkerPerLevel)),
-
-            new("Undying", "Undying",
-                "Going down lets you keep fighting with unlimited ammo, then you die.",
-                PerkCategory.Blue,
-                Table("{0}s Duration", FSPerkBonusConstants.UndyingSeconds)),
-
-            new("ManOnFire", "The Man On Fire",
-                "Reduces fire damage taken.",
-                PerkCategory.Blue,
-                PctTable("-{0}% Fire Damage", FSPerkBonusConstants.ManOnFireResist)),
-
-            new("Bandolier", "Bandolier",
-                "Increases the magazine size of your guns. Does not apply to charge weapons.",
-                PerkCategory.Green,
-                Pct("+{0}% Magazine Size", FSPerkBonusConstants.BandolierPerLevel)),
-
-            new("ShadowRounds", "Shadow Rounds",
-                "Shots have a chance to not consume ammo.",
-                PerkCategory.Red,
-                PctTable("{0}% Chance", FSPerkBonusConstants.ShadowRoundsChance)),
-
-            new("Bloodload", "Bloodload",
-                "Melee kills increase your reload speed for 12 seconds.",
-                PerkCategory.Green,
-                Pct("+{0}% Reload Speed", FSPerkBonusConstants.BloodloadPerLevel)),
-
-            new("Speedload", "Speedload",
-                "Increases your reload speed.",
-                PerkCategory.Red,
-                Pct("+{0}% Reload Speed", FSPerkBonusConstants.SpeedloadPerLevel)),
-
-            new("Executioner", "Executioner",
-                "Deal increased damage to zombies below 35% health.",
-                PerkCategory.Red,
-                Pct("+{0}% Damage", FSPerkBonusConstants.ExecutionerPerLevel)),
-
-            new("Shredder", "Shredder",
-                "Hits stack vulnerability on zombies, up to 10. Stacks fade 4s after the last hit.",
-                PerkCategory.Red,
-                PctTable("+{0}% Damage Taken per Stack", FSPerkBonusConstants.ShredderPerStack)),
-
-            new("SpecialisedKilling", "Specialised Killing",
-                "Deal increased damage to special zombies and bosses.",
-                PerkCategory.Red,
-                Pct("+{0}% Damage", FSPerkBonusConstants.SpecialisedKillingPerLevel)),
-
-            new("Thorns", "Thorns",
-                "Kills grant stacks. Taking zombie damage spends one and reflects it back.",
-                PerkCategory.Blue,
-                Levels("{0} Stacks / {1:0.##}% Reflect",
-                    i => [FSPerkBonusConstants.ThornsMaxStacks[i], FSPerkBonusConstants.ThornsReflect[i] * 100f])),
-
-            new("StaticDischarge", "Static Discharge",
-                "Getting hit by a zombie stuns the zombies around you. Specials for half as long.",
-                PerkCategory.Blue,
-                Levels("{0:0.##} Tile Radius / {1:0.##}s Cooldown",
-                    i => [FSPerkBonusConstants.StaticDischargeRadius[i], FSPerkBonusConstants.StaticDischargeCooldown[i]])),
-
-            new("BuiltToLast", "Built To Last",
-                "Your barricades take less damage. You heal when one of them breaks.",
-                PerkCategory.Blue,
-                Levels("-{0:0.##}% Barricade Damage / +{1:0.##} HP",
-                    i => [FSPerkBonusConstants.BuiltToLastPerLevel * (i + 1) * 100f, FSPerkBonusConstants.BuiltToLastHeal[i]])),
-
-            new("Technician", "Technician",
-                "+1 stock and cap on every deployable, more for mines and barricades. Refills each wave.",
-                PerkCategory.Green,
-                ["+1 All Deployables", "+2 Mines/Barricades / +1 Others", "+3 Mines/Barricades / +1 Others",
-                    "+4 Mines/Barricades / +1 Others"]),
-
-            new("Underdog", "Underdog",
-                "Gain damage and resistance for every zombie near you, up to 8.",
-                PerkCategory.Purple,
-                PctTable("+{0}% per Nearby Zombie", FSPerkBonusConstants.UnderdogPerZombie)),
-
-            new("Scavenger", "Scavenger",
-                "Kills can drop a supply cache holding ammo, a heal or credits.",
-                PerkCategory.Purple,
-                PctTable("{0}% Drop Chance", FSPerkBonusConstants.ScavengerChance)),
-
-            new("ConcealedCarry", "Concealed Carry",
-                "More crit chance with guns. Halved for large guns, none for huge ones.",
-                PerkCategory.Red,
-                Pct("+{0}% Crit Chance", FSPerkBonusConstants.ConcealedCarryPerLevel)),
-
-            new("Gunslinger", "Gunslinger",
-                "Pistols hit harder and fire faster. Two-handed guns get the reverse.",
-                PerkCategory.Red,
-                Pct("+{0}% Pistol Damage / +{1}% Pistol Fire Rate",
-                    FSPerkBonusConstants.GunslingerDamagePerLevel, FSPerkBonusConstants.GunslingerFireRatePerLevel)),
-
-            new("LoneWolf", "Lone Wolf",
-                "With no teammate within 10 tiles, deal more damage and regenerate health.",
-                PerkCategory.Purple,
-                Pct("+{0}% Damage / +{1} HP/s", FSPerkBonusConstants.LoneWolfDamagePerLevel,
-                    FSPerkBonusConstants.LoneWolfRegenPerLevel / 100f)),
-
-            new("BunkeredDown", "Bunkered Down",
-                "More damage and toughness within 12 tiles of the CCC, 10% less damage away from it.",
-                PerkCategory.Purple,
-                Pct("+{0}% Damage / +{1} Resistance", FSPerkBonusConstants.BunkeredDownDamagePerLevel,
-                    FSPerkBonusConstants.BunkeredDownResistPerLevel)),
-
-            new("DeadlyGear", "Deadly Gear",
-                "Your sentries, HMG fire and landmines deal more damage.",
-                PerkCategory.Red,
-                Pct("+{0}% Equipment Damage", FSPerkBonusConstants.DeadlyGearPerLevel)),
-
-            new("OlReliable", "Ol' Reliable",
-                "Shotguns deal more damage for each of your sentries still standing, up to 5.",
-                PerkCategory.Red,
-                Pct("+{0}% Shotgun Damage per Sentry", FSPerkBonusConstants.OlReliablePerSentryPerLevel)),
-
-            new("StylePoints", "Style Points",
-                "A gun left unfired for 5s builds up bonus damage. Firing it drains the bonus.",
-                PerkCategory.Red,
-                Pct("Up to +{0}% Damage", FSPerkBonusConstants.StylePointsPerLevel)),
-
-            new("SmokingKills", "Smoking Kills",
-                "Deal more damage while a lit cigarette, cigar or pipe is in your mouth.",
-                PerkCategory.Red,
-                Pct("+{0}% Damage", FSPerkBonusConstants.SmokingKillsPerLevel)),
-
-            new("Wiseguy", "Wiseguy",
-                "Each wave you finish without going down raises your income. Going down resets it.",
-                PerkCategory.Yellow,
-                Levels("+{0:0.#}% Money/Wave (Max {1:0}%)",
-                    i => [FSPerkBonusConstants.WiseguyPerWave[i] * 100f, FSPerkBonusConstants.WiseguyCap[i] * 100f])),
-
-            new("LookingThin", "Looking Thin",
-                "Move faster with no armour on. Light armour halves it, heavy armour removes it.",
-                PerkCategory.Green,
-                Pct("+{0}% Speed", FSPerkBonusConstants.LookingThinPerLevel)),
-
-            new("PackMule", "Pack Mule",
-                "Slowdowns from armour, heavy guns, wounds and the like hit you less.",
-                PerkCategory.Green,
-                Pct("-{0}% Speed Penalties", FSPerkBonusConstants.PackMulePerLevel)),
-
-            new("Aggravator", "Aggravator",
-                "Kills stack +1% damage and draw nearby zombies to you. Lose a stack every 5s.",
-                PerkCategory.Purple,
-                Flat("+{0} Max Stacks", FSPerkBonusConstants.AggravatorStacksPerLevel)),
-
-            new("StunningStrikes", "Stunning Strikes",
-                "Riot shield hits can stun zombies for 1.2s. Specials: half as long, once per 10s.",
-                PerkCategory.Green,
-                Pct("{0}% Stun Chance", FSPerkBonusConstants.StunningStrikesChancePerLevel)),
-
-            new("Bulwark", "Bulwark",
-                "Tougher riot shield. Blocking draws zombies to you, melee kills mend the shield.",
-                PerkCategory.Blue,
-                Pct("+{0}% Shield Durability / +{1}% Mend per Kill", FSPerkBonusConstants.BulwarkDurabilityPerLevel,
-                    FSPerkBonusConstants.BulwarkRepairPerKillPerLevel)),
-
-            new("BeaconOfLight", "Beacon of Light",
-                "While blocking with a riot shield, nearby allies stop bleeding and slowly heal.",
-                PerkCategory.Blue,
-                Levels("{0:0} Tile Radius / +{1:0.##} HP/s",
-                    i => [FSPerkBonusConstants.BeaconOfLightRadius[i], FSPerkBonusConstants.BeaconOfLightHealPerLevel * (i + 1)])),
-
-            new("Medievalist", "Medievalist",
-                "No guns or armour. Big melee damage and toughness. Locks in at wave start.",
-                PerkCategory.Purple,
-                Pct("+{0}% Melee Damage / +{1} Resistance", FSPerkBonusConstants.MedievalistMeleePerLevel,
-                    FSPerkBonusConstants.MedievalistResistPerLevel)),
-
-            new("SlushFund", "Slush Fund",
-                "An extra share of what you earn goes into the Medical fund. Medical staff only.",
-                PerkCategory.Yellow,
-                Pct("+{0}% of Income to Fund", FSPerkBonusConstants.SlushFundPerLevel)),
-
-            new("DrunkenBerserker", "Drunken Berserker",
-                "Drunk: more melee damage and fire rate, but worse aim and frailer. No alcohol poisoning.",
-                PerkCategory.Purple,
-                Pct("+{0}% Melee Damage and Spread / +{1}% Fire Rate", FSPerkBonusConstants.DrunkenBerserkerPerLevel,
+            new("StoppingPower", PerkCategory.Red, Pct(FSPerkBonusConstants.StoppingPowerPerLevel)),
+
+            new("BulletStorm", PerkCategory.Red, Pct(FSPerkBonusConstants.BulletStormPerLevel)),
+
+            new("Juggernaught", PerkCategory.Blue, Pct(FSPerkBonusConstants.JuggernaughtPerLevel)),
+
+            new("Lightweight", PerkCategory.Green, Pct(FSPerkBonusConstants.LightweightPerLevel)),
+
+            new("Profiteer", PerkCategory.Yellow, Pct(FSPerkBonusConstants.ProfiteerFraction)),
+
+            new("SwordAndShield", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.SwordAndShieldPerLevel, FSPerkBonusConstants.SwordAndShieldResistPerLevel)),
+
+            new("DeathAura", PerkCategory.Red, Flat(FSPerkBonusConstants.DeathAuraStacksPerLevel)),
+
+            new("Adrenaline", PerkCategory.Green, Table(FSPerkBonusConstants.AdrenalineSeconds)),
+
+            new("SpeedDemon", PerkCategory.Green, Pct(FSPerkBonusConstants.SpeedDemonPerLevel)),
+
+            new("Rampage", PerkCategory.Purple, Fixed()),
+
+            new("Showstopper", PerkCategory.Purple,
+                Levels(i => [FSPerkBonusConstants.ShowstopperPerRankPerLevel * (i + 1) * 100f, FSPerkBonusConstants.ShowstopperHealPerLevel * (i + 1)])),
+
+            new("Investor", PerkCategory.Yellow, Pct(FSPerkBonusConstants.InvestorPerLevel)),
+
+            new("MutualFund", PerkCategory.Yellow, Pct(FSPerkBonusConstants.MutualFundPerLevel)),
+
+            new("LifeLeech", PerkCategory.Blue, Table(FSPerkBonusConstants.LifeLeechHeal)),
+
+            new("Untouchable", PerkCategory.Blue, Fixed()),
+
+            new("Martyr", PerkCategory.Red, Fixed()),
+
+            new("GlassCannon", PerkCategory.Red, Pct(FSPerkBonusConstants.GlassCannonPerLevel)),
+
+            new("Pacifist", PerkCategory.Blue, Pct(FSPerkBonusConstants.PacifistResistPerLevel)),
+
+            new("FieldMedic", PerkCategory.Blue, Pct(FSPerkBonusConstants.FieldMedicPerLevel)),
+
+            new("Cargonian", PerkCategory.Green, Fixed()),
+
+            new("LegBreaker", PerkCategory.Blue, Flat(FSPerkBonusConstants.LegBreakerStaminaPerLevel)),
+
+            new("BackBreaker", PerkCategory.Green, Fixed()),
+
+            new("KnockbackBlast", PerkCategory.Blue, Fixed()),
+
+            new("DeepImpact", PerkCategory.Red, Fixed()),
+
+            new("Officer", PerkCategory.Green, Pct(FSPerkBonusConstants.OfficerBuffPerLevel)),
+
+            new("HarvesterTuning", PerkCategory.Yellow, Fixed()),
+
+            new("CombatMedic", PerkCategory.Blue, Pct(FSPerkBonusConstants.CombatMedicPerLevel)),
+
+            new("Ravage", PerkCategory.Red,
+                Pct(FSPerkBonusConstants.RavageCritPerLevel, FSPerkBonusConstants.RavageAttackSpeedPerLevel)),
+
+            new("CriticalPlus", PerkCategory.Red, Pct(FSPerkBonusConstants.CriticalPlusPerLevel)),
+
+            new("Implosion", PerkCategory.Red, PctTable(FSPerkBonusConstants.ImplosionDamage)),
+
+            new("Rifleman", PerkCategory.Red, Pct(FSPerkBonusConstants.RiflemanPerLevel)),
+
+            new("Berserker", PerkCategory.Red, Pct(FSPerkBonusConstants.BerserkerPerLevel)),
+
+            new("Undying", PerkCategory.Blue, Table(FSPerkBonusConstants.UndyingSeconds)),
+
+            new("ManOnFire", PerkCategory.Blue, PctTable(FSPerkBonusConstants.ManOnFireResist)),
+
+            new("Bandolier", PerkCategory.Green, Pct(FSPerkBonusConstants.BandolierPerLevel)),
+
+            new("ShadowRounds", PerkCategory.Red, PctTable(FSPerkBonusConstants.ShadowRoundsChance)),
+
+            new("Bloodload", PerkCategory.Green, Pct(FSPerkBonusConstants.BloodloadPerLevel)),
+
+            new("Speedload", PerkCategory.Red, Pct(FSPerkBonusConstants.SpeedloadPerLevel)),
+
+            new("Executioner", PerkCategory.Red, Pct(FSPerkBonusConstants.ExecutionerPerLevel)),
+
+            new("Shredder", PerkCategory.Red, PctTable(FSPerkBonusConstants.ShredderPerStack)),
+
+            new("SpecialisedKilling", PerkCategory.Red, Pct(FSPerkBonusConstants.SpecialisedKillingPerLevel)),
+
+            new("Thorns", PerkCategory.Blue,
+                Levels(i => [FSPerkBonusConstants.ThornsMaxStacks[i], FSPerkBonusConstants.ThornsReflect[i] * 100f])),
+
+            new("StaticDischarge", PerkCategory.Blue,
+                Levels(i => [FSPerkBonusConstants.StaticDischargeRadius[i], FSPerkBonusConstants.StaticDischargeCooldown[i]])),
+
+            new("BuiltToLast", PerkCategory.Blue,
+                Levels(i => [FSPerkBonusConstants.BuiltToLastPerLevel * (i + 1) * 100f, FSPerkBonusConstants.BuiltToLastHeal[i]])),
+
+            new("Technician", PerkCategory.Green, Fixed()),
+
+            new("Underdog", PerkCategory.Purple, PctTable(FSPerkBonusConstants.UnderdogPerZombie)),
+
+            new("Scavenger", PerkCategory.Purple, PctTable(FSPerkBonusConstants.ScavengerChance)),
+
+            new("ConcealedCarry", PerkCategory.Red, Pct(FSPerkBonusConstants.ConcealedCarryPerLevel)),
+
+            new("Gunslinger", PerkCategory.Red,
+                Pct(FSPerkBonusConstants.GunslingerDamagePerLevel, FSPerkBonusConstants.GunslingerFireRatePerLevel)),
+
+            new("LoneWolf", PerkCategory.Purple,
+                Levels(i => [FSPerkBonusConstants.LoneWolfDamagePerLevel * (i + 1) * 100f,
+                    FSPerkBonusConstants.LoneWolfRegenPerLevel * (i + 1)])),
+
+            new("BunkeredDown", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.BunkeredDownDamagePerLevel, FSPerkBonusConstants.BunkeredDownResistPerLevel)),
+
+            new("DeadlyGear", PerkCategory.Red, Pct(FSPerkBonusConstants.DeadlyGearPerLevel)),
+
+            new("OlReliable", PerkCategory.Red, Pct(FSPerkBonusConstants.OlReliablePerSentryPerLevel)),
+
+            new("StylePoints", PerkCategory.Red, Pct(FSPerkBonusConstants.StylePointsPerLevel)),
+
+            new("SmokingKills", PerkCategory.Red, Pct(FSPerkBonusConstants.SmokingKillsPerLevel)),
+
+            new("Wiseguy", PerkCategory.Yellow,
+                Levels(i => [FSPerkBonusConstants.WiseguyPerWave[i] * 100f,
+                    FSPerkBonusConstants.WiseguyCap[i] * 100f])),
+
+            new("LookingThin", PerkCategory.Green, Pct(FSPerkBonusConstants.LookingThinPerLevel)),
+
+            new("PackMule", PerkCategory.Green, Pct(FSPerkBonusConstants.PackMulePerLevel)),
+
+            new("Aggravator", PerkCategory.Purple, Flat(FSPerkBonusConstants.AggravatorStacksPerLevel)),
+
+            new("StunningStrikes", PerkCategory.Green, Pct(FSPerkBonusConstants.StunningStrikesChancePerLevel)),
+
+            new("Bulwark", PerkCategory.Blue,
+                Pct(FSPerkBonusConstants.BulwarkDurabilityPerLevel, FSPerkBonusConstants.BulwarkRepairPerKillPerLevel)),
+
+            new("BeaconOfLight", PerkCategory.Blue,
+                Levels(i => [FSPerkBonusConstants.BeaconOfLightRadius[i],
+                    FSPerkBonusConstants.BeaconOfLightHealPerLevel * (i + 1)])),
+
+            new("Medievalist", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.MedievalistMeleePerLevel, FSPerkBonusConstants.MedievalistResistPerLevel)),
+
+            new("SlushFund", PerkCategory.Yellow, Pct(FSPerkBonusConstants.SlushFundPerLevel)),
+
+            new("DrunkenBerserker", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.DrunkenBerserkerPerLevel,
                     FSPerkBonusConstants.DrunkenBerserkerFireRatePerLevel)),
 
-            new("ExplosiveEngineering", "Explosive Engineering",
-                "Drunk: bigger blasts from your grenades and rockets, harder-hitting sentries.",
-                PerkCategory.Red,
-                Pct("+{0}% Blast Radius / +{1}% Sentry Damage", FSPerkBonusConstants.ExplosiveEngineeringRadiusPerLevel,
+            new("ExplosiveEngineering", PerkCategory.Red,
+                Pct(FSPerkBonusConstants.ExplosiveEngineeringRadiusPerLevel,
                     FSPerkBonusConstants.ExplosiveEngineeringSentryPerLevel)),
 
-            new("RagingAlcoholic", "Raging Alcoholic",
-                "No alcohol poisoning. The drunker you are, the faster you heal.",
-                PerkCategory.Blue,
-                Flat("Up to +{0} HP/s", FSPerkBonusConstants.RagingAlcoholicRegenPerLevel)),
+            new("RagingAlcoholic", PerkCategory.Blue, Flat(FSPerkBonusConstants.RagingAlcoholicRegenPerLevel)),
 
-            new("WolfPack", "Wolf Pack",
-                "With a teammate within 6 tiles, reload faster and take less damage.",
-                PerkCategory.Purple,
-                Pct("+{0}% Reload Speed / +{1} Resistance", FSPerkBonusConstants.WolfPackReloadPerLevel,
-                    FSPerkBonusConstants.WolfPackResistPerLevel)),
+            new("WolfPack", PerkCategory.Purple,
+                Pct(FSPerkBonusConstants.WolfPackReloadPerLevel, FSPerkBonusConstants.WolfPackResistPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

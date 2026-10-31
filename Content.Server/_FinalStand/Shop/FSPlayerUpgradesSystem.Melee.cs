@@ -1,4 +1,3 @@
-// Part of FSPlayerUpgradesSystem: melee weapons and effects carried by the holder.
 using Content.Shared._FinalStand.Shop;
 using Content.Server._FinalStand.Leveling;
 using Content.Shared.Weapons.Ranged.Components;
@@ -9,7 +8,7 @@ namespace Content.Server._FinalStand.Shop;
 
 public sealed partial class FSPlayerUpgradesSystem
 {
-    private bool TryApplyMelee(EntityUid weapon, EntityUid player, WeaponUpgradeDef def,
+    private bool TryApplyMelee(ref EntityUid weapon, EntityUid player, WeaponUpgradeDef def,
         int newLevel, bool spawnItems, FSWeaponUpgradeStateComponent state)
     {
         switch (def.Type)
@@ -24,9 +23,7 @@ public sealed partial class FSPlayerUpgradesSystem
                     }
                     else
                     {
-                        var bonus = EnsureComp<FSSpeedBonusComponent>(player);
-                        bonus.SpeedMultiplier += def.ValuePerLevel;
-                        _movement.RefreshMovementSpeedModifiers(player);
+                        _speedBonus.Raise(player, def.Id, newLevel, def.ValuePerLevel);
                     }
                     break;
                 }
@@ -102,7 +99,7 @@ public sealed partial class FSPlayerUpgradesSystem
                     if (oldState.DualWieldEnergySwordApplied)
                         break;
                     oldState.DualWieldEnergySwordApplied = true;
-                    TryTransformToDualWieldEnergySword(weapon, player, oldState, def.ValuePerLevel);
+                    weapon = TryTransformToDualWieldEnergySword(weapon, player, oldState, def.ValuePerLevel);
                     break;
                 }
 

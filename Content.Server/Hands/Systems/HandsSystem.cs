@@ -52,7 +52,7 @@ namespace Content.Server.Hands.Systems
 
             SubscribeLocalEvent<HandsComponent, BeforeExplodeEvent>(OnExploded);
 
-            // FS: players keep held items on knockdown/stun/crit
+            // FINALSTAND: players keep held items on knockdown/stun/crit
             // SubscribeLocalEvent<HandsComponent, DropHandItemsEvent>(OnDropHandItems);
 
             CommandBinds.Builder

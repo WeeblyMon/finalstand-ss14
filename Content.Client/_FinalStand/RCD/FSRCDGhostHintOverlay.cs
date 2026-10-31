@@ -1,6 +1,3 @@
-// A card under the RCD ghost: what the piece costs against what you have, how much of its cap is used, the build time,
-// why the tile is refused, and the rotate key. A refused click shakes the card and flashes the tile red.
-// Sentries and HMGs also show their reach around the ghost before you commit.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;

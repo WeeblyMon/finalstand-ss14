@@ -11,7 +11,7 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-// kill stacks increase AKMS damage; resets at wave end
+// kill stacks increase AKMS damage; resets when prep starts (wave cleared, skipped or lost)
 public sealed partial class BattleTranceUpgradeSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
@@ -24,10 +24,10 @@ public sealed partial class BattleTranceUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSRifleKillTrackerComponent, MobStateChangedEvent>(OnKill);
         SubscribeLocalEvent<FSBattleTranceComponent, GotEquippedHandEvent>(OnEquipped);
         SubscribeLocalEvent<FSBattleTranceComponent, GotUnequippedHandEvent>(OnUnequipped);
-        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnd);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;
@@ -65,7 +65,7 @@ public sealed partial class BattleTranceUpgradeSystem : EntitySystem
         BroadcastState(battleTrance);
     }
 
-    // Stacks live on the weapon and survive being dropped — only the wave end clears them.
+    // Stacks live on the weapon and survive being dropped; only prep starting clears them.
     // Picking it back up has to restore the readout, or it shows zero until the next kill.
     private void OnEquipped(EntityUid uid, FSBattleTranceComponent battleTrance, GotEquippedHandEvent args)
     {
@@ -82,7 +82,7 @@ public sealed partial class BattleTranceUpgradeSystem : EntitySystem
         BroadcastZero(battleTrance);
     }
 
-    private void OnWaveEnd(ref WaveEndedEvent args)
+    private void OnPrepStarted(ref WavePrepStartedEvent args)
     {
         var query = EntityQueryEnumerator<FSBattleTranceComponent, FSWeaponUpgradeStateComponent>();
         while (query.MoveNext(out var gun, out var battleTrance, out var state))

@@ -12,7 +12,22 @@ public sealed partial class FSHarvesterRpHudOverlay : Overlay
     [Dependency] private IClyde _clyde = default!;
     [Dependency] private IResourceCache _resourceCache = default!;
 
-    public int Points;
+    private static readonly Color PointsColor = Color.FromHex("#AA44FF");
+    private static readonly Color LineColor = Color.FromHex("#818CF8");
+
+    private int _points;
+    private string _pointsText = string.Empty;
+
+    public int Points
+    {
+        get => _points;
+        set
+        {
+            _points = value;
+            _pointsText = Loc.GetString("fs-harvester-hud-rp", ("points", value));
+        }
+    }
+
     public string? PersonalLine;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
@@ -24,6 +39,7 @@ public sealed partial class FSHarvesterRpHudOverlay : Overlay
     public FSHarvesterRpHudOverlay()
     {
         IoCManager.InjectDependencies(this);
+        Points = 0;
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -34,19 +50,17 @@ public sealed partial class FSHarvesterRpHudOverlay : Overlay
         if (!_iconLoadAttempted)
         {
             _iconLoadAttempted = true;
-            try
+            if (_resourceCache.TryGetResource<TextureResource>(
+                    new ResPath("/Textures/_FinalStand/Interface/Research/research_icon_white_small.png"), out var icon))
             {
-                _icon = _resourceCache
-                    .GetResource<TextureResource>(new ResPath("/Textures/_FinalStand/Interface/Research/research_icon_white_small.png"))
-                    .Texture;
+                _icon = icon.Texture;
             }
-            catch { }
         }
 
         var screen = args.ScreenHandle;
         var screenSize = _clyde.ScreenSize;
 
-        var rpStr = $"RP: {Points}";
+        var rpStr = _pointsText;
         var dims = screen.GetDimensions(_font, rpStr, 1f);
 
         const float iconSize = 20f;
@@ -72,7 +86,7 @@ public sealed partial class FSHarvesterRpHudOverlay : Overlay
         screen.DrawString(_font, new Vector2(textX - o, y + o), rpStr, black);
         screen.DrawString(_font, new Vector2(textX + o, y + o), rpStr, black);
 
-        screen.DrawString(_font, new Vector2(textX, y), rpStr, Color.FromHex("#AA44FF"));
+        screen.DrawString(_font, new Vector2(textX, y), rpStr, PointsColor);
 
         if (PersonalLine != null)
         {
@@ -85,7 +99,7 @@ public sealed partial class FSHarvesterRpHudOverlay : Overlay
             screen.DrawString(_font, new Vector2(px - o, py + o), PersonalLine, black);
             screen.DrawString(_font, new Vector2(px + o, py + o), PersonalLine, black);
 
-            screen.DrawString(_font, new Vector2(px, py), PersonalLine, Color.FromHex("#818CF8"));
+            screen.DrawString(_font, new Vector2(px, py), PersonalLine, LineColor);
         }
     }
 }

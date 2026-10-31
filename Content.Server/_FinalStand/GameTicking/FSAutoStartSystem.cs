@@ -1,16 +1,21 @@
 using Content.Server.GameTicking;
+using Content.Server.GameTicking.Presets;
 using Content.Server.Maps;
+using Content.Shared.Maps;
 using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.GameTicking;
 
-// activates FinalStand preset and map on every round reset — no admin command needed
 public sealed partial class FSAutoStartSystem : EntitySystem
 {
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private IGameMapManager _mapManager = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
+
+    public static readonly ProtoId<GamePresetPrototype> Preset = "FinalStand";
+    public static readonly ProtoId<GameMapPrototype> Map = "FinalStandMap1";
 
     public override void Initialize()
     {
@@ -20,7 +25,7 @@ public sealed partial class FSAutoStartSystem : EntitySystem
 
     private void OnRunLevelChanged(GameRunLevelChangedEvent ev)
     {
-        Log.Debug($"[FSAutoStart] RunLevel changed: {ev.Old} → {ev.New}");
+        Log.Debug($"RunLevel changed: {ev.Old} → {ev.New}");
 
         if (ev.New != GameRunLevel.PreRoundLobby)
             return;
@@ -29,21 +34,26 @@ public sealed partial class FSAutoStartSystem : EntitySystem
         if (!_cfg.GetCVar(CCVars.FSAutoStart))
             return;
 
-        if (!_ticker.TryFindGamePreset("finalstand", out var preset))
+        if (!_ticker.TryFindGamePreset(Preset, out var preset))
         {
-            Log.Error("[FSAutoStart] FinalStand preset not found — auto-start skipped.");
+            Log.Error($"Preset {Preset} not found, skipping auto-start.");
             return;
         }
 
-        if (!_mapManager.CheckMapExists("FinalStandMap1"))
+        if (!_mapManager.CheckMapExists(Map))
         {
-            Log.Error("[FSAutoStart] FinalStandMap1 map not found — auto-start skipped.");
+            Log.Error($"Map {Map} not found, skipping auto-start.");
             return;
         }
 
-        _cfg.SetCVar(CCVars.GameMap, "FinalStandMap1");
-        _cfg.SetCVar(CCVars.ArrivalsShuttles, false); // FINALSTAND: arrivals shuttle not used, players spawn via cryo
+        _cfg.SetCVar(CCVars.GameMap, Map.Id);
+        _cfg.SetCVar(CCVars.ArrivalsShuttles, false); // Arrivals shuttle not used, players spawn via cryo
+        // Grid fill brings the cargo shuttle and trading station; the station spawns nothing else.
+        _cfg.SetCVar(CCVars.GridFill, true);
+        // No evac in Final Stand. The packaged config auto-calls the shuttle 90 minutes in, which ends the round.
+        _cfg.SetCVar(CCVars.EmergencyShuttleAutoCallTime, 0);
+        _cfg.SetCVar(CCVars.EmergencyShuttleEnabled, false);
         _ticker.SetGamePreset(preset);
-        Log.Info("[FSAutoStart] FinalStand preset and map applied. Waiting for startround.");
+        Log.Info("FinalStand preset and map applied. Waiting for startround.");
     }
 }

@@ -1,4 +1,3 @@
-// Keeps the pings and tasks the server sent, drops expired ones and ones whose mob has died, plays a short sound from the ping and logs your role's pings in chat.
 using Content.Client.UserInterface.Systems.Chat;
 using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Pings;

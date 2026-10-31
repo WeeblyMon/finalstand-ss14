@@ -1,3 +1,4 @@
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Perks;
@@ -95,5 +96,5 @@ public sealed class FSPerkEarningsSummaryEvent : EntityEventArgs
 [Serializable, NetSerializable]
 public sealed class FSApplyStarterBuildMessage : EntityEventArgs
 {
-    public string BuildId = "";
+    public ProtoId<FSStarterBuildPrototype> BuildId;
 }

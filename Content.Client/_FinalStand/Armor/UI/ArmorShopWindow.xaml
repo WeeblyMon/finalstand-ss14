@@ -1,6 +1,6 @@
 <DefaultWindow
     xmlns="https://spacestation14.io"
-    Title="Armor Vendor"
+    Title="{Loc 'fs-armor-shop-window-title'}"
     MinWidth="880" MinHeight="720"
     SetSize="880 720">
 
@@ -8,9 +8,9 @@
 
         <PanelContainer StyleClasses="FSCard" Margin="0 0 0 8">
             <BoxContainer Orientation="Horizontal" Margin="14 10">
-                <Label Text="ARMOR VENDOR" StyleClasses="FSSectionHeader" VerticalAlignment="Center" />
+                <Label Text="{Loc 'fs-armor-shop-window-header'}" StyleClasses="FSSectionHeader" VerticalAlignment="Center" />
                 <Control HorizontalExpand="True" />
-                <Label Text="CREDITS  " StyleClasses="FSMuted" VerticalAlignment="Center" />
+                <Label Text="{Loc 'fs-armor-shop-window-credits'}" StyleClasses="FSMuted" VerticalAlignment="Center" />
                 <Label Name="CreditsLabel" Text="$0" StyleClasses="FSCurrency" VerticalAlignment="Center" />
             </BoxContainer>
         </PanelContainer>
@@ -19,7 +19,7 @@
 
             <PanelContainer StyleClasses="FSCard" MinWidth="360" Margin="0 0 8 0">
                 <BoxContainer Orientation="Vertical" Margin="10">
-                    <Label Text="SELECT ARMOR" StyleClasses="FSSectionHeader" Margin="0 0 0 6" />
+                    <Label Text="{Loc 'fs-armor-shop-window-select'}" StyleClasses="FSSectionHeader" Margin="0 0 0 6" />
                     <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
                     <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
                         <BoxContainer Name="TierListContainer" Orientation="Vertical" />
@@ -51,7 +51,7 @@
 
                     <BoxContainer Name="CostContainer" Orientation="Vertical" Margin="0 0 0 10" />
 
-                    <Button Name="BuyButton" Text="BUY" Disabled="True" MinHeight="38" />
+                    <Button Name="BuyButton" Text="{Loc 'fs-armor-shop-window-buy'}" Disabled="True" MinHeight="38" />
                 </BoxContainer>
             </PanelContainer>
 

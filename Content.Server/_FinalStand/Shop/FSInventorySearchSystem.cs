@@ -1,4 +1,3 @@
-// One traversal of everything a player carries, for the shop's buy/upgrade/sell paths.
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -51,7 +50,7 @@ public sealed partial class FSInventorySearchSystem : EntitySystem
         }
     }
 
-    // Passing a null sink means "stop at the first match" — the two public entry points differ only in that.
+    // Passing a null sink means "stop at the first match"; the two public entry points differ only in that.
     private void Walk(EntityUid player, IReadOnlySet<string> protoIds, bool requireUpgradeState,
         List<CarriedItem>? sink, out CarriedItem? first)
     {

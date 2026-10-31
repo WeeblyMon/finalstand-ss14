@@ -1,8 +1,5 @@
-// Resolves the active hand's item and its ammo for the weapon module on the wave HUD.
+using Robust.Shared.Input;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Content.Shared.Chemistry.Components;
-using Robust.Shared.Utility;
 using Content.Shared._FinalStand.Grenades;
 using Content.Client._FinalStand.Engineering;
 using Content.Client._FinalStand.Interface;
@@ -19,8 +16,10 @@ using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared._FinalStand.Utility;
 using Content.Shared.Charges.Components;
+using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Containers.ItemSlots;
+using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Input;
 using Robust.Client.Input;
@@ -36,6 +35,7 @@ using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
+using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.WaveHud;
 
@@ -52,6 +52,33 @@ public sealed partial class WaveHudSystem
     [Dependency] private FSToolCardSystem _toolCard = default!;
     [Dependency] private Content.Client._FinalStand.Melee.FSMeleeJuiceSystem _meleeJuice = default!;
 
+    private FSHudText<int> _magsReserveText = default!;
+    private FSHudText<(string Mode, string Key)> _toolModeText = default!;
+    private FSHudText<int> _chargeText = default!;
+    private FSHudText<(FixedPoint2 Volume, FixedPoint2 Max)> _volumeText = default!;
+    private FSHudText<(LocId Mode, FixedPoint2? Amount, FixedPoint2 Volume, FixedPoint2 Max)> _injectorText = default!;
+    private FSHudText<int> _stackText = default!;
+    private FSHudText<(int Left, int Max)> _chargesText = default!;
+    private FSHudText<int> _storageText = default!;
+
+    private void InitializeWeaponText()
+    {
+        _magsReserveText = new(count => Loc.GetString("fs-hud-mags-reserve", ("count", count)));
+        _toolModeText = new(v => Loc.GetString("fs-hud-tool-mode", ("mode", v.Mode.ToLowerInvariant()), ("key", v.Key)));
+        _chargeText = new(percent => Loc.GetString("fs-hud-item-charge", ("percent", percent)));
+        _volumeText = new(v => Loc.GetString("fs-hud-item-volume", ("volume", v.Volume), ("max", v.Max)));
+        _injectorText = new(v =>
+        {
+            var mode = FormattedMessage.RemoveMarkupPermissive(Loc.GetString(v.Mode));
+            return v.Amount is { } amount
+                ? Loc.GetString("fs-hud-item-injector-amount", ("mode", mode), ("amount", amount), ("volume", v.Volume), ("max", v.Max))
+                : Loc.GetString("fs-hud-item-injector", ("mode", mode), ("volume", v.Volume), ("max", v.Max));
+        });
+        _stackText = new(count => Loc.GetString("fs-hud-item-stack", ("count", count)));
+        _chargesText = new(v => Loc.GetString("fs-hud-item-charges", ("charges", v.Left), ("max", v.Max)));
+        _storageText = new(count => Loc.GetString("fs-hud-item-storage", ("count", count)));
+    }
+
     private void UpdateWeapon(WaveHudOverlay overlay)
     {
         overlay.WeaponName = null;
@@ -64,6 +91,7 @@ public sealed partial class WaveHudSystem
         overlay.WeaponTakesMagazines = false;
         overlay.ItemDetail = null;
         overlay.Uber = null;
+        overlay.ReloadKey = KeyText(ContentKeyFunctions.ReloadWeapon, "R");
         overlay.Ability = null;
 
         if (_player.LocalEntity is not { } player)
@@ -121,7 +149,7 @@ public sealed partial class WaveHudSystem
         overlay.WeaponTakesMagazines = TryGetMagazineSlot(held, out _);
 
         if (overlay.WeaponTakesMagazines)
-            overlay.WeaponReserveText = overlay.WeaponReserve == 1 ? "1 mag in reserve" : $"{overlay.WeaponReserve} mags in reserve";
+            overlay.WeaponReserveText = _magsReserveText.Get(overlay.WeaponReserve);
         else if (TryComp<FSRivetGunComponent>(held, out var rivetGun) && !_toolCard.Covers(held))
             overlay.WeaponReserveText = Loc.GetString("fs-hud-rivet-steel", ("count", _materials.Count(player, rivetGun.Material)));
 
@@ -163,6 +191,12 @@ public sealed partial class WaveHudSystem
             : TryComp<FSAmmoCrateComponent>(hmg.Comp.Crate, out var crate)
                 ? Loc.GetString("fs-hud-hmg-detail", ("crate", crate.Rounds), ("heat", heat))
                 : Loc.GetString("fs-hud-hmg-no-crate", ("heat", heat));
+    }
+
+    // Hints name the player's own bindings; the fallback is the default when nothing is bound.
+    private string KeyText(BoundKeyFunction function, string fallback)
+    {
+        return _input.TryGetKeyBinding(function, out var binding) ? binding.GetKeyString() : fallback;
     }
 
     private static readonly Color ShotColour = Color.FromHex("#F0B040");
@@ -209,55 +243,50 @@ public sealed partial class WaveHudSystem
             return;
 
         var left = gun.UberEndTime is { } end ? (float) Math.Max(0, (end - _timing.CurTime).TotalSeconds) : 0f;
-        var key = _input.TryGetKeyBinding(ContentKeyFunctions.FSUberCharge, out var binding)
-            ? binding.GetKeyString()
-            : "Alt+E";
+        var key = KeyText(ContentKeyFunctions.FSUberCharge, "Alt+E");
 
         overlay.Uber = new WaveHudOverlay.UberMeter(gun.UberCharge, gun.UberActive, left, gun.BeamColor, key);
     }
 
     private string? GetItemDetail(EntityUid held)
     {
+        // Use-in-hand falls through to activation, which is what cycles the mode.
         if (TryComp<MultipleToolComponent>(held, out var multi)
-            && multi.Entries.Length > 0
-            && multi.CurrentEntry < multi.Entries.Length)
+            && multi.CurrentEntry < multi.Entries.Length
+            && !string.IsNullOrEmpty(multi.CurrentQualityName))
         {
-            var behaviour = multi.Entries[multi.CurrentEntry].Behavior.FirstOrDefault();
-            if (!string.IsNullOrEmpty(behaviour))
-                return $"{behaviour.ToLowerInvariant()} - [Z] to switch";
+            return _toolModeText.Get((multi.CurrentQualityName, KeyText(ContentKeyFunctions.UseItemInHand, "Z")));
         }
 
         if (TryComp<FSEngineerOnlyRCDComponent>(held, out var fsRcd) && TryComp<RCDComponent>(held, out var rcd))
             return _toolCard.Covers(held) ? null : FSRCDText.Summary(ProtoMan, _materials.CountAll(_player.LocalEntity), fsRcd, ProtoMan.Index(rcd.ProtoId));
 
         if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
-            return $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";
+            return _chargeText.Get((int) MathF.Round(_battery.GetChargeLevel((held, battery)) * 100f, MidpointRounding.AwayFromZero));
 
+        // Syringes: mode, the picked amount when the mode has a choice, and the fill.
         if (TryComp<InjectorComponent>(held, out var injector)
             && _solutions.TryGetSolution(held, injector.SolutionName, out _, out var injected)
             && ProtoMan.Resolve(injector.ActiveModeProtoId, out var mode))
         {
-            var modeName = FormattedMessage.RemoveMarkupPermissive(Loc.GetString(mode.Name));
-            var transfer = mode.TransferAmounts.Count > 1 && injector.CurrentTransferAmount is { } amount ? $" {amount}u" : string.Empty;
-            return $"{modeName}{transfer} - {injected.Volume:0}/{injected.MaxVolume:0}u";
+            var amount = mode.TransferAmounts.Count > 1 ? injector.CurrentTransferAmount : null;
+            return _injectorText.Get((mode.Name, amount, injected.Volume, injected.MaxVolume));
         }
 
         if (_solutions.TryGetDrainableSolution(held, out _, out var drainable))
-            return $"{drainable.Volume:0}/{drainable.MaxVolume:0}u";
+            return _volumeText.Get((drainable.Volume, drainable.MaxVolume));
 
         if (_solutions.TryGetRefillableSolution(held, out _, out var refillable))
-            return $"{refillable.Volume:0}/{refillable.MaxVolume:0}u";
+            return _volumeText.Get((refillable.Volume, refillable.MaxVolume));
 
         if (TryComp<StackComponent>(held, out var stack))
-            return $"{stack.Count} held";
+            return _stackText.Get(stack.Count);
 
         if (TryComp<LimitedChargesComponent>(held, out var charges))
-            return $"{charges.LastCharges}/{charges.MaxCharges} charges";
+            return _chargesText.Get((charges.LastCharges, charges.MaxCharges));
 
         if (TryComp<StorageComponent>(held, out var storage))
-            return storage.Container.ContainedEntities.Count == 1
-                ? "1 item"
-                : $"{storage.Container.ContainedEntities.Count} items";
+            return _storageText.Get(storage.Container.ContainedEntities.Count);
 
         return null;
     }

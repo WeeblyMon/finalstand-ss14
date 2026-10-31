@@ -4,7 +4,8 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._FinalStand.HMG;
 
 // A crewed heavy machine gun: the gun lives on this entity and fires for whoever is buckled to it.
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
+[Access(typeof(FSHMGSystem))]
 public sealed partial class FSHMGComponent : Component
 {
     [AutoNetworkedField]
@@ -41,10 +42,10 @@ public sealed partial class FSHMGComponent : Component
     [DataField, AutoNetworkedField]
     public float Heat;
 
-    [AutoNetworkedField]
+    [AutoNetworkedField, AutoPausedField]
     public TimeSpan HeatAt;
 
-    [AutoNetworkedField]
+    [AutoNetworkedField, AutoPausedField]
     public TimeSpan OverheatedUntil;
 
     [DataField]
@@ -58,10 +59,11 @@ public sealed partial class FSHMGComponent : Component
     [DataField]
     public TimeSpan MessageCooldown = TimeSpan.FromSeconds(1);
 
-    public TimeSpan NextMessage;
+    [AutoPausedField] public TimeSpan NextMessage;
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSHMGSystem))]
 public sealed partial class FSHMGGunnerComponent : Component
 {
     [AutoNetworkedField]

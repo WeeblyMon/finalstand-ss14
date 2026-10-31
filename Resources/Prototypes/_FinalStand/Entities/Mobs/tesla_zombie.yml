@@ -1,10 +1,11 @@
 # FINALSTAND: Tesla zombie — stops moving and fires a chaining shock beam when players are in range.
 # Spawns wave 11+, weighted at ~12.5% of wave composition via weighted selection.
 - type: entity
-  id: FSZombieTesla
   parent: FSZombieFootsoldierBase
-  suffix: Tesla
+  id: FSZombieTesla
   name: tesla zombie
+  suffix: Tesla
+  description: A corpse crackling with stolen current. Its lightning jumps between people standing close together.
   components:
   - type: FSMaterialDrop
     materials:

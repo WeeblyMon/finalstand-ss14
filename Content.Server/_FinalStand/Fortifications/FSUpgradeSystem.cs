@@ -1,4 +1,3 @@
-// Click a fortification with the Engineer's Hammer to pick an upgrade, then hammer it in: each hit pours in materials.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.Materials;
@@ -12,7 +11,6 @@ using Content.Server.Popups;
 using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Fortifications;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Repair;
@@ -123,7 +121,7 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
         }
     }
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (ev.NodeId != FSEngineeringNodes.OverbuiltBulwark)
             return;
@@ -174,7 +172,7 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
         }
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent args)
+    private void OnPrepStarted(ref WavePrepStartedEvent args)
     {
         var multiplier = WaveMultiplier();
         var raised = false;
@@ -400,6 +398,29 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
             _hmg.Upgrade((ent.Owner, gun), hmg);
 
         Recalculate(ent);
+        Dirty(ent);
+    }
+
+    public FSUpgradeSnapshot Snapshot(FSUpgradeableComponent comp)
+    {
+        return new FSUpgradeSnapshot(comp.Grade, comp.Branch, new List<ProtoId<FSUpgradePrototype>>(comp.Modules),
+            comp.Pending, comp.Poured);
+    }
+
+    // Replays onto a fresh structure. Grades carry no stats of their own, so the final one is enough.
+    public void Restore(Entity<FSUpgradeableComponent> ent, FSUpgradeSnapshot snapshot)
+    {
+        if (snapshot.Grade != ent.Comp.Grade)
+            Apply(ent, Proto.Index(snapshot.Grade));
+
+        if (snapshot.Branch is { } branch)
+            Apply(ent, Proto.Index(branch));
+
+        foreach (var module in snapshot.Modules)
+            Apply(ent, Proto.Index(module));
+
+        ent.Comp.Pending = snapshot.Pending;
+        ent.Comp.Poured = snapshot.Poured;
         Dirty(ent);
     }
 

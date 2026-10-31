@@ -1,6 +1,5 @@
 ﻿using Content.Shared._FinalStand.GameTicking;
 using Robust.Shared.Audio;
-using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.GameTicking.Rules;
@@ -31,11 +30,10 @@ public sealed partial class WaveEnemyConfig
     public List<EntProtoId> EnemyPool = new() { "MobXeno" };
 }
 
-[RegisterComponent, Access(typeof(WaveGameRuleSystem), typeof(WaveEnemySpawningSystem), typeof(WaveEnemyScalingSystem))]
+[RegisterComponent, AutoGenerateComponentPause]
+[Access(typeof(WaveGameRuleSystem), typeof(WaveEnemySpawningSystem), typeof(WaveEnemyScalingSystem))]
 public sealed partial class WaveGameRuleComponent : Component
 {
-    // adjustable timers
-
     [DataField]
     public TimeSpan PrepDuration = TimeSpan.FromSeconds(600);
 
@@ -70,12 +68,6 @@ public sealed partial class WaveGameRuleComponent : Component
     public List<int> MaxLanesByPlayers = new() { 2, 2, 3, 3 };
 
     [DataField]
-    public int KillReward = 100;
-
-    [DataField]
-    public int SecKillBonus = 50;
-
-    [DataField]
     public int BossWavePerkReward = 1;
 
     [DataField]
@@ -85,7 +77,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public List<SpecialEnemyConfig> SpecialEnemyPool = new();
 
     [DataField]
-    public string FactionDisplay = "Unknown hostiles detected";
+    public LocId FactionDisplay = "fs-ccc-faction-unknown";
 
     [DataField]
     public SoundSpecifier? WaveStartSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/wave_start.ogg");
@@ -96,27 +88,21 @@ public sealed partial class WaveGameRuleComponent : Component
     [DataField]
     public SoundSpecifier? WaveVoteCountdownSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/vote_countdown.ogg");
 
-    [DataField]
-    public SoundSpecifier? DarkWaveWarningSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/darkwave_warning.ogg");
-
-    [DataField]
-    public SoundSpecifier? DarkWaveStartSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/darkwave_start.ogg");
-
-    [DataField]
-    public SoundSpecifier? DarkWaveAmbienceSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/darkwave_ambience.ogg");
-
-    public EntityUid? DarkWaveAmbienceStream;
-
     // Set to true when a majority vote has triggered the 10-second countdown; reset each prep phase.
     public bool VoteCountdownActive = false;
     public bool VoteCountdownSoundPlayed = false;
+    [AutoPausedField]
     public TimeSpan VoteCountdownSoundTime = TimeSpan.Zero;
 
-    // ── Runtime state
+    // Runtime state
 
     public int WaveNumber = 1;
     public WavePhase Phase = WavePhase.Prep;
+    [AutoPausedField]
     public TimeSpan PhaseEndTime = TimeSpan.Zero;
+    [AutoPausedField]
+    public TimeSpan CombatStartTime = TimeSpan.Zero;
+    [AutoPausedField]
     public TimeSpan NextSpawnTime = TimeSpan.Zero;
     public int EnemyTotalThisWave = 0;
     public int EnemiesSpawnedThisWave = 0;
@@ -127,14 +113,12 @@ public sealed partial class WaveGameRuleComponent : Component
     public readonly List<EntityUid> SpawnerEntities = new();
     public readonly HashSet<EntityUid> PreviousSpawnerEntities = new();
     public EntityUid CCCEntity = EntityUid.Invalid;
+    [AutoPausedField]
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
-    public TimeSpan NextTimerBroadcastTime = TimeSpan.Zero;
-    public TimeSpan NextEnemyCountBroadcast = TimeSpan.Zero;
+    [AutoPausedField]
     public TimeSpan NextSpawnerRetryTime = TimeSpan.Zero;
 
     public int ScalingPlayersThisWave = 0;
-
-    public readonly HashSet<NetUserId> PaidCatchUpUsers = new();
 
     [DataField]
     public float BaseZombieMeleeDamage = 10f;
@@ -142,23 +126,35 @@ public sealed partial class WaveGameRuleComponent : Component
     public bool SpawnPaused = false;
 
     public EntityUid GiantEntity = EntityUid.Invalid;
-    public bool GiantApAwarded = false;
 
-    public int AccumulatedSurvivalBonus = 0;
+    // The wave whose boss perk point has been paid. A wave replayed after a lost CCC life spawns its boss again but
+    // doesn't pay the point again.
+    public int BossRewardPaidWave;
 
-    [DataField] public int GuaranteedDarkWave = 8;
+    // Clearing this wave wins the round; 0 turns victory off.
+    [DataField]
+    public int VictoryWave = 30;
 
-    [DataField] public int VictoryWave = 30;
-    [DataField] public int VictoryPerkReward = 5;
+    [DataField]
+    public int VictoryPerkReward = 5;
+
+    // Endless adds a modifier every this many waves past VictoryWave.
+    [DataField]
+    public int EndlessEscalationInterval = 5;
+
+    [DataField]
+    public bool DifficultyVote = true;
+
     public bool Victory;
     public bool AwaitingEndless;
-    public bool AdminAssisted;
     public bool Endless;
-    public int EndlessEscalations;
-    [DataField] public int EndlessEscalationInterval = 5;
 
-    [DataField] public bool DifficultyVote = true;
+    // An admin skipped waves, so the run doesn't count for the ladder.
+    public bool AdminAssisted;
+
     public FSDifficulty Difficulty = FSDifficulty.Normal;
+
+    // Difficulty and modifiers are fixed once wave 1 starts.
     public bool DifficultyLocked;
 
     public readonly List<ProtoId<FSRoundModifierPrototype>> Modifiers = new();
@@ -167,36 +163,5 @@ public sealed partial class WaveGameRuleComponent : Component
     public ProtoId<FSWeeklyChallengePrototype>? WeeklyChallenge;
     public string? WeeklyKey;
 
-    [DataField] public float DarkWaveWarningDelay = 30f;
-    public float DarkWaveWarningAccum;
-    public bool DarkWaveWarningFired;
-
-    [DataField] public float DarkWaveChance = 0.05f;
-    [DataField] public int DarkWaveCooldownWaves = 5;
-    [DataField] public float DarkWaveDuration = 120f;
-    [DataField] public float DarkWaveSpawnInterval = 2.0f;
-    [DataField] public int DarkWaveEnemyCap = 30;
-
-    public bool IsDarkWave = false;
     public bool RoundLost;
-    public bool IsDarkWaveUpcoming = false;
-    public bool ForceDarkWave = false;
-    public int WavesSinceLastDarkWave = 999;
-    public int SavedMaxEnemyCap = 130;
-    public float LightFlickerAccum = 0f;
-    public float LightFlickerInterval = 1.2f;
-    public float LightFlickerIntervalMin = 0.7f;
-    public float LightFlickerIntervalMax = 2.2f;
-    public bool LightsFlickeredOff = false;
-    public readonly List<EntityUid> FlickeredLights = new();
-    public readonly List<EntityUid> DepoweredDoors = new();
-    public readonly List<EntityUid> CutApcs = new();
-    public float BlackoutEnforceAccum;
-    public float LightFlickerRestoreAccum = 0f;
-}
-
-[RegisterComponent]
-public sealed partial class FSEnemyDamageTrackingComponent : Component
-{
-    public readonly HashSet<EntityUid> AttackerMinds = new();
 }

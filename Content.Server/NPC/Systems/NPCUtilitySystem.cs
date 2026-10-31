@@ -6,6 +6,7 @@ using Content.Server.NPC.Queries.Considerations;
 using Content.Server.NPC.Queries.Curves;
 using Content.Server.NPC.Queries.Queries;
 using Content.Server.Nutrition.Components;
+using Content.Shared._FinalStand.NPC;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Damage.Components;
@@ -346,8 +347,8 @@ public sealed partial class NPCUtilitySystem : EntitySystem
             }
             case TargetIsAliveCon:
             {
-                if (TryComp<Content.Shared.Mech.Components.MechComponent>(targetUid, out var mech)) // FS
-                    return !mech.Broken && mech.PilotSlot.ContainedEntity != null ? 1f : 0f; // FS
+                if (TryComp<Content.Shared.Mech.Components.MechComponent>(targetUid, out var mech)) // FINALSTAND
+                    return !mech.Broken && mech.PilotSlot.ContainedEntity != null ? 1f : 0f; // FINALSTAND
 
                 return _mobState.IsAlive(targetUid) ? 1f : 0f;
             }
@@ -490,8 +491,14 @@ public sealed partial class NPCUtilitySystem : EntitySystem
             }
             case NearbyHostilesQuery:
             {
+                // FINALSTAND: a target the leash just gave up on is left alone for a while, or the next plan chases it again.
+                blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.LeashedTarget, out var leashed, EntityManager);
+
                 foreach (var ent in _npcFaction.GetNearbyHostiles(owner, vision))
                 {
+                    if (ent == leashed)
+                        continue;
+
                     // FINALSTAND: Require line-of-sight so hostiles behind walls and in side
                     // rooms are never added to the candidate list. Without this, raw-radius
                     // detection caused zombies to aggro players through closed doors and

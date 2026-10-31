@@ -1,5 +1,3 @@
-// Request pings become tasks for one department. Tasks can be claimed, close themselves when the job is done, and expire.
-// Badly damaged player-built fortifications raise their own repair task, a few at most.
 using System.Linq;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Repair;
@@ -8,6 +6,7 @@ using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared._FinalStand.Pings;
 using Content.Shared._FinalStand.Repair;
+using Content.Shared.GameTicking;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -65,13 +64,23 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<PlayerAttachedEvent>(_ => _dirty = true);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
-    private void OnWaveEnded(ref WaveEndedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         _autoRaised.Clear();
+    }
+
+    // Untargeted tasks outlive their map otherwise, and the board would send coordinates on a deleted grid.
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _board.Clear();
+        _autoRaised.Clear();
+        _autoTimes.Clear();
+        _dirty = false;
     }
 
     public void Open(FSPingType type, FSPingAudience audience, EntityCoordinates coords, EntityUid? target,

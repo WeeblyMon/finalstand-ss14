@@ -23,7 +23,7 @@
   - type: Tag
     tags:
     - Ointment
-  - type: FSAilmentCure
+  - type: FSAilmentCure # FINALSTAND
     slot: Burn
   - type: Sprite
     state: ointment
@@ -76,7 +76,7 @@
   - type: Tag
     tags:
     - Ointment
-  - type: FSAilmentCure
+  - type: FSAilmentCure # FINALSTAND
     slot: Burn
   - type: Sprite
     state: regenerative-mesh
@@ -151,7 +151,7 @@
   - type: Stack
     stackType: Brutepack
     count: 10
-  - type: FSAilmentCure
+  - type: FSAilmentCure # FINALSTAND
     slot: Bone
     mend: 0.34
   - type: StackPrice
@@ -176,7 +176,7 @@
   - type: Tag
     tags:
     - Brutepack
-  - type: FSAilmentCure
+  - type: FSAilmentCure # FINALSTAND
     slot: Bleeding
   - type: Sprite
     state: medicated-suture
@@ -307,7 +307,7 @@
   - type: Tag
     tags:
     - Gauze
-  - type: FSAilmentCure
+  - type: FSAilmentCure # FINALSTAND
     slot: Bleeding
   - type: Sprite
     state: gauze

@@ -35,11 +35,11 @@ public sealed partial class PerkShopWindow : FancyWindow
 
     private static readonly Dictionary<PerkCategory, string> CatLabel = new()
     {
-        [PerkCategory.Red]    = "OFFENSE",
-        [PerkCategory.Blue]   = "DEFENSE",
-        [PerkCategory.Green]  = "UTILITY",
-        [PerkCategory.Yellow] = "ECONOMY",
-        [PerkCategory.Purple] = "HYBRID",
+        [PerkCategory.Red]    = "fs-perk-shop-category-offense",
+        [PerkCategory.Blue]   = "fs-perk-shop-category-defense",
+        [PerkCategory.Green]  = "fs-perk-shop-category-utility",
+        [PerkCategory.Yellow] = "fs-perk-shop-category-economy",
+        [PerkCategory.Purple] = "fs-perk-shop-category-hybrid",
     };
 
     private static readonly PerkCategory[] CatOrder =
@@ -79,8 +79,8 @@ public sealed partial class PerkShopWindow : FancyWindow
         _fontTitle     = _res.NotoStack("Bold", 16);
         _fontBig       = _res.NotoStack("Bold", 24);
 
-        ShopTabs.SetTabTitle(0, "Perks");
-        ShopTabs.SetTabTitle(1, "Prestige");
+        ShopTabs.SetTabTitle(0, Loc.GetString("fs-perk-shop-tab-perks"));
+        ShopTabs.SetTabTitle(1, Loc.GetString("fs-perk-shop-tab-prestige"));
 
         HeaderPanel.PanelOverride = Box(FSUiPalette.BgSurface, FSUiPalette.BgTrack, new Thickness(0, 0, 0, 1));
         FooterPanel.PanelOverride = Box(FSUiPalette.BgRecess, FSUiPalette.BgTrack, new Thickness(0, 1, 0, 0));
@@ -130,13 +130,14 @@ public sealed partial class PerkShopWindow : FancyWindow
 
         ApplyLayout(false);
         RefreshInfo();
+        RefreshPrestigeTab();
     }
 
     public void UpdateState(FSPerksStateEvent ev)
     {
         _state = ev;
         PpLabel.Text = ev.PerkPoints.ToString("N0");
-        InvestedLabel.Text = $"{Invested(ev.Levels)} PP invested";
+        InvestedLabel.Text = Loc.GetString("fs-perk-shop-invested", ("amount", Invested(ev.Levels).ToString()));
         EquippedCountLabel.Text = $"{ev.Slots.Count(s => !string.IsNullOrEmpty(s))} / {FSPerkDef.SlotCount}";
         RefreshArchetype(ev);
         RebuildLoadouts();
@@ -229,12 +230,12 @@ public sealed partial class PerkShopWindow : FancyWindow
             if (_compact)
                 row.AddChild(new Control { HorizontalExpand = true });
 
-            var load = SmallButton("LOAD", !used);
-            load.ToolTip = used ? $"Swap to this build ({loadout!.Levels.Count} perks). Your current build is refunded first." : "Nothing saved here";
+            var load = SmallButton(Loc.GetString("fs-perk-shop-loadout-load"), !used);
+            load.ToolTip = used ? Loc.GetString("fs-perk-shop-loadout-load-tooltip", ("perks", loadout!.Levels.Count)) : Loc.GetString("fs-perk-shop-loadout-empty");
             load.OnPressed += _ => OnLoadLoadout?.Invoke(new FSLoadLoadoutMessage { LoadoutIndex = idx });
-            var save = SmallButton("SAVE", buildEmpty);
-            save.ToolTip = buildEmpty ? "Your build is empty — nothing to save"
-                : used ? "Overwrite with your current build" : "Save your current build here";
+            var save = SmallButton(Loc.GetString("fs-perk-shop-loadout-save"), buildEmpty);
+            save.ToolTip = buildEmpty ? Loc.GetString("fs-perk-shop-loadout-save-empty")
+                : used ? Loc.GetString("fs-perk-shop-loadout-overwrite") : Loc.GetString("fs-perk-shop-loadout-save-tooltip");
             save.OnPressed += _ => OnSaveLoadout?.Invoke(new FSSaveLoadoutMessage { LoadoutIndex = idx });
             row.AddChild(load);
             row.AddChild(save);

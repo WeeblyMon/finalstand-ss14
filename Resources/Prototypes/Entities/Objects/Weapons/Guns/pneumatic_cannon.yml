@@ -163,15 +163,15 @@
     slots:
       gun_magazine:
         name: Magazine
-        insertSound: /Audio/_FinalStand/MedicalOps/magazine_in.ogg
-        ejectSound: /Audio/_FinalStand/MedicalOps/magazine_out.ogg
+        insertSound: /Audio/_FinalStand/MedicalOps/magazine_in.ogg # FINALSTAND
+        ejectSound: /Audio/_FinalStand/MedicalOps/magazine_out.ogg # FINALSTAND
         priority: 2
         whitelist:
           tags:
-          - FSSyringeMagazine
+          - FSSyringeMagazine # FINALSTAND
   - type: MagazineAmmoProvider
   - type: AmmoCounter
-  - type: FSSyringeGun
+  - type: FSSyringeGun # FINALSTAND
   - type: Item
     size: Large
     shape:

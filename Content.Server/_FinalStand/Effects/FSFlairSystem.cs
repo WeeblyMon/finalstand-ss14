@@ -1,4 +1,3 @@
-// Sends one-off visual moments to the players who can see them, and leaves rubble where a fortification is destroyed.
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Destructible;
@@ -8,9 +7,6 @@ using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Effects;
-
-[ByRefEvent]
-public readonly record struct FSStructureDestroyedEvent(EntityUid Structure);
 
 public sealed partial class FSFlairSystem : EntitySystem
 {
@@ -45,6 +41,16 @@ public sealed partial class FSFlairSystem : EntitySystem
     {
         RaiseNetworkEvent(new FSBuildHologramEvent(GetNetCoordinates(coords), piece, duration, rotation),
             Filter.Pvs(coords, entityMan: EntityManager));
+    }
+
+    public void Beam(EntityUid from, EntityUid to, EntProtoId segment)
+    {
+        var fromPos = _transform.GetMapCoordinates(from);
+        var toPos = _transform.GetMapCoordinates(to);
+        if (fromPos.MapId != toPos.MapId || (toPos.Position - fromPos.Position).LengthSquared() < 0.01f)
+            return;
+
+        RaiseNetworkEvent(new FSBeamEvent(fromPos, toPos, segment), Filter.Pvs(fromPos));
     }
 
     private void OnDestroyed(Entity<FSStructureHealthComponent> ent, ref DestructionEventArgs args)

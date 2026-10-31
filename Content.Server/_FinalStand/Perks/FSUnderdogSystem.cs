@@ -1,4 +1,3 @@
-// Underdog perk: damage and resistance per living zombie near the player, counted twice a second.
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mind;

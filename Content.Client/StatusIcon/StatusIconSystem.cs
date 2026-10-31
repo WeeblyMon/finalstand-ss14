@@ -73,8 +73,8 @@ public sealed partial class StatusIconSystem : SharedStatusIconSystem
     {
         var viewer = _playerManager.LocalSession?.AttachedEntity;
 
-        if (HasComp<Content.Shared.Vehicle.Components.VehicleOperatorComponent>(ent)) // FS
-            return false; // FS
+        if (HasComp<Content.Shared.Vehicle.Components.VehicleOperatorComponent>(ent)) // FINALSTAND
+            return false; // FINALSTAND
 
         // Always show our icons to our entity
         if (viewer == ent.Owner)

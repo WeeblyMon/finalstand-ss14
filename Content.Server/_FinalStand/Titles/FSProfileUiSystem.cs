@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._FinalStand.Mentor;
+using Content.Shared._FinalStand.Mentor;
 using Content.Shared._FinalStand.Titles;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
@@ -43,8 +44,8 @@ public sealed partial class FSProfileUiSystem : EntitySystem
     {
         RaiseNetworkEvent(new FSTitlesStateEvent
         {
-            Owned = _titles.GetOwned(session.UserId).Select(t => t.Id).ToList(),
-            Equipped = _titles.GetEquipped(session.UserId)?.Id,
+            Owned = _titles.GetOwned(session.UserId).ToList(),
+            Equipped = _titles.GetEquipped(session.UserId),
         }, session);
     }
 
@@ -52,7 +53,7 @@ public sealed partial class FSProfileUiSystem : EntitySystem
     {
         var record = _mentor.CurrentRecord(session.UserId.UserId);
         var (playtime, level, _) = _mentor.MentorStanding(session);
-        var owned = _titles.GetOwned(session.UserId).Select(t => t.Id).ToHashSet();
+        var owned = _titles.GetOwned(session.UserId).ToHashSet();
 
         RaiseNetworkEvent(new FSMentorStateEvent
         {
@@ -65,7 +66,7 @@ public sealed partial class FSProfileUiSystem : EntitySystem
             MinHours = FSMentorRules.MinPlaytime.TotalHours,
             Level = level,
             MinLevel = FSMentorRules.MinLevel,
-            Shop = FSMentorSystem.Shop.Select(i => new FSMentorShopEntry(i.Id, i.Cost, i.Title, i.Title != null && owned.Contains(i.Title), i.PerkPoints)).ToList(),
+            Shop = FSMentorSystem.Shop.Select(i => new FSMentorShopEntry(i.Id, i.Cost, i.Title, i.Title is { } t && owned.Contains(t), i.PerkPoints)).ToList(),
             Message = message,
         }, session);
     }
@@ -74,10 +75,10 @@ public sealed partial class FSProfileUiSystem : EntitySystem
     {
         Throttled(args, session =>
         {
-            if (msg.Title == null)
+            if (msg.Title is not { } title)
                 _titles.Equip(session.UserId, null);
-            else if (_proto.HasIndex<FSTitlePrototype>(msg.Title))
-                _titles.Equip(session.UserId, new ProtoId<FSTitlePrototype>(msg.Title));
+            else if (title.Id is not null && _proto.HasIndex(title))
+                _titles.Equip(session.UserId, title);
 
             SendTitles(session);
         });

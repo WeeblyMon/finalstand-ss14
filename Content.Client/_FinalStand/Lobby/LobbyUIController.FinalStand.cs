@@ -11,7 +11,7 @@ namespace Content.Client.Lobby;
 
 public sealed partial class LobbyUIController : IOnSystemChanged<FSUiEventRelaySystem>
 {
-    private int _FSPerkPoints;
+    private int _fsPerkPoints;
     private int _fsLevel = 1;
     private int _fsPrestige;
     private int _fsExperience;
@@ -53,7 +53,7 @@ public sealed partial class LobbyUIController : IOnSystemChanged<FSUiEventRelayS
 
     private void OnFSWalletUpdated(WalletUpdatedEvent ev)
     {
-        _FSPerkPoints = ev.PerkPoints;
+        _fsPerkPoints = ev.PerkPoints;
         UpdateFSPerkPoints();
     }
 
@@ -69,7 +69,7 @@ public sealed partial class LobbyUIController : IOnSystemChanged<FSUiEventRelayS
     private void UpdateFSPerkPoints()
     {
         HookLobbyButtons();
-        PreviewPanel?.SetPerkPointsText(_FSPerkPoints);
+        PreviewPanel?.SetPerkPointsText(_fsPerkPoints);
     }
 
     // The wallet is only pushed on request, and the lobby panel may not exist yet when the reply
@@ -126,9 +126,12 @@ public sealed partial class LobbyUIController : IOnSystemChanged<FSUiEventRelayS
         HookLobbyButtons();
         if (PreviewPanel == null) return;
 
-        var levelText = _fsPrestige > 0 ? $"{_fsPrestige}-{_fsLevel}" : $"LVL {_fsLevel}";
+        var levelText = _fsPrestige > 0
+            ? Loc.GetString("fs-lobby-level-prestige", ("prestige", _fsPrestige), ("level", _fsLevel))
+            : Loc.GetString("fs-lobby-level", ("level", _fsLevel));
         PreviewPanel.SetLevelText(levelText);
-        PreviewPanel.SetXpText($"{_fsExperience:N0} / {_fsXpToNext:N0} XP");
+        PreviewPanel.SetXpText(Loc.GetString("fs-lobby-xp",
+            ("xp", _fsExperience.ToString("N0")), ("next", _fsXpToNext.ToString("N0"))));
         PreviewPanel.SetPrestigeButtonVisible(_fsLevel >= 50);
     }
 }

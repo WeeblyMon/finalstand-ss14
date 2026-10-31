@@ -40,7 +40,7 @@ public sealed partial class PulseCascadeUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSPulseCascadeTrackerComponent, MobStateChangedEvent>(OnKill);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;

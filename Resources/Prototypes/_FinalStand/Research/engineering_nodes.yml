@@ -2,7 +2,7 @@
 
 - type: fsTechNode
   id: FSEngineeringSalvageEquipment
-  name: Salvage Equipment
+  name: fs-tech-engineering-salvage-equipment
   icon:
     sprite: Objects/Tools/handdrill.rsi
     state: handdrill
@@ -13,7 +13,7 @@
 
 - type: fsTechNode
   id: FSEngineeringAdvancedPowercells
-  name: Advanced Powercells
+  name: fs-tech-engineering-advanced-powercells
   icon:
     sprite: Structures/Power/turbo_recharger.rsi
     state: empty
@@ -24,7 +24,7 @@
 
 - type: fsTechNode
   id: FSEngineeringIndustrialEngineering
-  name: Industrial Engineering
+  name: fs-tech-engineering-industrial-engineering
   icon:
     sprite: Structures/Machines/protolathe_hypercon.rsi
     state: building
@@ -35,7 +35,7 @@
 
 - type: fsTechNode
   id: FSEngineeringRipleyAPLU
-  name: Ripley APLU
+  name: fs-tech-engineering-ripley-aplu
   icon:
     sprite: Objects/Specific/Mech/mecha.rsi
     state: ripley
@@ -46,7 +46,7 @@
 
 - type: fsTechNode
   id: FSEngineeringAdvancedToolsTechnology
-  name: Advanced Tools Technology
+  name: fs-tech-engineering-advanced-tools-technology
   icon:
     sprite: Objects/Tools/welder_experimental.rsi
     state: icon
@@ -59,7 +59,7 @@
 
 - type: fsTechNode
   id: FSEngineeringMassExcavation
-  name: Mass Excavation
+  name: fs-tech-engineering-mass-excavation
   icon:
     sprite: Objects/Tools/handdrilldiamond.rsi
     state: handdrill
@@ -72,7 +72,7 @@
 
 - type: fsTechNode
   id: FSEngineeringBluespaceStorage
-  name: Bluespace Storage
+  name: fs-tech-engineering-bluespace-storage
   icon:
     sprite: Clothing/Back/Backpacks/holding.rsi
     state: holding
@@ -85,62 +85,62 @@
 
 - type: fsTechNode
   id: FSEngineeringQuickSetPlating
-  name: Quick-Set Plating
+  name: fs-tech-engineering-quick-set-plating
   icon:
     sprite: Objects/Materials/Sheets/metal.rsi
     state: steel_3
   branch: Engineering
   tier: 1
   cost: 2500
-  bonusDescription: Plates fit 40% faster.
+  bonusDescription: fs-tech-engineering-quick-set-plating-bonus
 
 - type: fsTechNode
   id: FSEngineeringRapidAssembly
-  name: Rapid Assembly
+  name: fs-tech-engineering-rapid-assembly
   icon:
     sprite: Objects/Tools/rcd.rsi
     state: icon
   branch: Engineering
   tier: 1
   cost: 2500
-  bonusDescription: The RCD builds 25% faster.
+  bonusDescription: fs-tech-engineering-rapid-assembly-bonus
 
 - type: fsTechNode
   id: FSEngineeringPneumaticRivets
-  name: Pneumatic Rivets
+  name: fs-tech-engineering-pneumatic-rivets
   icon:
     sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
     state: icon
   branch: Engineering
   tier: 1
   cost: 2500
-  bonusDescription: Rivet guns fire 40% faster.
+  bonusDescription: fs-tech-engineering-pneumatic-rivets-bonus
 
 - type: fsTechNode
   id: FSEngineeringCompressedBelts
-  name: Compressed Belts
+  name: fs-tech-engineering-compressed-belts
   icon:
     sprite: _FinalStand/Structures/Deployables/ammo_crate.rsi
     state: crate
   branch: Engineering
   tier: 1
   cost: 2500
-  bonusDescription: Ammo crates hold 50% more rounds, including ones already built.
+  bonusDescription: fs-tech-engineering-compressed-belts-bonus
 
 - type: fsTechNode
   id: FSEngineeringReinforcedSandbags
-  name: Reinforced Sandbags
+  name: fs-tech-engineering-reinforced-sandbags
   icon:
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     state: sandbag
   branch: Engineering
   tier: 1
   cost: 2500
-  bonusDescription: Emplacement sandbags take a third less damage.
+  bonusDescription: fs-tech-engineering-reinforced-sandbags-bonus
 
 - type: fsTechNode
   id: FSEngineeringArcWelding
-  name: Arc Welding
+  name: fs-tech-engineering-arc-welding
   icon:
     sprite: Objects/Tools/welder.rsi
     state: icon
@@ -149,11 +149,11 @@
   cost: 3500
   prerequisites:
   - FSEngineeringQuickSetPlating
-  bonusDescription: Welding plates in is 30% faster. A weld never takes under a second.
+  bonusDescription: fs-tech-engineering-arc-welding-bonus
 
 - type: fsTechNode
   id: FSEngineeringSalvagePlating
-  name: Salvage Plating
+  name: fs-tech-engineering-salvage-plating
   icon:
     sprite: Objects/Materials/Sheets/metal.rsi
     state: steel
@@ -162,11 +162,11 @@
   cost: 3500
   prerequisites:
   - FSEngineeringQuickSetPlating
-  bonusDescription: Deconstructing refunds 75% instead of 50%.
+  bonusDescription: fs-tech-engineering-salvage-plating-bonus
 
 - type: fsTechNode
   id: FSEngineeringRazorCoil
-  name: Razor Coil
+  name: fs-tech-engineering-razor-coil
   icon:
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     state: wire
@@ -175,11 +175,11 @@
   cost: 3500
   prerequisites:
   - FSEngineeringRapidAssembly
-  bonusDescription: Barbed wire cuts twice as deep and makes zombies bleed.
+  bonusDescription: fs-tech-engineering-razor-coil-bonus
 
 - type: fsTechNode
   id: FSEngineeringPrecisionRivets
-  name: Precision Rivets
+  name: fs-tech-engineering-precision-rivets
   icon:
     sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
     state: icon
@@ -188,11 +188,11 @@
   cost: 3500
   prerequisites:
   - FSEngineeringPneumaticRivets
-  bonusDescription: Rivets repair up to 90% instead of 75%.
+  bonusDescription: fs-tech-engineering-precision-rivets-bonus
 
 - type: fsTechNode
   id: FSEngineeringCoolingJacket
-  name: Cooling Jacket
+  name: fs-tech-engineering-cooling-jacket
   icon:
     sprite: _FinalStand/Structures/Deployables/hmg.rsi
     state: icon
@@ -201,11 +201,11 @@
   cost: 3500
   prerequisites:
   - FSEngineeringCompressedBelts
-  bonusDescription: HMGs build heat 35% slower.
+  bonusDescription: fs-tech-engineering-cooling-jacket-bonus
 
 - type: fsTechNode
   id: FSEngineeringFieldTools
-  name: Field Tools
+  name: fs-tech-engineering-field-tools
   icon:
     sprite: Objects/Tools/welder_experimental.rsi
     state: icon
@@ -214,12 +214,12 @@
   cost: 3500
   prerequisites:
   - FSEngineeringAdvancedToolsTechnology
-  bonusDescription: Unlocks the arc welder, hydraulic jaws and impact drill at the protolathe.
+  bonusDescription: fs-tech-engineering-field-tools-bonus
   vanillaTechnologyId: FSFieldTools
 
 - type: fsTechNode
   id: FSEngineeringOverbuiltBulwark
-  name: Overbuilt Bulwark
+  name: fs-tech-engineering-overbuilt-bulwark
   icon:
     sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
     state: bulwark
@@ -228,11 +228,11 @@
   cost: 4500
   prerequisites:
   - FSEngineeringRazorCoil
-  bonusDescription: Bulwark barricades get 10% more health.
+  bonusDescription: fs-tech-engineering-overbuilt-bulwark-bonus
 
 - type: fsTechNode
   id: FSEngineeringTraverseGearing
-  name: Traverse Gearing
+  name: fs-tech-engineering-traverse-gearing
   icon:
     sprite: _FinalStand/Structures/Deployables/hmg.rsi
     state: icon
@@ -241,11 +241,11 @@
   cost: 4500
   prerequisites:
   - FSEngineeringCoolingJacket
-  bonusDescription: HMGs cover a 120 degree arc instead of 90.
+  bonusDescription: fs-tech-engineering-traverse-gearing-bonus
 
 - type: fsTechNode
   id: FSEngineeringBeltFeed
-  name: Belt Feed
+  name: fs-tech-engineering-belt-feed
   icon:
     sprite: _FinalStand/Structures/Deployables/ammo_crate.rsi
     state: crate
@@ -254,11 +254,11 @@
   cost: 4500
   prerequisites:
   - FSEngineeringCoolingJacket
-  bonusDescription: HMGs draw from a crate up to 2.5 tiles away.
+  bonusDescription: fs-tech-engineering-belt-feed-bonus
 
 - type: fsTechNode
   id: FSEngineeringThirdHardpoint
-  name: Third Hardpoint
+  name: fs-tech-engineering-third-hardpoint
   icon:
     sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
     state: icon
@@ -267,11 +267,11 @@
   cost: 4500
   prerequisites:
   - FSEngineeringReinforcedSandbags
-  bonusDescription: The emplacement unfolds with a third sentry in its front row.
+  bonusDescription: fs-tech-engineering-third-hardpoint-bonus
 
 - type: fsTechNode
   id: FSEngineeringMechBay
-  name: Mech Bay
+  name: fs-tech-engineering-mech-bay
   icon:
     sprite: _FinalStand/Structures/MechBay/mech_bay.rsi
     state: pad
@@ -280,11 +280,11 @@
   cost: 6000
   prerequisites:
   - FSEngineeringRipleyAPLU
-  bonusDescription: Engineers can build a Mech Bay with the RCD. The Broadsword's ballistic guns, from the LAC-29 to the Bazooka, are built at it.
+  bonusDescription: fs-tech-engineering-mech-bay-bonus
 
 - type: fsTechNode
   id: FSEngineeringBroadsword
-  name: Broadsword
+  name: fs-tech-engineering-broadsword
   icon:
     sprite: _FinalStand/Objects/Mech/broadsword.rsi
     state: broadsword
@@ -293,12 +293,12 @@
   cost: 9000
   prerequisites:
   - FSEngineeringMechBay
-  bonusDescription: Prints the Broadsword control core and targeting module. Fit them at the Mech Bay between Engineering's stages.
+  bonusDescription: fs-tech-engineering-broadsword-bonus
   vanillaTechnologyId: FSBroadswordElectronics
 
 - type: fsTechNode
   id: FSEngineeringMechEnergyWeapons
-  name: Mech Energy Weapons
+  name: fs-tech-engineering-mech-energy-weapons
   icon:
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_laser
@@ -307,5 +307,5 @@
   cost: 9000
   prerequisites:
   - FSEngineeringBroadsword
-  bonusDescription: Prints the Firedart, Solaris, pulse rifle, tesla cannon and RAVAGER plasma cannon for the Broadsword.
+  bonusDescription: fs-tech-engineering-mech-energy-weapons-bonus
   vanillaTechnologyId: FSMechEnergyWeapons

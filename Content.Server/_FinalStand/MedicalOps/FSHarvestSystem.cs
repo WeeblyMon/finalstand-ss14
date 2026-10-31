@@ -14,7 +14,6 @@ public sealed partial class FSHarvestSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
-    [Dependency] private WaveGameRuleSystem _wave = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
     private static readonly SoundSpecifier TickSound =
@@ -25,16 +24,30 @@ public sealed partial class FSHarvestSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnWaveEnemyDied);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    // The cap is per wave, replays after a lost CCC life included, which keep the wave number.
+    private void OnPrepStarted(ref WavePrepStartedEvent args)
+    {
+        ResetCaps();
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
+        ResetCaps();
+    }
+
+    private void ResetCaps()
+    {
         var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
+            if (comp.AccruedThisWave == 0f)
+                continue;
+
             comp.AccruedThisWave = 0f;
-            comp.TrackedWave = -1;
             Dirty(uid, comp);
         }
     }
@@ -44,19 +57,11 @@ public sealed partial class FSHarvestSystem : EntitySystem
         if (TerminatingOrDeleted(args.Enemy))
             return;
 
-        var wave = _wave.GetWaveNumber();
         var corpse = _xform.GetMapCoordinates(args.Enemy);
 
         var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
         while (query.MoveNext(out var satchel, out var comp))
         {
-            if (comp.TrackedWave != wave)
-            {
-                comp.TrackedWave = wave;
-                comp.AccruedThisWave = 0f;
-                Dirty(satchel, comp);
-            }
-
             if (!IsCarried(satchel) || !InRange(satchel, corpse, comp.Range))
                 continue;
 

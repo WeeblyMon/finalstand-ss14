@@ -1,3 +1,4 @@
+// FINALSTAND: fork file, kept next to the vanilla partial it extends.
 using Content.Shared.Access.Systems;
 using Content.Shared.StatusIcon;
 using Content.Shared.StatusIcon.Components;

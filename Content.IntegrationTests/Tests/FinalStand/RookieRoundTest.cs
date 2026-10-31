@@ -10,6 +10,7 @@ using Content.Server.GameTicking;
 using Content.Server.Players.PlayTimeTracking;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Mentor;
 using Content.Shared._FinalStand.Onboarding;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
@@ -85,7 +86,9 @@ public sealed class RookieRoundTest : GameTest
     private void MakeVeteranAMentor()
     {
         var level = SEntMan.GetComponent<FSPlayerLevelComponent>(MindOf(_veteran));
+#pragma warning disable RA0002
         level.Level = FSMentorRules.MinLevel;
+#pragma warning restore RA0002
         Assert.That(SEntMan.System<FSMentorSystem>().CanMentor(_veteran, _rookie), Is.True, "test precondition");
     }
 
@@ -173,12 +176,48 @@ public sealed class RookieRoundTest : GameTest
 
             mobState.ChangeMobState(rookie, MobState.Dead);
             mobState.ChangeMobState(rookie, MobState.Critical, origin: BodyOf(_veteran));
-            Assert.That(MentorPoints(), Is.EqualTo(FSMentorSystem.ReviveMp));
+            Assert.That(MentorPoints(), Is.EqualTo(FSMentorRules.ReviveMp));
             Assert.That(Credits(_veteran) - credits, Is.AtLeast(FSMentorSystem.ReviveCredits));
 
             mobState.ChangeMobState(rookie, MobState.Dead);
             mobState.ChangeMobState(rookie, MobState.Critical, origin: BodyOf(_veteran));
-            Assert.That(MentorPoints(), Is.EqualTo(FSMentorSystem.ReviveMp), "kill-and-revive loops don't farm points");
+            Assert.That(MentorPoints(), Is.EqualTo(FSMentorRules.ReviveMp), "kill-and-revive loops don't farm points");
+        });
+    }
+
+    [Test]
+    public async Task ARevivePaysTheMentorPastTheMedicPayoutCap()
+    {
+        await StartRoundWithARookie();
+        await Server.WaitPost(MakeVeteranAMentor);
+
+        // Three stabilises use up this wave's medic payouts for the rookie, and pay no mentor points. Each goes in its
+        // own tick, since one medic's payouts for one patient within a tick are paid and counted once.
+        for (var i = 0; i < 3; i++)
+        {
+            await Server.WaitPost(() =>
+            {
+                var mobState = SEntMan.System<MobStateSystem>();
+                mobState.ChangeMobState(BodyOf(_rookie), MobState.Critical);
+                mobState.ChangeMobState(BodyOf(_rookie), MobState.Alive, origin: BodyOf(_veteran));
+            });
+            await Server.WaitRunTicks(1);
+        }
+
+        await Server.WaitAssertion(() =>
+        {
+            var mobState = SEntMan.System<MobStateSystem>();
+            var rookie = BodyOf(_rookie);
+            Assert.That(MentorPoints(), Is.Zero, "test precondition");
+
+            var credits = Credits(_veteran);
+            mobState.ChangeMobState(rookie, MobState.Dead);
+            mobState.ChangeMobState(rookie, MobState.Critical, origin: BodyOf(_veteran));
+            // Only the mentor's own revive reward is paid; the medic payout for the revive is over the cap.
+            Assert.That(Credits(_veteran) - credits, Is.EqualTo(FSMentorSystem.ReviveCredits),
+                "test precondition: the medic payout cap was reached");
+            Assert.That(MentorPoints(), Is.EqualTo(FSMentorRules.ReviveMp),
+                "the mentor's own cooldown limits revives, not the medic payout cap");
         });
     }
 
@@ -219,16 +258,16 @@ public sealed class RookieRoundTest : GameTest
             MakeVeteranAMentor();
             Place(BodyOf(_rookie), new Vector2(2, 0));
             EndWave(1);
-            Assert.That(MentorPoints(), Is.EqualTo(FSMentorSystem.WaveEscortMp));
+            Assert.That(MentorPoints(), Is.EqualTo(FSMentorRules.WaveEscortMp));
 
             Place(BodyOf(_rookie), new Vector2(FSMentorSystem.WaveEscortRange + 4, 0));
             EndWave(2);
-            Assert.That(MentorPoints(), Is.EqualTo(FSMentorSystem.WaveEscortMp), "too far away to count");
+            Assert.That(MentorPoints(), Is.EqualTo(FSMentorRules.WaveEscortMp), "too far away to count");
 
             Place(BodyOf(_rookie), new Vector2(2, 0));
             SEntMan.System<MobStateSystem>().ChangeMobState(BodyOf(_veteran), MobState.Critical);
             EndWave(3);
-            Assert.That(MentorPoints(), Is.EqualTo(FSMentorSystem.WaveEscortMp), "a downed mentor isn't escorting anyone");
+            Assert.That(MentorPoints(), Is.EqualTo(FSMentorRules.WaveEscortMp), "a downed mentor isn't escorting anyone");
         });
     }
 
@@ -247,7 +286,7 @@ public sealed class RookieRoundTest : GameTest
 
             var onboarding = SEntMan.System<FSOnboardingSystem>();
             Assert.That(onboarding.TryPayFirstRound(_rookie, MindOf(_rookie)), Is.True);
-            Assert.That(MentorPoints(), Is.EqualTo(FSMentorSystem.FirstRoundMp));
+            Assert.That(MentorPoints(), Is.EqualTo(FSMentorRules.FirstRoundMp));
         });
     }
 }

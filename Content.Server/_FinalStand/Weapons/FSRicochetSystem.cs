@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
 using Content.Server._FinalStand.Audio;
+using Content.Server._FinalStand.Crit;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Projectiles;
+using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Power.Components;
@@ -30,6 +32,7 @@ public sealed partial class FSRicochetSystem : EntitySystem
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSSoundThrottleSystem _soundThrottle = default!;
+    [Dependency] private CritSystem _crit = default!;
 
     public const string BounceFixture = "bounce";
 
@@ -46,6 +49,7 @@ public sealed partial class FSRicochetSystem : EntitySystem
         SubscribeLocalEvent<FSRicochetComponent, StartCollideEvent>(OnStartCollide,
             after: [typeof(ProjectileSystem)], before: [typeof(FSPierceSystem)]);
         SubscribeLocalEvent<FSRicochetComponent, PreventCollideEvent>(OnPreventCollide);
+        SubscribeLocalEvent<FSRicochetComponent, BeforeProjectileHitEvent>(OnBeforeHit);
     }
 
     public override void Update(float frameTime)
@@ -110,10 +114,22 @@ public sealed partial class FSRicochetSystem : EntitySystem
         QueueDel(ent);
     }
 
+    // Raised before the damage lands, so the returning strike is the one that crits, and only it.
+    // StartCollide is too late: by then the hit has been dealt and a multiplier only boosts the next one.
+    private void OnBeforeHit(Entity<FSRicochetComponent> ent, ref BeforeProjectileHitEvent args)
+    {
+        if (!ent.Comp.Crit || !ent.Comp.Hit.Contains(args.Target) || HasComp<CritImmuneComponent>(args.Target))
+            return;
+
+        args.Damage *= ent.Comp.CritMultiplier;
+        if (args.Shooter is { } shooter)
+            _crit.MarkPendingCrit(shooter, args.Target);
+    }
+
     private void OnHitMob(Entity<FSRicochetComponent> ent, ProjectileComponent projectile, EntityUid target)
     {
-        if (ent.Comp.Crit && !ent.Comp.Hit.Add(target))
-            projectile.Damage *= ent.Comp.CritMultiplier;
+        if (ent.Comp.Crit)
+            ent.Comp.Hit.Add(target);
 
         if (ent.Comp.Refund)
             Refund(ent, projectile);
@@ -203,7 +219,7 @@ public sealed partial class FSRicochetSystem : EntitySystem
                 _fixtures.DestroyFixture(fragment, BounceFixture);
             }
 
-            _transform.SetWorldRotation(fragment, direction.ToWorldAngle() + fragProj?.Angle ?? Angle.Zero);
+            _transform.SetWorldRotation(fragment, direction.ToWorldAngle() + (fragProj?.Angle ?? Angle.Zero));
 
             if (TryComp<PhysicsComponent>(fragment, out var fragBody))
             {

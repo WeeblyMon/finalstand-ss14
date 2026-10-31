@@ -10,6 +10,7 @@ using Robust.Shared.Console;
 using Robust.Server.Player;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Economy;
 
@@ -18,10 +19,17 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSPlayerDataStore _store = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly TimeSpan LobbyRequestInterval = TimeSpan.FromSeconds(1);
 
     private readonly Dictionary<NetUserId, string> _cachedUsernames = new();
+    private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyRequest = new();
 
     private readonly HashSet<EntityUid> _dirtyWallets = new();
+
+    // Players who already got their starting credits this round. Per player, because a cryo return makes a new mind.
+    private readonly HashSet<NetUserId> _startingCreditsGiven = new();
     private float _notifyAccumulator;
     private const float NotifyInterval = 0.25f;
 
@@ -35,12 +43,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         SubscribeNetworkEvent<WalletRequestEvent>(OnWalletRequested);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
-    }
-
-    public override void Shutdown()
-    {
-        base.Shutdown();
-        SaveAll();
     }
 
     public override void Update(float frameTime)
@@ -64,16 +66,20 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
+        _lastLobbyRequest.Clear();
+        _startingCreditsGiven.Clear();
         SaveAll();
         _dirtyWallets.Clear();
 
+        // Perk points were just saved; an unloaded wallet adds the stored total back on load, so it starts empty.
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out _, out var wallet))
         {
             wallet.Credits = 0;
+            wallet.PerkPoints = 0;
             wallet.Loaded = false;
         }
-        Log.Debug("[FSWallet] Round restart — saved all players, cleared credits.");
+        Log.Debug("Round restart — saved all players, cleared credits.");
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -89,27 +95,41 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
-        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
-            return;
+        if (_mind.TryGetMind(ev.Mob, out var mindId, out _))
+            SetUpSpawnedMind(mindId, ev.Player);
+    }
 
-        _cachedUsernames[ev.Player.UserId] = ev.Player.Name;
+    // Spawn setup. fsdbg body calls it directly, since the real spawn event would run vanilla's handlers too.
+    public void SetUpSpawnedMind(EntityUid mindId, ICommonSession player)
+    {
+        _cachedUsernames[player.UserId] = player.Name;
 
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        var wallet = GetLoadedWallet(mindId, player.UserId);
+        if (_startingCreditsGiven.Add(player.UserId))
+            wallet.Credits += StartingCredits;
 
-        if (wallet.Loaded)
-        {
-            MarkWalletDirty(mindId);
-            return;
-        }
-
-        var row = _store.GetFullRecord(ev.Player.UserId.UserId);
-
-        wallet.PerkPoints = row.PerkPoints;
-        wallet.Credits += StartingCredits;
-        wallet.Loaded = true;
         MarkWalletDirty(mindId);
+    }
 
-        Log.Info($"[FSWallet] Loaded {ev.Player.Name} — perkPoints={wallet.PerkPoints}");
+    // Reads the saved row before anything touches the perk points. A wallet created by an early payout
+    // (an observer at a boss kill, a pay-out in the same spawn event) would otherwise save that payout
+    // over the player's real total. If the read fails the wallet stays unloaded and unsaved, keeping what it
+    // earns meanwhile on top of the row once a later read works.
+    private FSPlayerWalletComponent GetLoadedWallet(EntityUid mindId, NetUserId user)
+    {
+        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        if (wallet.Loaded || !_store.TryGetFullRecord(user.UserId, out var record))
+            return wallet;
+
+        wallet.PerkPoints += record.PerkPoints;
+        wallet.Loaded = true;
+        return wallet;
+    }
+
+    private void SavePerkPoints(NetUserId user, FSPlayerWalletComponent wallet)
+    {
+        if (wallet.Loaded)
+            _store.UpsertPerkPoints(user.UserId, ResolveUsername(user), wallet.PerkPoints);
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -120,9 +140,18 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         SaveMind(mindId, mind.UserId.Value);
     }
 
+    // Every wallet a player can own is created loaded; this only skips ones reset at round restart.
+    private FSPlayerWalletComponent GetWallet(EntityUid mindId)
+    {
+        return TryComp<MindComponent>(mindId, out var mind) && mind.UserId is { } user
+            ? GetLoadedWallet(mindId, user)
+            : EnsureComp<FSPlayerWalletComponent>(mindId);
+    }
+
     private void SaveMind(EntityUid mindId, NetUserId userId)
     {
-        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+        // An unloaded wallet's perk points aren't the player's; saving them would overwrite the real total.
+        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || !wallet.Loaded)
             return;
 
         _store.UpsertPerkPoints(userId.UserId, ResolveUsername(userId), wallet.PerkPoints);
@@ -145,12 +174,12 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             if (!_mind.TryGetMind(session, out var mindId, out _))
                 continue;
 
-            var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+            var wallet = GetLoadedWallet(mindId, session.UserId);
             wallet.Credits += (int) MathF.Round(amount * scale(mindId));
             MarkWalletDirty(mindId);
             count++;
         }
-        Log.Info($"[FSWallet] DistributeCredits +{amount} → {count} player(s)");
+        Log.Debug($"DistributeCredits +{amount} → {count} player(s)");
     }
 
     public void DistributePerkPoints(int amount)
@@ -161,22 +190,24 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             if (!_mind.TryGetMind(session, out var mindId, out _))
                 continue;
 
-            var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+            var wallet = GetLoadedWallet(mindId, session.UserId);
             wallet.PerkPoints += amount;
             MarkWalletDirty(mindId);
-            _store.UpsertPerkPoints(session.UserId.UserId, session.Name, wallet.PerkPoints);
+            SavePerkPoints(session.UserId, wallet);
             count++;
         }
-        Log.Info($"[FSWallet] DistributePerkPoints +{amount} → {count} player(s)");
+        Log.Debug($"DistributePerkPoints +{amount} → {count} player(s)");
     }
 
     public void AddPerkPoints(EntityUid mindId, int amount)
     {
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId is not { } user)
+            return;
+
+        var wallet = GetLoadedWallet(mindId, user);
         wallet.PerkPoints += amount;
         MarkWalletDirty(mindId);
-        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
-        _store.UpsertPerkPoints(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.PerkPoints);
+        SavePerkPoints(user, wallet);
     }
 
     public bool TryDeductPerkPoints(EntityUid mindId, int cost)
@@ -185,32 +216,40 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             return false;
         wallet.PerkPoints -= cost;
         MarkWalletDirty(mindId);
-        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return true;
-        _store.UpsertPerkPoints(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.PerkPoints);
+        if (TryComp<MindComponent>(mindId, out var mind) && mind.UserId is { } user)
+            SavePerkPoints(user, wallet);
         return true;
     }
 
-    public event Action<EntityUid, int>? CreditsGiven;
-
-    public void GiveCredits(EntityUid mindId, int amount, bool earned = true)
+    // Earnings: kills, payouts, perks. These count towards the wave report's EARNED.
+    public void GiveCredits(EntityUid mindId, int amount)
     {
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
-        wallet.Credits += amount;
-        MarkWalletDirty(mindId);
-        if (earned && amount > 0)
-            CreditsGiven?.Invoke(mindId, amount);
+        AddCredits(mindId, amount);
+        if (amount <= 0)
+            return;
+
+        var ev = new FSCreditsGivenEvent(amount);
+        RaiseLocalEvent(mindId, ref ev);
     }
 
-    public event Action<EntityUid, int>? CreditsSpent;
+    // Credits that aren't earnings: refunds, sell-backs and transfers between players.
+    public void AddCredits(EntityUid mindId, int amount)
+    {
+        var wallet = GetWallet(mindId);
+        wallet.Credits += amount;
+        MarkWalletDirty(mindId);
+    }
 
+    // Pass spending: false for credits that move to another player rather than buying something.
     public bool TryDeductCredits(EntityUid mindId, int amount, bool spending = true)
     {
-        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < amount)
+        // A negative charge would quietly pay out; callers refund through AddCredits.
+        if (amount < 0 || !TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < amount)
             return false;
         wallet.Credits -= amount;
         MarkWalletDirty(mindId);
         if (spending && amount > 0)
-            CreditsSpent?.Invoke(mindId, amount);
+            RaiseSpent(mindId, amount);
         return true;
     }
 
@@ -219,15 +258,21 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         if (amount <= 0)
             return 0;
 
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        var wallet = GetWallet(mindId);
         var taken = Math.Min(wallet.Credits, amount);
         if (taken <= 0)
             return 0;
 
         wallet.Credits -= taken;
         MarkWalletDirty(mindId);
-        CreditsSpent?.Invoke(mindId, taken);
+        RaiseSpent(mindId, taken);
         return taken;
+    }
+
+    private void RaiseSpent(EntityUid mindId, int amount)
+    {
+        var ev = new FSCreditsSpentEvent(mindId, amount);
+        RaiseLocalEvent(ref ev);
     }
 
     public int GetCredits(EntityUid mindId)
@@ -250,33 +295,43 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             }
         });
 
-        Log.Info($"[FSWallet] SaveAll flushed {count} player(s)");
+        Log.Debug($"SaveAll flushed {count} player(s)");
     }
 
     public int GetStoredPerkPoints(Guid userId)
     {
         if (_playerManager.TryGetSessionById(new NetUserId(userId), out var session)
-            && _mind.TryGetMind(session, out var mindId, out _)
-            && TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+            && _mind.TryGetMind(session, out var mindId, out _))
         {
-            return wallet.PerkPoints;
+            return GetPerkPoints(mindId, session.UserId);
         }
 
         return _store.GetPerkPoints(userId);
     }
 
+    // Live wallet in round, the saved row otherwise (or for a wallet that hasn't been loaded).
+    public int GetPerkPoints(EntityUid mindId, NetUserId user)
+    {
+        return TryComp<FSPlayerWalletComponent>(mindId, out var wallet) && wallet.Loaded
+            ? wallet.PerkPoints
+            : _store.GetPerkPoints(user.UserId);
+    }
+
     public void GivePerkPoints(ICommonSession session, int amount)
     {
         if (_mind.TryGetMind(session, out var mindId, out _)
-            && TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+            && HasComp<FSPlayerWalletComponent>(mindId))
         {
+            var wallet = GetLoadedWallet(mindId, session.UserId);
             wallet.PerkPoints = Math.Max(0, wallet.PerkPoints + amount);
             MarkWalletDirty(mindId);
-            _store.UpsertPerkPoints(session.UserId.UserId, session.Name, wallet.PerkPoints);
+            SavePerkPoints(session.UserId, wallet);
             return;
         }
 
-        var current = _store.GetPerkPoints(session.UserId.UserId);
+        if (!_store.TryGetPerkPoints(session.UserId.UserId, out var current))
+            return;
+
         var updated = Math.Max(0, current + amount);
         _store.UpsertPerkPoints(session.UserId.UserId, session.Name, updated);
         RaiseNetworkEvent(new WalletUpdatedEvent(0, updated), Filter.SinglePlayer(session));
@@ -298,7 +353,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         var wiped = new FSPrestigeWipedEvent();
         RaiseLocalEvent(ref wiped);
 
-        Log.Warning($"[FSWallet] WipeAllPrestige — deleted {deleted} row(s) and reset all connected players.");
+        Log.Warning($"WipeAllPrestige — deleted {deleted} row(s) and reset all connected players.");
         return deleted;
     }
 
@@ -327,6 +382,12 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
                 Filter.SinglePlayer(session));
             return;
         }
+
+        // Lobby players have no mind, so this goes to the database.
+        var now = _timing.CurTime;
+        if (_lastLobbyRequest.TryGetValue(session.UserId, out var last) && now - last < LobbyRequestInterval)
+            return;
+        _lastLobbyRequest[session.UserId] = now;
 
         RaiseNetworkEvent(new WalletUpdatedEvent(0, _store.GetPerkPoints(session.UserId.UserId)),
             Filter.SinglePlayer(session));

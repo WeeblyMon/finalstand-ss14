@@ -8,11 +8,11 @@ using Content.Server._FinalStand.Records;
 using Content.Server._FinalStand.Titles;
 using Content.Server.GameTicking;
 using Content.Server.Voting.Managers;
+using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.CCVar;
 using Content.Shared.Mind;
-using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
 using Robust.Shared.Timing;
@@ -38,13 +38,77 @@ public sealed class DifficultyTest : GameTest
     }
 
     [Test]
+    public async Task AnOpenConsoleFollowsTheDifficultyVote()
+    {
+        var map = await Pair.CreateTestMap();
+        var ccc = EntityUid.Invalid;
+        var nightmareTotal = 0;
+        await Server.WaitAssertion(() =>
+        {
+            var waveRule = SEntMan.System<WaveGameRuleSystem>();
+            var minds = SEntMan.System<SharedMindSystem>();
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Normal), Is.True);
+
+            var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            var mindId = minds.CreateMind(ServerSession!.UserId, "Captain");
+            minds.TransferTo(mindId, body, mind: SEntMan.GetComponent<MindComponent>(mindId));
+            ccc = SEntMan.SpawnEntity("FinalStandCCC", map.GridCoords);
+            SEntMan.System<SharedUserInterfaceSystem>().OpenUi(ccc, CCCUiKey.Key, body);
+        });
+        await Pair.RunTicksSync(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            var waveRule = SEntMan.System<WaveGameRuleSystem>();
+            var ui = SEntMan.System<SharedUserInterfaceSystem>();
+            Assert.That(ui.TryGetUiState<CCCBoundUserInterfaceState>(ccc, CCCUiKey.Key, out var shown), Is.True);
+            Assert.That(shown!.EstimatedEnemyCount, Is.EqualTo(waveRule.GetEnemyTotal()), "test precondition");
+
+            Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Nightmare), Is.True);
+            nightmareTotal = waveRule.GetEnemyTotal();
+            Assert.That(nightmareTotal, Is.GreaterThan(shown.EstimatedEnemyCount), "test precondition");
+        });
+        await Pair.RunTicksSync(30);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.System<SharedUserInterfaceSystem>()
+                    .TryGetUiState<CCCBoundUserInterfaceState>(ccc, CCCUiKey.Key, out var shown), Is.True);
+            Assert.That(shown!.EstimatedEnemyCount, Is.EqualTo(nightmareTotal),
+                "the console shows what the vote picked without being reopened");
+        });
+    }
+
+    [Test]
+    public async Task AnAdminPickEndsTheDifficultyVote()
+    {
+        await OverrideCVar(Side.Server, CCVars.FSDifficultyVoteSeconds, 60);
+        bool VoteOpen() => Server.ResolveDependency<IVoteManager>().ActiveVotes
+            .Any(v => v.Title == Loc.GetString("fs-difficulty-vote-title"));
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            Assert.That(VoteOpen(), Is.True, "test precondition");
+            Assert.That(SEntMan.System<WaveGameRuleSystem>().TrySetDifficulty(FSDifficulty.Hard), Is.True);
+        });
+        await Pair.RunTicksSync(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(VoteOpen(), Is.False, "the vote would overwrite the admin's pick when it ends");
+            Assert.That(SEntMan.System<WaveGameRuleSystem>().GetDifficulty(), Is.EqualTo(FSDifficulty.Hard));
+        });
+    }
+
+    [Test]
     public async Task DifficultyScalesTheWaveAndLocksWhenWaveOneStarts()
     {
         await Server.WaitAssertion(() =>
         {
             var ticker = SEntMan.System<GameTicker>();
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
 
             Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Hard), Is.False, "no active round, nothing to set");
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
@@ -64,7 +128,7 @@ public sealed class DifficultyTest : GameTest
                 Assert.That(waveRule.GetRewardMultiplier(), Is.EqualTo(FSDifficultyRules.RewardMultiplier(FSDifficulty.Nightmare)));
             });
 
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave();
             Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Normal), Is.False,
                 "changing difficulty mid-round would let a team farm Nightmare rewards on Normal");
             Assert.That(waveRule.GetDifficulty(), Is.EqualTo(FSDifficulty.Nightmare));
@@ -108,12 +172,11 @@ public sealed class DifficultyTest : GameTest
             var ticker = SEntMan.System<GameTicker>();
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
             var votes = Server.ResolveDependency<IVoteManager>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
 
             var vote = votes.ActiveVotes.Single(v => v.Title == Loc.GetString("fs-difficulty-vote-title"));
             vote.CastVote(ServerSession!, (int) FSDifficulty.Hard);
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave();
 
             Assert.Multiple(() =>
             {
@@ -135,7 +198,6 @@ public sealed class DifficultyTest : GameTest
             var titles = SEntMan.System<FSTitleSystem>();
             var minds = SEntMan.System<SharedMindSystem>();
             var store = SEntMan.System<FSPlayerDataStore>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             var session = ServerSession!;
 
             store.DeleteProgress(session.UserId.UserId);
@@ -152,19 +214,19 @@ public sealed class DifficultyTest : GameTest
             var present = new WaveEndedEvent(1);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref present);
             Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Nightmare), Is.True);
-            waveRule.ForceNextWave(shell, 30);
+            waveRule.ForceNextWave(30);
             SEntMan.RemoveComponent<FSPlayerLevelComponent>(mindId);
             var before = wallet.PerkPoints;
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave();
 
             var owned = titles.GetOwned(session.UserId).Select(t => t.Id).ToList();
             Assert.Multiple(() =>
             {
                 Assert.That(wallet.PerkPoints - before,
                     Is.EqualTo(5 + FSDifficultyRules.VictoryBonusPerkPoints(FSDifficulty.Nightmare)));
-                Assert.That(owned, Does.Contain(FSRecordsSystem.VictoryTitle));
-                Assert.That(owned, Does.Contain(FSRecordsSystem.HardVictoryTitle));
-                Assert.That(owned, Does.Contain(FSRecordsSystem.NightmareVictoryTitle));
+                Assert.That(owned, Does.Contain(FSRecordsSystem.VictoryTitle.Id));
+                Assert.That(owned, Does.Contain(FSRecordsSystem.HardVictoryTitle.Id));
+                Assert.That(owned, Does.Contain(FSRecordsSystem.NightmareVictoryTitle.Id));
             });
         });
     }

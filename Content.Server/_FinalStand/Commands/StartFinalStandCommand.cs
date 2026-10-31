@@ -6,6 +6,8 @@ using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
 using Robust.Shared.Console;
 
+using Content.Server._FinalStand.GameTicking;
+
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Round)]
@@ -19,23 +21,23 @@ public sealed partial class StartFinalStandCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        if (!_ticker.TryFindGamePreset("finalstand", out var preset))
+        if (!_ticker.TryFindGamePreset(FSAutoStartSystem.Preset, out var preset))
         {
-            shell.WriteError("FinalStand preset not found. Is the prototype loaded?");
+            shell.WriteError(Loc.GetString("cmd-startfinalstand-no-preset", ("preset", FSAutoStartSystem.Preset.Id)));
             return;
         }
 
-        if (!_mapManager.CheckMapExists("FinalStandMap1"))
+        if (!_mapManager.CheckMapExists(FSAutoStartSystem.Map))
         {
-            shell.WriteError("FinalStandMap1 not found. Is the prototype loaded?");
+            shell.WriteError(Loc.GetString("cmd-startfinalstand-no-map", ("map", FSAutoStartSystem.Map.Id)));
             return;
         }
 
         _cfg.SetCVar(CCVars.GameLobbyEnabled, true);
-        _cfg.SetCVar(CCVars.GameMap, "FinalStandMap1");
+        _cfg.SetCVar(CCVars.GameMap, FSAutoStartSystem.Map.Id);
         _ticker.SetGamePreset(preset, false);
         _ticker.RestartRound();
 
-        shell.WriteLine("Final Stand round starting on FinalStandMap1.");
+        shell.WriteLine(Loc.GetString("cmd-startfinalstand-starting", ("map", FSAutoStartSystem.Map.Id)));
     }
 }

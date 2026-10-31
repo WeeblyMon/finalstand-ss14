@@ -3,7 +3,7 @@ namespace Content.Server._FinalStand.Economy;
 public sealed partial class FSPlayerDataStore
 {
     public bool HasSeenTutorial(Guid userId, string tutorial)
-        => TryRead($"tutorial check for {userId}", () =>
+        => TryRead(userId, $"tutorial check for {userId}", () =>
         {
             using var cmd = DbCommand();
             cmd.CommandText = "SELECT 1 FROM tutorials_seen WHERE user_id = $id AND tutorial = $t";

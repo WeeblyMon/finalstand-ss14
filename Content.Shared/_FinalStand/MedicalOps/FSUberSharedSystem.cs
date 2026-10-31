@@ -19,6 +19,37 @@ public sealed partial class FSUberSharedSystem : EntitySystem
     private static readonly SoundSpecifier BlockedSound = new SoundPathSpecifier("/Audio/Weapons/block_metal1.ogg");
     private static readonly TimeSpan TingInterval = TimeSpan.FromSeconds(0.2);
 
+    // A shorter cover from another source doesn't replace a longer one still running: a passing uber beam would
+    // otherwise take over a medic's own uber and cut it short when it moved on.
+    public void Cover(EntityUid patient, EntityUid source, TimeSpan end, float duration, Color color, bool infiniteStamina)
+    {
+        if (TryComp<FSUberedComponent>(patient, out var current)
+            && current.Source != source
+            && current.EndTime > end
+            && _timing.CurTime < current.EndTime)
+        {
+            return;
+        }
+
+        var ubered = EnsureComp<FSUberedComponent>(patient);
+        ubered.Source = source;
+        ubered.EndTime = end;
+        ubered.Duration = duration;
+        ubered.SourceColor = color;
+        ubered.InfiniteStamina = infiniteStamina;
+        Dirty(patient, ubered);
+    }
+
+    // Brings forward the end of a cover given by this source; a cover from another medic's uber is left alone.
+    public void EndCover(EntityUid patient, EntityUid source, TimeSpan end)
+    {
+        if (!TryComp<FSUberedComponent>(patient, out var ubered) || ubered.Source != source || ubered.EndTime <= end)
+            return;
+
+        ubered.EndTime = end;
+        Dirty(patient, ubered);
+    }
+
     public override void Initialize()
     {
         base.Initialize();

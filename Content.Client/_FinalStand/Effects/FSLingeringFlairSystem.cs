@@ -1,6 +1,3 @@
-// Effects that follow a state rather than a moment: a hurt mech smokes and sparks, a mech out of power flickers and spits sparks,
-// a walking mech kicks up dust, uranium glows,
-// and a fortification chips when it takes a hit.
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.Mech;

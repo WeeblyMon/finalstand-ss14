@@ -1,6 +1,6 @@
 - type: entity
-  id: FSWeaponShopBase
   abstract: true
+  id: FSWeaponShopBase
   placement:
     mode: SnapgridCenter
   components:
@@ -31,8 +31,8 @@
         type: FSShopWeaponBoundUserInterface
 
 - type: entity
-  id: FSWeaponShopViper
   parent: FSWeaponShopBase
+  id: FSWeaponShopViper
   name: Viper
   description: A Syndicate-modified 9mm pistol. Semi-auto and full-auto.
   components:
@@ -41,36 +41,36 @@
     price: 500
     starterAmmoProtoId: MagazinePistolHighCapacity
     starterAmmoCount: 2
-    category: 9mm Semi/Full-Auto Pistol
+    category: fs-weapon-shop-category-9mm-semi-full-auto-pistol
     statDamage: 35
     statFireRate: 80
     statAccuracy: 55
     statCapacity: 75
     upgrades:
     - id: viper-hair-trigger
-      name: Hair Trigger
-      description: Lighter pull increases fire rate by 1.5/level.
+      name: fs-upgrade-viper-hair-trigger
+      description: fs-upgrade-viper-hair-trigger-desc
       maxLevel: 5
       baseCost: 450
       type: FireRate
       valuePerLevel: 1.5
     - id: viper-extended-mag
-      name: Extended Mag
-      description: Adds 5 rounds to magazine capacity per level.
+      name: fs-upgrade-viper-extended-mag
+      description: fs-upgrade-viper-extended-mag-desc
       maxLevel: 5
       baseCost: 450
       type: MagazineSize
       valuePerLevel: 5
     - id: viper-recoil-pad
-      name: Recoil Pad
-      description: Reduces max spread by 0.3° per level for tighter bursts.
+      name: fs-upgrade-viper-recoil-pad
+      description: fs-upgrade-viper-recoil-pad-desc
       maxLevel: 5
       baseCost: 450
       type: Accuracy
       valuePerLevel: 0.3
     - id: viper-hollow-point
-      name: Hollow Point
-      description: Bullets slow hit enemies by 30% for 2 seconds. Hitting again resets the timer.
+      name: fs-upgrade-viper-hollow-point
+      description: fs-upgrade-viper-hollow-point-desc
       maxLevel: 1
       baseCost: 800
       type: Slowing
@@ -81,8 +81,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopMateba
   parent: FSWeaponShopBase
+  id: FSWeaponShopMateba
   name: Mateba
   description: Nanotrasen Death Squad revolver. High fire rate, .45 magnum.
   components:
@@ -91,50 +91,50 @@
     price: 500
     starterAmmoProtoId: MagazineBoxMagnum
     starterAmmoCount: 1
-    category: .45 Magnum Revolver
+    category: fs-weapon-shop-category-45-magnum-revolver
     statDamage: 70
     statFireRate: 55
     statAccuracy: 75
     statCapacity: 25
     upgrades:
     - id: mateba-hair-trigger
-      name: Hair Trigger
-      description: Tuned action increases fire rate by 0.5/level.
+      name: fs-upgrade-mateba-hair-trigger
+      description: fs-upgrade-mateba-hair-trigger-desc
       maxLevel: 5
       baseCost: 250
       type: FireRate
       valuePerLevel: 0.5
     - id: mateba-damage
-      name: Hollow Point
-      description: Enhanced rounds increase damage by 15% per level.
+      name: fs-upgrade-mateba-damage
+      description: fs-upgrade-mateba-damage-desc
       maxLevel: 5
       baseCost: 250
       type: Damage
       valuePerLevel: 0.15
     - id: mateba-steady-aim
-      name: Steady Aim
-      description: Reduces max spread by 0.3° per level for precise follow-up shots.
+      name: fs-upgrade-mateba-steady-aim
+      description: fs-upgrade-mateba-steady-aim-desc
       maxLevel: 5
       baseCost: 250
       type: Accuracy
       valuePerLevel: 0.3
     - id: mateba-dead-eye
-      name: Dead Eye
-      description: Increases critical hit chance by 5% per level. Crits deal 2× damage.
+      name: fs-upgrade-mateba-dead-eye
+      description: fs-upgrade-mateba-dead-eye-desc
       maxLevel: 5
       baseCost: 250
       type: CritChance
       valuePerLevel: 0.05
     - id: mateba-speed-loader
-      name: Speed Loader
-      description: Reload all 6 rounds in one smooth motion instead of one at a time.
+      name: fs-upgrade-mateba-speed-loader
+      description: fs-upgrade-mateba-speed-loader-desc
       maxLevel: 1
       baseCost: 600
       type: SpeedLoader
       valuePerLevel: 1
     - id: mateba-critical-mass
-      name: Critical Mass
-      description: Crits hit harder. Each level adds +0.25× crit damage multiplier.
+      name: fs-upgrade-mateba-critical-mass
+      description: fs-upgrade-mateba-critical-mass-desc
       maxLevel: 5
       baseCost: 250
       type: CritDamage
@@ -146,8 +146,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopMk58
   parent: FSWeaponShopBase
+  id: FSWeaponShopMk58
   name: MK 58
   description: A reliable .35 semi-auto service pistol. Easy to use, easy to upgrade.
   components:
@@ -156,43 +156,43 @@
     price: 500
     starterAmmoProtoId: MagazinePistol
     starterAmmoCount: 2
-    category: .35 Semi-Auto Pistol
+    category: fs-weapon-shop-category-35-semi-auto-pistol
     statDamage: 40
     statFireRate: 45
     statAccuracy: 65
     statCapacity: 50
     upgrades:
     - id: mk58-hair-trigger
-      name: Hair Trigger
-      description: Lighter pull increases fire rate by 0.5/level.
+      name: fs-upgrade-mk58-hair-trigger
+      description: fs-upgrade-mk58-hair-trigger-desc
       maxLevel: 5
       baseCost: 100
       type: FireRate
       valuePerLevel: 0.5
     - id: mk58-extended-mag
-      name: Extended Mag
-      description: Adds 1 round to magazine capacity per level.
+      name: fs-upgrade-mk58-extended-mag
+      description: fs-upgrade-mk58-extended-mag-desc
       maxLevel: 5
       baseCost: 100
       type: MagazineSize
       valuePerLevel: 1
     - id: mk58-steady-aim
-      name: Steady Aim
-      description: Reduces max spread by 0.3° per level for precise follow-up shots.
+      name: fs-upgrade-mk58-steady-aim
+      description: fs-upgrade-mk58-steady-aim-desc
       maxLevel: 5
       baseCost: 100
       type: Accuracy
       valuePerLevel: 0.3
     - id: mk58-cash-flow
-      name: Cash Flow
-      description: "Boosts your per-hit earnings. All weapons already earn 30 credits per hit — this adds +2 per level. Max 2 levels: 32/34 per hit."
+      name: fs-upgrade-mk58-cash-flow
+      description: fs-upgrade-mk58-cash-flow-desc
       maxLevel: 2
       baseCost: 150
       type: MoneyPerHit
       valuePerLevel: 2
     - id: mk58-payday
-      name: Payday
-      description: +35 bonus credits per kill with this gun per level.
+      name: fs-upgrade-mk58-payday
+      description: fs-upgrade-mk58-payday-desc
       maxLevel: 4
       baseCost: 100
       type: MoneyGainBonus
@@ -203,8 +203,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopN1984
   parent: FSWeaponShopBase
+  id: FSWeaponShopN1984
   name: Desert Eagle
   description: The Lord's caliber in a 9-round package. Semi-auto .45 magnum hand cannon.
   components:
@@ -213,65 +213,65 @@
     price: 9000
     starterAmmoProtoId: FSMagazineMagnumN1984
     starterAmmoCount: 2
-    category: .45 Magnum Hand Cannon
+    category: fs-weapon-shop-category-45-magnum-hand-cannon
     statDamage: 75
     statFireRate: 45
     statAccuracy: 78
     statCapacity: 45
     upgrades:
     - id: n1984-hair-trigger
-      name: Hair Trigger
-      description: Tuned action increases fire rate by 0.5/level.
+      name: fs-upgrade-n1984-hair-trigger
+      description: fs-upgrade-n1984-hair-trigger-desc
       maxLevel: 5
       baseCost: 1350
       type: FireRate
       valuePerLevel: 0.5
     - id: n1984-extended-mag
-      name: Extended Mag
-      description: Adds 2 rounds to magazine capacity per level.
+      name: fs-upgrade-n1984-extended-mag
+      description: fs-upgrade-n1984-extended-mag-desc
       maxLevel: 5
       baseCost: 1350
       type: MagazineSize
       valuePerLevel: 2
     - id: n1984-recoil-pad
-      name: Recoil Pad
-      description: "Heavy barrel weight and grip rework. Cuts spread by 2.8° per level. Fully laser-accurate at max level."
+      name: fs-upgrade-n1984-recoil-pad
+      description: fs-upgrade-n1984-recoil-pad-desc
       maxLevel: 5
       baseCost: 1350
       type: Accuracy
       valuePerLevel: 14
     - id: n1984-ap-rounds
-      name: AP Rounds
-      description: Armor-piercing ammunition. Bullets bypass enemy armor entirely.
+      name: fs-upgrade-n1984-ap-rounds
+      description: fs-upgrade-n1984-ap-rounds-desc
       maxLevel: 1
       baseCost: 2350
       type: APRounds
       valuePerLevel: 1
     - id: n1984-long-barrel
-      name: Long Barrel
-      description: Increases projectile speed and effective range per level.
+      name: fs-upgrade-n1984-long-barrel
+      description: fs-upgrade-n1984-long-barrel-desc
       maxLevel: 3
       baseCost: 1350
       type: Range
       # TODO(finalstand): tune range increase per level
       valuePerLevel: 10
     - id: n1984-penetrator
-      name: Penetrator
-      description: Bullets pierce through enemies. Each level adds another target pierced (max 4 bonus).
+      name: fs-upgrade-n1984-penetrator
+      description: fs-upgrade-n1984-penetrator-desc
       maxLevel: 4
       baseCost: 1350
       type: Pierce
       valuePerLevel: 1
     - id: n1984-hand-cannon
-      name: Hand Cannon
-      description: Level 1 staggers on every hit. Level 2 launches targets back.
+      name: fs-upgrade-n1984-hand-cannon
+      description: fs-upgrade-n1984-hand-cannon-desc
       maxLevel: 2
       baseCost: 2000
       type: Knockback
       valuePerLevel: 1
     - id: n1984-hollow-point
-      name: Hollow Point
-      description: Enhanced rounds increase damage by 15% per level.
+      name: fs-upgrade-n1984-hollow-point
+      description: fs-upgrade-n1984-hollow-point-desc
       maxLevel: 5
       baseCost: 1350
       type: Damage
@@ -282,65 +282,65 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopAdvancedLaser
   parent: FSWeaponShopBase
+  id: FSWeaponShopAdvancedLaser
   name: Adv. Laser Pistol
   description: Self-recharging laser pistol. No ammo needed, just point and melt.
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponAdvancedLaser
     price: 18000
-    category: Self-Recharging Energy Pistol
+    category: fs-weapon-shop-category-self-recharging-energy-pistol
     statDamage: 45
     statFireRate: 65
     statAccuracy: 75
     statCapacity: 100
     upgrades:
     - id: advlaser-overcharge-coil
-      name: Overcharge Coil
-      description: Boosts cycling speed, increasing fire rate by 0.5/level.
+      name: fs-upgrade-advlaser-overcharge-coil
+      description: fs-upgrade-advlaser-overcharge-coil-desc
       maxLevel: 5
       baseCost: 2700
       type: FireRate
       valuePerLevel: 0.5
     - id: advlaser-focusing-lens
-      name: Focusing Lens
-      description: Narrows beam spread by 0.3° per level for pinpoint accuracy.
+      name: fs-upgrade-advlaser-focusing-lens
+      description: fs-upgrade-advlaser-focusing-lens-desc
       maxLevel: 5
       baseCost: 2700
       type: Accuracy
       valuePerLevel: 0.3
     - id: advlaser-rapid-charge
-      name: Rapid Charge
-      description: Self-recharge rate ×2 per level (×8 at max).
+      name: fs-upgrade-advlaser-rapid-charge
+      description: fs-upgrade-advlaser-rapid-charge-desc
       maxLevel: 3
       baseCost: 2700
       type: SelfChargeSpeed
       valuePerLevel: 2.0
     - id: advlaser-ignite
-      name: Incendiary Beam
-      description: Shots ignite targets on hit.
+      name: fs-upgrade-advlaser-ignite
+      description: fs-upgrade-advlaser-ignite-desc
       maxLevel: 1
       baseCost: 4750
       type: SetOnFire
-      valuePerLevel: 1
+      valuePerLevel: 3
     - id: advlaser-chain-beam
-      name: Chain Beam
-      description: On hit, damage chains to 1 nearby enemy per level (3 tile range, no falloff, no cascade).
+      name: fs-upgrade-advlaser-chain-beam
+      description: fs-upgrade-advlaser-chain-beam-desc
       maxLevel: 3
       baseCost: 4750
       type: BeamChaining
       valuePerLevel: 1
     - id: advlaser-extended-cell
-      name: Extended Cell
-      description: Reduces energy cost per shot, extending shots per full charge. +15 shots per charge per level.
+      name: fs-upgrade-advlaser-extended-cell
+      description: fs-upgrade-advlaser-extended-cell-desc
       maxLevel: 3
       baseCost: 2700
       type: MagazineSize
       valuePerLevel: 15.0
     - id: advlaser-amplifier
-      name: Beam Amplifier
-      description: Boosts beam output by 20% per level.
+      name: fs-upgrade-advlaser-amplifier
+      description: fs-upgrade-advlaser-amplifier-desc
       maxLevel: 3
       baseCost: 2700
       type: Damage
@@ -351,65 +351,65 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopEnergyMagnum
   parent: FSWeaponShopBase
+  id: FSWeaponShopEnergyMagnum
   name: Energy Magnum
   description: High-yield energy pistol with a self-recharging cell. Hits as hard as it sounds.
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponEnergyMagnum
     price: 30000
-    category: High-Yield Energy Pistol
+    category: fs-weapon-shop-category-high-yield-energy-pistol
     statDamage: 85
     statFireRate: 35
     statAccuracy: 65
     statCapacity: 100
     upgrades:
     - id: energymagnum-overcharge-coil
-      name: Overcharge Coil
-      description: Boosts cycling speed, increasing fire rate by 0.5/level.
+      name: fs-upgrade-energymagnum-overcharge-coil
+      description: fs-upgrade-energymagnum-overcharge-coil-desc
       maxLevel: 5
       baseCost: 4500
       type: FireRate
       valuePerLevel: 0.5
     - id: energymagnum-focusing-crystal
-      name: Focusing Crystal
-      description: Refines beam geometry, reducing max spread by 0.3° per level.
+      name: fs-upgrade-energymagnum-focusing-crystal
+      description: fs-upgrade-energymagnum-focusing-crystal-desc
       maxLevel: 5
       baseCost: 4500
       type: Accuracy
       valuePerLevel: 0.3
     - id: energymagnum-rapid-charge
-      name: Rapid Charge
-      description: Self-recharge rate ×1.26 per level. Reaches ×2 base rate at max level.
+      name: fs-upgrade-energymagnum-rapid-charge
+      description: fs-upgrade-energymagnum-rapid-charge-desc
       maxLevel: 3
       baseCost: 4500
       type: SelfChargeSpeed
       valuePerLevel: 1.26
     - id: energymagnum-stopping-power
-      name: Stopping Power
-      description: Level 1 staggers. Level 2+ applies increasing physics knockback away from the shooter.
+      name: fs-upgrade-energymagnum-stopping-power
+      description: fs-upgrade-energymagnum-stopping-power-desc
       maxLevel: 3
       baseCost: 7900
       type: Knockback
       valuePerLevel: 1
     - id: energymagnum-penetrator
-      name: Penetrator
-      description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
+      name: fs-upgrade-energymagnum-penetrator
+      description: fs-upgrade-energymagnum-penetrator-desc
       maxLevel: 4
       baseCost: 4500
       type: Pierce
       valuePerLevel: 1
     - id: energymagnum-vaporise
-      name: Vaporise
-      description: Shots instantly vaporise Runners and Normal zombies on hit. No effect on armored, elite, or boss enemies.
+      name: fs-upgrade-energymagnum-vaporise
+      description: fs-upgrade-energymagnum-vaporise-desc
       maxLevel: 1
       baseCost: 12000
       type: VaporiseWeakMob
       valuePerLevel: 1
     - id: energymagnum-extended-cell
-      name: Extended Cell
-      description: Reduces energy cost per shot, squeezing more shots out of the cell.
+      name: fs-upgrade-energymagnum-extended-cell
+      description: fs-upgrade-energymagnum-extended-cell-desc
       maxLevel: 3
       baseCost: 4500
       type: MagazineSize
@@ -422,8 +422,8 @@
 # ── SMG Shops ────────────────────────────────────────────────────────────────
 
 - type: entity
-  id: FSWeaponShopAtreides
   parent: FSWeaponShopBase
+  id: FSWeaponShopAtreides
   name: Atreides
   description: A sleek .35 auto SMG. Fast, reliable, and punishes hesitation. Full-auto capable.
   components:
@@ -432,55 +432,55 @@
     price: 5000
     starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
-    category: .35 Auto SMG
+    category: fs-weapon-shop-category-35-auto-smg
     statDamage: 35
     statFireRate: 75
     statAccuracy: 55
     statCapacity: 75
     upgrades:
     - id: atreides-hair-trigger
-      name: Hair Trigger
-      description: Lighter pull increases fire rate by 0.5/level.
+      name: fs-upgrade-atreides-hair-trigger
+      description: fs-upgrade-atreides-hair-trigger-desc
       maxLevel: 5
       baseCost: 750
       type: FireRate
       valuePerLevel: 0.5
     - id: atreides-recoil-pad
-      name: Recoil Pad
-      description: Reduces max spread by 0.3° per level for tighter bursts.
+      name: fs-upgrade-atreides-recoil-pad
+      description: fs-upgrade-atreides-recoil-pad-desc
       maxLevel: 5
       baseCost: 750
       type: Accuracy
       valuePerLevel: 0.3
     - id: atreides-extended-mag
-      name: Extended Mag
-      description: Adds 5 rounds to magazine capacity per level.
+      name: fs-upgrade-atreides-extended-mag
+      description: fs-upgrade-atreides-extended-mag-desc
       maxLevel: 5
       baseCost: 750
       type: MagazineSize
       valuePerLevel: 5
     - id: atreides-speed-loader
-      name: Speed Loader
-      description: Faster reload per level.
+      name: fs-upgrade-atreides-speed-loader
+      description: fs-upgrade-atreides-speed-loader-desc
       maxLevel: 5
       baseCost: 750
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: atreides-stamina-steal
-      name: Stamina Steal
-      description: Hits drain stamina from the target, slowing and staggering them. Stacks per level.
+      name: fs-upgrade-atreides-stamina-steal
+      description: fs-upgrade-atreides-stamina-steal-desc
       maxLevel: 3
       baseCost: 1300
       type: StaminaSteal
-      valuePerLevel: 1
+      valuePerLevel: 15
   - type: Sprite
     sprite: Objects/Weapons/Guns/SMGs/atreides.rsi
     state: base
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopWt550
   parent: FSWeaponShopBase
+  id: FSWeaponShopWt550
   name: WT550
   description: A precision burst SMG with a distinctive top-mounted magazine. Accurate and punishing in short bursts.
   components:
@@ -489,50 +489,50 @@
     price: 9000
     starterAmmoProtoId: FSMagazinePistolSMGTopMounted
     starterAmmoCount: 2
-    category: .35 Auto Burst SMG
+    category: fs-weapon-shop-category-35-auto-burst-smg
     statDamage: 45
     statFireRate: 60
     statAccuracy: 70
     statCapacity: 65
     upgrades:
     - id: wt550-hair-trigger
-      name: Hair Trigger
-      description: Faster cycling increases fire rate by 0.5/level.
+      name: fs-upgrade-wt550-hair-trigger
+      description: fs-upgrade-wt550-hair-trigger-desc
       maxLevel: 5
       baseCost: 1350
       type: FireRate
       valuePerLevel: 0.5
     - id: wt550-speed-loader
-      name: Speed Loader
-      description: Faster reload per level.
+      name: fs-upgrade-wt550-speed-loader
+      description: fs-upgrade-wt550-speed-loader-desc
       maxLevel: 5
       baseCost: 1350
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: wt550-dead-eye
-      name: Dead Eye
-      description: Increases critical hit chance by 5% per level.
+      name: fs-upgrade-wt550-dead-eye
+      description: fs-upgrade-wt550-dead-eye-desc
       maxLevel: 5
       baseCost: 1350
       type: CritChance
       valuePerLevel: 0.05
     - id: wt550-fleet-foot
-      name: Fleet Foot
-      description: Permanently increases your movement speed. Each level adds 5%.
+      name: fs-upgrade-wt550-fleet-foot
+      description: fs-upgrade-wt550-fleet-foot-desc
       maxLevel: 3
       baseCost: 1350
       type: MovementSpeed
       valuePerLevel: 0.05
     - id: wt550-hollow-point
-      name: Hollow Point
-      description: Enhanced rounds increase damage by 15% per level.
+      name: fs-upgrade-wt550-hollow-point
+      description: fs-upgrade-wt550-hollow-point-desc
       maxLevel: 5
       baseCost: 1350
       type: Damage
       valuePerLevel: 0.15
     - id: wt550-extended-mag
-      name: Extended Mag
-      description: Adds 5 rounds to magazine capacity per level.
+      name: fs-upgrade-wt550-extended-mag
+      description: fs-upgrade-wt550-extended-mag-desc
       maxLevel: 5
       baseCost: 1350
       type: MagazineSize
@@ -543,8 +543,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopDrozd
   parent: FSWeaponShopBase
+  id: FSWeaponShopDrozd
   name: Drozd
   description: A heavy burst SMG built for punching through armor. Slow between bursts, devastating during them.
   components:
@@ -553,43 +553,43 @@
     price: 14000
     starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
-    category: .35 Auto Burst SMG
+    category: fs-weapon-shop-category-35-auto-burst-smg
     statDamage: 55
     statFireRate: 40
     statAccuracy: 60
     statCapacity: 65
     upgrades:
     - id: drozd-penetrator
-      name: Penetrator
-      description: Shots pierce through enemies. Each level adds another target pierced (max 2 bonus).
+      name: fs-upgrade-drozd-penetrator
+      description: fs-upgrade-drozd-penetrator-desc
       maxLevel: 2
       baseCost: 2100
       type: Pierce
       valuePerLevel: 1
     - id: drozd-hair-trigger
-      name: Hair Trigger
-      description: Faster cycling increases fire rate by 0.3/level.
+      name: fs-upgrade-drozd-hair-trigger
+      description: fs-upgrade-drozd-hair-trigger-desc
       maxLevel: 5
       baseCost: 2100
       type: FireRate
       valuePerLevel: 0.3
     - id: drozd-speed-loader
-      name: Speed Loader
-      description: Faster reload per level.
+      name: fs-upgrade-drozd-speed-loader
+      description: fs-upgrade-drozd-speed-loader-desc
       maxLevel: 5
       baseCost: 2100
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: drozd-recoil-pad
-      name: Recoil Pad
-      description: Reduces max spread by 0.3° per level for tighter bursts.
+      name: fs-upgrade-drozd-recoil-pad
+      description: fs-upgrade-drozd-recoil-pad-desc
       maxLevel: 5
       baseCost: 2100
       type: Accuracy
       valuePerLevel: 1.5
     - id: drozd-shredder
-      name: Shredder
-      description: Each bullet drains bonus armor proportional to damage absorbed. Each level increases drain (20% per level, up to 100% extra at max).
+      name: fs-upgrade-drozd-shredder
+      description: fs-upgrade-drozd-shredder-desc
       maxLevel: 5
       baseCost: 3700
       type: ArmorShred
@@ -600,8 +600,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopC20r
   parent: FSWeaponShopBase
+  id: FSWeaponShopC20r
   name: C-20r
   description: A burst-capable SMG with a well-earned reputation. Reliable at any range, terrifying with upgrades.
   components:
@@ -610,43 +610,43 @@
     price: 20000
     starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
-    category: .35 Auto Burst SMG
+    category: fs-weapon-shop-category-35-auto-burst-smg
     statDamage: 55
     statFireRate: 65
     statAccuracy: 65
     statCapacity: 75
     upgrades:
     - id: c20r-lifesteal
-      name: Life Steal
-      description: Bullets heal you for a percentage of damage dealt. Each level increases the steal amount.
+      name: fs-upgrade-c20r-lifesteal
+      description: fs-upgrade-c20r-lifesteal-desc
       maxLevel: 4
       baseCost: 5250
       type: LifeSteal
       valuePerLevel: 0.05
     - id: c20r-hair-trigger
-      name: Hair Trigger
-      description: Lighter pull increases fire rate by 0.5/level.
+      name: fs-upgrade-c20r-hair-trigger
+      description: fs-upgrade-c20r-hair-trigger-desc
       maxLevel: 5
       baseCost: 3000
       type: FireRate
       valuePerLevel: 0.5
     - id: c20r-recoil-pad
-      name: Recoil Pad
-      description: Reduces max spread by 0.3° per level for tighter bursts.
+      name: fs-upgrade-c20r-recoil-pad
+      description: fs-upgrade-c20r-recoil-pad-desc
       maxLevel: 5
       baseCost: 3000
       type: Accuracy
       valuePerLevel: 0.3
     - id: c20r-extended-mag
-      name: Extended Mag
-      description: Adds 5 rounds to magazine capacity per level.
+      name: fs-upgrade-c20r-extended-mag
+      description: fs-upgrade-c20r-extended-mag-desc
       maxLevel: 5
       baseCost: 3000
       type: MagazineSize
       valuePerLevel: 5
     - id: c20r-speed-loader
-      name: Speed Loader
-      description: Faster reload per level.
+      name: fs-upgrade-c20r-speed-loader
+      description: fs-upgrade-c20r-speed-loader-desc
       maxLevel: 5
       baseCost: 3000
       type: ReloadSpeed

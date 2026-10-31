@@ -38,7 +38,7 @@ public sealed partial class InjectorSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
     [Dependency] private StandingStateSystem _standingState = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
-    [Dependency] private FSTreatmentAttributionSystem _fsAttribution = default!;
+    [Dependency] private FSTreatmentAttributionSystem _fsAttribution = default!; // FINALSTAND
 
     public override void Initialize()
     {

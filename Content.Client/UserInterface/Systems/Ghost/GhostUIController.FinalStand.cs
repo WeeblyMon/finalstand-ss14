@@ -1,3 +1,4 @@
+// FINALSTAND: fork file, kept next to the vanilla partial it extends.
 using Content.Client._FinalStand.CryoSleep;
 using Content.Shared._FinalStand.CryoSleep;
 using Robust.Shared.GameObjects;

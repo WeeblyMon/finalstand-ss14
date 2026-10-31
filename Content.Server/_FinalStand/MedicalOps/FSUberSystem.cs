@@ -15,9 +15,14 @@ public sealed partial class FSUberSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private FSMedicalRosterSystem _roster = default!;
+    [Dependency] private FSUberSharedSystem _uberShared = default!;
     [Dependency] private FSMediGunSystem _mediGun = default!;
 
     public const float FullCharge = 100f;
+
+    // How long a dropped patient stays covered, so a beam that flickers off and back doesn't strip it.
+    private static readonly TimeSpan LinkLossGrace = TimeSpan.FromSeconds(0.5);
 
     private static readonly SoundSpecifier ReadySound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
     private static readonly SoundSpecifier DeploySound = new SoundPathSpecifier("/Audio/Effects/teleport_departure.ogg");
@@ -29,6 +34,7 @@ public sealed partial class FSUberSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<FSMediGunComponent, FSMediGunUberActionEvent>(OnUberAction);
+        SubscribeLocalEvent<FSMediGunComponent, ComponentShutdown>(OnGunShutdown);
         SubscribeNetworkEvent<FSUberActivateMessage>(OnActivateMessage);
     }
 
@@ -41,6 +47,12 @@ public sealed partial class FSUberSystem : EntitySystem
             return;
 
         TryDeploy((held.Value, gun), user);
+    }
+
+    // The hum loops on the medic, so a gun deleted mid-uber would otherwise leave it playing.
+    private void OnGunShutdown(Entity<FSMediGunComponent> ent, ref ComponentShutdown args)
+    {
+        ent.Comp.UberLoop = _audio.Stop(ent.Comp.UberLoop);
     }
 
     public void AddCharge(Entity<FSMediGunComponent> gun, float amount)
@@ -68,12 +80,24 @@ public sealed partial class FSUberSystem : EntitySystem
         if (gun.Comp.UberEndTime is not { } end)
             return;
 
-        var ubered = EnsureComp<FSUberedComponent>(patient);
-        ubered.EndTime = end;
-        ubered.Duration = gun.Comp.UberDuration;
-        ubered.SourceColor = gun.Comp.BeamColor;
-        ubered.InfiniteStamina = gun.Comp.UberInfiniteStamina;
-        Dirty(patient, ubered);
+        _uberShared.Cover(patient, gun, end, gun.Comp.UberDuration, gun.Comp.BeamColor, gun.Comp.UberInfiniteStamina);
+    }
+
+    // A patient keeps the cover only while the beam holds them, so one uber can't be passed round the whole crew.
+    public void Uncover(Entity<FSMediGunComponent> gun, EntityUid patient)
+    {
+        if (patient == gun.Comp.Medic)
+            return;
+
+        _uberShared.EndCover(patient, gun, _timing.CurTime + LinkLossGrace);
+
+        // A medic's own uber covers them once, when it goes up, so a longer one from this beam may have replaced it.
+        var guns = EntityQueryEnumerator<FSMediGunComponent>();
+        while (guns.MoveNext(out var uid, out var other))
+        {
+            if (other.UberMedic == patient && other.UberActive)
+                Cover((uid, other), patient);
+        }
     }
 
     private void OnUberAction(Entity<FSMediGunComponent> ent, ref FSMediGunUberActionEvent args)
@@ -91,6 +115,13 @@ public sealed partial class FSUberSystem : EntitySystem
         if (comp.UberActive)
             return;
 
+        // Linking is medical-only; a charged gun handed to someone else can't be spent by them either.
+        if (HasComp<FSMedicalOnlyComponent>(ent) && !_roster.IsMedical(medic))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-medical-only"), medic, medic, PopupType.Medium);
+            return;
+        }
+
         if (comp.UberCharge < FullCharge)
         {
             _popup.PopupEntity(Loc.GetString("fs-uber-not-ready", ("charge", (int) comp.UberCharge)), medic, medic);
@@ -98,15 +129,16 @@ public sealed partial class FSUberSystem : EntitySystem
         }
 
         comp.UberEndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.UberDuration);
+        comp.UberMedic = medic;
         comp.Medic ??= medic;
         Dirty(ent);
 
         Cover(ent, medic);
-        _mediGun.ClearTreatable(comp, medic, medic);
+        _mediGun.ClearTreatable(ent, medic, medic);
         foreach (var patient in comp.Patients)
         {
             Cover(ent, patient);
-            _mediGun.ClearTreatable(comp, patient, medic);
+            _mediGun.ClearTreatable(ent, patient, medic);
         }
 
         _audio.PlayPvs(DeploySound, medic);
@@ -130,6 +162,7 @@ public sealed partial class FSUberSystem : EntitySystem
             if (now >= end)
             {
                 gun.UberEndTime = null;
+                gun.UberMedic = null;
                 gun.UberCharge = 0f;
                 gun.UberLoop = _audio.Stop(gun.UberLoop);
                 Dirty(uid, gun);

@@ -1,8 +1,9 @@
 ﻿- type: entity
-  id: FSZombieRevenant
   parent: FSZombieFootsoldierBase
-  suffix: Revenant
+  id: FSZombieRevenant
   name: revenant zombie
+  suffix: Revenant
+  description: A corpse that drifts through walls. It hunts whoever strays from the group, strikes, then slips back out of sight.
   components:
   - type: FSSignatureAilment
     ailments:
@@ -79,8 +80,8 @@
 # Dark wave variant: several of these are alive at once and they respawn for the whole wave,
 # so they trade the normal revenant's fragility for twice a giant's 800 HP.
 - type: entity
-  id: FSZombieRevenantDark
   parent: FSZombieRevenant
+  id: FSZombieRevenantDark
   suffix: Revenant, Dark Wave
   components:
   - type: FSSignatureAilment

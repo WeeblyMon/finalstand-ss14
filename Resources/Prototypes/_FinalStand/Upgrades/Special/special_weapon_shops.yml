@@ -2,8 +2,8 @@
 # Top-tier end-game weapons. Significantly more expensive than snipers.
 
 - type: entity
-  id: FSWeaponShopL6Saw
   parent: FSWeaponShopBase
+  id: FSWeaponShopL6Saw
   name: L6 SAW
   description: Waffle Corp's answer to every problem. 300 rounds of suppressive .30 fire. It doesn't stop.
   components:
@@ -13,50 +13,50 @@
     price: 140000
     starterAmmoProtoId: FSMagazineLightRifleBox
     starterAmmoCount: 2
-    category: .30 Light Machine Gun
+    category: fs-weapon-shop-category-30-light-machine-gun
     statDamage: 60
     statFireRate: 75
     statAccuracy: 45
     statCapacity: 90
     upgrades:
     - id: l6-fire-rate
-      name: Shredder
-      description: Optimized cycling increases fire rate by 1.5/level.
+      name: fs-upgrade-l6-fire-rate
+      description: fs-upgrade-l6-fire-rate-desc
       maxLevel: 3
       baseCost: 10000
       type: FireRate
       valuePerLevel: 1.5
     - id: l6-accuracy
-      name: Bipod
-      description: Folding bipod tightens spread by 12° per level.
+      name: fs-upgrade-l6-accuracy
+      description: fs-upgrade-l6-accuracy-desc
       maxLevel: 3
       baseCost: 9000
       type: Accuracy
       valuePerLevel: 12.0
     - id: l6-mag-size
-      name: Extended Belt
-      description: Larger ammo drum adds 50 rounds per level.
+      name: fs-upgrade-l6-mag-size
+      description: fs-upgrade-l6-mag-size-desc
       maxLevel: 3
       baseCost: 10000
       type: MagazineSize
       valuePerLevel: 50
     - id: l6-reload-speed
-      name: Speed Belt
-      description: Quick-release mechanism reduces reload time by 20% per level.
+      name: fs-upgrade-l6-reload-speed
+      description: fs-upgrade-l6-reload-speed-desc
       maxLevel: 3
       baseCost: 9000
       type: ReloadSpeed
       valuePerLevel: 0.2
     - id: l6-overclocked
-      name: Overclocked
-      description: Sustained fire spools the barrel, ramping fire rate up to +1.2/level at full heat. The barrel glows red as it spools. Heat bleeds off when you stop firing.
+      name: fs-upgrade-l6-overclocked
+      description: fs-upgrade-l6-overclocked-desc
       maxLevel: 3
       baseCost: 18000
       type: Overclocked
       valuePerLevel: 1
     - id: l6-damage
-      name: Heavy Slug
-      description: Dense subsonic rounds increase damage by 20% per level.
+      name: fs-upgrade-l6-damage
+      description: fs-upgrade-l6-damage-desc
       maxLevel: 4
       baseCost: 11000
       type: Damage
@@ -67,8 +67,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopHydra
   parent: FSWeaponShopBase
+  id: FSWeaponShopHydra
   name: Hydra
   description: Six-chamber rotary grenade launcher. Load it, spin it, pray. Uses standard grenades.
   components:
@@ -78,43 +78,43 @@
     price: 160000
     starterAmmoProtoId: FSBoxHydraGrenade
     starterAmmoCount: 2
-    category: Rotary Grenade Launcher
+    category: fs-weapon-shop-category-rotary-grenade-launcher
     statDamage: 85
     statFireRate: 30
     statAccuracy: 60
     statCapacity: 40
     upgrades:
     - id: hydra-full-auto
-      name: Full Auto
-      description: Converts the drum to continuous-fire mode. Hold the trigger to keep it spinning.
+      name: fs-upgrade-hydra-full-auto
+      description: fs-upgrade-hydra-full-auto-desc
       maxLevel: 1
       baseCost: 12000
       type: FullAuto
       valuePerLevel: 1
     - id: hydra-fire-rate
-      name: Rapid Cycling
-      description: Faster drum rotation increases fire rate by 0.5/level.
+      name: fs-upgrade-hydra-fire-rate
+      description: fs-upgrade-hydra-fire-rate-desc
       maxLevel: 3
       baseCost: 10000
       type: FireRate
       valuePerLevel: 0.5
     - id: hydra-mag-size
-      name: Extended Drum
-      description: Expanded drum adds 2 grenade chambers per level.
+      name: fs-upgrade-hydra-mag-size
+      description: fs-upgrade-hydra-mag-size-desc
       maxLevel: 3
       baseCost: 10000
       type: MagazineSize
       valuePerLevel: 2
     - id: hydra-reload-speed
-      name: Rapid Reload
-      description: Streamlined loading cuts reload time by 20% per level.
+      name: fs-upgrade-hydra-reload-speed
+      description: fs-upgrade-hydra-reload-speed-desc
       maxLevel: 3
       baseCost: 9000
       type: ReloadSpeed
       valuePerLevel: 0.2
     - id: hydra-barrage
-      name: Barrage Mode
-      description: Sustained fire spools the launcher, ramping fire rate and explosive output up to maximum heat. Heat bleeds off when you stop firing.
+      name: fs-upgrade-hydra-barrage
+      description: fs-upgrade-hydra-barrage-desc
       maxLevel: 3
       baseCost: 18000
       type: Barrage
@@ -125,8 +125,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopRpg
   parent: FSWeaponShopBase
+  id: FSWeaponShopRpg
   name: RPG-7
   description: Ancient. Loud. Devastating. One rocket, one problem solved. Uses rocket cartridges.
   components:
@@ -136,43 +136,43 @@
     price: 150000
     starterAmmoProtoId: FSBoxRPGRocket
     starterAmmoCount: 2
-    category: Single-Shot Rocket Launcher
+    category: fs-weapon-shop-category-single-shot-rocket-launcher
     statDamage: 95
     statFireRate: 10
     statAccuracy: 70
     statCapacity: 10
     upgrades:
     - id: rpg-reload-speed
-      name: Quick Load
-      description: Practiced technique reduces reload time by 25% per level.
+      name: fs-upgrade-rpg-reload-speed
+      description: fs-upgrade-rpg-reload-speed-desc
       maxLevel: 3
       baseCost: 9000
       type: ReloadSpeed
       valuePerLevel: 0.25
     - id: rpg-blast-radius
-      name: Blast Radius
-      description: Larger warhead increases explosion radius by 2m per level.
+      name: fs-upgrade-rpg-blast-radius
+      description: fs-upgrade-rpg-blast-radius-desc
       maxLevel: 3
       baseCost: 12000
       type: Radius
       valuePerLevel: 2
     - id: rpg-armor-break
-      name: Armor Break
-      description: Explosive force damages armour integrity. Each level strips 25% of the target's maximum armour within the blast radius.
+      name: fs-upgrade-rpg-armor-break
+      description: fs-upgrade-rpg-armor-break-desc
       maxLevel: 2
       baseCost: 14000
       type: ArmorShred
       valuePerLevel: 0.25
     - id: rpg-velocity
-      name: Rocket Velocity
-      description: Higher-thrust propellant increases rocket travel speed significantly.
+      name: fs-upgrade-rpg-velocity
+      description: fs-upgrade-rpg-velocity-desc
       maxLevel: 3
       baseCost: 11000
       type: Range
       valuePerLevel: 10
     - id: rpg-shaped-charge
-      name: Shaped Charge
-      description: Optimised warhead geometry concentrates the blast, dramatically raising peak damage at the point of impact.
+      name: fs-upgrade-rpg-shaped-charge
+      description: fs-upgrade-rpg-shaped-charge-desc
       maxLevel: 1
       baseCost: 22000
       type: ShapedCharge
@@ -183,8 +183,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopTeslaGun
   parent: FSWeaponShopBase
+  id: FSWeaponShopTeslaGun
   name: Tesla Gun
   description: The power of the primordial element of lightning in your hands. Self-recharging energy weapon.
   components:
@@ -192,43 +192,43 @@
     requiresResearch: FSOrdnanceTeslaCannon
     weaponProtoId: WeaponTeslaGunFS
     price: 175000
-    category: Self-Recharging Tesla Cannon
+    category: fs-weapon-shop-category-self-recharging-tesla-cannon
     statDamage: 70
     statFireRate: 25
     statAccuracy: 80
     statCapacity: 60
     upgrades:
     - id: tesla-charge-speed
-      name: Capacitor Boost
-      description: Upgraded capacitors double recharge rate per level.
+      name: fs-upgrade-tesla-charge-speed
+      description: fs-upgrade-tesla-charge-speed-desc
       maxLevel: 3
       baseCost: 12000
       type: SelfChargeSpeed
       valuePerLevel: 2.0
     - id: tesla-energy-capacity
-      name: Energy Cell Upgrade
-      description: Expanded power cell reduces energy cost per shot. +3-4 extra shots per level.
+      name: fs-upgrade-tesla-energy-capacity
+      description: fs-upgrade-tesla-energy-capacity-desc
       maxLevel: 3
       baseCost: 12000
       type: MagazineSize
       valuePerLevel: 50
     - id: tesla-pull-strength
-      name: Graviton Core
-      description: Graviton emitter creates a gravity well around the orb, pulling nearby enemies inward with increasing force per level.
+      name: fs-upgrade-tesla-pull-strength
+      description: fs-upgrade-tesla-pull-strength-desc
       maxLevel: 3
       baseCost: 14000
       type: GravitonCore
       valuePerLevel: 1
     - id: tesla-arc-range
-      name: Extended Arc
-      description: Modified field emitter extends the range lightning chains from the orb by 2m per level.
+      name: fs-upgrade-tesla-arc-range
+      description: fs-upgrade-tesla-arc-range-desc
       maxLevel: 3
       baseCost: 13000
       type: TeslaArcRange
       valuePerLevel: 2
     - id: tesla-fire-rate
-      name: Overcharged Coil
-      description: Tuned discharge coil increases fire rate by 0.5/level.
+      name: fs-upgrade-tesla-fire-rate
+      description: fs-upgrade-tesla-fire-rate-desc
       maxLevel: 3
       baseCost: 11000
       type: FireRate
@@ -239,8 +239,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopMinigun
   parent: FSWeaponShopBase
+  id: FSWeaponShopMinigun
   name: Minigun
   description: Vzzzzzt! Rahrahrahrah! Vrrrrr! 1000 rounds of .10 rifle. Nothing survives the spin-up.
   components:
@@ -248,50 +248,50 @@
     requiresResearch: FSOrdnanceMinigun
     weaponProtoId: FSWeaponMinigun
     price: 200000
-    category: .10 Rotary Heavy Machine Gun
+    category: fs-weapon-shop-category-10-rotary-heavy-machine-gun
     statDamage: 55
     statFireRate: 90
     statAccuracy: 30
     statCapacity: 95
     upgrades:
     - id: minigun-fire-rate
-      name: Overclocked Barrel
-      description: Tuned rotation motor increases fire rate by 1.5/level.
+      name: fs-upgrade-minigun-fire-rate
+      description: fs-upgrade-minigun-fire-rate-desc
       maxLevel: 10
       baseCost: 10000
       type: FireRate
       valuePerLevel: 1.5
     - id: minigun-knockback
-      name: Knockback Rage
-      description: Increased round velocity adds 10% knockback per level.
+      name: fs-upgrade-minigun-knockback
+      description: fs-upgrade-minigun-knockback-desc
       maxLevel: 3
       baseCost: 11000
       type: Knockback
       valuePerLevel: 1
     - id: minigun-iron-beast
-      name: Iron Beast
-      description: While firing at below 50% health, you take 20% less damage. Requires sustained fire to maintain.
+      name: fs-upgrade-minigun-iron-beast
+      description: fs-upgrade-minigun-iron-beast-desc
       maxLevel: 1
       baseCost: 22000
       type: IronBeast
       valuePerLevel: 1
     - id: minigun-damage
-      name: Depleted Core
-      description: Heavier core ammunition increases damage by 20% per level.
+      name: fs-upgrade-minigun-damage
+      description: fs-upgrade-minigun-damage-desc
       maxLevel: 5
       baseCost: 12000
       type: Damage
       valuePerLevel: 0.2
     - id: minigun-accuracy
-      name: Gyro Stabilizer
-      description: Active gyroscopic compensation tightens spread by 7° per level.
+      name: fs-upgrade-minigun-accuracy
+      description: fs-upgrade-minigun-accuracy-desc
       maxLevel: 3
       baseCost: 10000
       type: Accuracy
       valuePerLevel: 7.0
     - id: minigun-ammo-drum
-      name: Extended Drum
-      description: Larger rotating drum adds 250 rounds per level.
+      name: fs-upgrade-minigun-ammo-drum
+      description: fs-upgrade-minigun-ammo-drum-desc
       maxLevel: 4
       baseCost: 12000
       type: MagazineSize
@@ -303,8 +303,8 @@
 
 # No requiresResearch - the Harvester is the RP source that feeds the research tree itself.
 - type: entity
-  id: FSWeaponShopHarvester
   parent: FSWeaponShopBase
+  id: FSWeaponShopHarvester
   name: Harvester
   description: An experimental purple energy weapon that harvests residual bio-radiation from its targets, feeding it back to the station's research systems.
   components:
@@ -314,22 +314,22 @@
     - WeaponXrayCannonFS
     requiresScience: true
     price: 500
-    category: Sustained-Fire Bio-Radiation Beam
+    category: fs-weapon-shop-category-sustained-fire-bio-radiation-beam
     statDamage: 35
     statFireRate: 100
     statAccuracy: 90
     statCapacity: 80
     upgrades:
     - id: harvester-damage
-      name: Amplified Emitter
-      description: Boosts beam damage by 15% per level.
+      name: fs-upgrade-harvester-damage
+      description: fs-upgrade-harvester-damage-desc
       maxLevel: 5
       baseCost: 12000
       type: Damage
       valuePerLevel: 0.15
     - id: harvester-xray-conversion
-      name: X-Ray Conversion
-      description: Rebuilds the Harvester into an X-Ray Cannon. It still feeds research on every hit, hits far harder and fires through walls.
+      name: fs-upgrade-harvester-xray-conversion
+      description: fs-upgrade-harvester-xray-conversion-desc
       maxLevel: 1
       baseCost: 60000
       targetWeaponProtoId: WeaponHarvesterFS
@@ -337,8 +337,8 @@
       spawnProtoId: WeaponXrayCannonFS
       requiresResearch: FSOrdnanceXrayCannon
     - id: xray-self-charge
-      name: Resonant Cell
-      description: Tuned resonator more than triples self-recharge rate per level.
+      name: fs-upgrade-xray-self-charge
+      description: fs-upgrade-xray-self-charge-desc
       maxLevel: 3
       baseCost: 11000
       targetWeaponProtoId: WeaponXrayCannonFS
@@ -346,8 +346,8 @@
       type: SelfChargeSpeed
       valuePerLevel: 3.2
     - id: xray-fire-rate
-      name: Pulse Accelerator
-      description: Faster charge cycling increases fire rate by 0.5/level.
+      name: fs-upgrade-xray-fire-rate
+      description: fs-upgrade-xray-fire-rate-desc
       maxLevel: 3
       baseCost: 11000
       targetWeaponProtoId: WeaponXrayCannonFS
@@ -355,8 +355,8 @@
       type: FireRate
       valuePerLevel: 0.5
     - id: xray-damage
-      name: Overloaded Emitter
-      description: Higher energy output increases damage by 20% per level.
+      name: fs-upgrade-xray-damage
+      description: fs-upgrade-xray-damage-desc
       maxLevel: 4
       baseCost: 12000
       targetWeaponProtoId: WeaponXrayCannonFS
@@ -364,8 +364,8 @@
       type: Damage
       valuePerLevel: 0.2
     - id: xray-pierce
-      name: Deep Penetration
-      description: Beam punches through additional targets per level.
+      name: fs-upgrade-xray-pierce
+      description: fs-upgrade-xray-pierce-desc
       maxLevel: 10
       baseCost: 13000
       targetWeaponProtoId: WeaponXrayCannonFS
@@ -373,8 +373,8 @@
       type: Pierce
       valuePerLevel: 1
     - id: xray-dot
-      name: Radiation Coating
-      description: Irradiated targets emit radiation, taking ticking damage while marked. Duration and intensity scale per level.
+      name: fs-upgrade-xray-dot
+      description: fs-upgrade-xray-dot-desc
       maxLevel: 3
       baseCost: 16000
       targetWeaponProtoId: WeaponXrayCannonFS
@@ -399,43 +399,43 @@
     requiresHeldWeapon: true
     starterAmmoProtoId: FSRayGunCell
     starterAmmoCount: 3
-    category: Splash-Damage Wonder Weapon
+    category: fs-weapon-shop-category-splash-damage-wonder-weapon
     statDamage: 90
     statFireRate: 40
     statAccuracy: 85
     statCapacity: 50
     upgrades:
     - id: raygun-overcharged-emitter
-      name: Overcharged Emitter
-      description: Hotter bolts deal 10% more damage per level, and the splash grows with them.
+      name: fs-upgrade-raygun-overcharged-emitter
+      description: fs-upgrade-raygun-overcharged-emitter-desc
       maxLevel: 5
       baseCost: 9000
       type: Damage
       valuePerLevel: 0.1
     - id: raygun-extended-cell
-      name: Extended Cell
-      description: Each cell holds 5 more shots per level. Four levels match Porter's 40.
+      name: fs-upgrade-raygun-extended-cell
+      description: fs-upgrade-raygun-extended-cell-desc
       maxLevel: 4
       baseCost: 8000
       type: MagazineSize
       valuePerLevel: 5
     - id: raygun-wide-burst
-      name: Wide Burst
-      description: Widens the splash by half a tile per level.
+      name: fs-upgrade-raygun-wide-burst
+      description: fs-upgrade-raygun-wide-burst-desc
       maxLevel: 2
       baseCost: 10000
       type: Radius
       valuePerLevel: 1
     - id: raygun-quick-swap
-      name: Quick Swap
-      description: Swaps cells 15% faster per level.
+      name: fs-upgrade-raygun-quick-swap
+      description: fs-upgrade-raygun-quick-swap-desc
       maxLevel: 3
       baseCost: 7000
       type: ReloadSpeed
       valuePerLevel: 0.15
     - id: raygun-hair-trigger
-      name: Hair Trigger
-      description: Fires 0.4 more shots per second per level.
+      name: fs-upgrade-raygun-hair-trigger
+      description: fs-upgrade-raygun-hair-trigger-desc
       maxLevel: 3
       baseCost: 8000
       type: FireRate

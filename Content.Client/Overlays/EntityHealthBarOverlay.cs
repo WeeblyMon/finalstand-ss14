@@ -1,5 +1,6 @@
 using Content.Shared._FinalStand.MedicalOps;
 using System.Numerics;
+using Content.Client._FinalStand.Mobs; // FINALSTAND
 using Content.Client.StatusIcon;
 using Content.Client.UserInterface.Systems;
 using Content.Shared.Damage.Components;
@@ -7,11 +8,12 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mind.Components;
 using Content.Shared.FixedPoint;
-using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.StatusIcon;
 using Content.Shared.StatusIcon.Components;
+using Content.Shared.Vehicle.Components; // FINALSTAND
+using Content.Shared._FinalStand.Mobs; // FINALSTAND
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
@@ -27,11 +29,11 @@ public sealed class EntityHealthBarOverlay : Overlay
 
     private readonly SharedTransformSystem _transform;
     private readonly MobStateSystem _mobStateSystem;
-    private readonly MobThresholdSystem _mobThresholdSystem;
     private readonly StatusIconSystem _statusIconSystem;
     private readonly SpriteSystem _spriteSystem;
     private readonly ProgressColorSystem _progressColor;
     private readonly DamageableSystem _damageable;
+    private readonly FSMobThresholdCacheSystem _thresholdCache; // FINALSTAND
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
     public HashSet<string> DamageContainers = new();
@@ -68,11 +70,11 @@ public sealed class EntityHealthBarOverlay : Overlay
         _prototype = prototype;
         _transform = _entManager.System<SharedTransformSystem>();
         _mobStateSystem = _entManager.System<MobStateSystem>();
-        _mobThresholdSystem = _entManager.System<MobThresholdSystem>();
         _statusIconSystem = _entManager.System<StatusIconSystem>();
         _spriteSystem = _entManager.System<SpriteSystem>();
         _progressColor = _entManager.System<ProgressColorSystem>();
         _damageable = _entManager.System<DamageableSystem>();
+        _thresholdCache = _entManager.System<FSMobThresholdCacheSystem>(); // FINALSTAND
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -97,9 +99,6 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (statusIcon != null && !_statusIconSystem.IsVisible((uid, _entManager.GetComponent<MetaDataComponent>(uid)), statusIcon))
                 continue;
 
-            if (_entManager.HasComponent<Content.Shared.Vehicle.Components.VehicleOperatorComponent>(uid)) // FS
-                continue; // FS
-
             if (!xformQuery.TryGetComponent(uid, out var xform) ||
                 xform.MapID != args.MapId)
                 continue;
@@ -115,6 +114,11 @@ public sealed class EntityHealthBarOverlay : Overlay
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
 
             if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
+                continue;
+
+            // FINALSTAND: no bar while driving, or on mobs that hide theirs (revenants fade out)
+            if (_entManager.HasComponent<VehicleOperatorComponent>(uid) ||
+                _entManager.HasComponent<FSNoHealthBarComponent>(uid))
                 continue;
 
             if (CalcProgress(uid, mobStateComponent, damageableComponent, mobThresholdsComponent) is not { } deathProgress)
@@ -161,7 +165,7 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (breakdown)
                 DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
 
-            if (_entManager.TryGetComponent(uid, out FSOverhealComponent? shield) && shield.Max > 0f)
+            if (_entManager.TryGetComponent(uid, out FSOverhealComponent? shield) && shield.Max > 0f) // FINALSTAND
             {
                 var shieldX = startX + (endX - startX) * Math.Clamp(shield.Amount / shield.Max, 0f, 1f);
                 var strip = new Box2(new Vector2(startX, 4f) / EyeManager.PixelsPerMeter,
@@ -266,25 +270,25 @@ public sealed class EntityHealthBarOverlay : Overlay
     private (float ratio, bool inCrit)? CalcProgress(EntityUid uid, MobStateComponent component, DamageableComponent dmg, MobThresholdsComponent thresholds)
     {
         var totalDamage = _damageable.GetTotalDamage((uid, dmg));
+        // FINALSTAND: cached thresholds, the SortedDictionary lookup allocates per call
+        _thresholdCache.GetIncapThresholds((uid, thresholds), out var critThreshold, out var deadThreshold);
         if (_mobStateSystem.IsAlive(uid, component))
         {
-            if (!_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Critical, out var threshold, thresholds) &&
-                !_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Dead, out threshold, thresholds))
+            if ((critThreshold ?? deadThreshold) is not { } threshold) // FINALSTAND
                 return (1, false);
 
-            var ratio = 1 - ((FixedPoint2)(totalDamage / threshold)).Float();
+            var ratio = 1 - (totalDamage / threshold).Float(); // FINALSTAND
             return (ratio, false);
         }
 
         if (_mobStateSystem.IsCritical(uid, component))
         {
-            if (!_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Critical, out var critThreshold, thresholds) ||
-                !_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Dead, out var deadThreshold, thresholds))
+            if (critThreshold is not { } crit || deadThreshold is not { } dead) // FINALSTAND
             {
                 return (1, true);
             }
 
-            var ratio = 1 - ((totalDamage - critThreshold) / (deadThreshold - critThreshold)).Value.Float();
+            var ratio = 1 - ((totalDamage - crit) / (dead - crit)).Float(); // FINALSTAND
 
             return (ratio, true);
         }

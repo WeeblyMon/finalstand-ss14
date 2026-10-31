@@ -31,7 +31,7 @@ public sealed class RequestShootEvent : EntityEventArgs
     /// </summary>
     public bool Continuous;
 
-    public GameTick ViewTick; // fs
+    public GameTick ViewTick; // FINALSTAND
     public GameTick ShotTick;
     public bool Predicted;
 }

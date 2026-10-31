@@ -93,7 +93,7 @@ public sealed class FSDownedPrompt : PanelContainer
         if (cost != _cost)
         {
             _cost = cost;
-            _offer.Text = Loc.GetString("fs-downed-offer", ("cost", cost));
+            _offer.Text = Loc.GetString("fs-downed-offer", ("cost", cost.ToString("N0")));
         }
 
         if (status == _statusText && responded == _responded)

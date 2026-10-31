@@ -23,7 +23,7 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
         SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnNodeCompleted);
     }
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         var query = EntityQueryEnumerator<GunComponent>();
         while (query.MoveNext(out var uid, out _))
@@ -330,7 +330,7 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
         }
     }
 
-    private void OnProjectileHit(FSProjectileHitEffectEvent ev)
+    private void OnProjectileHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon is not { } weapon)
             return;

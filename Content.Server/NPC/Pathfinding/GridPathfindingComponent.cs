@@ -29,4 +29,8 @@ public sealed partial class GridPathfindingComponent : Component
 
     [ViewVariables]
     public readonly List<PathPortal> DirtyPortals = new();
+
+    // FINALSTAND: counts rebuilds, so a caller can tell when a change it saw has made it into the navmesh.
+    [ViewVariables]
+    public int Version;
 }

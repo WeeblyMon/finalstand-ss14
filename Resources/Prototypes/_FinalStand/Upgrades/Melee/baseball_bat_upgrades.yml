@@ -2,68 +2,68 @@
 # Crowd-control bruiser. Stun-on-attack via the concussion line.
 
 - type: entity
-  id: FSWeaponShopBaseballBat
   parent: FSWeaponShopBase
+  id: FSWeaponShopBaseballBat
   name: Baseball Bat
   description: A robust wooden bat. Turns enemies into pulp with the right upgrades.
   components:
   - type: FSShopWeapon
     weaponProtoId: BaseBallBat
     price: 1500
-    category: Melee Blunt
+    category: fs-weapon-shop-category-melee-blunt
     statDamage: 30
     statFireRate: 40
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: bat-heavy-club
-      name: Heavy Club
-      description: Reinforced barrel adds +80% damage per level.
+      name: fs-upgrade-bat-heavy-club
+      description: fs-upgrade-bat-heavy-club-desc
       maxLevel: 2
       baseCost: 2500
       type: Damage
       valuePerLevel: 0.80
     - id: bat-lucille
-      name: Lucille
-      description: Enemies hit, and anything a launched body crashes into, bleed for damage over time. +150 bleed per level.
+      name: fs-upgrade-bat-lucille
+      description: fs-upgrade-bat-lucille-desc
       maxLevel: 3
       baseCost: 1000
       type: Bleed
-      valuePerLevel: 1.5
+      valuePerLevel: 0.2
     - id: bat-grand-slam
-      name: Grand Slam
-      description: A fully charged swing launches twice as far, and its crashes hit for the swing's full damage.
+      name: fs-upgrade-bat-grand-slam
+      description: fs-upgrade-bat-grand-slam-desc
       maxLevel: 1
       baseCost: 6000
       type: MeleeSignature
       signature: GrandSlam
       valuePerLevel: 1
     - id: bat-ricochet
-      name: Ricochet
-      description: Launched bodies bounce off walls still flying, and can bowl over the same zombies again.
+      name: fs-upgrade-bat-ricochet
+      description: fs-upgrade-bat-ricochet-desc
       maxLevel: 1
       baseCost: 5000
       type: MeleeSignature
       signature: Ricochet
       valuePerLevel: 1
     - id: bat-running-start
-      name: Running Start
-      description: Winding up while sprinting starts the charge half full.
+      name: fs-upgrade-bat-running-start
+      description: fs-upgrade-bat-running-start-desc
       maxLevel: 1
       baseCost: 3000
       type: MeleeSignature
       signature: RunningStart
       valuePerLevel: 1
     - id: bat-concussion
-      name: Concussion
-      description: All attacks stun enemies briefly. +2s stun.
+      name: fs-upgrade-bat-concussion
+      description: fs-upgrade-bat-concussion-desc
       maxLevel: 1
       baseCost: 16000
       type: StunOnHit
       valuePerLevel: 2
     - id: bat-heavy-concussion
-      name: Heavy Concussion
-      description: Critical hits against stunned enemies.
+      name: fs-upgrade-bat-heavy-concussion
+      description: fs-upgrade-bat-heavy-concussion-desc
       maxLevel: 1
       baseCost: 8000
       type: CritVsStunned

@@ -1,4 +1,3 @@
-// Combat mechs step over barricades instead of snagging on them.
 using Content.Shared._FinalStand.Repair;
 using Robust.Shared.Physics.Events;
 

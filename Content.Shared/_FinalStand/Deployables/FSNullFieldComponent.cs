@@ -1,6 +1,5 @@
 namespace Content.Shared._FinalStand.Deployables;
 
-// On the placed Null Field - see FSNullFieldSystem.
 [RegisterComponent]
 public sealed partial class FSNullFieldComponent : Component
 {

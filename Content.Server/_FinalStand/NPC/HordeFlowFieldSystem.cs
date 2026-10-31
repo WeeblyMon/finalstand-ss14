@@ -1,7 +1,8 @@
+using Content.Shared._FinalStand.CCC;
 using System.Numerics;
-using Content.Server._FinalStand.CCC;
 using Content.Server.NPC.Systems;
 using Content.Shared.CCVar;
+using Content.Shared.GameTicking;
 using Content.Shared.Maps;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
@@ -46,6 +47,25 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
         SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
         SubscribeLocalEvent<FinalStandCCCComponent, ComponentStartup>(OnCCCStartup);
         SubscribeLocalEvent<FinalStandCCCComponent, ComponentShutdown>(OnCCCShutdown);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    // The field names the old round's grids. Kept until the next rebuild, every zombie on the new map read as
+    // unreachable, and one without a path was taken for stranded and moved or deleted.
+    private void OnRoundRestart(RoundRestartCleanupEvent args)
+    {
+        _reachable.Clear();
+        _building.Clear();
+        _frontier.Clear();
+        _visited.Clear();
+        _seedsByGrid.Clear();
+        _gridQueue.Clear();
+        _fillGrid = null;
+        _fillGridComp = null;
+        _fillTruncated = false;
+        _truncated = false;
+        _rebuildTimer = 0f;
+        _dirty = true;
     }
 
     public override void Update(float frameTime)
@@ -85,7 +105,7 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
     /// <summary>Force a rebuild on the next interval (e.g. hull breach, CCC moved).</summary>
     public void MarkDirty() => _dirty = true;
 
-    /// <summary>False while the field is empty or untrustworthy — callers must not act on it.</summary>
+    /// <summary>False while the field is empty or untrustworthy; callers must not act on it.</summary>
     public bool HasField => !_truncated && _reachable.Count > 0;
 
     private void BeginRebuild()
@@ -139,7 +159,7 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
             if (_visited.Count > MaxTilesPerGrid)
             {
                 _fillTruncated = true;
-                Log.Error($"[HordeFlowField] Fill on grid {grid} exceeded {MaxTilesPerGrid} tiles - field discarded.");
+                Log.Error($"Fill on grid {grid} exceeded {MaxTilesPerGrid} tiles - field discarded.");
                 EndGrid();
                 continue;
             }

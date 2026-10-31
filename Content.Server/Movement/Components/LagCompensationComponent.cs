@@ -7,5 +7,5 @@ namespace Content.Server.Movement.Components;
 public sealed partial class LagCompensationComponent : Component
 {
     [ViewVariables]
-    public readonly List<(GameTick Tick, EntityCoordinates Coordinates, Angle Angle)> Positions = new(); // fs
+    public readonly List<(GameTick Tick, EntityCoordinates Coordinates, Angle Angle)> Positions = new(); // FINALSTAND
 }

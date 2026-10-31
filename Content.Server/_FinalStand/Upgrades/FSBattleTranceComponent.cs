@@ -2,6 +2,7 @@ namespace Content.Server._FinalStand.Upgrades;
 
 // kill stacks on the AKMS gun; BonusPerStack is set at upgrade purchase based on level
 [RegisterComponent]
+[Access(typeof(Content.Server._FinalStand.Upgrades.Effects.BattleTranceUpgradeSystem), typeof(Content.Server._FinalStand.Shop.FSPlayerUpgradesSystem))]
 public sealed partial class FSBattleTranceComponent : Component
 {
     public int Stacks = 0;

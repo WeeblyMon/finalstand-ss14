@@ -884,6 +884,7 @@
   name: Pun Pun
   description: A prominent representative of monkeys with unlimited access to alcohol.
   components:
+  # FINALSTAND: no Pun Pun ghost role.
   - type: Butcherable
     spawned:
     - id: FoodMeat

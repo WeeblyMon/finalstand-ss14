@@ -1,5 +1,5 @@
-// Holds the latest engineering "what's next" lines from the server for the HUD to draw.
 using Content.Shared._FinalStand.Engineering;
+using Content.Shared.GameTicking;
 
 namespace Content.Client._FinalStand.Engineering;
 
@@ -13,5 +13,7 @@ public sealed partial class FSEngineeringObjectiveClientSystem : EntitySystem
     {
         base.Initialize();
         SubscribeNetworkEvent<FSEngineeringObjectiveEvent>(ev => Latest = ev);
+        // Only engineers are sent objectives, so a player who isn't one next round would keep this round's.
+        SubscribeNetworkEvent<RoundRestartCleanupEvent>(_ => Latest = null);
     }
 }

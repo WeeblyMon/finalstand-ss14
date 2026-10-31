@@ -6,7 +6,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-// Owns (FSCargonianBodyComponent, RefreshMovementSpeedModifiersEvent) — counters pulling drag penalty.
+// Counters the pulling drag penalty.
 public sealed partial class FSCargonianSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;

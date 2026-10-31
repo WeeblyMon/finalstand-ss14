@@ -40,11 +40,13 @@ public sealed partial class PrismaticUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnHit);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
         if (ev.State is not { } state || state.PrismaticLevel <= 0)
+            return;
+        if (HasComp<FSSecondaryProjectileComponent>(ev.ProjectileUid))
             return;
 
         if (!_random.Prob(state.PrismaticLevel * 0.25f))
@@ -87,10 +89,11 @@ public sealed partial class PrismaticUpgradeSystem : EntitySystem
             }
 
             var beam = Spawn(BeamProto, targetCoords);
+            EnsureComp<FSSecondaryProjectileComponent>(beam);
             if (TryComp<ProjectileComponent>(beam, out var proj))
                 proj.Damage = beamDamage;
 
-            _gun.ShootProjectile(beam, dir, Vector2.Zero, ev.Shooter.Value, null, BeamSpeed);
+            _gun.ShootProjectile(beam, dir, Vector2.Zero, ev.Weapon, ev.Shooter, BeamSpeed);
         }
     }
 }

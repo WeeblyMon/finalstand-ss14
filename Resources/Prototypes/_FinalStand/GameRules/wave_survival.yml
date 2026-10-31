@@ -1,10 +1,12 @@
 - type: entity
-  id: WaveSurvivalZombie
   parent: BaseGameRule
+  id: WaveSurvivalZombie
   components:
+  - type: FSDarkWaveRule
+  - type: FSWaveRewards
+    killReward: 300
   - type: WaveGameRule
     maxEnemyCap: 800
-    killReward: 300
     bossWavePerkReward: 1
     bossPool:
     - FSZombieGiant
@@ -29,7 +31,7 @@
       spawnChance: 0.03
     prepDuration: 420
     maxCombatDuration: 1800
-    factionDisplay: "Undead detected"
+    factionDisplay: fs-ccc-faction-undead
     waveStartSound: !type:SoundPathSpecifier
       path: /Audio/_FinalStand/WaveEvents/wave_start.ogg
     waveEndSound: !type:SoundPathSpecifier

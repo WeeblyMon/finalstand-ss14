@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using Content.Server.Administration.Logs;
 using Content.Server._FinalStand.Economy;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
 using Content.Server._FinalStand.Research;
 using Content.Shared.Database;
 using Content.Server.Radio.EntitySystems;
@@ -11,7 +12,6 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
 using Content.Shared.Radio;
 using Content.Shared.Popups;
-using Robust.Server.Player;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
@@ -25,7 +25,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private RadioSystem _radio = default!;
-    [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSMedicalUpgradeSystem _upgrades = default!;
@@ -33,6 +32,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private FSMedicalFundSystem _fund = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private FSAilmentSystem _ailments = default!;
 
     private static readonly SoundSpecifier DirectiveSound =
@@ -145,7 +145,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         SetActiveDirective(null);
     }
 
-    private void OnResearchCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnResearchCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (ev.NodeId == FSMedicalUpgradeSystem.DepartmentDividend)
         {
@@ -171,7 +171,9 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void OnPanelRequest(FSCmoAbilityRequestEvent ev, EntitySessionEventArgs args)
     {
-        if (args.SenderSession.AttachedEntity is not { } cmo || !HasComp<FSCmoPanelComponent>(cmo))
+        if (args.SenderSession.AttachedEntity is not { } cmo
+            || !HasComp<FSCmoPanelComponent>(cmo)
+            || _mobState.IsIncapacitated(cmo))
             return;
 
         switch (ev.Ability)
@@ -210,7 +212,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (ev.JobId == FSMedicalRosterSystem.CmoJob)
+        if (ev.JobId == FSMedicalRosterSystem.CmoJob.Id)
         {
             var panel = EnsureComp<FSCmoPanelComponent>(ev.Mob);
             panel.ActiveDirective = _activeDirective;
@@ -232,8 +234,9 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         }
     }
 
-    private const int DividendFundCost = 1500;
-    private const int DividendPayout = 1800;
+    // fs-cmo-dividend-effects quotes both numbers; CmoDividendTextTest keeps them in step.
+    public const int DividendFundCost = 1500;
+    public const int DividendPayout = 1800;
     private static readonly TimeSpan DividendCooldown = TimeSpan.FromSeconds(300);
 
     private void RunDividend(EntityUid performer)
@@ -308,7 +311,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         if (_activeDirective == directive)
         {
             SetActiveDirective(null);
-            RemoveFromDepartment(DirectiveSource);
+            _bonus.RemoveBuffFromAll(DirectiveSource);
             Announce(performer, "fs-cmo-directive-stand-down", standDown: true);
 
             if (panel != null)
@@ -344,15 +347,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     {
         foreach (var (_, mob) in _roster.Medics())
             _bonus.ApplyBuff(mob, source, bonuses, duration, name);
-    }
-
-    private void RemoveFromDepartment(string source)
-    {
-        foreach (var session in _player.Sessions)
-        {
-            if (session.AttachedEntity is { } mob)
-                _bonus.RemoveBuff(mob, source);
-        }
     }
 
     private void Announce(EntityUid performer, string key, bool standDown = false)

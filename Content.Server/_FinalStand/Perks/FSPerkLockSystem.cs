@@ -1,5 +1,5 @@
 using System.Linq;
-using Content.Shared._FinalStand.GameTicking;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Perks;
 
 namespace Content.Server._FinalStand.Perks;
@@ -15,14 +15,14 @@ public sealed partial class FSPerkLockSystem : EntitySystem
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
-    private void OnCombatStarted(WaveCombatStartedEvent args)
+    private void OnCombatStarted(ref WaveCombatStartedEvent args)
     {
         var query = EntityQueryEnumerator<FSPerkLevelsComponent>();
         while (query.MoveNext(out var mindId, out var perks))
             LockSlotted(mindId, perks);
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent args)
+    private void OnPrepStarted(ref WavePrepStartedEvent args)
     {
         var query = EntityQueryEnumerator<FSPerkLockComponent>();
         while (query.MoveNext(out _, out var locks))
@@ -41,9 +41,6 @@ public sealed partial class FSPerkLockSystem : EntitySystem
     public bool IsLocked(EntityUid mindId, string perkId)
         => TryComp<FSPerkLockComponent>(mindId, out var locks) && locks.Locked.Contains(perkId);
 
-    public bool AnyLocked(EntityUid mindId)
-        => TryComp<FSPerkLockComponent>(mindId, out var locks) && locks.Locked.Count > 0;
-
     public bool KeepsLocked(EntityUid mindId, IReadOnlyCollection<string> slots)
     {
         if (!TryComp<FSPerkLockComponent>(mindId, out var locks))
@@ -57,10 +54,4 @@ public sealed partial class FSPerkLockSystem : EntitySystem
 
         return true;
     }
-}
-
-[RegisterComponent]
-public sealed partial class FSPerkLockComponent : Component
-{
-    public HashSet<string> Locked = new();
 }

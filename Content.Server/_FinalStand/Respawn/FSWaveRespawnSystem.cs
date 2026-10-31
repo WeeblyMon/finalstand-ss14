@@ -4,8 +4,10 @@ using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Respawn;
+using Content.Shared.Administration.Logs;
 using Content.Shared.Administration.Systems;
 using Content.Shared.Buckle;
+using Content.Shared.Database;
 using Content.Shared.Destructible;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
@@ -42,6 +44,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     private const float CostFraction = 0.20f;
     private const double RequestCooldownSeconds = 2.0;
@@ -70,11 +73,9 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
             _lastRequest.Remove(mind.UserId.Value);
     }
 
-    private bool IsPrep() => _waveRule.GetPrepComponent() != null;
+    private void OnPrepStarted(ref WavePrepStartedEvent ev) => PushOfferToAll();
 
-    private void OnPrepStarted(WavePrepStartedEvent ev) => PushOfferToAll();
-
-    private void OnCombatStarted(WaveCombatStartedEvent ev)
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev)
         => RaiseNetworkEvent(new FSRespawnOfferEvent(false, 0), Filter.Broadcast());
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev) => PushOffer(ev.Player);
@@ -86,7 +87,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
 
     private void OnMobStateChanged(EntityUid uid, MindContainerComponent mindContainer, ref MobStateChangedEvent args)
     {
-        if (!IsPrep())
+        if (!_waveRule.IsPrep())
             return;
 
         if (!_mind.TryGetMind(uid, out _, out var mind) || mind.UserId == null)
@@ -104,7 +105,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
 
     private void PushOffer(ICommonSession session)
     {
-        if (!IsPrep() || !TryGetRespawnTarget(session, out var mindId, out _))
+        if (!_waveRule.IsPrep() || !TryGetRespawnTarget(session, out var mindId, out _))
         {
             RaiseNetworkEvent(new FSRespawnOfferEvent(false, 0), session);
             return;
@@ -152,7 +153,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
             return;
         _lastRequest[session.UserId] = _timing.CurTime;
 
-        if (!IsPrep() || !TryGetRespawnTarget(session, out var mindId, out var body))
+        if (!_waveRule.IsPrep() || !TryGetRespawnTarget(session, out var mindId, out var body))
         {
             PushOffer(session);
             return;
@@ -161,7 +162,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         var points = CollectPoints();
         if (points.Count == 0)
         {
-            Log.Error("[FSRespawn] No FSRespawnPoint markers on the map — respawn is impossible.");
+            Log.Error("No FSRespawnPoint markers on the map — respawn is impossible.");
             return;
         }
 
@@ -184,6 +185,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("fs-respawn-charged", ("cost", charged)), body, session);
         PushOffer(session);
 
-        Log.Info($"[FSRespawn] {session.Name} respawned for {charged} credits (quoted {cost}).");
+        _adminLogger.Add(LogType.Respawn, LogImpact.Medium,
+            $"{ToPrettyString(body):player} bought a respawn for {charged} credits (quoted {cost})");
     }
 }

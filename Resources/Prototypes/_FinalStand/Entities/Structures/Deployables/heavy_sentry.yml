@@ -1,9 +1,9 @@
 ﻿# ── Heavy Sentry - deployed ──────────────────────────────────────────────────────────────
 - type: entity
   id: FSHeavySentryDeployed
+  categories: [ HideSpawnMenu ]
   name: heavy sentry
   description: A deployed emplacement gun. It tracks and fires on hostiles by itself.
-  categories: [ HideSpawnMenu ]
   placement:
     mode: SnapgridCenter
   components:
@@ -80,10 +80,10 @@
 
 # Cellular spares structures the way FS explosions do, so a turret cannot chew up the station.
 - type: entity
-  id: FSHeavySentryRound
   parent: BaseBullet
-  name: heavy sentry round
+  id: FSHeavySentryRound
   categories: [ HideSpawnMenu ]
+  name: heavy sentry round
   components:
   - type: Projectile
     damage:
@@ -92,8 +92,8 @@
 
 - type: entity
   id: FSHeavySentryCasing
-  name: spent casing
   categories: [ HideSpawnMenu ]
+  name: spent casing
   components:
   - type: Sprite
     drawdepth: SmallObjects

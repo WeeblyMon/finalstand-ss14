@@ -36,7 +36,7 @@
   storage:
     back:
     - Flash
-    - FSWeaponEnergyShotgun
+    - FSWeaponEnergyShotgun # FINALSTAND
 
 - type: chameleonOutfit
   id: WardenChameleonOutfit

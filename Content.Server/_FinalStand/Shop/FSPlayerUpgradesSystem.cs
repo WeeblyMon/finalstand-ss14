@@ -25,6 +25,8 @@ namespace Content.Server._FinalStand.Shop;
 public sealed partial class FSPlayerUpgradesSystem : EntitySystem
 {
     [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private FSChargeShotSystem _chargeShot = default!;
+    [Dependency] private FSSpeedBonusSystem _speedBonus = default!;
     [Dependency] private FSGrenadeSelectActionSystem _grenadeSelect = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
@@ -42,13 +44,14 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         SubscribeLocalEvent<GunComponent, GotEquippedHandEvent>(OnGunEquippedHand);
     }
 
-    public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
+    // Returns the weapon that ends up holding the upgrade, which differs when the upgrade replaces it.
+    public EntityUid ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
     {
         var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
 
         if (!TryApplyGunStats(weapon, player, def, newLevel, spawnItems, state)
             && !TryApplyShotEffects(weapon, player, def, newLevel, spawnItems, state)
-            && !TryApplyMelee(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyMelee(ref weapon, player, def, newLevel, spawnItems, state)
             && !TryApplyGrenades(weapon, player, def, newLevel, spawnItems, state)
             && !TryApplyEnergy(weapon, player, def, newLevel, spawnItems, state)
             && !TryApplyShield(weapon, player, def, newLevel, spawnItems, state))
@@ -56,11 +59,13 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
             TryApplyPayload(weapon, player, def, newLevel, spawnItems, state);
         }
 
-        if (!TerminatingOrDeleted(weapon))
-            Dirty(weapon, state);
+        if (!TerminatingOrDeleted(weapon) && TryComp<FSWeaponUpgradeStateComponent>(weapon, out var finalState))
+            Dirty(weapon, finalState);
+
+        return weapon;
     }
 
-    private void TryTransformToDualWieldEnergySword(EntityUid oldSword, EntityUid player,
+    private EntityUid TryTransformToDualWieldEnergySword(EntityUid oldSword, EntityUid player,
         FSWeaponUpgradeStateComponent oldState, float attackSpeedBonus)
     {
         var coords = Transform(player).Coordinates;
@@ -72,24 +77,17 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         newState.DualWieldEnergySwordApplied = true;
         Dirty(newSword, newState);
 
-        var safeToDelete = true;
-        var wasInHand = false;
-        if (TryComp<HandsComponent>(player, out var hands)
-            && _hands.IsHolding((player, hands), oldSword, out _))
-        {
-            wasInHand = true;
-            safeToDelete = _hands.TryDrop((player, hands), oldSword);
-            if (!safeToDelete)
-                Log.Warning($"DualWieldEnergySword: TryDrop failed for {ToPrettyString(oldSword)} on {ToPrettyString(player)} — keeping old sword to avoid losing upgrade state.");
-        }
+        // The state is already on the new sword, so the old one always goes, and at once: queued, it kept its bag
+        // space from the new sword and a second upgrade this tick could still find it.
+        var wasInHand = TryComp<HandsComponent>(player, out var hands)
+            && _hands.IsHolding((player, hands), oldSword, out _)
+            && _hands.TryDrop((player, hands), oldSword);
+        Del(oldSword);
 
-        if (safeToDelete)
-            QueueDel(oldSword);
+        if (!wasInHand || !_hands.TryPickup(player, newSword, handsComp: hands))
+            _stash.Stash(player, newSword);
 
-        if (wasInHand && hands != null && _hands.TryPickup(player, newSword, handsComp: hands))
-            return;
-
-        _stash.Stash(player, newSword);
+        return newSword;
     }
 
     public void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
@@ -104,11 +102,8 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         var mag = slot.Item;
         if (mag == null || !TryComp<BallisticAmmoProviderComponent>(mag.Value, out var bal))
             return;
-#pragma warning disable RA0002
-        bal.Capacity += bonus;
-        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + bonus, bal.Capacity);
-#pragma warning restore RA0002
         var upgraded = EnsureComp<FSMagUpgradedComponent>(mag.Value);
+        ResizeMagazine(bal, upgraded, bonus);
         upgraded.AppliedBonus += bonus;
         Dirty(mag.Value, bal);
     }
@@ -120,12 +115,9 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
 
         var upgraded = EnsureComp<FSMagUpgradedComponent>(args.Entity);
         var diff = state.MagazineSizeBonus - upgraded.AppliedBonus;
-        if (diff > 0)
+        if (diff != 0)
         {
-#pragma warning disable RA0002
-            bal.Capacity += diff;
-            bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
-#pragma warning restore RA0002
+            ResizeMagazine(bal, upgraded, diff);
             upgraded.AppliedBonus = state.MagazineSizeBonus;
             Dirty(args.Entity, bal);
         }

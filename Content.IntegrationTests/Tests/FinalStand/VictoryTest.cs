@@ -10,7 +10,6 @@ using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
-using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
@@ -48,7 +47,6 @@ public sealed class VictoryTest : GameTest
             var titles = SEntMan.System<FSTitleSystem>();
             var minds = SEntMan.System<SharedMindSystem>();
             var store = SEntMan.System<FSPlayerDataStore>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             var session = ServerSession!;
 
             store.DeleteProgress(session.UserId.UserId);
@@ -67,14 +65,14 @@ public sealed class VictoryTest : GameTest
             var present = new WaveEndedEvent(1);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref present);
 
-            waveRule.ForceNextWave(shell, 30);
+            waveRule.ForceNextWave(30);
             Assert.That(waveRule.TryGetWaveStatus(out var wave, out var phase), Is.True);
             Assert.That((wave, phase), Is.EqualTo((30, WavePhase.Combat)));
             Assert.That(ticker.RunLevel, Is.EqualTo(GameRunLevel.InRound), "nothing ends the round before wave 30 falls");
 
             SEntMan.RemoveComponent<FSPlayerLevelComponent>(mindId);
             pointsBefore = wallet.PerkPoints;
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave();
 
             Assert.Multiple(() =>
             {
@@ -83,7 +81,7 @@ public sealed class VictoryTest : GameTest
                 Assert.That(wallet.PerkPoints - pointsBefore, Is.EqualTo(5),
                     "every defender earns exactly the victory PP (levelling is switched off so it can't hide a shortfall)");
                 Assert.That(records.VictoryThisRound, Is.True);
-                Assert.That(titles.GetOwned(session.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle));
+                Assert.That(titles.GetOwned(session.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle.Id));
             });
 
             afterVictory = wallet.PerkPoints;

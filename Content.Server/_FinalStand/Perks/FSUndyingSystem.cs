@@ -1,10 +1,11 @@
 using Content.Server.Popups;
-using Content.Shared._FinalStand.GameTicking;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
+using Content.Shared.Rejuvenate;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
@@ -23,10 +24,19 @@ public sealed partial class FSUndyingSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSUndyingComponent, UpdateMobStateEvent>(OnUpdateMobState, after: [typeof(MobThresholdSystem)]);
         SubscribeLocalEvent<FSUndyingComponent, MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<FSUndyingComponent, RejuvenateEvent>(OnRejuvenate);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    // A paid respawn revives the same body, so this is where a new life starts.
+    private void OnRejuvenate(EntityUid uid, FSUndyingComponent comp, RejuvenateEvent args)
+    {
+        comp.Used = false;
+        comp.EndTime = null;
+    }
+
+    // Recharges every prep for anyone who isn't mid-countdown.
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var query = EntityQueryEnumerator<FSUndyingComponent>();
         while (query.MoveNext(out _, out var undying))
@@ -80,7 +90,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
         ent.Comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(seconds);
 
         _ammo.FillHeld(ent);
-        _popup.PopupEntity("Undying!", ent, PopupType.LargeCaution);
+        _popup.PopupEntity(Loc.GetString("fs-perk-undying-triggered"), ent, PopupType.LargeCaution);
         ent.Comp.ShownSeconds = (int) MathF.Ceiling(seconds);
         _notify.SendStacksToBody(ent, "Undying", ent.Comp.ShownSeconds);
         return true;
@@ -112,7 +122,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
             undying.EndTime = null;
             _notify.SendStacksToBody(uid, "Undying", 0);
 
-            // Critical first so the death gasp plays, like DelayedDeathSystem.
+            // Critical first so the death gasp plays.
             _mobState.ChangeMobState(uid, MobState.Critical);
             _mobState.ChangeMobState(uid, MobState.Dead);
         }

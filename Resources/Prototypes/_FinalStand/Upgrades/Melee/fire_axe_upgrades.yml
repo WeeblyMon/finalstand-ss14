@@ -2,67 +2,67 @@
 # Heavy chopper. Big damage + fire synergies (Axtinguish / Fireman / Fire Man).
 
 - type: entity
-  id: FSWeaponShopFireAxe
   parent: FSWeaponShopBase
+  id: FSWeaponShopFireAxe
   name: Fire Axe
   description: Truly, the weapon of a madman. Fight fire with steel.
   components:
   - type: FSShopWeapon
     weaponProtoId: FireAxe
     price: 7000
-    category: Melee Heavy
+    category: fs-weapon-shop-category-melee-heavy
     statDamage: 55
     statFireRate: 30
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: fireaxe-sharpened
-      name: Sharpened Blade
-      description: Hones the edge for +100% damage per level.
+      name: fs-upgrade-fireaxe-sharpened
+      description: fs-upgrade-fireaxe-sharpened-desc
       maxLevel: 2
       baseCost: 10500
       type: Damage
       valuePerLevel: 1.0
     - id: fireaxe-axtinguish
-      name: Axtinguish
-      description: Critical hits against enemies on fire.
+      name: fs-upgrade-fireaxe-axtinguish
+      description: fs-upgrade-fireaxe-axtinguish-desc
       maxLevel: 1
       baseCost: 10000
       type: CritVsBurning
       valuePerLevel: 1
     - id: fireaxe-fireman
-      name: Fireman
-      description: Total immunity to fire damage. Flames pass right through you.
+      name: fs-upgrade-fireaxe-fireman
+      description: fs-upgrade-fireaxe-fireman-desc
       maxLevel: 1
       baseCost: 8000
       type: FireResist
       valuePerLevel: 1.0
     - id: fireaxe-fire-man
-      name: Fire Man
-      description: While on fire, deal increased damage and heal.
+      name: fs-upgrade-fireaxe-fire-man
+      description: fs-upgrade-fireaxe-fire-man-desc
       maxLevel: 1
       baseCost: 10000
       type: WhileBurningBuff
       valuePerLevel: 1
     - id: fireaxe-unstoppable
-      name: Unstoppable
-      description: Take half damage while winding up a heavy.
+      name: fs-upgrade-fireaxe-unstoppable
+      description: fs-upgrade-fireaxe-unstoppable-desc
       maxLevel: 1
       baseCost: 6000
       type: MeleeSignature
       signature: Unstoppable
       valuePerLevel: 1
     - id: fireaxe-wildfire
-      name: Wildfire
-      description: Burning zombies the axe kills burst into flame, setting zombies within 2 tiles alight.
+      name: fs-upgrade-fireaxe-wildfire
+      description: fs-upgrade-fireaxe-wildfire-desc
       maxLevel: 1
       baseCost: 9000
       type: MeleeSignature
       signature: Wildfire
       valuePerLevel: 1
     - id: fireaxe-aftershock
-      name: Aftershock
-      description: A fully charged slam strikes again a moment later, half as hard and half again as wide.
+      name: fs-upgrade-fireaxe-aftershock
+      description: fs-upgrade-fireaxe-aftershock-desc
       maxLevel: 1
       baseCost: 12000
       type: MeleeSignature

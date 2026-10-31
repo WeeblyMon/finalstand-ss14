@@ -1,104 +1,88 @@
-﻿using Content.Server._FinalStand.Cleanup;
-using Content.Server._FinalStand.Economy;
-using Content.Server._FinalStand.FriendlyFire;
-using Content.Shared.Damage.Systems;
-using Content.Shared.GameTicking;
-using Content.Server._FinalStand.Mobs;
-using Content.Server._FinalStand.Spawners;
-using Content.Server._FinalStand.CCC;
+using System.Linq;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
 using Content.Server.RoundEnd;
-using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.Upgrades.Effects;
-using Content.Shared._FinalStand.WaveHud;
-using Content.Shared.Light.Components;
+using Content.Server._FinalStand.Cleanup;
+using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.FriendlyFire;
+using Content.Server._FinalStand.Onboarding;
+using Content.Server._FinalStand.Spawners;
+using Content.Shared.GameTicking;
 using Content.Shared.GameTicking.Components;
-using System.Linq;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
-using Content.Shared.Roles.Jobs;
-using Content.Server.Light.EntitySystems;
-using Content.Server.Power.Components;
-using Content.Server._FinalStand.Melee;
-using Content.Server._FinalStand.Onboarding;
-using Content.Server._FinalStand.Perks;
-using Content.Server._FinalStand.Titles;
-using Content.Server.Power.EntitySystems;
-using Content.Shared.Doors.Components;
-using Content.Shared.Power.EntitySystems;
+using Content.Shared._FinalStand.CCC;
+using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.WaveHud;
 using Robust.Server.GameObjects;
-using Robust.Shared.Audio;
+using Robust.Server.GameStates;
+using Robust.Server.Player;
 using Robust.Shared.Audio.Systems;
-using Robust.Shared.Console;
+using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Systems;
-using Robust.Server.Player;
 using Robust.Shared.Player;
-using Robust.Shared.Random;
-using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
 public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComponent>
 {
     [Dependency] private IPlayerManager _playerManager = default!;
-    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private IChatManager _chatManager = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private FSCorpseCleanupSystem _corpseCleaner = default!;
-    [Dependency] private SharedMindSystem _mind = default!;
-    [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private FSFriendlyFireSystem _friendlyFire = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private WaveEnemySpawningSystem _spawning = default!;
-    [Dependency] private PoweredLightSystem _poweredLight = default!;
-    [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
-    [Dependency] private ApcSystem _apc = default!;
+    [Dependency] private FSDarkWaveSystem _darkWave = default!;
     [Dependency] private FSOnboardingSystem _onboarding = default!;
-    [Dependency] private RoundEndSystem _roundEnd = default!;
-    [Dependency] private FSArchetypeSystem _archetypes = default!;
-    [Dependency] private FSStyleSystem _style = default!;
     [Dependency] private FSRoundPresenceSystem _presence = default!;
+    [Dependency] private RoundEndSystem _roundEnd = default!;
+    [Dependency] private PvsOverrideSystem _pvsOverride = default!;
 
-    private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
+    private static readonly TimeSpan DarkWaveSpawnDelay = TimeSpan.FromSeconds(5);
 
     private static readonly TimeSpan VoteCountdown = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan WipeRoundEndCountdown = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan VictoryRoundEndCountdown = TimeSpan.FromSeconds(45);
-    private const float CreditsPerSecondSkipped = 2.0f;
+    private static readonly Color VictoryColor = Color.FromHex("#FFD700");
 
-    private const float DefaultFlickerMin = 0.7f;
-    private const float DefaultFlickerMax = 2.2f;
-    private const float FlickerFraction = 0.85f;
-    private const float FlickerOffDuration = 0.22f;
-    private const float BlackoutEnforceInterval = 1f;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WaveSpawnedTagComponent, MobStateChangedEvent>(OnWaveEnemyMobStateChanged);
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentShutdown>(OnWaveEnemyShutdown);
-        SubscribeLocalEvent<WaveStartRequestEvent>(OnWaveStartRequest);
-        SubscribeLocalEvent<FSEnemyDamageTrackingComponent, BeforeDamageChangedEvent>(OnEnemyBeforeDamage);
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
-        SubscribeNetworkEvent<FSWaveHudRequestEvent>((_, args) => SendHudState(args.SenderSession));
-        SubscribeLocalEvent<FSRevenantExecutedEvent>(OnRevenantExecuted);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    // Raised before the entity flush. The rule is still active while every enemy is deleted, and the last one
+    // going would otherwise end the wave and start prep in the middle of the restart.
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        var query = QueryAllRules();
+        while (query.MoveNext(out _, out var comp, out _))
+            comp.AliveEnemies.Clear();
     }
 
     protected override void Started(EntityUid uid, WaveGameRuleComponent comp,
         GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
         _friendlyFire.AssignFactionToAllPlayers();
+        EnsureComp<FSWaveStateComponent>(uid);
+        _pvsOverride.AddGlobalOverride(uid);
         RollModifiers(comp);
         StartPrepPhase(uid, comp);
         StartDifficultyVote(comp);
+        SyncState(uid, comp);
     }
 
     protected override void Ended(EntityUid uid, WaveGameRuleComponent comp,
@@ -113,13 +97,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     protected override void ActiveTick(EntityUid uid, WaveGameRuleComponent comp,
         GameRuleComponent gameRule, float frameTime)
     {
-        if (comp.Victory && !comp.Endless)
+        // A won round waits on the endless vote or the round end.
+        if (IsWon(comp))
+        {
+            SyncState(uid, comp);
             return;
+        }
 
         var now = Timing.CurTime;
-        TickDarkWaveOmen(comp, frameTime);
-        TickBlackoutEnforcement(comp, frameTime);
-        TickLightFlicker(comp, frameTime);
 
         switch (comp.Phase)
         {
@@ -139,33 +124,27 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 {
                     if (!comp.VoteCountdownActive)
                     {
-                        Log.Info($"[WaveGameRule] Prep timer at zero for wave {comp.WaveNumber}, starting 10s countdown.");
+                        Log.Info($"Prep timer at zero for wave {comp.WaveNumber}, starting 10s countdown.");
+                        _darkWave.WarnNow(uid);
                         comp.VoteCountdownActive = true;
                         comp.VoteCountdownSoundPlayed = false;
                         comp.PhaseEndTime = now + TimeSpan.FromSeconds(10);
                         comp.VoteCountdownSoundTime = now + TimeSpan.FromSeconds(2);
-                        comp.NextTimerBroadcastTime = now;
                     }
                     else
                     {
-                        Log.Info($"[WaveGameRule] Countdown ended for wave {comp.WaveNumber}, starting combat.");
+                        Log.Info($"Countdown ended for wave {comp.WaveNumber}, starting combat.");
                         StartCombatPhase(uid, comp);
                     }
                     break;
-                }
-                if (now >= comp.NextTimerBroadcastTime)
-                {
-                    var secs = Math.Max(0f, (float)(comp.PhaseEndTime - now).TotalSeconds);
-                    RaiseNetworkEvent(new FSPrepTimerUpdateEvent(secs, true), Filter.Broadcast());
-                    comp.NextTimerBroadcastTime = now + TimeSpan.FromSeconds(1);
                 }
                 break;
 
             case WavePhase.Combat:
                 if (now >= comp.PhaseEndTime)
                 {
-                    Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} fallback timer expired. Forcing end.");
-                    // TODO: delete or quarantine stuck enemies here.
+                    Log.Warning($"Wave {comp.WaveNumber} fallback timer expired. Forcing end.");
+                    // ClearCombat deletes whatever is still alive (stuck enemies included).
                     EndCombatPhase(uid, comp);
                     break;
                 }
@@ -178,22 +157,73 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
                 if (now >= comp.NextHeartbeatTime)
                 {
-                    if (comp.IsDarkWave && !comp.RoundLost && IsTeamWiped())
+                    if (_darkWave.IsActive(uid) && !comp.RoundLost && IsTeamWiped())
                     {
                         comp.RoundLost = true;
-                        Log.Info($"[WaveGameRule] Every player died during dark wave {comp.WaveNumber}. Ending round.");
+                        Log.Info($"Every player died during dark wave {comp.WaveNumber}. Ending round.");
                         _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-wave-team-wiped"), Color.Red);
                         _roundEnd.EndRound(WipeRoundEndCountdown);
                     }
 
                     var timeLeft = comp.PhaseEndTime - now;
-                    Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} | " +
+                    Log.Debug($"Wave {comp.WaveNumber} | " +
                              $"spawned {comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave} | " +
                              $"alive {comp.AliveEnemies.Count} | " +
                              $"fallback in {timeLeft.TotalSeconds:F0}s");
                     comp.NextHeartbeatTime = now + TimeSpan.FromSeconds(5);
                 }
                 break;
+        }
+
+        SyncState(uid, comp);
+    }
+
+    // Copies what clients display onto the networked state, dirtying only fields that changed.
+    private void SyncState(EntityUid uid, WaveGameRuleComponent comp)
+    {
+        if (!TryComp<FSWaveStateComponent>(uid, out var state))
+            return;
+
+        var dark = _darkWave.IsActive(uid);
+        var wave = comp.Phase == WavePhase.Prep ? comp.WavesCompleted : comp.WaveNumber;
+        var endsAt = comp.PhaseEndTime;
+        var alive = comp.Phase == WavePhase.Combat ? comp.AliveEnemies.Count : 0;
+        var total = comp.Phase == WavePhase.Combat && !dark ? comp.EnemyTotalThisWave : 0;
+
+        if (state.Wave != wave)
+        {
+            state.Wave = wave;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.Wave));
+        }
+
+        if (state.Phase != comp.Phase)
+        {
+            state.Phase = comp.Phase;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.Phase));
+        }
+
+        if (state.PhaseEndsAt != endsAt)
+        {
+            state.PhaseEndsAt = endsAt;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.PhaseEndsAt));
+        }
+
+        if (state.EnemiesAlive != alive)
+        {
+            state.EnemiesAlive = alive;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.EnemiesAlive));
+        }
+
+        if (state.EnemiesTotal != total)
+        {
+            state.EnemiesTotal = total;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.EnemiesTotal));
+        }
+
+        if (state.DarkWave != dark)
+        {
+            state.DarkWave = dark;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.DarkWave));
         }
     }
 
@@ -216,21 +246,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             ("killed", comp.TotalEnemiesKilled)));
     }
 
-    private bool TryGetActiveRule(out EntityUid uid, out WaveGameRuleComponent comp, out GameRuleComponent gameRule)
+    private bool TryGetActiveRule(out EntityUid uid, out WaveGameRuleComponent comp)
     {
-        var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
-        while (query.MoveNext(out var foundUid, out var foundComp, out var foundGameRule))
-        {
-            if (!GameTicker.IsGameRuleActive(foundUid, foundGameRule))
-                continue;
-            uid = foundUid;
-            comp = foundComp;
-            gameRule = foundGameRule;
+        var query = QueryActiveRules();
+        if (query.MoveNext(out uid, out _, out comp!, out _))
             return true;
-        }
+
         uid = EntityUid.Invalid;
-        comp = default!;
-        gameRule = default!;
         return false;
     }
 
@@ -241,53 +263,22 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.VoteCountdownSoundPlayed = false;
         comp.VoteCountdownSoundTime = TimeSpan.Zero;
         comp.PhaseEndTime = Timing.CurTime + PrepDuration(comp);
-        comp.IsDarkWaveUpcoming = false;
-        comp.LightFlickerAccum = 0f;
-        comp.LightFlickerIntervalMin = DefaultFlickerMin;
-        comp.LightFlickerIntervalMax = DefaultFlickerMax;
-
-        comp.DarkWaveWarningAccum = 0f;
-        comp.DarkWaveWarningFired = false;
-
-        if (comp.ForceDarkWave)
-        {
-            comp.ForceDarkWave = false;
-            comp.IsDarkWaveUpcoming = true;
-            Log.Info($"[WaveGameRule] Dark Wave forced for wave {comp.WaveNumber}.");
-        }
-        else if (comp.WaveNumber == comp.GuaranteedDarkWave)
-        {
-            comp.IsDarkWaveUpcoming = true;
-            Log.Info($"[WaveGameRule] Dark Wave guaranteed for wave {comp.WaveNumber}.");
-        }
-        else if (comp.WaveNumber > 5 && !IsBossWave(comp.WaveNumber))
-        {
-            comp.WavesSinceLastDarkWave++;
-            if (comp.WavesSinceLastDarkWave >= comp.DarkWaveCooldownWaves && RobustRandom.NextFloat() < comp.DarkWaveChance)
-            {
-                comp.IsDarkWaveUpcoming = true;
-                Log.Info($"[WaveGameRule] Dark Wave selected for wave {comp.WaveNumber}.");
-            }
-        }
+        _darkWave.Roll(uid, comp.WaveNumber, IsBossWave(comp.WaveNumber));
 
         _spawning.SelectSpawners(comp, CountScalingPlayers());
         if (comp.SpawnerEntities.Count == 0)
-            Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
+            Log.Warning($"No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
 
-        Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {PrepDuration(comp).TotalSeconds}s. " +
+        Log.Info($"Prep phase started. Wave {comp.WaveNumber} begins in {PrepDuration(comp).TotalSeconds}s. " +
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
 
         comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountScalingPlayers(), CountPrimarySpawners(comp));
         comp.EnemiesSpawnedThisWave = 0;
 
-        RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
-        RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
-        comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
-        comp.NextTimerBroadcastTime = Timing.CurTime;
-        RaiseNetworkEvent(new FSPrepTimerUpdateEvent((float) PrepDuration(comp).TotalSeconds, true), Filter.Broadcast());
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
-        RaiseLocalEvent(new WavePrepStartedEvent());
+        var prepStarted = new WavePrepStartedEvent();
+        RaiseLocalEvent(ref prepStarted);
     }
 
     private int CalcEnemyTotal(WaveGameRuleComponent comp, int players, int primarySpawners)
@@ -317,6 +308,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private void StartCombatPhase(EntityUid uid, WaveGameRuleComponent comp)
     {
         comp.Phase = WavePhase.Combat;
+        comp.CombatStartTime = Timing.CurTime;
         LockDifficulty(comp);
 
         if (comp.SpawnerEntities.Count == 0)
@@ -328,7 +320,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             comp.CCCEntity = cccUid;
 
         if (!comp.CCCEntity.IsValid())
-            Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
+            Log.Warning("No FinalStandCCC entity found — enemies will not beeline to objective.");
 
         // Fixed for the wave. Sessions alone would count the lobby, ghosts and admins.
         comp.ScalingPlayersThisWave = CountScalingPlayers();
@@ -338,7 +330,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.AliveEnemies.Clear();
 
         comp.GiantEntity = EntityUid.Invalid;
-        comp.GiantApAwarded = false;
         if (IsBossWave(comp.WaveNumber) && comp.SpawnerEntities.Count > 0 && comp.BossPool.Count > 0)
         {
             var spawnerUid = comp.SpawnerEntities[0];
@@ -348,70 +339,47 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             comp.GiantEntity = giant;
             comp.EnemyTotalThisWave++;
             comp.EnemiesSpawnedThisWave++;
-            Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
+            Log.Info($"Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
         }
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
         comp.NextSpawnTime = Timing.CurTime;
 
-        if (comp.ForceDarkWave)
+        // Dark waves have no enemy total; they last a fixed time instead.
+        var dark = _darkWave.TryBegin(uid, out var darkDuration);
+        if (dark)
         {
-            comp.ForceDarkWave = false;
-            comp.IsDarkWaveUpcoming = true;
-            Log.Info($"[WaveGameRule] Dark Wave forced directly into combat for wave {comp.WaveNumber}.");
-        }
-
-        if (comp.IsDarkWaveUpcoming)
-        {
-            comp.IsDarkWave = true;
-            comp.IsDarkWaveUpcoming = false;
-            comp.WavesSinceLastDarkWave = 0;
-            comp.SavedMaxEnemyCap = comp.MaxEnemyCap;
-            comp.MaxEnemyCap = comp.DarkWaveEnemyCap;
             comp.EnemyTotalThisWave = int.MaxValue;
-            comp.NextSpawnTime = Timing.CurTime + TimeSpan.FromSeconds(5);
-            comp.PhaseEndTime = Timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveDuration);
-            BlackoutStation(comp);
-            DepowerAllDoors(comp);
-            StartDarkWaveAmbience(comp);
-            RaiseNetworkEvent(new FSDarkWaveStartedEvent(comp.DarkWaveDuration), Filter.Broadcast());
-            Log.Info($"[WaveGameRule] Dark Wave started for wave {comp.WaveNumber}. Cap={comp.DarkWaveEnemyCap}, duration={comp.DarkWaveDuration}s.");
+            comp.NextSpawnTime = Timing.CurTime + DarkWaveSpawnDelay;
+            comp.PhaseEndTime = Timing.CurTime + darkDuration;
+            Log.Info($"Dark wave started for wave {comp.WaveNumber}, lasting {darkDuration.TotalSeconds}s.");
         }
 
         var pool = WaveEnemySpawningSystem.GetDirectorPool(comp);
-        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} started. Spawning {comp.EnemyTotalThisWave} enemies " +
+        Log.Info($"Wave {comp.WaveNumber} started. Spawning {comp.EnemyTotalThisWave} enemies " +
                  $"at {comp.SpawnerEntities.Count} spawners. Director pool: {pool.Count} type(s).");
 
-        RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), Filter.Broadcast());
-        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
-        comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
-        RaiseNetworkEvent(new FSPrepTimerUpdateEvent(0f, false), Filter.Broadcast());
-        var startSound = comp.IsDarkWave ? comp.DarkWaveStartSound : comp.WaveStartSound;
-        if (startSound != null)
-            _audio.PlayGlobal(startSound, Filter.Broadcast(), true);
-        RaiseLocalEvent(new WaveCombatStartedEvent());
+        if (!dark && comp.WaveStartSound != null)
+            _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);
+        var combatStarted = new WaveCombatStartedEvent();
+        RaiseLocalEvent(ref combatStarted);
     }
 
     private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp, bool isForced = false)
     {
-        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
-        ClearCombat(comp);
+        Log.Info($"Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
+        ClearCombat(uid, comp);
 
         if (!isForced)
         {
             var ended = new WaveEndedEvent(comp.WaveNumber);
             RaiseLocalEvent(ref ended);
         }
-        var waveBonus = GetCompletionBonus(comp.WaveNumber) + GetSurvivalBonus(comp.WaveNumber);
-        _wallet.DistributeCredits(waveBonus);
-        comp.AccumulatedSurvivalBonus += waveBonus;
-
-        if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
+        if (IsBossWave(comp.WaveNumber) && comp.BossRewardPaidWave != comp.WaveNumber)
         {
-            Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss never died — paying the reward on wave end.");
+            Log.Warning($"Wave {comp.WaveNumber} boss never died — paying the reward on wave end.");
             AwardBossReward(comp);
         }
         comp.GiantEntity = EntityUid.Invalid;
-        comp.GiantApAwarded = false;
         comp.WavesCompleted++;
 
         if (!comp.Endless && IsVictoryWave(comp.WaveNumber, comp.VictoryWave))
@@ -428,11 +396,15 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     public static bool IsVictoryWave(int wave, int victoryWave) => victoryWave > 0 && wave >= victoryWave;
 
+    // Stays true through the endless vote; endless clears it by carrying on.
+    private static bool IsWon(WaveGameRuleComponent comp) => comp.Victory && !comp.Endless;
+
     private void ClaimVictory(WaveGameRuleComponent comp)
     {
         comp.Victory = true;
-        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} cleared. The round is won.");
+        Log.Info($"Wave {comp.WaveNumber} cleared. The round is won.");
 
+        // Only players who held at least one wave share the win.
         var points = comp.VictoryPerkReward + FSDifficultyRules.VictoryBonusPerkPoints(comp.Difficulty);
         if (points > 0)
         {
@@ -445,7 +417,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         _chatManager.DispatchServerAnnouncement(
             Loc.GetString("fs-wave-victory", ("wave", comp.WaveNumber), ("points", points)),
-            Color.FromHex("#FFD700"));
+            VictoryColor);
 
         if (comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
@@ -458,42 +430,36 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     public int? FailWave()
     {
-        if (!TryGetActiveRule(out var uid, out var comp, out _) || comp.Phase != WavePhase.Combat)
+        if (!TryGetActiveRule(out var uid, out var comp) || comp.Phase != WavePhase.Combat || IsWon(comp))
             return null;
 
-        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} lost with the CCC. Back to prep for the same wave.");
-        ClearCombat(comp);
+        Log.Info($"Wave {comp.WaveNumber} lost with the CCC. Back to prep for the same wave.");
+        ClearCombat(uid, comp);
         comp.GiantEntity = EntityUid.Invalid;
-        comp.GiantApAwarded = false;
         StartPrepPhase(uid, comp);
         return comp.WaveNumber;
     }
 
-    private void ClearCombat(WaveGameRuleComponent comp)
+    private void ClearCombat(EntityUid uid, WaveGameRuleComponent comp)
     {
         foreach (var enemy in comp.AliveEnemies)
             QueueDel(enemy);
         comp.AliveEnemies.Clear();
 
-        if (!comp.IsDarkWave)
-            return;
-
-        comp.IsDarkWave = false;
-        comp.MaxEnemyCap = comp.SavedMaxEnemyCap;
-        RestoreStation(comp);
-        RepowerDoors(comp);
-        StopDarkWaveAmbience(comp);
-        RaiseNetworkEvent(new FSDarkWaveEndedEvent(), Filter.Broadcast());
+        _darkWave.End(uid);
     }
 
     private void AwardBossReward(WaveGameRuleComponent comp)
     {
-        comp.GiantApAwarded = true;
+        if (comp.BossRewardPaidWave == comp.WaveNumber)
+            return;
+
+        comp.BossRewardPaidWave = comp.WaveNumber;
         if (comp.BossWavePerkReward <= 0)
             return;
 
         _wallet.DistributePerkPoints(comp.BossWavePerkReward);
-        Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: awarded {comp.BossWavePerkReward} PP.");
+        Log.Info($"Boss wave {comp.WaveNumber}: awarded {comp.BossWavePerkReward} PP.");
     }
 
     private int CountScalingPlayers()
@@ -505,7 +471,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 continue;
             if (!HasComp<MobStateComponent>(mob) || _mobState.IsDead(mob))
                 continue;
-            if (IsNewPlayer(session))
+            if (_onboarding.IsRookie(session))
                 continue;
             count++;
         }
@@ -528,44 +494,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return anyPlayer;
     }
 
-    private void AwardPrepSkipBonus(WaveGameRuleComponent comp)
-    {
-        var skipped = comp.PhaseEndTime - Timing.CurTime - VoteCountdown;
-        if (skipped <= TimeSpan.Zero)
-            return;
-
-        var bonus = (int)(skipped.TotalSeconds * CreditsPerSecondSkipped);
-        if (bonus <= 0)
-            return;
-
-        _wallet.DistributeCredits(bonus);
-        comp.AccumulatedSurvivalBonus += bonus;
-        _chatManager.DispatchServerAnnouncement(
-            Loc.GetString("fs-prep-skip-bonus", ("credits", bonus)), Color.FromHex("#44BB44"));
-    }
-
-    private bool IsNewPlayer(ICommonSession session)
-        => _onboarding.IsRookie(session);
-
     private static bool IsBossWave(int wave) => wave % 5 == 0;
 
-    // TODO(finalstand): tune reward scaling tiers
-    public static float GetWaveKillMultiplier(int wave)
-    {
-        if (wave <= 5) return 1.00f;
-        if (wave <= 10) return 1.50f;
-        if (wave <= 15) return 2.00f;
-        if (wave <= 20) return 2.75f;
-        return 3.50f;
-    }
 
-    private static int GetCompletionBonus(int wave) => 100 + 100 * wave;
-
-    private static int GetSurvivalBonus(int wave) => 450 + 50 * wave;
 
     private void CheckWaveComplete(EntityUid uid, WaveGameRuleComponent comp)
     {
-        if (comp.IsDarkWave)
+        if (_darkWave.IsActive(uid))
             return;
         if (comp.EnemiesSpawnedThisWave >= comp.EnemyTotalThisWave && comp.AliveEnemies.Count == 0)
             EndCombatPhase(uid, comp);
@@ -590,93 +525,64 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
         }
 
-        if (!TryGetActiveRule(out var uid, out var comp, out _) || !comp.AliveEnemies.Remove(ent.Owner))
+        if (!TryGetActiveRule(out var uid, out var comp) || !comp.AliveEnemies.Remove(ent.Owner))
             return;
 
         comp.TotalEnemiesKilled++;
 
-        if (ent.Owner == comp.GiantEntity && !comp.GiantApAwarded)
+        if (ent.Owner == comp.GiantEntity)
             AwardBossReward(comp);
 
-        var baseCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)
-            ? enemyVal.KillCredits
-            : comp.KillReward;
-        var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber) * 0.5f
-            * RewardMultiplier(comp) * ModifierFactor(comp, m => m.EnemyMoney));
-
-        EntityUid? killerMind = null;
-        if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
-        {
-            killerMind = mindId;
-            var weaponBonus = TryComp<FSPendingKillBonusComponent>(ent.Owner, out var pending) ? 1f + pending.MoneyPercent : 1f;
-            _wallet.GiveCredits(mindId, (int) (killCredits * weaponBonus * _style.KillMoneyMultiplier(args.Origin.Value, ent.Owner) * _archetypes.Bonus(mindId).Credits
-                * _titleBuffs.ForMind(mindId).KillCredits));
-
-            if (IsSecurityRole(mindId))
-                _wallet.GiveCredits(mindId, comp.SecKillBonus);
-        }
-
-        if (TryComp<FSEnemyDamageTrackingComponent>(ent.Owner, out var tracking))
-        {
-            var assistCredits = (int)(killCredits * 2f / 3f);
-            foreach (var assistMind in tracking.AttackerMinds)
-            {
-                if (killerMind.HasValue && assistMind == killerMind.Value) continue;
-                _wallet.GiveCredits(assistMind, assistCredits);
-            }
-        }
-
-        _spawning.PushEnemyCount(comp);
         CheckWaveComplete(uid, comp);
-    }
-
-    private bool IsSecurityRole(EntityUid mindId)
-    {
-        return _jobs.MindTryGetJob(mindId, out var job)
-            && _jobs.TryGetPrimaryDepartment(job.ID, out var dept)
-            && dept.ID == "Security";
     }
 
     private void OnWaveEnemyShutdown(EntityUid uid, WaveSpawnedTagComponent comp, ComponentShutdown args)
     {
-        if (!TryGetActiveRule(out var ruleUid, out var ruleComp, out _) || !ruleComp.AliveEnemies.Remove(uid))
+        if (!TryGetActiveRule(out var ruleUid, out var ruleComp) || !ruleComp.AliveEnemies.Remove(uid))
             return;
 
-        _spawning.PushEnemyCount(ruleComp);
         CheckWaveComplete(ruleUid, ruleComp);
     }
 
-    private void OnWaveStartRequest(WaveStartRequestEvent ev)
+    // The Captain hit Start, or most of the crew readied up.
+    public void RequestWaveStart()
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
+        if (!TryGetActiveRule(out var uid, out var comp) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
             return;
 
-        AwardPrepSkipBonus(comp);
+        _darkWave.WarnNow(uid);
+
+        // Pays for the time left on the timer, after ready-ups shaved it. The countdown itself doesn't count.
+        var skipped = comp.PhaseEndTime - Timing.CurTime - VoteCountdown;
+        if (skipped > TimeSpan.Zero)
+        {
+            var skippedEv = new WavePrepSkippedEvent(skipped);
+            RaiseLocalEvent(ref skippedEv);
+        }
 
         comp.VoteCountdownActive = true;
         comp.VoteCountdownSoundPlayed = false;
         comp.PhaseEndTime = Timing.CurTime + VoteCountdown;
         comp.VoteCountdownSoundTime = Timing.CurTime + TimeSpan.FromSeconds(2);
-        comp.NextTimerBroadcastTime = Timing.CurTime;
     }
 
     public record struct CCCStateData(
         int WaveNumber,
         WavePhase Phase,
-        float SecondsLeft,
-        int AliveEnemies,
         int TotalEnemies,
         string SpawnerDirections,
         bool IsBossWave,
-        string FactionDisplay,
-        List<string> NextWaveEnemyTypes,
-        bool IsDarkWave);
+        bool IsDarkWave,
+        LocId FactionDisplay,
+        List<string> NextWaveEnemyTypes);
 
     public bool TryGetActiveState(out CCCStateData data)
     {
         data = default;
-        if (!TryGetActiveRule(out _, out var comp, out _))
+        if (!TryGetActiveRule(out var uid, out var comp))
             return false;
+
+        var dark = _darkWave.IsActive(uid);
 
         var pool = WaveEnemySpawningSystem.GetDirectorPool(comp);
         var types = pool.Select(p => p.Id).Distinct().ToList();
@@ -687,344 +593,109 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (comp.WaveNumber >= special.FromWave)
                 types.Add(special.EnemyId.Id);
         }
-        var directions = _spawning.GetSpawnDirections(comp);
+        var directions = dark ? Loc.GetString("fs-ccc-spawners-all") : _spawning.GetSpawnDirections(comp);
         data = new CCCStateData(
             comp.WaveNumber,
             comp.Phase,
-            Math.Max(0f, (float)(comp.PhaseEndTime - Timing.CurTime).TotalSeconds),
-            comp.AliveEnemies.Count,
             comp.EnemyTotalThisWave,
             directions,
             IsBossWave(comp.WaveNumber),
+            dark,
             comp.FactionDisplay,
-            types,
-            comp.IsDarkWave);
+            types);
         return true;
     }
 
-    public void ForceNextWave(IConsoleShell shell, int? targetWave = null)
+    // Returns the wave the rule is on afterwards, or null if no wave rule is running or the round is already won.
+    public int? ForceNextWave(int? targetWave = null)
     {
-        if (!TryGetActiveRule(out var uid, out var comp, out _))
-        {
-            shell.WriteError("WaveGameRule is not active.");
-            return;
-        }
-
-        if (comp.Victory && !comp.Endless)
-        {
-            shell.WriteError("The round is already won.");
-            return;
-        }
+        if (!TryGetActiveRule(out var uid, out var comp) || IsWon(comp))
+            return null;
 
         comp.AdminAssisted = true;
 
-        if (targetWave.HasValue)
-        {
-            comp.WaveNumber = targetWave.Value;
-            comp.WavesCompleted = targetWave.Value - 1;
-        }
-
         if (comp.Phase == WavePhase.Combat)
         {
+            // Ending combat moves on a wave, so aim one short to land in prep for the target.
+            if (targetWave is { } next)
+            {
+                comp.WaveNumber = next - 1;
+                comp.WavesCompleted = next - 2;
+            }
+
             foreach (var enemy in comp.AliveEnemies)
                 QueueDel(enemy);
             comp.AliveEnemies.Clear();
-            comp.GiantApAwarded = true;
+            comp.BossRewardPaidWave = comp.WaveNumber;
             EndCombatPhase(uid, comp, isForced: true);
         }
         else
         {
+            if (targetWave is { } wave && wave != comp.WaveNumber)
+            {
+                comp.WaveNumber = wave;
+                comp.WavesCompleted = wave - 1;
+                // The dark wave and the lanes were picked for the wave we skipped.
+                _darkWave.Roll(uid, wave, IsBossWave(wave));
+                _spawning.SelectSpawners(comp, CountScalingPlayers());
+            }
+
             StartCombatPhase(uid, comp);
         }
 
-        shell.WriteLine($"Jumped to wave {comp.WaveNumber}.");
+        return comp.WaveNumber;
     }
 
-    private void OnEnemyBeforeDamage(EntityUid uid, FSEnemyDamageTrackingComponent comp, ref BeforeDamageChangedEvent args)
+    public bool IsWon()
     {
-        if (args.Cancelled || args.Origin == null) return;
-        if (_mind.TryGetMind(args.Origin.Value, out var mindId, out _))
-            comp.AttackerMinds.Add(mindId);
+        return TryGetActiveRule(out _, out var comp) && IsWon(comp);
     }
 
-    private void SendHudState(ICommonSession session)
+    public bool IsPrep()
     {
-        if (!TryGetActiveRule(out _, out var comp, out _))
-            return;
-
-        var player = Filter.SinglePlayer(session);
-        if (comp.Phase == WavePhase.Prep)
-        {
-            var secs = Math.Max(0f, (float) (comp.PhaseEndTime - Timing.CurTime).TotalSeconds);
-            RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), player);
-            RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), player);
-            RaiseNetworkEvent(new FSPrepTimerUpdateEvent(secs, true), player);
-            return;
-        }
-
-        RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), player);
-        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), player);
-        RaiseNetworkEvent(new FSPrepTimerUpdateEvent(0f, false), player);
-    }
-
-    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
-    {
-        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _)) return;
-        if (!TryGetActiveRule(out _, out var comp, out _)) return;
-        if (!comp.PaidCatchUpUsers.Add(ev.Player.UserId)) return;
-
-        var wavesMissed = comp.WaveNumber - 1;
-        if (wavesMissed > 0)
-            _wallet.GiveCredits(mindId, 1000 * wavesMissed);
-
-        if (comp.AccumulatedSurvivalBonus > 0)
-            _wallet.GiveCredits(mindId, comp.AccumulatedSurvivalBonus);
-    }
-
-    private void BlackoutStation(WaveGameRuleComponent comp)
-    {
-        comp.CutApcs.Clear();
-
-        var query = EntityQueryEnumerator<ApcComponent, PowerNetworkBatteryComponent>();
-        while (query.MoveNext(out var uid, out var apc, out var battery))
-        {
-            if (!apc.MainBreakerEnabled)
-                continue;
-
-            _apc.ApcToggleBreaker(uid, apc, battery);
-            comp.CutApcs.Add(uid);
-        }
-    }
-
-    private void RestoreStation(WaveGameRuleComponent comp)
-    {
-        foreach (var uid in comp.CutApcs)
-        {
-            if (TryComp<ApcComponent>(uid, out var apc) && !apc.MainBreakerEnabled)
-                _apc.ApcToggleBreaker(uid, apc);
-        }
-
-        comp.CutApcs.Clear();
-    }
-
-    private void DepowerAllDoors(WaveGameRuleComponent comp)
-    {
-        comp.DepoweredDoors.Clear();
-
-        var query = EntityQueryEnumerator<DoorComponent, ApcPowerReceiverComponent>();
-        while (query.MoveNext(out var uid, out _, out var receiver))
-        {
-            if (receiver.PowerDisabled)
-                continue;
-
-            _powerReceiver.SetPowerDisabled(uid, true, receiver);
-            comp.DepoweredDoors.Add(uid);
-        }
-    }
-
-    private void RepowerDoors(WaveGameRuleComponent comp)
-    {
-        foreach (var uid in comp.DepoweredDoors)
-        {
-            if (TryComp<ApcPowerReceiverComponent>(uid, out var receiver))
-                _powerReceiver.SetPowerDisabled(uid, false, receiver);
-        }
-
-        comp.DepoweredDoors.Clear();
-    }
-
-    private void StartDarkWaveAmbience(WaveGameRuleComponent comp)
-    {
-        if (comp.DarkWaveAmbienceSound == null)
-            return;
-
-        StopDarkWaveAmbience(comp);
-
-        var stream = _audio.PlayGlobal(comp.DarkWaveAmbienceSound, Filter.Broadcast(), true,
-            AudioParams.Default.WithLoop(true));
-
-        comp.DarkWaveAmbienceStream = stream?.Entity;
-    }
-
-    private void StopDarkWaveAmbience(WaveGameRuleComponent comp)
-    {
-        if (comp.DarkWaveAmbienceStream is { } stream)
-            _audio.Stop(stream);
-
-        comp.DarkWaveAmbienceStream = null;
-    }
-
-    private void AnnounceDarkWave()
-    {
-        _chatManager.DispatchServerAnnouncement(
-            Loc.GetString("fs-dark-wave-warning"), Color.FromHex("#8800FF"));
-    }
-
-    private void TickDarkWaveOmen(WaveGameRuleComponent comp, float frameTime)
-    {
-        if (comp.Phase != WavePhase.Prep || !comp.IsDarkWaveUpcoming || comp.DarkWaveWarningFired)
-            return;
-
-        comp.DarkWaveWarningAccum += frameTime;
-        if (comp.DarkWaveWarningAccum < comp.DarkWaveWarningDelay)
-            return;
-
-        comp.DarkWaveWarningFired = true;
-
-        RaiseNetworkEvent(new FSDarkWaveWarningEvent(), Filter.Broadcast());
-        RaiseLocalEvent(new FSDarkWaveWarningEvent());
-        AnnounceDarkWave();
-
-        if (comp.DarkWaveWarningSound != null)
-            _audio.PlayGlobal(comp.DarkWaveWarningSound, Filter.Broadcast(), true);
-    }
-
-    private void TickLightFlicker(WaveGameRuleComponent comp, float frameTime)
-    {
-        if (comp.LightsFlickeredOff)
-        {
-            comp.LightFlickerRestoreAccum += frameTime;
-            if (comp.LightFlickerRestoreAccum >= FlickerOffDuration)
-            {
-                comp.LightsFlickeredOff = false;
-                RestoreFlickeredLights(comp);
-            }
-            return;
-        }
-
-        if (comp.Phase != WavePhase.Prep || !comp.IsDarkWaveUpcoming || !comp.DarkWaveWarningFired)
-            return;
-
-        comp.LightFlickerAccum += frameTime;
-        if (comp.LightFlickerAccum < comp.LightFlickerInterval)
-            return;
-
-        comp.LightFlickerAccum = 0f;
-        comp.LightFlickerInterval = comp.LightFlickerIntervalMin
-            + RobustRandom.NextFloat() * (comp.LightFlickerIntervalMax - comp.LightFlickerIntervalMin);
-        FlickerLights(comp);
-    }
-
-    private void OnRevenantExecuted(ref FSRevenantExecutedEvent args)
-    {
-        FlickerAllLightsOnce();
-    }
-
-    private void TickBlackoutEnforcement(WaveGameRuleComponent comp, float frameTime)
-    {
-        if (!comp.IsDarkWave || comp.CutApcs.Count == 0)
-            return;
-
-        comp.BlackoutEnforceAccum += frameTime;
-        if (comp.BlackoutEnforceAccum < BlackoutEnforceInterval)
-            return;
-        comp.BlackoutEnforceAccum = 0f;
-
-        foreach (var uid in comp.CutApcs)
-        {
-            if (TryComp<ApcComponent>(uid, out var apc) && apc.MainBreakerEnabled
-                && TryComp<PowerNetworkBatteryComponent>(uid, out var battery))
-                _apc.ApcToggleBreaker(uid, apc, battery);
-        }
-    }
-
-    public bool IsDarkWaveActive()
-        => TryGetActiveRule(out _, out var comp, out _) && comp.IsDarkWave;
-
-    public void FlickerAllLightsOnce()
-    {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.LightsFlickeredOff)
-            return;
-
-        FlickerLights(comp);
-    }
-
-    private void FlickerLights(WaveGameRuleComponent comp)
-    {
-        comp.FlickeredLights.Clear();
-
-        var query = EntityQueryEnumerator<PoweredLightComponent>();
-        while (query.MoveNext(out var uid, out var light))
-        {
-            if (!light.On || RobustRandom.NextFloat() >= FlickerFraction)
-                continue;
-
-            _poweredLight.SetState(uid, false, light);
-            comp.FlickeredLights.Add(uid);
-        }
-
-        comp.LightsFlickeredOff = true;
-        comp.LightFlickerRestoreAccum = 0f;
-    }
-
-    private void RestoreFlickeredLights(WaveGameRuleComponent comp)
-    {
-        foreach (var uid in comp.FlickeredLights)
-        {
-            if (TryComp<PoweredLightComponent>(uid, out var light))
-                _poweredLight.SetState(uid, true, light);
-        }
-
-        comp.FlickeredLights.Clear();
-    }
-
-    public void ForceDarkWave(IConsoleShell shell)
-    {
-        if (!TryGetActiveRule(out _, out var comp, out _))
-        {
-            shell.WriteError("WaveGameRule is not active.");
-            return;
-        }
-        comp.ForceDarkWave = true;
-
-        if (comp.Phase == WavePhase.Prep)
-        {
-            comp.ForceDarkWave = false;
-            comp.IsDarkWaveUpcoming = true;
-            comp.LightFlickerAccum = 0f;
-
-            comp.DarkWaveWarningAccum = comp.DarkWaveWarningDelay;
-            comp.DarkWaveWarningFired = false;
-
-            shell.WriteLine("Dark Wave armed for this prep — warning and flicker start now. " +
-                            "Prep runs its normal length; use forcenextwave to start it early.");
-            return;
-        }
-
-        shell.WriteLine("Dark Wave forced — arms at the next prep phase.");
-    }
-
-    public WaveGameRuleComponent? GetPrepComponent()
-    {
-        return TryGetActiveRule(out _, out var comp, out _) && comp.Phase == WavePhase.Prep ? comp : null;
+        return TryGetActiveRule(out _, out var comp) && comp.Phase == WavePhase.Prep;
     }
 
     public int GetWaveNumber()
     {
-        return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
+        return TryGetActiveRule(out _, out var comp) ? comp.WaveNumber : 0;
     }
 
+    public int GetEnemyTotal()
+    {
+        return TryGetActiveRule(out _, out var comp) ? comp.EnemyTotalThisWave : 0;
+    }
+
+    // Adds an enemy to the running wave at a random lane. The wave doesn't clear until it's dead.
     public EntityUid? SpawnExtraEnemy(EntProtoId proto)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.Phase != WavePhase.Combat || comp.SpawnerEntities.Count == 0)
+        if (!TryGetActiveRule(out var uid, out var comp)
+            || comp.Phase != WavePhase.Combat
+            || IsWon(comp)
+            || comp.SpawnerEntities.Count == 0)
+        {
             return null;
+        }
 
         var spawner = RobustRandom.Pick(comp.SpawnerEntities);
         var enemy = _spawning.SpawnWaveEnemy(proto, Transform(spawner).Coordinates, comp);
         comp.AliveEnemies.Add(enemy);
-        comp.EnemyTotalThisWave++;
         comp.EnemiesSpawnedThisWave++;
-        _spawning.PushEnemyCount(comp);
+        // A dark wave's total is int.MaxValue; it ends on its timer.
+        if (!_darkWave.IsActive(uid))
+            comp.EnemyTotalThisWave++;
         return enemy;
     }
 
     public IReadOnlyCollection<EntityUid> AliveEnemies()
-        => TryGetActiveRule(out _, out var comp, out _) ? comp.AliveEnemies : Array.Empty<EntityUid>();
+    {
+        return TryGetActiveRule(out _, out var comp) ? comp.AliveEnemies : Array.Empty<EntityUid>();
+    }
 
     public bool TryPickSpawnerCoords(out EntityCoordinates coords)
     {
         coords = default;
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.SpawnerEntities.Count == 0)
+        if (!TryGetActiveRule(out _, out var comp) || comp.SpawnerEntities.Count == 0)
             return false;
 
         coords = Transform(RobustRandom.Pick(comp.SpawnerEntities)).Coordinates;
@@ -1032,16 +703,18 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     }
 
     public bool IsBoss(EntityUid uid)
-        => uid.IsValid() && TryGetActiveRule(out _, out var comp, out _) && comp.GiantEntity == uid;
+    {
+        return uid.IsValid() && TryGetActiveRule(out _, out var comp) && comp.GiantEntity == uid;
+    }
 
     public int GetScalingPlayers()
     {
-        return TryGetActiveRule(out _, out var comp, out _) ? comp.ScalingPlayersThisWave : 0;
+        return TryGetActiveRule(out _, out var comp) ? comp.ScalingPlayersThisWave : 0;
     }
 
     public bool TryGetWaveStatus(out int wave, out WavePhase phase)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _))
+        if (!TryGetActiveRule(out _, out var comp))
         {
             wave = 0;
             phase = WavePhase.Prep;
@@ -1053,27 +726,31 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return true;
     }
 
-    public void ReducePrepTimeBy(double seconds)
+    // Each crew member readying up takes their share of the prep time off the clock.
+    public void ShavePrepTime(int crewCount)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _)) return;
-        if (comp.Phase != WavePhase.Prep) return;
-        if (comp.VoteCountdownActive) return;
-        comp.PhaseEndTime -= TimeSpan.FromSeconds(seconds);
+        if (crewCount <= 0
+            || !TryGetActiveRule(out _, out var comp)
+            || comp.Phase != WavePhase.Prep
+            || comp.VoteCountdownActive)
+        {
+            return;
+        }
+
+        // The modified length, so a shorter prep (Night Shift) isn't emptied by half the crew.
+        comp.PhaseEndTime -= PrepDuration(comp) / crewCount;
         if (comp.PhaseEndTime < Timing.CurTime)
             comp.PhaseEndTime = Timing.CurTime;
     }
 
-    public void ToggleSpawnPause(IConsoleShell shell)
+    public bool TryToggleSpawnPause(out bool paused)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _))
-        {
-            shell.WriteError("WaveGameRule is not active.");
-            return;
-        }
+        paused = false;
+        if (!TryGetActiveRule(out _, out var comp))
+            return false;
 
         comp.SpawnPaused = !comp.SpawnPaused;
-        shell.WriteLine(comp.SpawnPaused
-            ? "Wave spawning PAUSED. Existing enemies remain. Use 'pausewavespawns' again to resume."
-            : "Wave spawning RESUMED.");
+        paused = comp.SpawnPaused;
+        return true;
     }
 }

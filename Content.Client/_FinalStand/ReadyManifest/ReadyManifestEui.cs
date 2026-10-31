@@ -1,4 +1,3 @@
-// Client half of the lobby Ready Manifest window, ported from Moffstation.
 using Content.Client.Eui;
 using Content.Shared._FinalStand.ReadyManifest;
 using Content.Shared.Eui;
@@ -6,6 +5,7 @@ using JetBrains.Annotations;
 
 namespace Content.Client._FinalStand.ReadyManifest;
 
+// Ported from Moffstation.
 [UsedImplicitly]
 public sealed class ReadyManifestEui : BaseEui
 {

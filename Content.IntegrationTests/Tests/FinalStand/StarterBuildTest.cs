@@ -52,7 +52,9 @@ public sealed class StarterBuildTest : GameTest
             var perksSys = SEntMan.System<FSPerkSystem>();
             var store = SEntMan.System<FSPlayerDataStore>();
 
+            // The points go in the saved row: a wallet that hasn't read it yet isn't trusted, and loads it on the spend.
             store.SaveLoadoutJson(session.UserId.UserId, "{}", "[]", "[]");
+            store.UpsertPerkPoints(session.UserId.UserId, session.Name, 15);
             SEntMan.SpawnEntity("FSPerkShop", map.GridCoords);
             var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             var mindId = minds.CreateMind(session.UserId, "Recruit");
@@ -61,7 +63,6 @@ public sealed class StarterBuildTest : GameTest
             var perks = SEntMan.EnsureComponent<FSPerkLevelsComponent>(mindId);
             perks.Levels.Clear();
             Array.Fill(perks.Slots, string.Empty);
-            wallet.PerkPoints = 15;
 
             var build = SProtoMan.Index(Rifleman);
             perksSys.ApplyStarterBuild(session, build.ID);
@@ -79,6 +80,46 @@ public sealed class StarterBuildTest : GameTest
             perksSys.ApplyStarterBuild(session, "NotARealBuild");
             Assert.That(wallet.PerkPoints, Is.EqualTo(1), "an unknown build id is ignored");
         });
+    }
+
+    [Test]
+    public async Task TheClientMessageAppliesABuildAndIgnoresAnEmptyId()
+    {
+        var map = await Pair.CreateTestMap();
+        FSPerkLevelsComponent perks = default!;
+
+        await Server.WaitPost(() =>
+        {
+            var session = ServerSession!;
+            var minds = SEntMan.System<SharedMindSystem>();
+            var store = SEntMan.System<FSPlayerDataStore>();
+
+            store.SaveLoadoutJson(session.UserId.UserId, "{}", "[]", "[]");
+            store.UpsertPerkPoints(session.UserId.UserId, session.Name, 15);
+            SEntMan.SpawnEntity("FSPerkShop", map.GridCoords);
+            var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            var mindId = minds.CreateMind(session.UserId, "Recruit");
+            minds.TransferTo(mindId, body, mind: SEntMan.GetComponent<MindComponent>(mindId));
+            SEntMan.EnsureComponent<FSPlayerWalletComponent>(mindId);
+            perks = SEntMan.EnsureComponent<FSPerkLevelsComponent>(mindId);
+            perks.Levels.Clear();
+            Array.Fill(perks.Slots, string.Empty);
+        });
+
+        async Task Send(FSApplyStarterBuildMessage message)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(0.3));
+            await Client.WaitPost(() => CEntMan.EntityNetManager.SendSystemNetworkMessage(message));
+            await Pair.RunTicksSync(15);
+        }
+
+        // A default id arrives as null and must not reach the prototype lookup.
+        await Send(new FSApplyStarterBuildMessage());
+        await Server.WaitAssertion(() => Assert.That(perks.Slots, Is.All.Empty));
+
+        await Send(new FSApplyStarterBuildMessage { BuildId = Rifleman });
+        await Server.WaitAssertion(() =>
+            Assert.That(perks.Slots, Is.EqualTo(SProtoMan.Index(Rifleman).Perks.ToArray())));
     }
 
     [Test]

@@ -120,7 +120,7 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
         }
 
         _dirty = true;
-        Log.Debug($"[FSMedFund] +{amount} ({source}) — balance {fund.Comp.Balance}");
+        Log.Debug($"+{amount} ({source}) — balance {fund.Comp.Balance}");
     }
 
     public bool TryDeductMedicalFunds(int amount)

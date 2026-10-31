@@ -9,5 +9,5 @@ public sealed partial class CritComponent : Component
     public float BaseCritChance = 0f;
 
     [DataField, AutoNetworkedField]
-    public float CritMultiplier = 1.5f;
+    public float CritMultiplier = FSCritMath.DefaultMultiplier;
 }

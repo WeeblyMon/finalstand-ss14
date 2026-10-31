@@ -5,8 +5,6 @@ using Robust.Shared.Console;
 
 namespace Content.Server._FinalStand.Commands;
 
-// Fallback timer too long sometimes, use during testing, waves and stuff.
-
 [AdminCommand(AdminFlags.Round)]
 public sealed partial class ForceNextWaveCommand : LocalizedEntityCommands
 {
@@ -16,7 +14,30 @@ public sealed partial class ForceNextWaveCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        int? wave = args.Length > 0 && int.TryParse(args[0], out var n) ? n : null;
-        _waveRule.ForceNextWave(shell, wave);
+        int? target = null;
+        if (args.Length > 0)
+        {
+            if (!int.TryParse(args[0], out var parsed) || parsed < 1)
+            {
+                shell.WriteError(Loc.GetString("shell-argument-must-be-number"));
+                return;
+            }
+
+            target = parsed;
+        }
+
+        if (_waveRule.IsWon())
+        {
+            shell.WriteError(Loc.GetString("cmd-forcenextwave-won"));
+            return;
+        }
+
+        if (_waveRule.ForceNextWave(target) is not { } wave)
+        {
+            shell.WriteError(Loc.GetString("cmd-wave-rule-not-active"));
+            return;
+        }
+
+        shell.WriteLine(Loc.GetString("cmd-forcenextwave-done", ("wave", wave)));
     }
 }

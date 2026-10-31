@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Weapons.Ranged.Systems;
+using Content.Shared.Projectiles;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
@@ -23,11 +24,13 @@ public sealed partial class SplinterImpactUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnHit);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
         if (ev.State is not { } state || !state.SplinterImpactEnabled)
+            return;
+        if (HasComp<FSSecondaryProjectileComponent>(ev.ProjectileUid))
             return;
 
         var targetPos = _xform.GetWorldPosition(ev.Target);
@@ -49,11 +52,12 @@ public sealed partial class SplinterImpactUpgradeSystem : EntitySystem
             var dir = new Vector2(MathF.Cos(spreadAngle), MathF.Sin(spreadAngle));
 
             var splinter = Spawn(SplinterProto, targetCoords);
+            EnsureComp<FSSecondaryProjectileComponent>(splinter);
 
             // Override damage to 40% of primary hit.
-            if (TryComp<Content.Shared.Projectiles.ProjectileComponent>(splinter, out var splinterProj))
+            if (TryComp<ProjectileComponent>(splinter, out var splinterProj))
                 splinterProj.Damage = splinterDamage;
-            _gun.ShootProjectile(splinter, dir, Vector2.Zero, ev.Shooter.Value, ev.Weapon, SplinterSpeed);
+            _gun.ShootProjectile(splinter, dir, Vector2.Zero, ev.Weapon, ev.Shooter, SplinterSpeed);
         }
     }
 }

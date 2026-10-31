@@ -1,0 +1,35 @@
+fs-armor-shop-equipped = EQUIPPED
+fs-armor-shop-tier = TIER { $rank }
+fs-armor-shop-protection = PROTECTION
+fs-armor-shop-resist-blunt = Blunt
+fs-armor-shop-resist-slash = Slash
+fs-armor-shop-resist-piercing = Piercing
+fs-armor-shop-resist-heat = Heat
+fs-armor-shop-resist-radiation = Radiation
+fs-armor-shop-resist-caustic = Caustic
+fs-armor-shop-resist-shock = Shock
+fs-armor-shop-resist-explosion = Explosion
+fs-armor-shop-stamina = Stamina
+fs-armor-shop-no-protection = No protection.
+fs-armor-shop-mobility = MOBILITY
+fs-armor-shop-speed = Speed
+fs-armor-shop-price = Price
+fs-armor-shop-trade-in = Trade-in
+fs-armor-shop-total = TOTAL
+fs-armor-shop-need-more = NEED ${ $amount } MORE
+fs-armor-shop-buy = BUY  —  ${ $price }
+fs-armor-shop-trade-in-missing = Wear your current suit to trade it in.
+fs-armor-shop-cant-afford = You need ${ $price } for that.
+
+fs-armor-tier-security-hardsuit = Security Hardsuit
+fs-armor-tier-ert-security-hardsuit = ERT Security Hardsuit
+fs-armor-tier-nukie-commander-hardsuit = Nukie Commander Hardsuit
+fs-armor-tier-elite-hardsuit = Elite Hardsuit
+fs-armor-tier-cybersun-juggernaut = Cybersun Juggernaut Hardsuit
+fs-armor-tier-death-squad-hardsuit = Death Squad Hardsuit
+
+fs-armor-shop-window-title = Armor Vendor
+fs-armor-shop-window-header = ARMOR VENDOR
+fs-armor-shop-window-credits = CREDITS{"  "}
+fs-armor-shop-window-select = SELECT ARMOR
+fs-armor-shop-window-buy = BUY

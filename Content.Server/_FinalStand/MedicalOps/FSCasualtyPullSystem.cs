@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Actions;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Actions;
 using Content.Shared.Actions.Components;
@@ -20,6 +21,7 @@ namespace Content.Server._FinalStand.MedicalOps;
 public sealed partial class FSCasualtyPullSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private FSGrantedActionsSystem _grants = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
@@ -40,8 +42,6 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
     private static readonly SoundSpecifier PullSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/medic_alert.ogg");
 
-    private readonly Dictionary<EntityUid, EntityUid> _granted = new();
-
     public override void Initialize()
     {
         base.Initialize();
@@ -49,33 +49,27 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
         SubscribeLocalEvent<FSCasualtyPullActionEvent>(OnPull);
         SubscribeNetworkEvent<FSCasualtyPullRequestEvent>(OnPullRequest);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawn);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
     private void OnSpawn(PlayerSpawnCompleteEvent ev)
     {
-        if (ev.JobId != FSMedicalRosterSystem.DoctorJob)
+        if (ev.JobId != FSMedicalRosterSystem.DoctorJob.Id)
             return;
 
-        if (_granted.TryGetValue(ev.Mob, out var existing) && existing.IsValid())
-            return;
-
-        if (_actions.AddAction(ev.Mob, PullActionProto) is { } action)
-            _granted[ev.Mob] = action;
-
+        _grants.Grant(ev.Mob, PullActionProto);
         EnsureComp<FSCasualtyPullComponent>(ev.Mob);
     }
 
     private void OnPullRequest(FSCasualtyPullRequestEvent ev, EntitySessionEventArgs args)
     {
-        if (args.SenderSession.AttachedEntity is not { } doctor
-            || !TryComp<FSCasualtyPullComponent>(doctor, out var pull)
-            || pull.ReadyAt > _timing.CurTime)
-        {
+        if (args.SenderSession.AttachedEntity is not { } doctor)
             return;
-        }
 
-        TryPull(doctor, GetEntity(ev.Patient), null);
+        Entity<ActionComponent>? action = null;
+        if (_grants.TryGet(doctor, PullActionProto, out var granted) && TryComp<ActionComponent>(granted, out var actionComp))
+            action = (granted, actionComp);
+
+        TryPull(doctor, GetEntity(ev.Patient), action);
     }
 
     private void OnPull(FSCasualtyPullActionEvent args)
@@ -128,8 +122,16 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
 
     private bool TryPull(EntityUid doctor, EntityUid target, Entity<ActionComponent>? action)
     {
-        if (target == doctor || TerminatingOrDeleted(target))
+        if (target == doctor || TerminatingOrDeleted(target) || !HasComp<ActorComponent>(target))
             return false;
+
+        // The UI and the action share one cooldown, and a downed doctor can't pull anyone.
+        if (!TryComp<FSCasualtyPullComponent>(doctor, out var pullComp)
+            || pullComp.ReadyAt > _timing.CurTime
+            || _mobState.IsIncapacitated(doctor))
+        {
+            return false;
+        }
 
         if (!_mobState.IsCritical(target) && !_mobState.IsDead(target))
         {
@@ -159,14 +161,15 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
 
         var cooldown = TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RecoveryUplink) ? 80 : 120);
 
+        // Started here too, so a pull from the board shows on the action button as well.
         if (action is { } act)
-            _actions.SetUseDelay((act.Owner, act.Comp), cooldown);
-
-        if (TryComp<FSCasualtyPullComponent>(doctor, out var pullComp))
         {
-            pullComp.ReadyAt = _timing.CurTime + cooldown;
-            Dirty(doctor, pullComp);
+            _actions.SetUseDelay((act.Owner, act.Comp), cooldown);
+            _actions.StartUseDelay((act.Owner, act.Comp));
         }
+
+        pullComp.ReadyAt = _timing.CurTime + cooldown;
+        Dirty(doctor, pullComp);
 
         var origin = _xform.GetMapCoordinates(target);
         Spawn(ArriveEffect, origin);
@@ -209,10 +212,5 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
         return _map.TryFindGridAt(mapCoords, out var gridUid, out var grid)
                && _map.TryGetTileRef(gridUid, grid, coords, out var tileRef)
                && !_turf.IsSpace(tileRef);
-    }
-
-    private void OnRoundRestart(RoundRestartCleanupEvent ev)
-    {
-        _granted.Clear();
     }
 }

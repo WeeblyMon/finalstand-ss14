@@ -1,4 +1,3 @@
-// Where an emplacement may unfold: every tile of its footprint must be placeable. Shared so the ghost and the server agree.
 using System.Numerics;
 using Content.Shared._FinalStand.Placement;
 using Content.Shared.Maps;
@@ -8,6 +7,7 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Shared._FinalStand.Emplacement;
 
+// Every footprint tile must be placeable. Shared so the ghost and the server agree.
 public sealed partial class FSEmplacementRuleSystem : EntitySystem
 {
     [Dependency] private FSPlacementRuleSystem _rules = default!;
@@ -51,13 +51,18 @@ public sealed partial class FSEmplacementRuleSystem : EntitySystem
 
         foreach (var tile in Footprint(center, facing, kit))
         {
-            if (!_turf.TryGetTileRef(tile, out var tileRef)
-                || _turf.IsSpace(tileRef.Value)
-                || _turf.IsTileBlocked(tileRef.Value, CollisionGroup.Impassable)
-                || !_rules.IsTileBuildable(tile, blocksPath: true))
+            if (!IsTileFree(tile))
                 return false;
         }
 
         return true;
+    }
+
+    public bool IsTileFree(EntityCoordinates tile)
+    {
+        return _turf.TryGetTileRef(tile, out var tileRef)
+               && !_turf.IsSpace(tileRef.Value)
+               && !_turf.IsTileBlocked(tileRef.Value, CollisionGroup.Impassable)
+               && _rules.IsTileBuildable(tile, blocksPath: true);
     }
 }

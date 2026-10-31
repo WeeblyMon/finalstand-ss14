@@ -58,20 +58,21 @@ public sealed partial class WaveGameRuleSystem
             TryDeclineEndless();
     }
 
-    public bool IsAwaitingEndless() => TryGetActiveRule(out _, out var comp, out _) && comp.AwaitingEndless;
+    public bool IsAwaitingEndless() => TryGetActiveRule(out _, out var comp) && comp.AwaitingEndless;
 
-    public bool IsEndless() => TryGetActiveRule(out _, out var comp, out _) && comp.Endless;
+    public bool IsEndless() => TryGetActiveRule(out _, out var comp) && comp.Endless;
 
     public bool TryStartEndless()
     {
-        if (!TryGetActiveRule(out var uid, out var comp, out _) || !comp.AwaitingEndless)
+        if (!TryGetActiveRule(out var uid, out var comp) || !comp.AwaitingEndless)
             return false;
 
         CancelEndlessVote();
         comp.AwaitingEndless = false;
         comp.Endless = true;
-        Log.Info($"[WaveGameRule] The crew pushes on past wave {comp.WaveNumber} into endless.");
-        _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-endless-started"), Color.FromHex("#FF7043"));
+        Log.Info($"The crew pushes on past wave {comp.WaveNumber} into endless.");
+        _chatManager.DispatchServerAnnouncement(
+            Loc.GetString("fs-endless-started", ("interval", comp.EndlessEscalationInterval)), AnnounceColor);
 
         comp.WaveNumber++;
         EscalateEndless(comp);
@@ -81,7 +82,7 @@ public sealed partial class WaveGameRuleSystem
 
     public bool TryDeclineEndless()
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || !comp.AwaitingEndless)
+        if (!TryGetActiveRule(out _, out var comp) || !comp.AwaitingEndless)
             return false;
 
         CancelEndlessVote();
@@ -98,7 +99,6 @@ public sealed partial class WaveGameRuleSystem
         if (!IsEscalationWave(comp.WaveNumber, comp.VictoryWave, comp.EndlessEscalationInterval))
             return;
 
-        comp.EndlessEscalations++;
         var active = GetModifiers(comp).ToList();
         var pool = _proto.EnumeratePrototypes<FSRoundModifierPrototype>()
             .Where(m => active.All(a => a.ID != m.ID && FSRoundModifierRules.Compatible(a, m)))
@@ -112,12 +112,12 @@ public sealed partial class WaveGameRuleSystem
             _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-endless-escalation",
                 ("wave", comp.WaveNumber),
                 ("name", Loc.GetString(picked.Name)),
-                ("description", Loc.GetString(picked.Description))), Color.FromHex("#FF7043"));
+                ("description", Loc.GetString(picked.Description))), AnnounceColor);
         }
         else
         {
             _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-endless-escalation-max", ("wave", comp.WaveNumber)),
-                Color.FromHex("#FF7043"));
+                AnnounceColor);
         }
     }
 

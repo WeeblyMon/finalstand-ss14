@@ -1,11 +1,12 @@
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
+[Access(typeof(FSTreatmentAttributionSystem))]
 public sealed partial class FSTreatmentAttributionComponent : Component
 {
-    [ViewVariables]
+    [ViewVariables, AutoPausedField]
     public Dictionary<EntityUid, TimeSpan> RecentTreaters = new();
 
-    [ViewVariables]
+    [ViewVariables, AutoPausedField]
     public Dictionary<EntityUid, TimeSpan> RecentSuppliers = new();
 }

@@ -12,6 +12,8 @@ public sealed partial class WaveGameRuleSystem
     [Dependency] private IVoteManager _votes = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
+    private static readonly Color AnnounceColor = Color.FromHex("#FF7043");
+
     private IVoteHandle? _difficultyVote;
 
     private void StartDifficultyVote(WaveGameRuleComponent comp)
@@ -70,29 +72,41 @@ public sealed partial class WaveGameRuleSystem
 
     public bool TrySetDifficulty(FSDifficulty difficulty)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked || comp.WeeklyKey != null)
+        if (!TryGetActiveRule(out _, out var comp) || comp.DifficultyLocked || comp.WeeklyKey != null)
             return false;
 
+        // An admin's or the weekly's pick stands; the open vote would overwrite it when it ends (Normal if nobody votes).
+        CancelDifficultyVote();
         comp.Difficulty = difficulty;
         comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountScalingPlayers(), CountPrimarySpawners(comp));
         _chatManager.DispatchServerAnnouncement(
             Loc.GetString("fs-difficulty-set", ("name", Loc.GetString(FSDifficultyRules.NameLocId(difficulty)))),
-            Color.FromHex("#FF7043"));
-        Log.Info($"[WaveGameRule] Difficulty set to {difficulty}.");
+            AnnounceColor);
+        Log.Info($"Difficulty set to {difficulty}.");
         return true;
     }
 
     public FSDifficulty GetDifficulty()
-        => TryGetActiveRule(out _, out var comp, out _) ? comp.Difficulty : FSDifficulty.Normal;
+        => TryGetActiveRule(out _, out var comp) ? comp.Difficulty : FSDifficulty.Normal;
 
     public float GetRewardMultiplier()
-        => TryGetActiveRule(out _, out var comp, out _) ? RewardMultiplier(comp) : 1f;
+        => TryGetActiveRule(out _, out var comp) ? RewardMultiplier(comp) : 1f;
 
     public float GetEnemyMoneyMultiplier()
-        => TryGetActiveRule(out _, out var comp, out _) ? ModifierFactor(comp, m => m.EnemyMoney) : 1f;
+        => TryGetActiveRule(out _, out var comp) ? ModifierFactor(comp, m => m.EnemyMoney) : 1f;
 
+    // Runs on every kill, so it walks the ids rather than an iterator.
     private float RewardMultiplier(WaveGameRuleComponent comp)
-        => FSDifficultyRules.RewardMultiplier(comp.Difficulty) * FSRoundModifierRules.RewardMultiplier(GetModifiers(comp));
+    {
+        var bonus = 0d;
+        foreach (var id in comp.Modifiers)
+        {
+            if (_proto.TryIndex(id, out var modifier))
+                bonus += modifier.RewardBonus;
+        }
+
+        return FSDifficultyRules.RewardMultiplier(comp.Difficulty) * FSRoundModifierRules.RewardMultiplierForBonus(bonus);
+    }
 
     private TimeSpan PrepDuration(WaveGameRuleComponent comp)
         => comp.PrepDuration * ModifierFactor(comp, m => m.PrepDuration);
@@ -112,7 +126,7 @@ public sealed partial class WaveGameRuleSystem
 
     public bool TryGetRoundSummary(out RoundSummary summary)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _))
+        if (!TryGetActiveRule(out _, out var comp))
         {
             summary = default;
             return false;

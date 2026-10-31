@@ -12,7 +12,6 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
-using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
@@ -64,7 +63,6 @@ public sealed class EndlessTest : GameTest
             var ticker = SEntMan.System<GameTicker>();
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
             var titles = SEntMan.System<FSTitleSystem>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             SEntMan.System<FSPlayerDataStore>().DeleteProgress(ServerSession!.UserId.UserId);
             EnsurePlayer(map.GridCoords);
 
@@ -73,14 +71,14 @@ public sealed class EndlessTest : GameTest
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref present);
             Assert.That(waveRule.TryStartEndless(), Is.False, "nothing to push on from before a win");
 
-            waveRule.ForceNextWave(shell, 30);
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave(30);
+            waveRule.ForceNextWave();
 
             Assert.Multiple(() =>
             {
                 Assert.That(ticker.RunLevel, Is.EqualTo(GameRunLevel.InRound), "the round waits on the endless vote");
                 Assert.That(waveRule.IsAwaitingEndless(), Is.True);
-                Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle),
+                Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle.Id),
                     "the win is banked before anyone votes");
             });
 
@@ -91,14 +89,14 @@ public sealed class EndlessTest : GameTest
             Assert.That(waveRule.IsEndless(), Is.True);
 
             var modifiersBefore = waveRule.GetActiveModifiers().Count;
-            waveRule.ForceNextWave(shell, 34);
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave(34);
+            waveRule.ForceNextWave();
             Assert.That(waveRule.GetWaveNumber(), Is.EqualTo(35));
             Assert.That(waveRule.GetActiveModifiers(), Has.Count.EqualTo(modifiersBefore + 1), "wave 35 adds a horde modifier");
 
             var ended = new WaveEndedEvent(FSRecordsSystem.EndlessTitleWave);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref ended);
-            Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.EndlessTitle));
+            Assert.That(titles.GetOwned(ServerSession!.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.EndlessTitle.Id));
 
             Assert.That(ticker.RunLevel, Is.EqualTo(GameRunLevel.InRound), "endless only ends when the crew falls");
         });
@@ -114,14 +112,13 @@ public sealed class EndlessTest : GameTest
         {
             var ticker = SEntMan.System<GameTicker>();
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             EnsurePlayer(map.GridCoords);
 
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
             var present = new WaveEndedEvent(1);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref present);
-            waveRule.ForceNextWave(shell, 30);
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave(30);
+            waveRule.ForceNextWave();
             Assert.That(waveRule.IsAwaitingEndless(), Is.True);
 
             Assert.That(waveRule.TryDeclineEndless(), Is.True);

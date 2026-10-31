@@ -1,5 +1,3 @@
-// A stage strip under an unfinished Mech Bay: each part's icon over a pip (fitted solid, the next one pulsing in the
-// colour of the department that owes it, the rest dim), with the next step written underneath.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;

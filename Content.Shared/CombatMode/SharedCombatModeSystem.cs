@@ -27,6 +27,9 @@ public abstract partial class SharedCombatModeSystem : EntitySystem
 
     private void OnMapInit(EntityUid uid, CombatModeComponent component, MapInitEvent args)
     {
+        if (component.CombatToggleAction == null) // FINALSTAND
+            return;
+
         _actionsSystem.AddAction(uid, ref component.CombatToggleActionEntity, component.CombatToggleAction);
         Dirty(uid, component);
     }

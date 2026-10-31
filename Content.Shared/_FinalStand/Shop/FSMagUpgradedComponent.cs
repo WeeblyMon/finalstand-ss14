@@ -11,4 +11,10 @@ public sealed partial class FSMagUpgradedComponent : Component
 
     /// <summary>Rounds added by percentage bonuses (research and Bandolier), recomputed from base capacity.</summary>
     public int AppliedPercentBonus = 0;
+
+    /// <summary>Rounds a shrink dropped, handed back when the magazine grows again.</summary>
+    public int ClippedRounds = 0;
+
+    /// <summary>The largest capacity this magazine has had. Growing full past it is the only free fill.</summary>
+    public int PeakCapacity = 0;
 }

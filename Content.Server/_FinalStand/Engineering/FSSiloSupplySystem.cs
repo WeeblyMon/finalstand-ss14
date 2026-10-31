@@ -1,9 +1,8 @@
-// Stocks the silo network's pool at the first prep and tops it up at each one after, and warns engineers when steel runs low.
 using Content.Shared.Chat;
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Materials;
 using Content.Server.Chat.Managers;
-using Content.Shared._FinalStand.GameTicking;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared.GameTicking;
 using Content.Shared.Materials;
 using Content.Shared.Materials.OreSilo;
@@ -42,7 +41,7 @@ public sealed partial class FSSiloSupplySystem : EntitySystem
         });
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var supply = _stocked ? PerWave : Opening;
         _stocked = true;

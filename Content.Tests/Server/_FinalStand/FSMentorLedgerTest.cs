@@ -1,5 +1,6 @@
 using System;
 using Content.Server._FinalStand.Mentor;
+using Content.Shared._FinalStand.Mentor;
 using NUnit.Framework;
 
 namespace Content.Tests.Server._FinalStand;

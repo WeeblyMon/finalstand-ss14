@@ -17,10 +17,10 @@ public sealed partial class FSBagShopEntry
     public EntProtoId Proto;
 
     [DataField(required: true)]
-    public string Name = string.Empty;
+    public LocId Name;
 
     [DataField]
-    public string Description = string.Empty;
+    public LocId? Description;
 
     [DataField]
     public int Price;

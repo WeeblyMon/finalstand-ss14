@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Content.Server._FinalStand.NPC;
 using Content.Server.Examine;
 using Content.Server.NPC.Components;
@@ -146,27 +147,21 @@ public sealed partial class NPCSteeringSystem
 
         // Grab the target position, either the next path node or our end goal..
         var targetCoordinates = GetTargetCoordinates(steering);
+        var needsPath = false;
+
+        // FINALSTAND: a node the grid invalidated (a barricade broken or built, a door changed) means a new path,
+        // not giving up the move. Vanilla returned NoPath before its own "get new ones" branch could run.
+        if (!targetCoordinates.IsValid(EntityManager) && DropInvalidPath(steering))
+        {
+            targetCoordinates = GetTargetCoordinates(steering);
+            needsPath = true;
+            ResetStuck(steering, ourCoordinates);
+        }
 
         if (!targetCoordinates.IsValid(EntityManager))
         {
             steering.Status = SteeringStatus.NoPath;
             return false;
-        }
-
-        var needsPath = false;
-
-        // If the next node is invalid then get new ones
-        if (!targetCoordinates.IsValid(EntityManager))
-        {
-            if (steering.CurrentPath.TryPeek(out var poly) &&
-                (poly.Data.Flags & PathfindingBreadcrumbFlag.Invalid) != 0x0)
-            {
-                steering.CurrentPath.Dequeue();
-                // Try to get the next node temporarily.
-                targetCoordinates = GetTargetCoordinates(steering);
-                needsPath = true;
-                ResetStuck(steering, ourCoordinates);
-            }
         }
 
         // Check if mapids match.
@@ -180,6 +175,22 @@ public sealed partial class NPCSteeringSystem
         }
 
         var direction = targetMap.Position - ourMap.Position;
+
+        // FINALSTAND: a queued wave zombie (see stuck detection below) stands still until the one ahead moves on.
+        if (steering.QueuedUntil != TimeSpan.Zero)
+        {
+            if (_timing.CurTime < steering.QueuedUntil)
+                return false;
+
+            if (IsQueuedBehindWave(uid, steering, ourMap, direction))
+            {
+                steering.QueuedUntil = _timing.CurTime + QueueHold;
+                return false;
+            }
+
+            steering.QueuedUntil = TimeSpan.Zero;
+            ResetStuck(steering, ourCoordinates);
+        }
 
         // Need to be pretty close if it's just a node to make sure LOS for door bashes or the likes.
         bool arrived;
@@ -257,6 +268,13 @@ public sealed partial class NPCSteeringSystem
                 // TODO: If it's the last node just grab the target instead.
                 targetCoordinates = GetTargetCoordinates(steering);
 
+                // FINALSTAND: same for the node after this one.
+                if (!targetCoordinates.IsValid(EntityManager) && DropInvalidPath(steering))
+                {
+                    targetCoordinates = GetTargetCoordinates(steering);
+                    needsPath = true;
+                }
+
                 if (!targetCoordinates.IsValid(EntityManager))
                 {
                     SetDirection(uid, mover, steering, Vector2.Zero);
@@ -285,7 +303,10 @@ public sealed partial class NPCSteeringSystem
         }
         // Stuck detection
         // Check if we have moved further than the movespeed * stuck time.
+        // FINALSTAND: not while it waits for its first path. With a busy pathfinder that wait asked for the same path
+        // again after a second and gave up on the one still coming after three.
         else if (AntiStuck &&
+                 steering is not { Pathfind: true, CurrentPath.Count: 0 } &&
                  ourCoordinates.TryDistance(EntityManager, steering.LastStuckCoordinates, out var stuckDistance) &&
                  stuckDistance < NPCSteeringComponent.StuckDistance)
         {
@@ -293,14 +314,36 @@ public sealed partial class NPCSteeringSystem
             // Either 1 second or how long it takes to move the stuck distance + buffer if we're REALLY slow.
             var maxStuckTime = Math.Max(1, NPCSteeringComponent.StuckDistance / moveSpeed * 1.2f);
 
-            if (stuckTime.TotalSeconds > maxStuckTime)
+            // FINALSTAND: pressed against what it's hitting. Vanilla repathed after a second and failed the move after
+            // three, so a melee NPC dropped its attack every few seconds against anything that held still.
+            if (stuckTime.TotalSeconds > maxStuckTime
+                && steering.ReachRange > 0f
+                && targetDistance <= steering.ReachRange
+                && _interaction.InRangeUnobstructed(uid, destinationCoordinates.EntityId, steering.ReachRange))
+            {
+                ResetStuck(steering, ourCoordinates);
+            }
+            // FINALSTAND: a wave zombie waiting behind another one is queued, not stuck. A repath gives it the same
+            // path, failing the move had the back rows of a horde replanning every few seconds, and pushing on
+            // keeps the whole crowd awake in physics. It holds still instead and looks again shortly.
+            else if (stuckTime.TotalSeconds > maxStuckTime
+                && _waveTagQuery.HasComponent(uid)
+                && IsQueuedBehindWave(uid, steering, ourMap, direction))
+            {
+                ResetStuck(steering, ourCoordinates);
+                steering.QueuedUntil = _timing.CurTime + QueueHold;
+                return false;
+            }
+            else if (stuckTime.TotalSeconds > maxStuckTime) // FINALSTAND: else
             {
                 // TODO: Blacklist nodes (pathfinder factor wehn)
                 // TODO: This should be a warning but
                 // A) NPCs get stuck on non-anchored static bodies still (e.g. closets)
                 // B) NPCs still try to move in locked containers (e.g. cow, hamster)
                 // and I don't want to spam grafana even harder than it gets spammed rn.
-                Log.Debug($"NPC {ToPrettyString(uid)} found stuck at {ourCoordinates}");
+                // FINALSTAND: the message was built (and the coordinates boxed) every tick even with debug logging off.
+                if (Log.IsLogLevelEnabled(LogLevel.Debug))
+                    Log.Debug($"NPC {ToPrettyString(uid)} found stuck at {ourCoordinates}");
                 needsPath = true;
 
                 if (stuckTime.TotalSeconds > maxStuckTime * 3)
@@ -358,6 +401,16 @@ public sealed partial class NPCSteeringSystem
         return true;
     }
 
+    // FINALSTAND: the nodes after an invalidated one were planned around the old grid too, so the whole path goes.
+    private static bool DropInvalidPath(NPCSteeringComponent steering)
+    {
+        if (!steering.CurrentPath.TryPeek(out var poly) || poly.IsValid())
+            return false;
+
+        steering.CurrentPath.Clear();
+        return true;
+    }
+
     private void ResetStuck(NPCSteeringComponent component, EntityCoordinates ourCoordinates)
     {
         component.LastStuckCoordinates = ourCoordinates;
@@ -374,15 +427,26 @@ public sealed partial class NPCSteeringSystem
             return;
         }
 
+        // FINALSTAND: a requested repath waits for any request already in flight, which was planned before the change.
+        if (steering.RepathRequested && !steering.Pathfind)
+        {
+            steering.RepathRequested = false;
+            needsPath = true;
+        }
+
         if (!needsPath && steering.CurrentPath.Count > 0)
         {
             needsPath = steering.CurrentPath.Count > 0 && (steering.CurrentPath.Peek().Data.Flags & PathfindingBreadcrumbFlag.Invalid) != 0x0;
 
             // If the target has sufficiently moved.
-            var lastNode = GetCoordinates(steering.CurrentPath.Last());
+            // FINALSTAND: measured from where the destination was when the path was planned. Measuring from the
+            // path's last node repathed every tick whenever Range was wider than RepathRange, because the
+            // pathfinder stops at the first node within Range.
+            var destination = _transform.ToMapCoordinates(steering.Coordinates, logError: false);
 
-            if (lastNode.TryDistance(EntityManager, steering.Coordinates, out var lastDistance) &&
-                lastDistance > steering.RepathRange)
+            if (destination.MapId != MapId.Nullspace &&
+                destination.MapId == steering.PathPlannedFor.MapId &&
+                (destination.Position - steering.PathPlannedFor.Position).Length() > steering.RepathRange)
             {
                 needsPath = true;
             }
@@ -655,157 +719,250 @@ public sealed partial class NPCSteeringSystem
 
     #endregion
 
-    #region Wave Zombie Peer Yield
+    #region Wave Zombie Spacing
 
-    // Three-case peer avoidance for wave zombies:
-    //   Case 1 — near-peer separation (symmetric): any peer within 1.2 tiles is pushed away,
-    //            strongest at zero distance. Prevents physical overlap / smooshing.
-    //   Case 2 — forward yield (asymmetric): peer in front + same direction. Only the higher-UID
-    //            (trailing) zombie slows and steps aside. Prevents mirror-jink oscillation.
-    //   Case 3 — lateral spread (symmetric): peer beside + same direction. Both push away from
-    //            each other so they spread across corridor width without oscillating.
-    private void WaveZombiePeerYield(
+    // FINALSTAND: wave zombie spacing, used for three things:
+    //   - spacing from other zombies so they don't stack (symmetric, strongest at contact);
+    //   - yielding to a zombie ahead going the same way (only the trailing one brakes, so they don't mirror-jink);
+    //   - spreading out from a zombie alongside going the same way, so lanes fill the corridor width;
+    // and standing off from living, standing non-zombies (players) so they settle at melee range.
+    // Neighbours come from a grid of mob positions built once per tick. A broadphase query per zombie
+    // was over half the server tick once a horde piled onto its targets.
+    private const float PeerYieldRadius = 2.0f;
+
+    // Heading is the normalised move input, or zero when standing still.
+    private readonly record struct SpacingEntry(EntityUid Uid, Vector2 Position, Vector2 Heading, bool IsWave);
+
+    private bool _spacingWanted;
+    private readonly List<SpacingEntry> _spacingEntries = new();
+    private readonly Dictionary<(MapId, Vector2i), List<int>> _spacingCells = new();
+
+    // Cells filled this tick, the only ones that need clearing. The rest of the dictionary is ground nobody is standing
+    // on and maps from earlier rounds; it is dropped once it outgrows the live cells by this much.
+    private readonly List<List<int>> _spacingUsed = new();
+    private readonly List<(MapId, Vector2i)> _spacingStale = new();
+    private const int SpacingCellSlack = 4096;
+
+    internal int SpacingCellCount => _spacingCells.Count;
+
+    private void BuildSpacingIndex()
+    {
+        foreach (var cell in _spacingUsed)
+            cell.Clear();
+        _spacingUsed.Clear();
+        _spacingEntries.Clear();
+
+        var query = EntityQueryEnumerator<MobStateComponent, PhysicsComponent, TransformComponent, MetaDataComponent>();
+        while (query.MoveNext(out var uid, out var mobState, out var body, out var xform, out var meta))
+        {
+            if (body.BodyType == BodyType.Static
+                || xform.MapID == MapId.Nullspace
+                || (meta.Flags & MetaDataFlags.InContainer) != 0)
+                continue;
+
+            // A downed or dead body is walked over, otherwise every crit player becomes a wall and every corpse
+            // a zombie to queue behind.
+            if (mobState.CurrentState != MobState.Alive
+                || _standingQuery.TryGetComponent(uid, out var standing) && !standing.Standing)
+                continue;
+
+            var isWave = _waveTagQuery.HasComponent(uid);
+
+            var position = _transform.GetWorldPosition(xform);
+            var moving = isWave && _inputMoverQuery.TryGetComponent(uid, out var mover)
+                ? mover.CurTickSprintMovement
+                : Vector2.Zero;
+
+            var key = (xform.MapID, (position / PeerYieldRadius).Floored());
+            if (!_spacingCells.TryGetValue(key, out var list))
+            {
+                list = new List<int>();
+                _spacingCells[key] = list;
+            }
+
+            if (list.Count == 0)
+                _spacingUsed.Add(list);
+
+            list.Add(_spacingEntries.Count);
+            var heading = moving == Vector2.Zero ? Vector2.Zero : moving.Normalized();
+            _spacingEntries.Add(new SpacingEntry(uid, position, heading, isWave));
+        }
+
+        if (_spacingCells.Count > _spacingUsed.Count + SpacingCellSlack)
+            PruneSpacingCells();
+    }
+
+    private void PruneSpacingCells()
+    {
+        foreach (var (key, cell) in _spacingCells)
+        {
+            if (cell.Count == 0)
+                _spacingStale.Add(key);
+        }
+
+        foreach (var key in _spacingStale)
+            _spacingCells.Remove(key);
+
+        _spacingStale.Clear();
+    }
+
+    private void WaveZombieSpacing(
         EntityUid uid,
+        MapId mapId,
         Angle offsetRot,
         Vector2 worldPos,
         Span<float> danger)
     {
-        if (!_waveTagQuery.HasComponent(uid)) return;
-        if (!_inputMoverQuery.TryGetComponent(uid, out var myMover)) return;
-        var myDir = myMover.CurTickSprintMovement;
-        var isMoving = myDir != Vector2.Zero;
-
-        const float SeparationRadius    = 1.2f;
-        const float PeerYieldRadius     = 2.0f;
-        const float SeparationWeight    = 0.6f;
+        const float PeerSpacingRadius   = 1.2f;
+        const float PeerSpacingWeight   = 0.6f;
         const float ForwardYieldWeight  = 0.45f;
         const float LateralYieldWeight  = 0.35f;
         const float LateralSpreadWeight = 0.45f;
 
-        var myDirNorm  = isMoving ? myDir.Normalized() : Vector2.Zero;
-        var preferLeft = ((int)uid & 1) == 0;
+        // Starts at melee range; weight above 1 so it beats seek interest up close.
+        const float StandOffRadius = 1.0f;
+        const float StandOffWeight = 2.5f;
 
-        var ents = _entSetPool.Get();
-        _lookup.GetEntitiesInRange(uid, PeerYieldRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
-
-        foreach (var ent in ents)
+        var isMoving = false;
+        var myDirNorm = Vector2.Zero;
+        if (_inputMoverQuery.TryGetComponent(uid, out var myMover) && myMover.CurTickSprintMovement != Vector2.Zero)
         {
-            if (ent == uid || !_waveTagQuery.HasComponent(ent)) continue;
+            isMoving = true;
+            myDirNorm = myMover.CurTickSprintMovement.Normalized();
+        }
 
-            var peerPos   = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
-            var toPeer    = peerPos - worldPos;
-            var dist      = toPeer.Length();
-            if (dist < 0.01f || dist > PeerYieldRadius) continue;
-            var toPeerDir = toPeer / dist;
+        var preferLeft = PrefersLeft(uid);
+        var centre = (worldPos / PeerYieldRadius).Floored();
 
-            // Case 1: near-peer separation — symmetric, fires for any peer within SeparationRadius.
-            // Weight is highest at contact (dist=0) and falls to zero at SeparationRadius.
-            if (dist < SeparationRadius)
+        for (var x = -1; x <= 1; x++)
+        {
+            for (var y = -1; y <= 1; y++)
             {
-                var sepWeight   = SeparationWeight * (1f - dist / SeparationRadius);
-                var towardLocal = offsetRot.RotateVec(toPeerDir);
-                for (var i = 0; i < InterestDirections; i++)
+                if (!_spacingCells.TryGetValue((mapId, centre + new Vector2i(x, y)), out var cell))
+                    continue;
+
+                foreach (var i in cell)
                 {
-                    var dot = Vector2.Dot(towardLocal, Directions[i]);
-                    if (dot > 0f)
-                        danger[i] = MathF.Max(danger[i], dot * sepWeight);
-                }
-            }
+                    var other = _spacingEntries[i];
+                    if (other.Uid == uid)
+                        continue;
 
-            // Cases 2+3 only apply when we're moving and the peer is heading the same general direction.
-            if (!isMoving) continue;
-            if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover)) continue;
-            var peerDir = peerMover.CurTickSprintMovement;
-            if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.4f) continue;
+                    var toOther = other.Position - worldPos;
+                    var distSq = toOther.LengthSquared();
+                    if (distSq < 0.0001f || distSq > PeerYieldRadius * PeerYieldRadius)
+                        continue;
 
-            var forwardDot = Vector2.Dot(myDirNorm, toPeerDir);
+                    var dist = MathF.Sqrt(distSq);
+                    var toOtherDir = toOther / dist;
+                    var towardLocal = offsetRot.RotateVec(toOtherDir);
 
-            if (forwardDot > 0.4f)
-            {
-                // Case 2: peer is in front and moving the same way. Only the higher-UID zombie
-                // yields so only one side brakes — prevents the mirror-jink swap loop.
-                if ((int)ent >= (int)uid) continue;
+                    if (!other.IsWave)
+                    {
+                        if (dist <= StandOffRadius)
+                            AddDanger(danger, towardLocal, StandOffWeight * (1f - dist / StandOffRadius));
+                        continue;
+                    }
 
-                var towardLocal = offsetRot.RotateVec(toPeerDir);
-                for (var i = 0; i < InterestDirections; i++)
-                {
-                    var dot = Vector2.Dot(towardLocal, Directions[i]);
-                    if (dot > 0f)
-                        danger[i] = MathF.Max(danger[i], dot * ForwardYieldWeight);
-                }
+                    if (dist < PeerSpacingRadius)
+                        AddDanger(danger, towardLocal, PeerSpacingWeight * (1f - dist / PeerSpacingRadius));
 
-                // Lateral component: bias to a stable side so the zombie commits to one pass lane.
-                var lateralWorld = preferLeft
-                    ? new Vector2(-toPeerDir.Y,  toPeerDir.X)
-                    : new Vector2( toPeerDir.Y, -toPeerDir.X);
-                var lateralLocal = offsetRot.RotateVec(-lateralWorld);
-                for (var i = 0; i < InterestDirections; i++)
-                {
-                    var dot = Vector2.Dot(lateralLocal, Directions[i]);
-                    if (dot > 0f)
-                        danger[i] = MathF.Max(danger[i], dot * LateralYieldWeight);
-                }
-            }
-            else
-            {
-                // Case 3: peer is beside us (forwardDot ≤ 0.4), same direction. Symmetric push
-                // away from each other — both diverge outward so they spread across the corridor.
-                var towardLocal = offsetRot.RotateVec(toPeerDir);
-                for (var i = 0; i < InterestDirections; i++)
-                {
-                    var dot = Vector2.Dot(towardLocal, Directions[i]);
-                    if (dot > 0f)
-                        danger[i] = MathF.Max(danger[i], dot * LateralSpreadWeight);
+                    if (!isMoving
+                        || other.Heading == Vector2.Zero
+                        || Vector2.Dot(myDirNorm, other.Heading) <= 0.4f)
+                        continue;
+
+                    if (Vector2.Dot(myDirNorm, toOtherDir) <= 0.4f)
+                    {
+                        AddDanger(danger, towardLocal, LateralSpreadWeight);
+                        continue;
+                    }
+
+                    // Ahead of us and going our way. Only the higher-uid zombie yields.
+                    if ((int) other.Uid >= (int) uid)
+                        continue;
+
+                    AddDanger(danger, towardLocal, ForwardYieldWeight);
+
+                    // Commit to a fixed side so the pass doesn't flip-flop.
+                    var lateral = preferLeft
+                        ? new Vector2(-toOtherDir.Y, toOtherDir.X)
+                        : new Vector2(toOtherDir.Y, -toOtherDir.X);
+                    AddDanger(danger, offsetRot.RotateVec(-lateral), LateralYieldWeight);
                 }
             }
         }
-
-        _entSetPool.Return(ents);
     }
 
-    // Prevents wave zombies from walking inside non-zombie entities (players, CCC).
-    // Adds danger toward any nearby non-wave physics body within 0.85 tiles so zombies
-    // settle just outside contact distance rather than overlapping their targets.
-    private void WaveZombieTargetSeparation(
-        EntityUid uid,
-        Angle offsetRot,
-        Vector2 worldPos,
-        Span<float> danger)
+    private static readonly TimeSpan QueueHold = TimeSpan.FromSeconds(0.5);
+
+    // Another wave zombie close ahead and nearer our target means we're waiting our turn. One that is moving
+    // only counts if it's after the same target, so two zombies can never each be waiting on the other.
+    private bool IsQueuedBehindWave(EntityUid uid, NPCSteeringComponent steering, MapCoordinates ourMap, Vector2 direction)
     {
-        if (!_waveTagQuery.HasComponent(uid)) return;
+        const float QueueRadius = 1.0f;
+        const float AheadCos = 0.5f;
 
-        // Radius starts at melee range so separation kicks in before contact.
-        // Weight > 1.0 so danger exceeds seek-interest at close range (final dir = interest - danger).
-        const float SeparationRadius = 1.0f;
-        const float SeparationWeight = 2.5f;
+        var length = direction.Length();
+        var target = steering.Coordinates.EntityId;
+        if (length < 0.01f
+            || !_xformQuery.TryGetComponent(target, out var targetXform)
+            || targetXform.MapID != ourMap.MapId)
+            return false;
 
-        var ents = _entSetPool.Get();
-        _lookup.GetEntitiesInRange(uid, SeparationRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
+        var targetPos = _transform.GetWorldPosition(targetXform);
+        var ourDistSq = (ourMap.Position - targetPos).LengthSquared();
+        var heading = direction / length;
+        var centre = (ourMap.Position / PeerYieldRadius).Floored();
 
-        foreach (var ent in ents)
+        for (var x = -1; x <= 1; x++)
         {
-            if (ent == uid || _waveTagQuery.HasComponent(ent)) continue;
-            // Only stand off from someone still on their feet. A downed or dead body is walked
-            // over, otherwise every crit player becomes a wall the horde has to path around.
-            if (!TryComp<MobStateComponent>(ent, out var ms) || ms.CurrentState != MobState.Alive) continue;
-            if (_standingQuery.TryGetComponent(ent, out var standing) && !standing.Standing) continue;
-
-            var entPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
-            var toEnt = entPos - worldPos;
-            var dist = toEnt.Length();
-            if (dist < 0.01f || dist > SeparationRadius) continue;
-
-            var weight = SeparationWeight * (1f - dist / SeparationRadius);
-            var towardLocal = offsetRot.RotateVec(toEnt / dist);
-            for (var i = 0; i < InterestDirections; i++)
+            for (var y = -1; y <= 1; y++)
             {
-                var dot = Vector2.Dot(towardLocal, Directions[i]);
-                if (dot > 0f)
-                    danger[i] = MathF.Max(danger[i], dot * weight);
+                if (!_spacingCells.TryGetValue((ourMap.MapId, centre + new Vector2i(x, y)), out var cell))
+                    continue;
+
+                foreach (var i in cell)
+                {
+                    var other = _spacingEntries[i];
+                    if (!other.IsWave || other.Uid == uid)
+                        continue;
+
+                    var toOther = other.Position - ourMap.Position;
+                    var dist = toOther.Length();
+                    if (dist < 0.01f
+                        || dist > QueueRadius
+                        || Vector2.Dot(heading, toOther) <= AheadCos * dist
+                        || (other.Position - targetPos).LengthSquared() >= ourDistSq)
+                        continue;
+
+                    if (!_steeringQuery.TryGetComponent(other.Uid, out var otherSteering)
+                        || otherSteering.Coordinates.EntityId == target)
+                        return true;
+                }
             }
         }
 
-        _entSetPool.Return(ents);
+        return false;
+    }
+
+    // The twelve directions as three lanes of four. A dense crowd puts a hundred zombies in reach, each a danger
+    // update. Danger never goes below zero and weights are positive, so a negative dot loses the max anyway, and
+    // MaxNumber keeps the lane when the dot is NaN, as the old one-at-a-time "dot > 0" check did.
+    private static readonly Vector4[] DirectionLanesX = new Vector4[InterestDirections / 4];
+    private static readonly Vector4[] DirectionLanesY = new Vector4[InterestDirections / 4];
+
+    internal static void AddDanger(Span<float> danger, Vector2 towardLocal, float weight)
+    {
+        var lanes = MemoryMarshal.Cast<float, Vector4>(danger);
+        var x = new Vector4(towardLocal.X);
+        var y = new Vector4(towardLocal.Y);
+        var w = new Vector4(weight);
+
+        for (var i = 0; i < DirectionLanesX.Length; i++)
+        {
+            var dot = x * DirectionLanesX[i] + y * DirectionLanesY[i];
+            lanes[i] = Vector4.MaxNumber(lanes[i], dot * w);
+        }
     }
 
     #endregion

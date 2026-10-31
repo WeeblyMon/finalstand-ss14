@@ -1,5 +1,3 @@
-// The RCD picker. Ring layout: the Build Ring opens centred on the cursor.
-// Belt layout: Z picks the belt slot under the cursor, or steps to the next one, instead of opening anything.
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;
@@ -18,6 +16,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.RCD;
 
+// In belt layout the key picks or steps belt slots instead of opening anything.
 public sealed partial class FSRCDMenuBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
 {
     [Dependency] private IPrototypeManager _proto = default!;

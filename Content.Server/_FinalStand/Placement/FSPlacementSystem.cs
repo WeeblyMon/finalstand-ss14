@@ -1,4 +1,3 @@
-// Generic "use item toggles ghost placement mode, click a spot to confirm" plumbing shared by any FS placeable item.
 using Content.Shared._FinalStand.Placement;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
@@ -22,6 +21,10 @@ public sealed partial class FSPlacementSystem : EntitySystem
     private void OnRotation(FSPlacementRotationMessage msg, EntitySessionEventArgs args)
     {
         if (args.SenderSession.AttachedEntity is not { } user)
+            return;
+
+        // The placement ghost only ever turns between the four sides; anything else is a modified client.
+        if (msg.Direction is not (Direction.North or Direction.East or Direction.South or Direction.West))
             return;
 
         var item = GetEntity(msg.Item);

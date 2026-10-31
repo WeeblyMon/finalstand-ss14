@@ -2,6 +2,7 @@ using Content.Shared.Standing;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Administration.Managers;
 using Content.Server.DoAfter;
@@ -76,6 +77,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
     [Dependency] private EntityQuery<PhysicsComponent> _physicsQuery = default!;
     [Dependency] private EntityQuery<TransformComponent> _xformQuery = default!;
     [Dependency] private EntityQuery<InputMoverComponent> _inputMoverQuery = default!;
+    [Dependency] private EntityQuery<NPCSteeringComponent> _steeringQuery = default!; // FINALSTAND
 
     private ObjectPool<HashSet<EntityUid>> _entSetPool =
         new DefaultObjectPool<HashSet<EntityUid>>(new SetPolicy<EntityUid>());
@@ -108,6 +110,13 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         for (var i = 0; i < InterestDirections; i++)
         {
             Directions[i] = new Angle(InterestRadians * i).ToVec();
+        }
+
+        // FINALSTAND
+        for (var i = 0; i < DirectionLanesX.Length; i++)
+        {
+            DirectionLanesX[i] = new Vector4(Directions[i * 4].X, Directions[i * 4 + 1].X, Directions[i * 4 + 2].X, Directions[i * 4 + 3].X);
+            DirectionLanesY[i] = new Vector4(Directions[i * 4].Y, Directions[i * 4 + 1].Y, Directions[i * 4 + 2].Y, Directions[i * 4 + 3].Y);
         }
 
         UpdatesBefore.Add(typeof(SharedPhysicsSystem));
@@ -165,6 +174,14 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         component.PathfindToken = null;
     }
 
+    // FINALSTAND: plans a new path without dropping the current one, so the NPC keeps moving until it arrives.
+    // Clearing the path instead stood every zombie near an opening door still until hundreds of requests drained.
+    public void RequestRepath(Entity<NPCSteeringComponent?> ent)
+    {
+        if (Resolve(ent, ref ent.Comp, false))
+            ent.Comp.RepathRequested = true;
+    }
+
     /// <summary>
     /// Adds the AI to the steering system to move towards a specific target
     /// </summary>
@@ -186,6 +203,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         }
 
         ResetStuck(component, Transform(uid).Coordinates);
+        component.QueuedUntil = TimeSpan.Zero; // FINALSTAND
         component.Coordinates = coordinates;
         return component;
     }
@@ -225,6 +243,19 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         RemComp<NPCSteeringComponent>(uid);
     }
 
+    // FINALSTAND
+    private const int WaveZombieSteerEvery = 2;
+    private const float StaticDangerReuseDistance = 0.1f;
+    private static readonly TimeSpan StaticDangerLifetime = TimeSpan.FromSeconds(1);
+    private int _steerTick;
+    private readonly List<(EntityUid, NPCSteeringComponent, InputMoverComponent, TransformComponent, float)> _steerBuffer = new();
+
+    // Hashed rather than read off the uid's parity, which a spawn stride could make the same for a whole horde. The
+    // side comes from a bit below the ones that pick the tick, so the two don't line up.
+    internal static int SteerSlot(EntityUid uid) => FSTickBucket.Of(uid, WaveZombieSteerEvery);
+
+    internal static bool PrefersLeft(EntityUid uid) => (FSTickBucket.Hash(uid) & (1u << 30)) != 0;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -232,17 +263,40 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         if (!_enabled)
             return;
 
-        // Not every mob has the modifier component so do it as a separate query.
-        var npcs = new (EntityUid, NPCSteeringComponent, InputMoverComponent, TransformComponent)[Count<ActiveNPCComponent>()];
+        // FINALSTAND: reuse the buffer, and steer wave zombies on alternate ticks with double the frame time.
+        // Their move input is carried over the tick in between, and a full horde steering every tick blew the
+        // tick budget.
+        _steerTick++;
+        var npcs = _steerBuffer;
+        npcs.Clear();
 
+        _spacingWanted = false;
         var query = EntityQueryEnumerator<ActiveNPCComponent, NPCSteeringComponent, InputMoverComponent, TransformComponent>();
-        var index = 0;
 
         while (query.MoveNext(out var uid, out _, out var steering, out var mover, out var xform))
         {
-            npcs[index] = (uid, steering, mover, xform);
-            index++;
+            if (_waveTagQuery.HasComponent(uid))
+            {
+                if ((SteerSlot(uid) + _steerTick) % WaveZombieSteerEvery != 0)
+                {
+                    // The mover drops input older than the current tick, which made every skipped tick a coast.
+                    mover.LastInputTick = _timing.CurTick;
+                    mover.LastInputSubTick = ushort.MaxValue;
+                    continue;
+                }
+
+                npcs.Add((uid, steering, mover, xform, frameTime * WaveZombieSteerEvery));
+                _spacingWanted = true;
+                continue;
+            }
+
+            npcs.Add((uid, steering, mover, xform, frameTime));
         }
+
+        var index = npcs.Count;
+
+        if (_spacingWanted)
+            BuildSpacingIndex();
 
         // Dependency issues across threads.
         var options = new ParallelOptions
@@ -255,8 +309,8 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
         Parallel.For(0, index, options, i =>
         {
-            var (uid, steering, mover, xform) = npcs[i];
-            Steer(uid, steering, mover, xform, frameTime, curTime);
+            var (uid, steering, mover, xform, steerFrameTime) = npcs[i];
+            Steer(uid, steering, mover, xform, steerFrameTime, curTime);
         });
 
         ActiveSteeringGauge.Set(_activeSteeringCount);
@@ -267,7 +321,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
             for (var i = 0; i < index; i++)
             {
-                var (uid, steering, mover, _) = npcs[i];
+                var (uid, steering, mover, _, _) = npcs[i];
 
                 data.Add(new NPCSteeringDebugData(
                     GetNetEntity(uid),
@@ -360,7 +414,8 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
         if (steering.CanSeek && !TrySeek(uid, mover, steering, body, xform, offsetRot, moveSpeed, interest, frameTime, ref forceSteer))
         {
-            SetDirection(uid, mover, steering, Vector2.Zero);
+            // FINALSTAND: a queued zombie keeps its path for when the way clears.
+            SetDirection(uid, mover, steering, Vector2.Zero, clear: steering.QueuedUntil == TimeSpan.Zero);
             return;
         }
 
@@ -378,12 +433,38 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         }
 
         // Avoid static objects like walls
-        CollisionAvoidance(uid, offsetRot, worldPos, agentRadius, layer, mask, xform, danger);
+        // FINALSTAND: a horde mostly stands in crowds, so wave zombies reuse their last wall check while they
+        // haven't moved. It still expires, so doors and barricades changing are picked up within a second.
+        if (_waveTagQuery.HasComponent(uid))
+        {
+            if (curTime < steering.StaticDangerUntil
+                && offsetRot == steering.StaticDangerRotation
+                && (worldPos - steering.StaticDangerPosition).LengthSquared() < StaticDangerReuseDistance * StaticDangerReuseDistance)
+            {
+                steering.StaticDanger.CopyTo(danger);
+            }
+            else
+            {
+                CollisionAvoidance(uid, offsetRot, worldPos, agentRadius, layer, mask, xform, danger);
+                danger.CopyTo(steering.StaticDanger);
+                steering.StaticDangerPosition = worldPos;
+                steering.StaticDangerRotation = offsetRot;
+                steering.StaticDangerUntil = curTime + StaticDangerLifetime;
+            }
+        }
+        else
+        {
+            CollisionAvoidance(uid, offsetRot, worldPos, agentRadius, layer, mask, xform, danger);
+        }
+
         DebugTools.Assert(!float.IsNaN(danger[0]));
 
-        Separation(uid, offsetRot, worldPos, agentRadius, layer, mask, body, xform, danger);
-        WaveZombiePeerYield(uid, offsetRot, worldPos, danger);
-        WaveZombieTargetSeparation(uid, offsetRot, worldPos, danger);
+        // FINALSTAND: wave zombies do their own peer and target spacing from a single lookup, which also covers
+        // what Separation does for them. Three neighbour queries per zombie per tick don't survive a 500+ horde.
+        if (_waveTagQuery.HasComponent(uid))
+            WaveZombieSpacing(uid, xform.MapID, offsetRot, worldPos, danger);
+        else
+            Separation(uid, offsetRot, worldPos, agentRadius, layer, mask, body, xform, danger);
 
         // Blend last and current tick
         Blend(steering, frameTime, interest, danger);
@@ -457,10 +538,13 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         {
             steering.CurrentPath.Clear();
             steering.CurrentPath.Enqueue(targetPoly);
+            steering.PathPlannedFor = _transform.ToMapCoordinates(steering.Coordinates); // FINALSTAND
             return;
         }
 
-        steering.PathfindToken = new CancellationTokenSource();
+        var token = new CancellationTokenSource(); // FINALSTAND
+        steering.PathfindToken = token;
+        var plannedFor = _transform.ToMapCoordinates(steering.Coordinates); // FINALSTAND
 
         var flags = _pathfindingSystem.GetFlags(uid);
 
@@ -469,8 +553,13 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
             xform.Coordinates,
             steering.Coordinates,
             steering.Range,
-            steering.PathfindToken.Token,
+            token.Token,
             flags);
+
+        // FINALSTAND: cancelled for a new destination or an unregister. Vanilla carried on and put the old path in,
+        // or cleared the token of the request made since.
+        if (steering.PathfindToken != token)
+            return;
 
         steering.PathfindToken = null;
 
@@ -492,6 +581,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
         PrunePath(uid, ourPos, targetPos.Position - ourPos.Position, result.Path);
         steering.CurrentPath = new Queue<PathPoly>(result.Path);
+        steering.PathPlannedFor = plannedFor; // FINALSTAND
     }
 
     // TODO: Move these to movercontroller

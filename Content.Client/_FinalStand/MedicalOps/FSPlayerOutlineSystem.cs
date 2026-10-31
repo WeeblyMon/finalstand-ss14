@@ -1,4 +1,4 @@
-// Single owner of player sprite post-shaders: Über chrome, then the medic's target outline, then buff flashes.
+using Content.Client._FinalStand.Visuals;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -10,6 +10,8 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
+// Sole owner of the FS post-shader on player sprites, so one effect at a time in a fixed order: Über chrome, target
+// outline, buff flashes.
 public sealed partial class FSPlayerOutlineSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
@@ -17,6 +19,7 @@ public sealed partial class FSPlayerOutlineSystem : EntitySystem
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     private const string OutlineShader = "SelectionOutline";
     private const string ChromeShader = "FSUberChrome";
@@ -144,7 +147,7 @@ public sealed partial class FSPlayerOutlineSystem : EntitySystem
             _shaders[uid] = entry;
         }
 
-        sprite.PostShader = entry.Instance;
+        FSPostShaders.SetGlow(_sprite, (uid, sprite), FSPostShaders.PlayerEffect, entry.Instance);
         _wanted.Add(uid);
         return entry.Instance;
     }
@@ -172,6 +175,6 @@ public sealed partial class FSPlayerOutlineSystem : EntitySystem
             return;
 
         if (TryComp<SpriteComponent>(uid, out var sprite))
-            sprite.PostShader = null;
+            _sprite.RemovePostShader(sprite, FSPostShaders.PlayerEffect);
     }
 }

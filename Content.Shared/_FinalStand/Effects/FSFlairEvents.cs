@@ -1,5 +1,5 @@
-// One-off visual moments the server tells nearby clients about; the client draws them with its particle system.
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Effects;
@@ -23,4 +23,14 @@ public sealed class FSBuildHologramEvent(NetCoordinates coords, string piece, fl
     public readonly string Piece = piece;
     public readonly float Duration = duration;
     public readonly Angle Rotation = rotation;
+}
+
+// Lightning-style beams are pure decoration: the client lays the segments itself instead of the server
+// spawning a networked entity for every tile of every arc.
+[Serializable, NetSerializable]
+public sealed class FSBeamEvent(MapCoordinates from, MapCoordinates to, EntProtoId segment) : EntityEventArgs
+{
+    public readonly MapCoordinates From = from;
+    public readonly MapCoordinates To = to;
+    public readonly EntProtoId Segment = segment;
 }

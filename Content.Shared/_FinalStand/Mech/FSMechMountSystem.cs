@@ -1,9 +1,9 @@
-// Caps how many weapons of a mount size a combat mech carries, on top of the mech's equipment whitelist.
 using Content.Shared.Mech.Components;
 using Content.Shared.Tag;
 
 namespace Content.Shared._FinalStand.Mech;
 
+// Per-mount-size weapon caps, on top of the mech's equipment whitelist.
 public sealed partial class FSMechMountSystem : EntitySystem
 {
     [Dependency] private TagSystem _tag = default!;

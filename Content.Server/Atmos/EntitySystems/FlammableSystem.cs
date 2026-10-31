@@ -143,7 +143,9 @@ namespace Content.Server.Atmos.EntitySystems
             // TODO: Should this be generalized into a general non-hard 'effects' fixture or something? I can't think of other use cases for it.
             // This doesn't seem great either (lots more collisions generated) but there isn't a better way to solve it either that I can think of.
 
-            if (!TryComp<PhysicsComponent>(uid, out var body))
+            // FINALSTAND: in a horde it doubles the contact count. Mob pushing collides through it too, so mobs without
+            // it can't be pushed; FS plays with pushing off (the release default).
+            if (!component.FireSpread || !TryComp<PhysicsComponent>(uid, out var body))
                 return;
 
             _fixture.TryCreateFixture(uid, component.FlammableCollisionShape, component.FlammableFixtureID, density: 0,

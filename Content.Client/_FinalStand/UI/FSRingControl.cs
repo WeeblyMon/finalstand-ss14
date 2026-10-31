@@ -1,5 +1,3 @@
-// Shared ring mechanics for the FS radial pickers: slot layout, hover, click and the dark centre disc.
-// It opens centred on the cursor, so every slot is always the same flick away, and stays clamped on screen.
 using System.Numerics;
 using Content.Client._FinalStand.RCD;
 using Robust.Client.Graphics;
@@ -10,6 +8,7 @@ using Robust.Shared.Input;
 
 namespace Content.Client._FinalStand.UI;
 
+// Opens centred on the cursor so every slot is the same flick away.
 public abstract class FSRingControl : Control
 {
     protected const float SlotRadius = 30f;

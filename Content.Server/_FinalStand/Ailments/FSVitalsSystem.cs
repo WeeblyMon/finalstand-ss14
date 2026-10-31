@@ -1,5 +1,5 @@
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Ailments;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
@@ -33,7 +33,7 @@ public sealed partial class FSVitalsSystem : EntitySystem
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var query = EntityQueryEnumerator<FSAilmentStateComponent>();
         while (query.MoveNext(out var uid, out _))

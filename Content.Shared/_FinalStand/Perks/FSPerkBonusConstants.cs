@@ -28,7 +28,6 @@ public static class FSPerkBonusConstants
     public const float InvestorPerLevel = 0.005f;
     public const float MutualFundPerLevel = 0.0025f;
     public const float ProfiteerFraction = 0.014f;
-    public const float ProfiteerHitBase = 30f;  // per ranged hit that raises enemy damage
     public const float ProfiteerKillBase = 200f; // per zombie kill
 
     public const float FieldMedicPerLevel = 0.15f;
@@ -66,6 +65,7 @@ public static class FSPerkBonusConstants
     public const float ShowstopperHealPerLevel = 2f;        // per melee kill while at ShowstopperHealRank or higher
     public const int ShowstopperHealRank = 5;               // S
     public const float ConcealedCarryPerLevel = 0.04f;
+    public const float ConcealedCarryLargeGunFactor = 0.5f;
     public const float GunslingerDamagePerLevel = 0.06f;
     public const float GunslingerFireRatePerLevel = 0.10f;
     public const float LoneWolfDamagePerLevel = 0.03f;
@@ -112,6 +112,22 @@ public static class FSPerkBonusConstants
     public const float WolfPackReloadPerLevel = 0.07f;
     public const float WolfPackResistPerLevel = 0.05f;
     public const float WolfPackRadius = 6f;
+
+    // Archetype (FSArchetypeRules.ArchetypeCount of one category slotted) and keystone (KeystoneCount) multipliers.
+    public const float ArchetypeSlayerDamage = 1.08f;
+    public const float KeystoneSlayerDamage = 1.2f;
+    public const float ArchetypeBulwarkDamageTaken = 0.92f;
+    public const float KeystoneBulwarkDamageTaken = 0.8f;
+    public const float ArchetypeOperatorSpeed = 1.06f;
+    public const float KeystoneOperatorSpeed = 1.15f;
+    public const float ArchetypeTycoonCredits = 1.12f;
+    public const float KeystoneTycoonCredits = 1.3f;
+    public const float ArchetypeSpecialistBonus = 1.03f; // damage and credits
+    public const float ArchetypeSpecialistDamageTaken = 0.97f;
+    public const float ArchetypeSpecialistSpeed = 1.02f;
+    public const float KeystoneSpecialistBonus = 1.08f;  // damage and credits
+    public const float KeystoneSpecialistDamageTaken = 0.92f;
+    public const float KeystoneSpecialistSpeed = 1.05f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

@@ -1,6 +1,6 @@
 ﻿- type: entity
-  id: FSOverchargeBolt
   parent: BulletLaser
+  id: FSOverchargeBolt
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -17,8 +17,8 @@
     energy: 8.0
 
 - type: entity
-  id: FSOverchargeShard
   parent: BulletLaser
+  id: FSOverchargeShard
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -37,8 +37,8 @@
 - type: entity
   parent: BasicHitscan
   id: FSPulse
-  name: blue high-energy laser ray
   categories: [ HideSpawnMenu ]
+  name: blue high-energy laser ray
   components:
   - type: HitscanBasicDamage
     damage:
@@ -56,8 +56,8 @@
       state: impact_blue
 
 - type: entity
-  id: FSPelletShotgunSplinter
   parent: BaseBullet
+  id: FSPelletShotgunSplinter
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -68,8 +68,8 @@
 
 # ── Standard shotgun pellets (+100% vs PelletShotgun 10 → 20) ────────────────
 - type: entity
-  id: FSPelletShotgunStandard
   parent: PelletShotgun
+  id: FSPelletShotgunStandard
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -79,8 +79,8 @@
         Piercing: 20
 
 - type: entity
-  id: FSPelletShotgunStandardSpread
   parent: FSPelletShotgunStandard
+  id: FSPelletShotgunStandardSpread
   categories: [ HideSpawnMenu ]
   components:
   - type: ProjectileSpread
@@ -89,8 +89,8 @@
     spread: 15
 
 - type: entity
-  id: FSPelletDoubleBarrel
   parent: BaseBullet
+  id: FSPelletDoubleBarrel
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -100,8 +100,8 @@
         Piercing: 20
 
 - type: entity
-  id: FSPelletDoubleBarrelSpread
   parent: FSPelletDoubleBarrel
+  id: FSPelletDoubleBarrelSpread
   categories: [ HideSpawnMenu ]
   components:
   - type: ProjectileSpread
@@ -110,8 +110,8 @@
     spread: 15
 
 - type: entity
-  id: FSBulletFlintlock
   parent: BulletMagnum
+  id: FSBulletFlintlock
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -121,8 +121,8 @@
         Piercing: 70
 
 - type: entity
-  id: FSPrismaticBeam
   parent: BulletLaser
+  id: FSPrismaticBeam
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -140,8 +140,8 @@
 
 # ── SMG bullet (+40% vs BulletPistol 16 → 22) ──���─────────────────────────────
 - type: entity
-  id: FSBulletPistolSMG
   parent: BulletPistol
+  id: FSBulletPistolSMG
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -152,8 +152,8 @@
 
 # ── Hushpup pellets (+100% vs PelletShotgun 10 → 20, suppressed so lower than std) ──
 - type: entity
-  id: FSPelletShotgunHushpup
   parent: PelletShotgun
+  id: FSPelletShotgunHushpup
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -163,8 +163,8 @@
         Piercing: 28
 
 - type: entity
-  id: FSPelletShotgunHushpupSpread
   parent: FSPelletShotgunHushpup
+  id: FSPelletShotgunHushpupSpread
   categories: [ HideSpawnMenu ]
   components:
   - type: ProjectileSpread
@@ -174,8 +174,8 @@
 
 # ── Energy shotgun laser (+100% vs BulletLaser Heat 13 → 40) ─────────────────
 - type: entity
-  id: FSBulletLaserShotgun
   parent: BulletLaser
+  id: FSBulletLaserShotgun
   categories: [ HideSpawnMenu ]
   components:
   - type: Appearance
@@ -225,8 +225,8 @@
     energy: 4.0
 
 - type: entity
-  id: FSBulletLaserShotgunFragment
   parent: FSBulletLaserShotgun
+  id: FSBulletLaserShotgunFragment
   categories: [ HideSpawnMenu ]
   components:
   - type: Fixtures
@@ -254,8 +254,8 @@
     energy: 2.0
 
 - type: entity
-  id: FSBulletLaserShotgunSpread
   parent: FSBulletLaserShotgun
+  id: FSBulletLaserShotgunSpread
   categories: [ HideSpawnMenu ]
   components:
   - type: ProjectileSpread
@@ -335,8 +335,8 @@
 
 # ── Laser carbine bolt — custom sprite, real flying projectile instead of hitscan ──
 - type: entity
-  id: FSBulletLaserCarbine
   parent: BulletLaser
+  id: FSBulletLaserCarbine
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
@@ -360,8 +360,8 @@
 
 # ── Overload Round supercharged bolt — visually distinct, replaces the normal bolt on proc ──
 - type: entity
-  id: FSBulletLaserCarbineOverload
   parent: FSBulletLaserCarbine
+  id: FSBulletLaserCarbineOverload
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
@@ -417,8 +417,8 @@
 # ── X-Ray laser — uses FSXrayRaycast to pierce walls and hit zombies only ──────
 - type: entity
   id: FSXrayLaser
-  name: X-ray pulse beam
   categories: [ HideSpawnMenu ]
+  name: X-ray pulse beam
   components:
   - type: HitscanAmmo
   - type: FSXrayRaycast
@@ -445,8 +445,8 @@
 # ── Harvester beam — damage dealt entirely by FSHarvesterWeaponSystem, not HitscanBasicDamage. ──
 - type: entity
   id: FSHarvesterBeam
-  name: harvester beam
   categories: [ HideSpawnMenu ]
+  name: harvester beam
   components:
   - type: FSHarvester
   - type: HitscanAmmo
@@ -457,23 +457,23 @@
 
 # ── Hristov round — punches through glass like the laser carbine bolt ──────────
 - type: entity
-  id: FSBulletAntiMateriel
   parent: BulletAntiMateriel
+  id: FSBulletAntiMateriel
   categories: [ HideSpawnMenu ]
   components:
   - type: FSPiercesGlass
 
 - type: entity
-  id: FSCartridgeAntiMateriel
   parent: CartridgeAntiMateriel
+  id: FSCartridgeAntiMateriel
   categories: [ HideSpawnMenu ]
   components:
   - type: CartridgeAmmo
     proto: FSBulletAntiMateriel
 
 - type: entity
-  id: FSMagazineBoxAntiMateriel
   parent: MagazineBoxAntiMateriel
+  id: FSMagazineBoxAntiMateriel
   categories: [ HideSpawnMenu ]
   components:
   - type: BallisticAmmoProvider
@@ -481,8 +481,8 @@
 
 # Deflected shrapnel: mobs only, so a glowing zombie cannot chew through the station it stands in.
 - type: entity
-  id: FSArmouredDeflectShard
   parent: BulletLaser
+  id: FSArmouredDeflectShard
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage

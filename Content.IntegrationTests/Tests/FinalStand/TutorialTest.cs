@@ -179,6 +179,44 @@ public sealed class GameplayTipTest : GameTest
     }
 
     [Test]
+    public async Task TheConsoleTipIsCheckedAtMostOnceASecond()
+    {
+        var map = await Pair.CreateTestMap();
+        var ccc = EntityUid.Invalid;
+
+        void HitConsole()
+        {
+            var damage = new DamageSpecifier(SProtoMan.Index(Blunt), 10);
+            SEntMan.System<DamageableSystem>().TryChangeDamage(ccc, damage, ignoreResistances: true);
+        }
+
+        await Server.WaitAssertion(() =>
+        {
+            var tutorial = SEntMan.System<FSNewPlayerTipSystem>();
+            var session = ServerSession!;
+            ccc = SEntMan.SpawnEntity("FinalStandCCC", map.GridCoords);
+
+            tutorial.Replay(session.UserId);
+            HitConsole();
+            Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.CccAttacked), Is.True, "test precondition");
+
+            tutorial.Replay(session.UserId);
+            HitConsole();
+            Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.CccAttacked), Is.False,
+                "every swing at the console doesn't re-check every player");
+        });
+
+        await RunSeconds(1.1f);
+
+        await Server.WaitAssertion(() =>
+        {
+            HitConsole();
+            Assert.That(SEntMan.System<FSNewPlayerTipSystem>().HasSeen(ServerSession!.UserId, FSTutorialTip.CccAttacked), Is.True,
+                "someone who wanted tips after the first hit still gets one a second later");
+        });
+    }
+
+    [Test]
     public async Task SpawningExplainsTheGoalAndTheControls()
     {
         await Server.WaitAssertion(() =>
@@ -286,5 +324,40 @@ public sealed class TutorialCardTest : GameTest
             hud.IsReadyUpVisible = false;
             hud.ReadyUpPlayerIsReady = false;
         });
+    }
+}
+
+[TestFixture]
+public sealed class TutorialCardDisconnectTest : GameTest
+{
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
+
+    [Test]
+    public async Task ADisconnectDropsTheQueuedCards()
+    {
+        var name = ServerSession!.Name;
+        var ui = Client.ResolveDependency<Robust.Client.UserInterface.IUserInterfaceManager>()
+            .GetUIController<Content.Client._FinalStand.Tutorial.FSTutorialUIController>();
+        await Client.WaitPost(() =>
+        {
+            ui.Reset();
+            ui.Enqueue(FSTutorialTip.Welcome);
+            ui.Enqueue(FSTutorialTip.PerkShop);
+        });
+
+        var net = Client.ResolveDependency<Robust.Shared.Network.IClientNetManager>();
+        await Client.WaitPost(() => net.ClientDisconnect("testing a disconnect"));
+        await Pair.RunTicksSync(10);
+
+        // The next card looks up its picture through SpriteSystem, which went down with the connection.
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(ui.Showing, Is.Null, "the cards go with the server that sent them");
+            Assert.DoesNotThrow(ui.Dismiss);
+        });
+
+        Client.SetConnectTarget(Server);
+        await Client.WaitPost(() => net.ClientConnect(null!, 0, name));
+        await Pair.RunTicksSync(30);
     }
 }

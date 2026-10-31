@@ -47,9 +47,7 @@ public sealed partial class CritSystem : EntitySystem
 
     public float CalculateCritMultiplier(EntityUid gun)
     {
-        if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgradeState))
-            return upgradeState.CritDamageMultiplier;
-        return TryComp<CritComponent>(gun, out var critComp) ? critComp.CritMultiplier : 1.5f;
+        return FSCritMath.Multiplier(CompOrNull<CritComponent>(gun), CompOrNull<FSWeaponUpgradeStateComponent>(gun));
     }
 
     public bool TryRollCrit(EntityUid shooter, EntityUid gun, EntityUid target, out float multiplier)
@@ -71,30 +69,34 @@ public sealed partial class CritSystem : EntitySystem
 
     private void OnProjectileHit(EntityUid uid, ProjectileComponent comp, ref ProjectileHitEvent args)
     {
-        if (comp.Shooter == null || comp.Weapon == null)
+        if (comp.Shooter is not { } shooterUid || comp.Weapon is not { } weaponUid)
             return;
 
-        if (HasComp<FSFriendlyFireComponent>(comp.Shooter.Value) && HasComp<FSFriendlyFireComponent>(args.Target))
+        // A bullet still in flight after its shooter or weapon was deleted (a giant's boulder when the wave is
+        // cleared, a packed sentry's rounds) can't crit and skips whatever needed them, but target effects
+        // (armoured deflect) still apply. With no shooter left to ask, friendly fire goes by the target alone.
+        EntityUid? shooter = TerminatingOrDeleted(shooterUid) ? null : shooterUid;
+        EntityUid? weapon = TerminatingOrDeleted(weaponUid) ? null : weaponUid;
+        if ((shooter == null || HasComp<FSFriendlyFireComponent>(shooterUid)) && HasComp<FSFriendlyFireComponent>(args.Target))
             return;
 
-        var didCrit = TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier);
-        if (didCrit)
+        var didCrit = false;
+        if (shooter is { } s && weapon is { } w && TryRollCrit(s, w, args.Target, out var multiplier))
         {
+            didCrit = true;
             args.Damage *= multiplier;
-            _pendingCrits.Add((comp.Shooter.Value, args.Target));
+            _pendingCrits.Add((s, args.Target));
         }
 
-        var hitEffect = new FSProjectileHitEffectEvent
+        var hitEffect = new FSProjectileHitEffectEvent(args.Target, args.Damage)
         {
-            Target        = args.Target,
-            Weapon        = comp.Weapon,
-            Shooter       = comp.Shooter,
+            Weapon        = weapon,
+            Shooter       = shooter,
             ProjectileUid = uid,
-            Damage        = args.Damage,
             WasCrit       = didCrit,
-            State         = CompOrNull<FSWeaponUpgradeStateComponent>(comp.Weapon.Value),
+            State         = weapon is { } live ? CompOrNull<FSWeaponUpgradeStateComponent>(live) : null,
         };
-        RaiseLocalEvent(hitEffect);
+        RaiseLocalEvent(ref hitEffect);
         if (hitEffect.AdditionalMultiplier != 1f)
             args.Damage *= hitEffect.AdditionalMultiplier;
     }
@@ -113,12 +115,7 @@ public sealed partial class CritSystem : EntitySystem
             return;
 
         var wasCrit = _pendingCrits.Remove((args.Origin.Value, uid));
-        RaiseLocalEvent(uid, new CritLandedEvent
-        {
-            Target = uid,
-            Shooter = args.Origin.Value,
-            FinalDamage = amount,
-            WasCrit = wasCrit,
-        });
+        var landed = new CritLandedEvent(uid, args.Origin.Value, amount, wasCrit);
+        RaiseLocalEvent(uid, ref landed);
     }
 }

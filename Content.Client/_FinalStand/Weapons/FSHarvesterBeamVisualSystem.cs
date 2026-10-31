@@ -20,6 +20,7 @@ public sealed partial class FSHarvesterBeamVisualSystem : EntitySystem
     [Dependency] private AnimationPlayerSystem _animPlayer = default!;
     [Dependency] private SharedPointLightSystem _lights = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSBeamFollowSystem _beamFollow = default!;
 
     private static readonly EntProtoId HitscanProto = "HitscanEffect";
     private static readonly Color BeamColor = Color.FromHex("#AA44FF");
@@ -108,12 +109,7 @@ public sealed partial class FSHarvesterBeamVisualSystem : EntitySystem
         var ent = Spawn(HitscanProto, coords);
 
         if (shooter is { } shooterUid && Exists(shooterUid))
-        {
-            var follow = EnsureComp<FSBeamFollowComponent>(ent);
-            follow.Shooter = shooterUid;
-            follow.Impact = impact;
-            follow.Part = part;
-        }
+            _beamFollow.Follow(ent, shooterUid, impact, part);
 
         var sprite = Comp<SpriteComponent>(ent);
         var xform = Transform(ent);

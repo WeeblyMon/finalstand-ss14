@@ -1,10 +1,11 @@
-// Turns the grey [Ping] chat lines on or off.
+using Content.Shared.Administration;
 using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
 using Robust.Shared.Console;
 
 namespace Content.Client._FinalStand.Pings;
 
+[AnyCommand]
 public sealed partial class FSPingChatCommand : LocalizedCommands
 {
     [Dependency] private IConfigurationManager _cfg = default!;

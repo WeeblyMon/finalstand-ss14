@@ -6,6 +6,7 @@ using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Server.Player;
+using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.Map;
@@ -22,7 +23,8 @@ namespace Content.Server.Movement.Systems;
 public sealed partial class LagCompensationSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private IConfigurationManager _cfg = default!; // fs
+    [Dependency] private IConfigurationManager _cfg = default!; // FINALSTAND
+    [Dependency] private INetConfigurationManager _netCfg = default!; // FINALSTAND
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
@@ -30,9 +32,19 @@ public sealed partial class LagCompensationSystem : EntitySystem
     // Max ping I've had is 350ms from aus to spain.
     public static readonly TimeSpan BufferTime = TimeSpan.FromMilliseconds(750);
 
-    private readonly Dictionary<NetUserId, GameTick> _viewTicks = new(); // fs
+    private readonly Dictionary<NetUserId, GameTick> _viewTicks = new(); // FINALSTAND
     private bool _enabled;
     private int _maxRewindMs;
+    private int _rewindSlackMs; // FINALSTAND
+
+    // FINALSTAND: client-only prediction settings the server can't read, at their defaults. The lag bias is the
+    // Windows one; Linux clients use 0, so it only ever allows them a tick more.
+    private const int ClientPredictTickBias = 1;
+    private const double ClientPredictLagBias = 0.016;
+
+    // FINALSTAND: net.buffer_size is the client's word. Nobody honest runs more than a few states, and an absurd
+    // value mustn't overflow the cap or buy back the whole window.
+    private const int MaxTrustedBufferSize = 4;
 
     public override void Initialize()
     {
@@ -40,13 +52,14 @@ public sealed partial class LagCompensationSystem : EntitySystem
         Log.Level = LogLevel.Info;
         SubscribeLocalEvent<LagCompensationComponent, MoveEvent>(OnLagMove);
 
-        SubscribeNetworkEvent<RequestShootEvent>(OnShootRequest, before: [typeof(SharedGunSystem)]); // fs
+        SubscribeNetworkEvent<RequestShootEvent>(OnShootRequest, before: [typeof(SharedGunSystem)]); // FINALSTAND
         SubscribeNetworkEvent<LightAttackEvent>(OnAttack, before: [typeof(SharedMeleeWeaponSystem)]);
         SubscribeNetworkEvent<HeavyAttackEvent>(OnAttack, before: [typeof(SharedMeleeWeaponSystem)]);
         SubscribeNetworkEvent<DisarmAttackEvent>(OnAttack, before: [typeof(SharedMeleeWeaponSystem)]);
 
         Subs.CVar(_cfg, CCVars.FSLagCompensation, v => _enabled = v, true);
         Subs.CVar(_cfg, CCVars.FSLagCompensationMaxRewindMs, v => _maxRewindMs = v, true);
+        Subs.CVar(_cfg, CCVars.FSLagCompensationRewindSlackMs, v => _rewindSlackMs = v, true); // FINALSTAND
 
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
     }
@@ -87,31 +100,52 @@ public sealed partial class LagCompensationSystem : EntitySystem
             return 0;
 
         var rewind = _timing.CurTick.Value - viewTick.Value + 0.5;
-        var max = _maxRewindMs / 1000.0 * _timing.TickRate;
+        // FINALSTAND: the view tick is the client's word, so cap it at how far behind this client really views,
+        // plus slack for jitter. Otherwise a low-ping client could always claim the full window and shoot where
+        // enemies used to be.
+        var tickRate = _timing.TickRate;
+        var slack = _rewindSlackMs / 1000.0 * tickRate / _timing.TimeScale;
+        var max = Math.Max(0, Math.Min(_maxRewindMs / 1000.0 * tickRate, ViewLagTicks(session) + slack));
         return Math.Clamp(rewind, 0, max);
+    }
+
+    // FINALSTAND: how far an honest client's view tick trails the tick its input is handled on. Mirrors the
+    // client's prediction target: its state buffer, the run-ahead for its round trip, and the tick bias.
+    private double ViewLagTicks(ICommonSession session)
+    {
+        var buffer = 4; // interpolation on, net.buffer_size 2
+        if (session.Channel is { } channel)
+        {
+            buffer = (_netCfg.GetClientCVar(channel, CVars.NetInterp) ? 2 : 1)
+                     + Math.Clamp(_netCfg.GetClientCVar(channel, CVars.NetBufferSize), 0, MaxTrustedBufferSize);
+        }
+
+        // Counted in ticks of scaled game time, like the client's own run-ahead.
+        var runAhead = Math.Ceiling(_timing.TickRate * (session.Ping / 1000.0 + ClientPredictLagBias) / _timing.TimeScale);
+        return buffer + runAhead + ClientPredictTickBias + 0.5;
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        var historyTicks = (uint) Math.Ceiling(BufferTime.TotalSeconds * _timing.TickRate) + 2; // fs
+        var historyTicks = (uint) Math.Ceiling(BufferTime.TotalSeconds * _timing.TickRate) + 2; // FINALSTAND
         if (_timing.CurTick.Value <= historyTicks)
             return;
 
-        var cutoff = _timing.CurTick.Value - historyTicks; // fs
+        var cutoff = _timing.CurTick.Value - historyTicks; // FINALSTAND
         var query = AllEntityQuery<LagCompensationComponent>();
 
         while (query.MoveNext(out var comp))
         {
-            var positions = comp.Positions; // fs
+            var positions = comp.Positions; // FINALSTAND
             var remove = 0;
             while (remove + 1 < positions.Count && positions[remove + 1].Tick.Value <= cutoff)
             {
-                remove++; // fs
+                remove++; // FINALSTAND
             }
 
-            if (remove > 0) // fs
+            if (remove > 0) // FINALSTAND
                 positions.RemoveRange(0, remove);
         }
     }
@@ -121,7 +155,7 @@ public sealed partial class LagCompensationSystem : EntitySystem
         if (!args.NewPosition.EntityId.IsValid())
             return; // probably being sent to nullspace for deletion.
 
-        var tick = _timing.CurTick; // fs
+        var tick = _timing.CurTick; // FINALSTAND
         var positions = component.Positions;
 
         if (positions.Count == 0 && args.OldPosition.EntityId.IsValid() && tick.Value > 0)
@@ -139,22 +173,22 @@ public sealed partial class LagCompensationSystem : EntitySystem
         if (!Resolve(uid, ref xform))
             return (EntityCoordinates.Invalid, Angle.Zero);
 
-        var rewind = GetRewindTicks(pSession); // fs
+        var rewind = GetRewindTicks(pSession); // FINALSTAND
         if (rewind <= 0 || !TryComp<LagCompensationComponent>(uid, out var lag))
             return (xform.Coordinates, xform.LocalRotation);
 
-        return Sample(lag, _timing.CurTick.Value - rewind, xform); // fs
+        return Sample(lag, _timing.CurTick.Value - rewind, xform); // FINALSTAND
     }
 
-    public MapCoordinates GetPastMapCoordinates(EntityUid uid, double tick, LagCompensationComponent? lag = null, TransformComponent? xform = null) // fs
+    public MapCoordinates GetPastMapCoordinates(EntityUid uid, double tick, LagCompensationComponent? lag = null, TransformComponent? xform = null) // FINALSTAND
     {
         if (!Resolve(uid, ref xform))
             return MapCoordinates.Nullspace;
 
-        if (!Resolve(uid, ref lag, false) || tick >= _timing.CurTick.Value) // fs
+        if (!Resolve(uid, ref lag, false) || tick >= _timing.CurTick.Value) // FINALSTAND
             return _transform.GetMapCoordinates(uid, xform);
 
-        return _transform.ToMapCoordinates(Sample(lag, tick, xform).Coordinates); // fs
+        return _transform.ToMapCoordinates(Sample(lag, tick, xform).Coordinates); // FINALSTAND
     }
 
     private (EntityCoordinates Coordinates, Angle Angle) Sample(LagCompensationComponent lag, double tick, TransformComponent xform)
@@ -181,11 +215,11 @@ public sealed partial class LagCompensationSystem : EntitySystem
     {
         for (var i = positions.Count - 1; i >= 0; i--)
         {
-            if (positions[i].Tick.Value <= tick) // fs
+            if (positions[i].Tick.Value <= tick) // FINALSTAND
                 return positions[i];
         }
 
-        return positions[0]; // fs
+        return positions[0]; // FINALSTAND
     }
 
     public Angle GetAngle(EntityUid uid, ICommonSession? session, TransformComponent? xform = null)

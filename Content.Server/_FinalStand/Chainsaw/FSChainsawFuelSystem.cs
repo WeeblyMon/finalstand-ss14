@@ -1,4 +1,3 @@
-// Chainsaw fuel mechanic: deplete per swing, refill from any WeldingFuel container (welder, tank, wall dispenser).
 using Content.Shared._FinalStand.Chainsaw;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Chemistry.EntitySystems;

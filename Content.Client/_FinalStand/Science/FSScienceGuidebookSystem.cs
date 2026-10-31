@@ -8,7 +8,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Science;
 
-// Auto-opens the guidebook to the Science section the first time this client spawns as a Scientist - onboards the Harvester/research loop for players new to (or drafted into) the department.
+// Opens the guidebook to the Science section the first time this client spawns as a Scientist.
 public sealed partial class FSScienceGuidebookSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;

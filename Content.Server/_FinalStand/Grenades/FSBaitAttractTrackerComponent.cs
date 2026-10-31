@@ -1,6 +1,7 @@
 namespace Content.Server._FinalStand.Grenades;
 
 [RegisterComponent]
+[Access(typeof(FSBaitAttractSystem))]
 public sealed partial class FSBaitAttractTrackerComponent : Component
 {
     // zombie uid -> the bait it is currently chasing

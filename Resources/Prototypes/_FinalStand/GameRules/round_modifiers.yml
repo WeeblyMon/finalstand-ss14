@@ -54,7 +54,6 @@
   - type: PassiveDamage
     allowedStates:
     - Alive
-    interval: 1
     damage:
       types:
         Blunt: -0.5

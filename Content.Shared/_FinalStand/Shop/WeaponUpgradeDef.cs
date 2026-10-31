@@ -133,8 +133,8 @@ public enum WeaponUpgradeType : byte
 public sealed partial class WeaponUpgradeDef
 {
     [DataField(required: true)] public string Id = "";
-    [DataField] public string Name = "";
-    [DataField] public string Description = "";
+    [DataField("name")] public LocId? NameKey;
+    [DataField("description")] public LocId? DescriptionKey;
     [DataField] public int MaxLevel = 5;
     [DataField] public int BaseCost = 100;
     [DataField] public WeaponUpgradeType Type = WeaponUpgradeType.FireRate;
@@ -152,11 +152,8 @@ public sealed partial class WeaponUpgradeDef
 
     /// <summary>While this upgrade is owned, the row shows AltName and AltDescription instead.</summary>
     [DataField] public string? AltWhenUpgrade;
-    [DataField] public string? AltName;
-    [DataField] public string? AltDescription;
-
-    /// <summary>Replaces the type-derived category label while AltWhenUpgrade is owned.</summary>
-    [DataField] public string? AltLabel;
+    [DataField("altName")] public LocId? AltNameKey;
+    [DataField("altDescription")] public LocId? AltDescriptionKey;
 
     [DataField] public EntProtoId? TargetWeaponProtoId;
 
@@ -164,6 +161,26 @@ public sealed partial class WeaponUpgradeDef
     [DataField] public ProtoId<FSTechNodePrototype>? RequiresResearch;
     [DataField] public ProtoId<FSTechNodePrototype>? DiscountResearch;
     [DataField] public float DiscountMultiplier = 1.0f;
+
+    public string Name => Text(NameKey);
+    public string Description => Text(DescriptionKey);
+    public string? AltName => AltNameKey is { } key ? Loc.GetString(key) : null;
+    public string? AltDescription => AltDescriptionKey is { } key ? Loc.GetString(key) : null;
+
+    private static string Text(LocId? key) => key is { } id ? Loc.GetString(id) : string.Empty;
+
+    // How much of a shotgun's pellet cone each Accuracy or AngleMax level takes away. On a pellet gun this is most
+    // of what the upgrade does, so its description quotes it too.
+    public const float PelletSpreadCutPerLevel = 0.16f;
+
+    // Degrees one level takes off the aimed spread (MinAngle), the sustained-fire worst case (MaxAngle) and the
+    // growth per shot (AngleIncrease). The upgrade, the shop's stats and the descriptions all go by this.
+    public (double Min, double Max, double Increase) AngleDeltaPerLevel() => Type switch
+    {
+        WeaponUpgradeType.Accuracy => (ValuePerLevel * 0.5, ValuePerLevel * 0.2, ValuePerLevel * 0.3),
+        WeaponUpgradeType.AngleMax => (0.0, ValuePerLevel, 0.0),
+        _                          => (0.0, 0.0, 0.0),
+    };
 
     private static readonly float[] LevelCostMults = [1.0f, 1.3f, 1.8f, 2.6f, 3.6f];
 

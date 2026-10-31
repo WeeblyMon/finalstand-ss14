@@ -479,7 +479,7 @@
     - RollerBedsStatic
     - MedicalClothingStatic
     - EmptyMedkitsStatic
-    - FSMedicalInjectorsStatic
+    - FSMedicalInjectorsStatic # FINALSTAND
     dynamicPacks:
     - Chemistry
   - type: Machine

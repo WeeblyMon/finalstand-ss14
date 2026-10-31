@@ -14,7 +14,7 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeAllEvent<ImpactEffectEvent>(OnProjectileImpact); // fs
+        SubscribeAllEvent<ImpactEffectEvent>(OnProjectileImpact); // FINALSTAND
     }
 
     private void OnProjectileImpact(ImpactEffectEvent ev)

@@ -1,17 +1,24 @@
-// Owns the prestige database: connection, schema, migration, and typed row access.
 using System.IO;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Robust.Shared.ContentPack;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Economy;
 
 public sealed partial class FSPlayerDataStore : EntitySystem
 {
     [Dependency] private IResourceManager _res = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private SqliteConnection? _db;
     private SqliteTransaction? _activeTx;
+
+    // After a failed read that player's data is left alone for a while. Unloaded wallets and levels retry their load
+    // on each payout, and a broken row would otherwise cost a query and an error line for every hit and kill. Kept
+    // per player so one bad read doesn't hold up everyone else's loads.
+    private static readonly TimeSpan ReadRetryDelay = TimeSpan.FromSeconds(5);
+    private readonly Dictionary<Guid, TimeSpan> _readRetryAt = new();
 
     public override void Initialize()
     {
@@ -42,7 +49,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSDataStore] {what} failed and was rolled back: {e.Message}");
+            Log.Error($"{what} failed and was rolled back: {e.Message}");
         }
         finally
         {
@@ -94,16 +101,52 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] {what} failed: {e.Message}");
+            Log.Error($"{what} failed: {e.Message}");
             return -1;
         }
     }
 
+    // False only when the read itself failed (a locked file, an I/O error), as opposed to there being no row yet.
+    // Whoever loads data to save back later must not save after a failed read: the fallback would replace the row.
+    // With no database at all nothing is ever saved, so the fallback is safe to use as loaded.
+    private bool TryRead<T>(Guid userId, string what, Func<T> read, T fallback, out T value)
+    {
+        value = fallback;
+        if (_db == null)
+        {
+            Log.Error($"{what}: database is not open");
+            return true;
+        }
+
+        if (_readRetryAt.TryGetValue(userId, out var retryAt) && _timing.RealTime < retryAt)
+            return false;
+
+        try
+        {
+            value = read();
+            _readRetryAt.Remove(userId);
+            return true;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"{what} failed: {e.Message}");
+            _readRetryAt[userId] = _timing.RealTime + ReadRetryDelay;
+            return false;
+        }
+    }
+
+    private T TryRead<T>(Guid userId, string what, Func<T> read, T fallback)
+    {
+        TryRead(userId, what, read, fallback, out var value);
+        return value;
+    }
+
+    // Reads that aren't one player's data (ladder, title counts, meta). Nothing saves them back, so no backoff.
     private T TryRead<T>(string what, Func<T> read, T fallback)
     {
         if (_db == null)
         {
-            Log.Error($"[FSWallet] {what}: database is not open");
+            Log.Error($"{what}: database is not open");
             return fallback;
         }
 
@@ -113,7 +156,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] {what} failed: {e.Message}");
+            Log.Error($"{what} failed: {e.Message}");
             return fallback;
         }
     }
@@ -123,7 +166,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         if (_db != null)
             return true;
 
-        Log.Error($"[FSWallet] {what}: database is not open, change kept in memory only");
+        Log.Error($"{what}: database is not open, change kept in memory only");
         return false;
     }
 
@@ -146,7 +189,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         var rootDir = _res.UserData.RootDir;
         if (rootDir == null)
         {
-            Log.Warning("[FSWallet] UserData has no root dir — using in-memory DB.");
+            Log.Warning("UserData has no root dir — using in-memory DB.");
             _db = new SqliteConnection("Data Source=:memory:");
         }
         else
@@ -162,7 +205,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] Could not open the prestige database — progression will NOT be saved this session: {e}");
+            Log.Error($"Could not open the prestige database — progression will NOT be saved this session: {e}");
             _db?.Dispose();
             _db = null;
         }
@@ -202,7 +245,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         TryRenameLegacyColumns(db);
         InitProgressSchema(db);
 
-        Log.Debug("[FSWallet] Prestige database opened.");
+        Log.Debug("Prestige database opened.");
     }
 
     private void TryRenameLegacyColumns(SqliteConnection db)
@@ -224,7 +267,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
             using var cmd = db.CreateCommand();
             cmd.CommandText = $"ALTER TABLE prestige RENAME COLUMN {oldName} TO {newName}";
             cmd.ExecuteNonQuery();
-            Log.Info($"[FSDataStore] Renamed legacy column {oldName} to {newName}.");
+            Log.Info($"Renamed legacy column {oldName} to {newName}.");
         }
     }
 
@@ -246,7 +289,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         if (!IsOldSchema())
             return;
 
-        Log.Info("[FSWallet] Old schema detected — migrating to new schema...");
+        Log.Info("Old schema detected — migrating to new schema...");
 
         var rows = new List<(string UserId, string Username, int Ap, int Level, int Xp, int Prestige,
             string LevelsJson, string SlotsJson, string LoadoutsJson, int StoppingPower, int BulletStorm)>();
@@ -286,7 +329,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] Schema migration failed and was rolled back — database untouched: {e}");
+            Log.Error($"Schema migration failed and was rolled back — database untouched: {e}");
             throw;
         }
         finally
@@ -294,7 +337,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
             _activeTx = null;
         }
 
-        Log.Info($"[FSWallet] Migration complete — {rows.Count} row(s) moved to new schema.");
+        Log.Info($"Migration complete — {rows.Count} row(s) moved to new schema.");
     }
 
     private void MigrateRowsInto(List<(string UserId, string Username, int Ap, int Level, int Xp, int Prestige,
@@ -371,8 +414,14 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         catch { return fallback; }
     }
 
+    private static readonly FullRecord EmptyRecord = new(0, 1, 0, 0, "{}");
+
+    // For display. Anything that saves the record back loads it with TryGetFullRecord.
     public FullRecord GetFullRecord(Guid userId)
-        => TryRead($"record load for {userId}", () => GetFullRecordCore(userId), new FullRecord(0, 1, 0, 0, "{}"));
+        => TryRead(userId, $"record load for {userId}", () => GetFullRecordCore(userId), EmptyRecord);
+
+    public bool TryGetFullRecord(Guid userId, out FullRecord record)
+        => TryRead(userId, $"record load for {userId}", () => GetFullRecordCore(userId), EmptyRecord, out record);
 
     private FullRecord GetFullRecordCore(Guid userId)
     {
@@ -395,7 +444,10 @@ public sealed partial class FSPlayerDataStore : EntitySystem
     }
 
     public int GetPerkPoints(Guid userId)
-        => TryRead($"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0);
+        => TryRead(userId, $"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0);
+
+    public bool TryGetPerkPoints(Guid userId, out int perkPoints)
+        => TryRead(userId, $"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0, out perkPoints);
 
     private int GetPerkPointsCore(Guid userId)
     {
@@ -455,7 +507,10 @@ public sealed partial class FSPlayerDataStore : EntitySystem
     }
 
     public (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadPerkLoadout(Guid userId)
-        => TryRead($"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""));
+        => TryRead(userId, $"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""));
+
+    public bool TryLoadPerkLoadout(Guid userId, out (string LevelsJson, string SlotsJson, string LoadoutsJson) loadout)
+        => TryRead(userId, $"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""), out loadout);
 
     private (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadPerkLoadoutCore(Guid userId)
     {

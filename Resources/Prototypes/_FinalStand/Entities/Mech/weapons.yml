@@ -10,9 +10,9 @@
   id: HeavyMechMount
 
 - type: entity
-  id: FSBaseMechWeapon
-  parent: BaseMechEquipment
   abstract: true
+  parent: BaseMechEquipment
+  id: FSBaseMechWeapon
   components:
   - type: MultiHandedItem
   - type: Battery
@@ -22,35 +22,35 @@
   - type: AmmoCounter
 
 - type: entity
-  id: FSBaseMechWeaponLight
-  parent: FSBaseMechWeapon
   abstract: true
+  parent: FSBaseMechWeapon
+  id: FSBaseMechWeaponLight
   components:
   - type: Tag
     tags:
     - LightMechMount
 
 - type: entity
-  id: FSBaseMechWeaponMedium
-  parent: FSBaseMechWeapon
   abstract: true
+  parent: FSBaseMechWeapon
+  id: FSBaseMechWeaponMedium
   components:
   - type: Tag
     tags:
     - MediumMechMount
 
 - type: entity
-  id: FSBaseMechWeaponHeavy
-  parent: FSBaseMechWeapon
   abstract: true
+  parent: FSBaseMechWeapon
+  id: FSBaseMechWeaponHeavy
   components:
   - type: Tag
     tags:
     - HeavyMechMount
 
 - type: entity
-  id: FSMechWeaponAutocannon
   parent: FSBaseMechWeaponLight
+  id: FSMechWeaponAutocannon
   name: LAC-29 35mm autocannon
   description: The everyman's mech rifle. Steady armour-piercing rounds. Light mount.
   components:
@@ -79,8 +79,8 @@
     fireCost: 10
 
 - type: entity
-  id: FSMechWeaponRotary
   parent: FSBaseMechWeaponLight
+  id: FSMechWeaponRotary
   name: RAC-6 rotary machine gun
   description: A six-barrel gatling gun. Buries a crowd in rounds up close. Light mount.
   components:
@@ -106,8 +106,8 @@
     fireCost: 3
 
 - type: entity
-  id: FSMechWeaponShotgun
   parent: FSBaseMechWeaponLight
+  id: FSMechWeaponShotgun
   name: SH-0.5 shotgun
   description: A mech-grade shotgun throwing six heavy pellets a shot. Light mount.
   components:
@@ -133,8 +133,8 @@
     fireCost: 8
 
 - type: entity
-  id: FSMechWeaponDMR
   parent: FSBaseMechWeaponMedium
+  id: FSMechWeaponDMR
   name: DMR-90mm autocannon
   description: A heavy autocannon whose shells burst on impact. Medium mount.
   components:
@@ -163,8 +163,8 @@
     fireCost: 17
 
 - type: entity
-  id: FSMechWeaponMetronome
   parent: FSBaseMechWeaponHeavy
+  id: FSMechWeaponMetronome
   name: 220mm "Metronome" burst cannon
   description: Fires three high-explosive shells, then cools down. Heavy mount.
   components:
@@ -199,8 +199,8 @@
       path: /Audio/Weapons/Guns/Cock/lmg_cock.ogg
 
 - type: entity
-  id: FSMechWeaponBazooka
   parent: FSBaseMechWeaponHeavy
+  id: FSMechWeaponBazooka
   name: R3 "Bazooka" rocket system
   description: Slow, unguided rockets with a wide blast. Heavy mount.
   components:
@@ -228,8 +228,8 @@
     delay: 0.45
 
 - type: entity
-  id: FSMechWeaponFiredart
   parent: FSBaseMechWeaponLight
+  id: FSMechWeaponFiredart
   name: CH-PS "Firedart" laser
   description: The standard mounted laser. Cheap to run. Light mount.
   components:
@@ -249,8 +249,8 @@
     fireCost: 2
 
 - type: entity
-  id: FSMechWeaponSolaris
   parent: FSBaseMechWeaponMedium
+  id: FSMechWeaponSolaris
   name: CH-LC "Solaris" laser cannon
   description: A fast-firing mounted laser that drinks power. Medium mount.
   components:
@@ -271,8 +271,8 @@
     fireCost: 5
 
 - type: entity
-  id: FSMechWeaponPulseRifle
   parent: FSBaseMechWeaponMedium
+  id: FSMechWeaponPulseRifle
   name: eZ-14 heavy pulse rifle
   description: Fires heavy pulse bolts. Medium mount.
   components:
@@ -292,8 +292,8 @@
     fireCost: 7
 
 - type: entity
-  id: FSMechWeaponTesla
   parent: FSBaseMechWeaponHeavy
+  id: FSMechWeaponTesla
   name: P-X tesla cannon
   description: Throws slow balls of lightning that arc between zombies. Heavy mount.
   components:
@@ -320,8 +320,8 @@
     delay: 0.1
 
 - type: entity
-  id: FSMechWeaponRavager
   parent: FSBaseMechWeaponHeavy
+  id: FSMechWeaponRavager
   name: RAVAGER plasma cannon
   description: Sprays wide, short-lived plasma bolts. Devastating up close. Heavy mount.
   components:
@@ -350,10 +350,10 @@
     fireCost: 17
 
 - type: entity
-  id: FSMech35mmBullet
   parent: BaseBullet
-  name: 35mm round
+  id: FSMech35mmBullet
   categories: [ HideSpawnMenu ]
+  name: 35mm round
   components:
   - type: Projectile
     damage:
@@ -364,10 +364,10 @@
     lifetime: 3
 
 - type: entity
-  id: FSMechRotaryBullet
   parent: BaseBullet
-  name: .45 round
+  id: FSMechRotaryBullet
   categories: [ HideSpawnMenu ]
+  name: .45 round
   components:
   - type: Projectile
     damage:
@@ -377,10 +377,10 @@
     lifetime: 2
 
 - type: entity
-  id: FSMechPellet
   parent: BaseBullet
-  name: heavy pellet
+  id: FSMechPellet
   categories: [ HideSpawnMenu ]
+  name: heavy pellet
   components:
   - type: Sprite
     sprite: Objects/Weapons/Guns/Projectiles/projectiles2.rsi
@@ -391,8 +391,8 @@
         Piercing: 480
 
 - type: entity
-  id: FSMechPelletSpread
   parent: FSMechPellet
+  id: FSMechPelletSpread
   categories: [ HideSpawnMenu ]
   components:
   - type: ProjectileSpread
@@ -401,10 +401,10 @@
     spread: 15
 
 - type: entity
-  id: FSMech90mmShell
   parent: BaseBulletTrigger
-  name: 90mm shell
+  id: FSMech90mmShell
   categories: [ HideSpawnMenu ]
+  name: 90mm shell
   components:
   - type: Projectile
     damage:
@@ -429,10 +429,10 @@
     lifetime: 4
 
 - type: entity
-  id: FSMech120mmShell
   parent: BulletRocket
-  name: 120mm shell
+  id: FSMech120mmShell
   categories: [ HideSpawnMenu ]
+  name: 120mm shell
   components:
   - type: Projectile
     damage:
@@ -453,10 +453,10 @@
     lifetime: 5
 
 - type: entity
-  id: FSMechRocket
   parent: BulletRocket
-  name: 280mm rocket
+  id: FSMechRocket
   categories: [ HideSpawnMenu ]
+  name: 280mm rocket
   components:
   - type: Projectile
     damage:
@@ -473,10 +473,10 @@
     lifetime: 6
 
 - type: entity
-  id: FSMechPlasmaBolt
   parent: BaseBullet
-  name: plasma bolt
+  id: FSMechPlasmaBolt
   categories: [ HideSpawnMenu ]
+  name: plasma bolt
   components:
   - type: Sprite
     sprite: Objects/Weapons/Guns/Projectiles/projectiles_tg.rsi
@@ -495,8 +495,8 @@
     lifetime: 0.8
 
 - type: entity
-  id: FSMechWeaponSkyfall
   parent: FSBaseMechWeaponHeavy
+  id: FSMechWeaponSkyfall
   name: '"Skyfall" swarm pod'
   description: Fires twelve micro-missiles that climb, then dive onto zombies the mech can see. Long reload. Heavy mount.
   components:
@@ -535,10 +535,10 @@
       path: /Audio/Weapons/Guns/MagIn/m41_reload.ogg
 
 - type: entity
-  id: FSSkyfallMissile
   parent: BaseBullet
-  name: micro-missile
+  id: FSSkyfallMissile
   categories: [ HideSpawnMenu ]
+  name: micro-missile
   components:
   - type: Sprite
     noRot: false

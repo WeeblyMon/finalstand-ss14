@@ -1,5 +1,3 @@
-// Wave zombies attack loose furniture they are pushing against. Lockers and crates are not anchored, so the
-// pathfinder, steering smash and breach targeting all ignore them and the zombie just walks into them forever.
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Destructible;
@@ -9,6 +7,7 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Doors.Components;
 using Content.Shared.Item;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Movement.Components;
 using Content.Shared.NPC;
 using Content.Shared.Weapons.Melee;
 using Robust.Shared.Physics;
@@ -18,50 +17,67 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
+// Lockers and crates aren't anchored, so pathing and breach targeting ignore them and zombies would push into them forever.
+// Anchored structures are left to breach targeting, which knows not to open walls onto space.
 public sealed partial class FSObstacleSmashSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedMeleeWeaponSystem _melee = default!;
     [Dependency] private SharedCombatModeSystem _combat = default!;
 
-    private const float TickInterval = 0.25f;
     private const float BlockedSeconds = 0.75f;
     private const float StalledSpeedSquared = 0.25f;
-    private const float ReachBeyondRadius = 0.45f;
 
-    private float _accumulator;
+    // A slice of the horde per tick, so a stalled crowd doesn't do all its checks at once.
+    private const int TickBuckets = 8;
+    private int _tick;
+
     private readonly Dictionary<EntityUid, float> _blockedFor = new();
     private readonly List<EntityUid> _stale = new();
+    private EntityQuery<InputMoverComponent> _moverQuery;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        _moverQuery = GetEntityQuery<InputMoverComponent>();
+    }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        _accumulator += frameTime;
-        if (_accumulator < TickInterval)
-            return;
-        _accumulator -= TickInterval;
+
+        var bucket = _tick++ % TickBuckets;
+        var elapsed = frameTime * TickBuckets;
 
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, NPCSteeringComponent, PhysicsComponent>();
-        while (query.MoveNext(out var uid, out _, out _, out var steering, out var body))
+        while (query.MoveNext(out var uid, out _, out _, out _, out var body))
         {
-            var wantsToMove = steering.LastSteerDirection.LengthSquared() > 0.01f;
+            if (FSTickBucket.Of(uid, TickBuckets) != bucket || !_moverQuery.TryComp(uid, out var mover))
+                continue;
+
+            // What steering is asking for now. Its last heading outlives a stop on arrival or in a queue, which read
+            // as pushing against whatever happened to be in front.
+            var heading = mover.CurTickSprintMovement;
+            var wantsToMove = heading.LengthSquared() > 0.01f;
             if (!wantsToMove || body.LinearVelocity.LengthSquared() > StalledSpeedSquared)
             {
                 _blockedFor.Remove(uid);
                 continue;
             }
 
-            var blocked = _blockedFor.GetValueOrDefault(uid) + TickInterval;
+            var blocked = _blockedFor.GetValueOrDefault(uid) + elapsed;
             _blockedFor[uid] = blocked;
             if (blocked < BlockedSeconds)
                 continue;
 
-            if (TryFindObstacle(uid, steering, out var obstacle))
+            if (TryFindObstacle(uid, heading, out var obstacle))
                 Smash(uid, obstacle);
         }
+
+        if (bucket != 0)
+            return;
 
         foreach (var uid in _blockedFor.Keys)
         {
@@ -74,20 +90,27 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
         _stale.Clear();
     }
 
-    private bool TryFindObstacle(EntityUid uid, NPCSteeringComponent steering, out EntityUid obstacle)
+    // Whatever is holding a stalled zombie back is touching it, so its own contacts are enough. A range lookup
+    // per stalled zombie mostly turned up the rest of the crowd.
+    internal bool TryFindObstacle(EntityUid uid, Vector2 heading, out EntityUid obstacle)
     {
         obstacle = EntityUid.Invalid;
         var (ourLayer, ourMask) = _physics.GetHardCollision(uid);
-        var pos = _transform.GetMapCoordinates(uid);
-        var direction = steering.LastSteerDirection.Normalized();
+        var pos = _transform.GetWorldPosition(uid);
+        var direction = heading.Normalized();
 
         var best = -1f;
-        foreach (var candidate in _lookup.GetEntitiesInRange(pos, steering.Radius + ReachBeyondRadius, LookupFlags.Dynamic | LookupFlags.Static))
+        var contacts = _physics.GetContacts(uid);
+        while (contacts.MoveNext(out var contact))
         {
-            if (candidate == uid || !IsSmashable(candidate, ourLayer, ourMask))
+            if (!contact.IsTouching || !contact.Hard)
                 continue;
 
-            var toCandidate = _transform.GetWorldPosition(candidate) - pos.Position;
+            var candidate = contact.OtherEnt(uid);
+            if (!IsSmashable(candidate, ourLayer, ourMask))
+                continue;
+
+            var toCandidate = _transform.GetWorldPosition(candidate) - pos;
             var facing = toCandidate.LengthSquared() > 0.0001f ? Vector2.Dot(direction, toCandidate.Normalized()) : 1f;
             if (facing <= 0f || facing <= best)
                 continue;
@@ -101,7 +124,8 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
 
     private bool IsSmashable(EntityUid candidate, int ourLayer, int ourMask)
     {
-        if (HasComp<WaveSpawnedTagComponent>(candidate)
+        if (Transform(candidate).Anchored
+            || HasComp<WaveSpawnedTagComponent>(candidate)
             || HasComp<MobStateComponent>(candidate)
             || HasComp<ItemComponent>(candidate)
             || HasComp<DoorComponent>(candidate)
@@ -123,8 +147,14 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
         if (!TryComp<CombatModeComponent>(uid, out var combat))
             return;
 
-        _combat.SetInCombatMode(uid, true, combat);
+        // Left as it was found: switching it off ended any melee plan the zombie was in the middle of.
+        var wasInCombat = combat.IsInCombatMode;
+        if (!wasInCombat)
+            _combat.SetInCombatMode(uid, true, combat);
+
         _melee.AttemptLightAttack(uid, weaponUid, weapon, obstacle);
-        _combat.SetInCombatMode(uid, false, combat);
+
+        if (!wasInCombat)
+            _combat.SetInCombatMode(uid, false, combat);
     }
 }

@@ -1,4 +1,3 @@
-// Sends a role's tutorial on that player's first spawn as the job, and again whenever they ask for it.
 using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Tutorial;
 using Content.Shared.GameTicking;
@@ -36,7 +35,7 @@ public sealed partial class FSTutorialSystem : EntitySystem
 
     private void OnSeen(FSTutorialSeenEvent ev, EntitySessionEventArgs args)
     {
-        if (_proto.HasIndex<FSTutorialPrototype>(ev.Tutorial))
+        if (ev.Tutorial is not null && _proto.HasIndex<FSTutorialPrototype>(ev.Tutorial))
             _store.MarkTutorialSeen(args.SenderSession.UserId.UserId, ev.Tutorial);
     }
 

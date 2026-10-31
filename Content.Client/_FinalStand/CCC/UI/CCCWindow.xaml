@@ -2,7 +2,7 @@
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
                       xmlns:map="clr-namespace:Content.Client.Pinpointer.UI"
                       xmlns:power="clr-namespace:Content.Client.Power"
-                      Title="Central Command Console"
+                      Title="{Loc 'fs-ccc-window-title'}"
                       Resizable="False"
                       SetSize="1040 750"
                       MinSize="1040 750">
@@ -14,17 +14,17 @@
 
             <!-- Wave Intel -->
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
-                <Label Text="WAVE " StyleClasses="FSSectionHeader" />
+                <Label Text="{Loc 'fs-ccc-window-wave'}" StyleClasses="FSSectionHeader" />
                 <Label Name="WaveNumberLabel" StyleClasses="FSCurrency" />
                 <Label Text="   " />
                 <Label Name="FactionLabel" StyleClasses="FSNegative" />
             </BoxContainer>
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
-                <Label Text="Modifier: " StyleClasses="FSMuted" />
+                <Label Text="{Loc 'fs-ccc-window-modifier-label'}" StyleClasses="FSMuted" />
                 <Label Name="ModifierLabel" />
             </BoxContainer>
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
-                <Label Text="Est. enemies: " StyleClasses="FSMuted" />
+                <Label Text="{Loc 'fs-ccc-window-enemy-estimate'}" StyleClasses="FSMuted" />
                 <Label Name="EnemyEstLabel" StyleClasses="FSPending" />
             </BoxContainer>
             <BoxContainer Name="ZombieIconsContainer" Orientation="Vertical" Margin="0 0 0 8" Visible="False" />
@@ -33,39 +33,40 @@
 
             <!-- Phase + Countdown -->
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
-                <Label Text="Phase: " StyleClasses="FSMuted" />
+                <Label Text="{Loc 'fs-ccc-window-phase-label'}" StyleClasses="FSMuted" />
                 <Label Name="PhaseLabel" />
                 <Label Text="   " />
                 <Label Name="CountdownLabel" StyleClasses="LabelMonospaceText" />
             </BoxContainer>
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
-                <Label Text="Alive: " StyleClasses="FSMuted" />
+                <Label Text="{Loc 'fs-ccc-window-alive'}" StyleClasses="FSMuted" />
                 <Label Name="AliveLabel" />
                 <Label Text=" / " StyleClasses="FSMuted" />
                 <Label Name="TotalLabel" />
-                <Label Text="   Spawners: " StyleClasses="FSMuted" />
+                <Label Text="   " />
+                <Label Text="{Loc 'fs-ccc-window-spawners'}" StyleClasses="FSMuted" />
                 <Label Name="SpawnersLabel" />
             </BoxContainer>
 
             <!-- CCC Health -->
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
-                <Label Text="CCC: " StyleClasses="FSMuted" />
+                <Label Text="{Loc 'fs-ccc-window-ccc'}" StyleClasses="FSMuted" />
                 <Label Name="CCCHealthLabel" StyleClasses="FSPositive" />
             </BoxContainer>
 
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
 
             <!-- Player Readiness -->
-            <Label Text="READINESS" StyleClasses="FSSectionHeader" Margin="0 0 0 4" />
+            <Label Text="{Loc 'fs-ccc-window-readiness'}" StyleClasses="FSSectionHeader" Margin="0 0 0 4" />
             <Label Name="ReadinessLabel" Margin="0 0 0 8" />
 
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
 
             <!-- Controls -->
-            <Button Name="StartWaveButton" Text="Start Wave Now" StyleClasses="ButtonBig" Margin="0 0 0 6" />
+            <Button Name="StartWaveButton" Text="{Loc 'fs-ccc-window-start-wave'}" StyleClasses="ButtonBig" Margin="0 0 0 6" />
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
-                <LineEdit Name="BroadcastInput" HorizontalExpand="True" PlaceHolder="Command broadcast..." />
-                <Button Name="BroadcastButton" Text="Send" SetWidth="60" Margin="4 0 0 0" />
+                <LineEdit Name="BroadcastInput" HorizontalExpand="True" PlaceHolder="{Loc 'fs-ccc-window-broadcast-placeholder'}" />
+                <Button Name="BroadcastButton" Text="{Loc 'fs-ccc-window-broadcast-send'}" SetWidth="60" Margin="4 0 0 0" />
             </BoxContainer>
 
         </BoxContainer>
@@ -77,8 +78,8 @@
 
             <!-- Toggle buttons — OpenRight/OpenLeft give a connected tab-group appearance -->
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
-                <Button Name="MapViewButton" Text="MAP" StyleClasses="OpenRight" HorizontalExpand="True" />
-                <Button Name="PowerViewButton" Text="POWER" StyleClasses="OpenLeft" HorizontalExpand="True" />
+                <Button Name="MapViewButton" Text="{Loc 'fs-ccc-window-view-map'}" StyleClasses="OpenRight" HorizontalExpand="True" />
+                <Button Name="PowerViewButton" Text="{Loc 'fs-ccc-window-view-power'}" StyleClasses="OpenLeft" HorizontalExpand="True" />
             </BoxContainer>
 
             <!-- Station map view (default) -->

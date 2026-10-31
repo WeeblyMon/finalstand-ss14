@@ -33,6 +33,10 @@ public sealed partial class FSCasualtyPullController : UIController
     private readonly List<NetEntity> _targets = new();
     private Label? _status;
 
+    // Last values written, since Text and SetPosition relayout even when nothing changed.
+    private int _shownSeconds;
+    private Vector2? _shownPosition;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -50,6 +54,8 @@ public sealed partial class FSCasualtyPullController : UIController
 
         _buttons.Clear();
         _targets.Clear();
+        _shownSeconds = int.MinValue;
+        _shownPosition = null;
 
         _hotbar = FindWidget<HotbarGui>(screen);
         if (_hotbar?.Parent is not LayoutContainer container)
@@ -184,18 +190,26 @@ public sealed partial class FSCasualtyPullController : UIController
             }
 
             var entry = FindEntry(board, _targets[i]);
+            var name = entry?.Name ?? "?";
             button.Visible = true;
             button.Disabled = !ready;
-            button.Text = entry?.Name ?? "?";
+            if (button.Text != name)
+                button.Text = name;
+
             button.Label.FontColorOverride = ready ? FSPalette.TextBright : FSPalette.TextDim;
         }
 
-        _status.Text = ready
-            ? Loc.GetString("fs-casualty-pull-panel-ready")
-            : Loc.GetString("fs-casualty-pull-panel-cooldown",
-                ("seconds", (int) Math.Ceiling(remaining.TotalSeconds)));
+        // -1 stands for ready
+        var seconds = ready ? -1 : (int) Math.Ceiling(remaining.TotalSeconds);
+        if (seconds != _shownSeconds)
+        {
+            _shownSeconds = seconds;
+            _status.Text = ready
+                ? Loc.GetString("fs-casualty-pull-panel-ready")
+                : Loc.GetString("fs-casualty-pull-panel-cooldown", ("seconds", seconds));
 
-        _status.FontColorOverride = ready ? FSPalette.Ok : FSPalette.TextDim;
+            _status.FontColorOverride = ready ? FSPalette.Ok : FSPalette.TextDim;
+        }
 
         UpdatePlacement();
     }
@@ -237,7 +251,12 @@ public sealed partial class FSCasualtyPullController : UIController
             y -= CmoPanelClearance;
         }
 
-        LayoutContainer.SetPosition(_frame, new Vector2(x, y));
+        var position = new Vector2(x, y);
+        if (_shownPosition == position)
+            return;
+
+        _shownPosition = position;
+        LayoutContainer.SetPosition(_frame, position);
     }
 
     private const float CmoPanelClearance = 148f;

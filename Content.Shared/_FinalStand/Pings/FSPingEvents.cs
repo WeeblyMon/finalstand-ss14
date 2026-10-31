@@ -1,4 +1,3 @@
-// Ping types, who they're for, and the messages that carry pings and the per-role task board between client and server.
 using Content.Shared._FinalStand.Departments;
 using Robust.Shared.Map;
 using Robust.Shared.Serialization;

@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.Visuals;
 using Content.Shared._FinalStand.Mobs;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -20,6 +21,7 @@ public sealed partial class FSRevenantOpacitySystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private WaveHud.FSDarkWaveStateSystem _darkWave = default!;
 
     private const float RevealRange = 1.2f;
@@ -54,7 +56,7 @@ public sealed partial class FSRevenantOpacitySystem : EntitySystem
             return;
 
         sprite.Color = Color.White.WithAlpha(StealthAlpha);
-        sprite.PostShader = null;
+        _sprite.RemovePostShader(sprite, FSPostShaders.RevenantGlow);
     }
 
     private void OnShutdown(EntityUid uid, FSRevenantComponent comp, ComponentShutdown args)
@@ -73,9 +75,10 @@ public sealed partial class FSRevenantOpacitySystem : EntitySystem
         return instance;
     }
 
-    public override void Update(float frameTime)
+    // Visual only, so once per frame rather than once per predicted tick.
+    public override void FrameUpdate(float frameTime)
     {
-        base.Update(frameTime);
+        base.FrameUpdate(frameTime);
 
         var localEntity = _player.LocalSession?.AttachedEntity;
         if (localEntity == null)
@@ -90,7 +93,7 @@ public sealed partial class FSRevenantOpacitySystem : EntitySystem
             if (revenantPos.MapId != localPos.MapId)
             {
                 sprite.Color = Color.White.WithAlpha(StealthAlpha);
-                sprite.PostShader = null;
+                _sprite.RemovePostShader(sprite, FSPostShaders.RevenantGlow);
                 _revealed.Remove(uid);
                 continue;
             }
@@ -133,13 +136,11 @@ public sealed partial class FSRevenantOpacitySystem : EntitySystem
             {
                 var glow = GetGlow(uid);
                 glow.SetParameter("glow_intensity", BaseGlowIntensity * alpha);
-
-                if (sprite.PostShader != glow)
-                    sprite.PostShader = glow;
+                FSPostShaders.SetGlow(_sprite, (uid, sprite), FSPostShaders.RevenantGlow, glow);
             }
-            else if (sprite.PostShader != null)
+            else
             {
-                sprite.PostShader = null;
+                _sprite.RemovePostShader(sprite, FSPostShaders.RevenantGlow);
             }
         }
     }

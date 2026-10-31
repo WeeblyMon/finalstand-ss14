@@ -1,8 +1,9 @@
 namespace Content.Server._FinalStand.Grenades;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
+[Access(typeof(FSGrenadeTimerBlinkSystem))]
 public sealed partial class FSGrenadeTimerBlinkComponent : Component
 {
-    public TimeSpan NextBlink;
+    [AutoPausedField] public TimeSpan NextBlink;
     public bool ShowPrimed;
 }

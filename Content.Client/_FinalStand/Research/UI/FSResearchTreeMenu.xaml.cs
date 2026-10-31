@@ -140,7 +140,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         PointsLabel.FontColorOverride = Gold;
         ContributionLabel.FontColorOverride = FSUiPalette.TextMuted;
         TipLabel.SetMessage(FormattedMessage.FromMarkupPermissive(
-            $"[font size=9][color={Dim.ToHex()}]Hits fund the RD's target at 2× unless you set your own pick.[/color][/font]"));
+            $"[font size=9][color={Dim.ToHex()}]{FormattedMessage.EscapeText(Loc.GetString("fs-research-menu-tip"))}[/color][/font]"));
         GraphTitle.FontOverride = _boldFont;
         GraphTitle.FontColorOverride = OffWhite;
         GraphCount.FontColorOverride = Dim;
@@ -169,7 +169,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     // options get this window's stylesheet instead of the engine's default modal styling.
     private void BuildStyleSelector()
     {
-        _styleButton.ToolTip = "Graph style";
+        _styleButton.ToolTip = Loc.GetString("fs-research-menu-style-tooltip");
         _styleButton.VerticalAlignment = VAlignment.Center;
         _styleButton.Margin = new Thickness(0, 0, 8, 0);
         _styleButton.MinWidth = 120;
@@ -184,7 +184,14 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     }
 
     private void UpdateStyleButton()
-        => _styleButton.Text = GraphControl.Style.ToString().ToUpperInvariant() + "  ▾";
+        => _styleButton.Text = StyleName(GraphControl.Style) + "  ▾";
+
+    private static string StyleName(FSResearchGraphStyle style) => style switch
+    {
+        FSResearchGraphStyle.Blueprint => Loc.GetString("fs-research-menu-style-blueprint"),
+        FSResearchGraphStyle.Schematic => Loc.GetString("fs-research-menu-style-schematic"),
+        _ => style.ToString().ToUpperInvariant(),
+    };
 
     private void OpenStylePopup()
     {
@@ -195,7 +202,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         foreach (var style in new[] { FSResearchGraphStyle.Blueprint, FSResearchGraphStyle.Schematic })
         {
             var active = style == GraphControl.Style;
-            var option = new Button { Text = style.ToString().ToUpperInvariant(), MinHeight = 28, MinWidth = _styleButton.Width };
+            var option = new Button { Text = StyleName(style), MinHeight = 28, MinWidth = _styleButton.Width };
             option.Label.FontOverride = _captionFont;
             option.Label.FontColorOverride = active ? Gold : OffWhite;
             option.StyleBoxOverride = Box(active ? FSUiPalette.BgPressed : FSUiPalette.BgRecess, active ? Gold : FSUiPalette.BgRecess, new Thickness(1), 10, 0);
@@ -332,9 +339,9 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         ServerButton.Visible = !medical;
         SharedTrackButton.Visible = !medical;
         PickTrackButton.Visible = !medical;
-        PointsTitle.Text = medical ? "FUNDS" : "RP BANKED";
+        PointsTitle.Text = medical ? Loc.GetString("fs-research-menu-funds") : Loc.GetString("fs-research-menu-rp-banked");
         PointsLabel.FontColorOverride = medical ? MedicalFundsColor : Gold;
-        ResearchTitle.Text = medical ? "PURCHASE" : "RESEARCH";
+        ResearchTitle.Text = medical ? Loc.GetString("fs-research-menu-purchase") : Loc.GetString("fs-research-menu-research");
     }
 
     private IEnumerable<FSTechBranchPrototype> AllowedBranches()
@@ -386,7 +393,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         }
 
         if (branches.Count > 1)
-            BranchList.AddChild(RailButton("All branches", "", null, _branch == null, () => SelectBranch(null)));
+            BranchList.AddChild(RailButton(Loc.GetString("fs-research-menu-all-branches"), "", null, _branch == null, () => SelectBranch(null)));
     }
 
     private void RebuildLines()
@@ -396,10 +403,10 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         FSTechBranchPrototype? branch = null;
         if (_branch != null)
             _prototype.TryIndex(_branch, out branch);
-        LinesTitle.Text = branch != null ? branch.Name.ToUpperInvariant() + " LINES" : "LINES";
+        LinesTitle.Text = branch != null ? Loc.GetString("fs-research-menu-branch-lines", ("branch", branch.Name.ToUpperInvariant())) : Loc.GetString("fs-research-menu-lines");
 
         var accent = branch?.Color ?? Gold;
-        LineList.AddChild(LineButton("All lines", $"{lines.Sum(l => l.Done)} / {lines.Sum(l => l.Total)}", accent,
+        LineList.AddChild(LineButton(Loc.GetString("fs-research-menu-all-lines"), $"{lines.Sum(l => l.Done)} / {lines.Sum(l => l.Total)}", accent,
             GraphControl.LineFilter == null, () => SelectLine(null)));
         foreach (var line in lines)
         {
@@ -417,13 +424,13 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     private void UpdateGraphHeader()
     {
-        var branchName = _branch != null && _prototype.TryIndex<FSTechBranchPrototype>(_branch, out var branch) ? branch.Name : "All branches";
+        var branchName = _branch != null && _prototype.TryIndex<FSTechBranchPrototype>(_branch, out var branch) ? branch.Name : Loc.GetString("fs-research-menu-all-branches");
         var lines = GraphControl.Lines.ToList();
         var line = lines.FirstOrDefault(l => l.Key == GraphControl.LineFilter);
         GraphTitle.Text = (line != null ? $"{branchName} · {line.Name}" : branchName).ToUpperInvariant();
         var done = line?.Done ?? lines.Sum(l => l.Done);
         var total = line?.Total ?? lines.Sum(l => l.Total);
-        GraphCount.Text = $"{done} of {total} researched";
+        GraphCount.Text = Loc.GetString("fs-research-menu-graph-count", ("done", done), ("total", total));
     }
 
     private void UpdateZoomLabel()
@@ -438,16 +445,20 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         {
             PointsLabel.Text = string.Format(CultureInfo.InvariantCulture, "${0:N0}", points);
             ContributionLabel.Visible = _viewerContribution >= 0;
-            ContributionLabel.Text = string.Format(CultureInfo.InvariantCulture, "You: ${0:N0} of ${1:N0}", _viewerContribution, _departmentEarned);
+            ContributionLabel.Text = Loc.GetString("fs-research-menu-medical-contribution",
+                ("contribution", _viewerContribution.ToString("N0", CultureInfo.InvariantCulture)),
+                ("earned", _departmentEarned.ToString("N0", CultureInfo.InvariantCulture)));
             return;
         }
 
         PointsLabel.Text = points.ToString("N0", CultureInfo.InvariantCulture);
-        FillTrack(SharedTrackButton, "RD", "SHARED TARGET", "2× speed", Gold, db?.ActiveResearch?.Id, db);
-        FillTrack(PickTrackButton, "YOU", "YOUR PICK", "", OffWhite, _fsResearch.MyPersonalPickId?.Id, db);
+        FillTrack(SharedTrackButton, Loc.GetString("fs-research-menu-track-rd"), Loc.GetString("fs-research-menu-track-shared"),
+            Loc.GetString("fs-research-menu-track-shared-note"), Gold, db?.ActiveResearch?.Id, db, mine: false);
+        FillTrack(PickTrackButton, Loc.GetString("fs-research-menu-track-you"), Loc.GetString("fs-research-menu-state-your-pick"),
+            "", OffWhite, _fsResearch.MyPersonalPickId?.Id, db, mine: true);
     }
 
-    private void FillTrack(ContainerButton button, string tag, string label, string note, Color color, string? nodeId, FSTechDatabaseComponent? db)
+    private void FillTrack(ContainerButton button, string tag, string label, string note, Color color, string? nodeId, FSTechDatabaseComponent? db, bool mine)
     {
         button.RemoveAllChildren();
         var box = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 4, VerticalAlignment = VAlignment.Center };
@@ -459,16 +470,16 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
         if (nodeId == null || !_prototype.TryIndex<FSTechNodePrototype>(nodeId, out var proto))
         {
-            box.AddChild(new Label { Text = "None set", FontOverride = _boldFont, FontColorOverride = Dim });
+            box.AddChild(new Label { Text = Loc.GetString("fs-research-menu-track-none"), FontOverride = _boldFont, FontColorOverride = Dim });
             button.Disabled = true;
             button.AddChild(box);
             return;
         }
 
         var progress = db?.NodeProgress.GetValueOrDefault(nodeId) ?? 0;
-        var others = (db?.PersonalContributorSlots.GetValueOrDefault(nodeId)?.Count ?? 0) - (tag == "YOU" ? 1 : 0);
+        var others = (db?.PersonalContributorSlots.GetValueOrDefault(nodeId)?.Count ?? 0) - (mine ? 1 : 0);
         if (note.Length == 0 && others > 0)
-            note = $"+{others} other{(others > 1 ? "s" : "")}";
+            note = Loc.GetString("fs-research-menu-track-others", ("others", others));
         head.AddChild(new Label { Text = note, FontColorOverride = FSUiPalette.TextMuted, VerticalAlignment = VAlignment.Center });
 
         box.AddChild(new Label { Text = proto.Name, FontOverride = _boldFont, FontColorOverride = OffWhite, ClipText = true, HorizontalExpand = true });
@@ -490,8 +501,21 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     {
         LegendRow.RemoveAllChildren();
         var items = GraphControl.Style == FSResearchGraphStyle.Schematic
-            ? new[] { ("Online", Olive), ("Ready", Color.FromHex("#b9b5ae")), ("Researching", Color.FromHex("#e6c07a")), ("Offline", Color.FromHex("#3a3734")) }
-            : new[] { ("Researched", Color.FromHex("#7e9464")), ("Available", Color.FromHex("#b9b5ae")), ("In progress", Gold), ("Locked", Color.FromHex("#3a3734")), ("Shop unlock", Color.FromHex("#c08a3e")) };
+            ? new[]
+            {
+                ("fs-research-menu-legend-online", Olive),
+                ("fs-research-menu-legend-ready", Color.FromHex("#b9b5ae")),
+                ("fs-research-menu-legend-researching", Color.FromHex("#e6c07a")),
+                ("fs-research-menu-legend-offline", Color.FromHex("#3a3734")),
+            }
+            : new[]
+            {
+                ("fs-research-menu-legend-researched", Color.FromHex("#7e9464")),
+                ("fs-research-menu-legend-available", Color.FromHex("#b9b5ae")),
+                ("fs-research-menu-legend-in-progress", Gold),
+                ("fs-research-menu-legend-locked", Color.FromHex("#3a3734")),
+                ("fs-research-menu-legend-shop-unlock", Color.FromHex("#c08a3e")),
+            };
 
         foreach (var (text, color) in items)
         {
@@ -502,7 +526,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
                 VerticalAlignment = VAlignment.Center,
                 PanelOverride = Box(color.WithAlpha(0.25f), color, new Thickness(1)),
             });
-            item.AddChild(new Label { Text = text, FontOverride = _captionFont, FontColorOverride = FSUiPalette.TextMuted });
+            item.AddChild(new Label { Text = Loc.GetString(text), FontOverride = _captionFont, FontColorOverride = FSUiPalette.TextMuted });
             LegendRow.AddChild(item);
         }
     }

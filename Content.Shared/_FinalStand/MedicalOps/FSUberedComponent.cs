@@ -3,10 +3,11 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
+[Access(typeof(FSUberSharedSystem))]
 public sealed partial class FSUberedComponent : Component
 {
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan EndTime;
 
     [DataField, AutoNetworkedField]
@@ -18,8 +19,12 @@ public sealed partial class FSUberedComponent : Component
     [DataField, AutoNetworkedField]
     public bool InfiniteStamina;
 
-    [ViewVariables]
+    [ViewVariables, AutoPausedField]
     public TimeSpan NextTing;
+
+    // The gun whose beam gave this cover; it ends when that gun lets go of the patient.
+    [ViewVariables]
+    public EntityUid? Source;
 }
 
 [Serializable, NetSerializable]

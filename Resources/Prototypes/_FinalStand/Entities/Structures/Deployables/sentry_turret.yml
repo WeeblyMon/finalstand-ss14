@@ -1,9 +1,9 @@
 # ── Sentry Turret - deployed ─────────────────────────────────────────────────────────────────
 - type: entity
   id: FSSentryTurretDeployed
+  categories: [ HideSpawnMenu ]
   name: sentry turret
   description: A deployed autoturret. It tracks and fires on hostiles by itself.
-  categories: [ HideSpawnMenu ]
   placement:
     mode: SnapgridCenter
   components:
@@ -68,10 +68,10 @@
 
 # Cellular spares structures the way FS explosions do, so a turret cannot chew up the station.
 - type: entity
-  id: FSSentryBullet
   parent: BaseBullet
-  name: sentry round
+  id: FSSentryBullet
   categories: [ HideSpawnMenu ]
+  name: sentry round
   components:
   - type: Projectile
     damage:

@@ -1,4 +1,3 @@
-// Build Belt layout: while an engineer holds the RCD, the belt sits above the hands. Z picks the slot under the cursor, or steps to the next one.
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;

@@ -1,10 +1,5 @@
 namespace Content.Shared._FinalStand.Crit;
 
-/// raised on target after every projectile hit so damage numbers know if it was a crit
-public sealed class CritLandedEvent : EntityEventArgs
-{
-    public EntityUid Target;
-    public EntityUid Shooter;
-    public float FinalDamage;
-    public bool WasCrit;
-}
+// Raised on the target after a hit lands, so damage numbers know whether it was a crit.
+[ByRefEvent]
+public readonly record struct CritLandedEvent(EntityUid Target, EntityUid Shooter, float FinalDamage, bool WasCrit);

@@ -1,4 +1,3 @@
-// Draws the bottom-left vitals panel: health figure and bar, stamina bar, then status pills.
 using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;
@@ -7,6 +6,8 @@ namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class WaveHudOverlay
 {
+    private readonly string _labelHealth = Loc.GetString("fs-hud-health");
+
     public float? HealthRatio;
     public bool HealthInCrit;
     public float? StaminaRatio;
@@ -214,7 +215,7 @@ public sealed partial class WaveHudOverlay
         var innerW = VitalsWidth - VitalsPadX * 2f;
         var y = top + VitalsPadY;
 
-        var hpText = DownText ?? HealthCurrent.ToString();
+        var hpText = DownText ?? NumberText(HealthCurrent);
         var hpColor = DownText != null ? (DownHeld ? FSPalette.Ok : FSPalette.Danger) : lowHp ? HpFillLow : FSPalette.TextBright;
         var hpDims = screen.GetDimensions(_valueFont!, hpText, 1f);
         var rowH = MathF.Max(hpDims.Y, HpBarH);
@@ -222,10 +223,9 @@ public sealed partial class WaveHudOverlay
 
         if (DownText == null)
         {
-            const string healthWord = "HEALTH";
             var wordX = innerX + hpDims.X + 7f;
             screen.DrawString(_labelFont!, new Vector2(wordX, y + (rowH - _cachedLabelH) * 0.5f),
-                healthWord, VitalsMuted);
+                _labelHealth, VitalsMuted);
         }
 
         y += rowH + 4f;

@@ -72,7 +72,7 @@ public sealed partial class WeaponShopWindow
         var damageMultiplier = 1.0f;
         var extraPellets = 0;
         var critChanceBonus = 0f;
-        var critDamageMult = critComp?.CritMultiplier ?? critProto?.CritMultiplier ?? 1f;
+        var critDamageMult = FSCritMath.Multiplier(critComp ?? critProto, null);
         var attackSpeedMult = 1f;
 
         foreach (var def in shopComp.Upgrades)
@@ -139,35 +139,35 @@ public sealed partial class WeaponShopWindow
 
         if (shopComp.StatDamage > 0)
         {
-            StatBarsContainer.AddChild(BuildStatBar("Damage",
+            StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-damage",
                 Math.Min(1f, shopComp.StatDamage / 100f), $"{shopComp.StatDamage}"));
         }
 
         if (shopComp.StatFireRate > 0)
         {
-            StatBarsContainer.AddChild(BuildStatBar("Fire Rate",
+            StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-fire-rate",
                 Math.Min(1f, shopComp.StatFireRate / 200f), $"{shopComp.StatFireRate}"));
         }
 
         if (shopComp.StatHealth > 0)
         {
-            StatBarsContainer.AddChild(BuildStatBar("Health",
+            StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-health",
                 Math.Min(1f, shopComp.StatHealth / 1000f), $"{shopComp.StatHealth}"));
         }
 
-        StatBarsContainer.AddChild(BuildStatBar("Carried",
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-carried",
             Math.Min(1f, maxStock / 6f), $"{maxStock}"));
 
         if (maxDeployed > 0)
         {
-            StatBarsContainer.AddChild(BuildStatBar("Max Deployed",
+            StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-max-deployed",
                 Math.Min(1f, maxDeployed / 10f), $"{maxDeployed}"));
         }
 
         if (regen > 0)
         {
-            StatBarsContainer.AddChild(BuildStatBar("Regen",
-                Math.Min(1f, regen / 5f), $"{regen}/wave"));
+            StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-regen",
+                Math.Min(1f, regen / 5f), PerWave(regen)));
         }
     }
 
@@ -198,7 +198,7 @@ public sealed partial class WeaponShopWindow
         {
             var level = shopLevels.GetValueOrDefault(def.Id, 0);
             if (level <= 0) continue;
-            var tag = level > 1 ? $"[{def.Name} ×{level}]" : $"[{def.Name}]";
+            var tag = UpgradeTag(def.Name, level);
             switch (def.Type)
             {
                 case WeaponUpgradeType.Damage:
@@ -219,7 +219,7 @@ public sealed partial class WeaponShopWindow
                 case WeaponUpgradeType.FireRate:
                 {
                     frBonus += level * def.ValuePerLevel;
-                    frParts.Add($"{tag}  + {(int)Math.Round(level * def.ValuePerLevel * 60f)} RPM");
+                    frParts.Add($"{tag}  + {Rpm((int)Math.Round(level * def.ValuePerLevel * 60f))}");
                     break;
                 }
                 case WeaponUpgradeType.SlamFire:
@@ -229,7 +229,9 @@ public sealed partial class WeaponShopWindow
                 case WeaponUpgradeType.AngleMax:
                 case WeaponUpgradeType.Accuracy:
                 {
-                    accParts.Add($"{tag}  - {level * AngleDeltaPerLevel(def).Min:0.##}° aimed, - {level * AngleDeltaPerLevel(def).Max:0.##}° max");
+                    accParts.Add(Loc.GetString("fs-weapon-shop-tooltip-angle", ("tag", tag),
+                        ("aimed", $"{level * def.AngleDeltaPerLevel().Min:0.##}"),
+                        ("max", $"{level * def.AngleDeltaPerLevel().Max:0.##}")));
                     break;
                 }
                 case WeaponUpgradeType.MagazineSize:
@@ -243,14 +245,14 @@ public sealed partial class WeaponShopWindow
         if (spLevel > 0)
         {
             var spBonus = damagePerShot * pellets * spLevel * 0.04f;
-            var spTag = spLevel > 1 ? $"[Stopping Power ×{spLevel}]" : "[Stopping Power]";
+            var spTag = UpgradeTag(Loc.GetString("fs-hud-bonus-stopping-power"), spLevel);
             dmgLines.Add($"{spTag}  + {spBonus:0.#}");
         }
         if (bsLevel > 0)
         {
             var bsRpmBonus = (int)Math.Round((hasLiveGun ? baseFireRate : baseFireRate + frBonus) * bsLevel * 0.08f * 60f);
-            var bsTag = bsLevel > 1 ? $"[Bullet Storm ×{bsLevel}]" : "[Bullet Storm]";
-            frParts.Add($"{bsTag}  + {bsRpmBonus} RPM");
+            var bsTag = UpgradeTag(Loc.GetString("fs-hud-bonus-bullet-storm"), bsLevel);
+            frParts.Add($"{bsTag}  + {Rpm(bsRpmBonus)}");
         }
 
         var weaponProtoId = shopComp.WeaponProtoId?.Id;
@@ -266,7 +268,7 @@ public sealed partial class WeaponShopWindow
         dmgLines.AddRange(researchDmg);
 
         var damageText = pellets > 1 ? $"{finalPerShot:0.#}×{pellets}" : $"{finalPerShot:0.#}";
-        StatBarsContainer.AddChild(BuildStatBar("Damage",
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-damage",
             Math.Min(1f, finalTotal / 100f), damageText,
             researchDmg.Count > 0 ? FSUiPalette.StateResearch : dmgLines.Count > 0 ? FSUiPalette.StatePositive : null,
             dmgLines.Count > 0 ? string.Join("\n", dmgLines) : null));
@@ -275,10 +277,10 @@ public sealed partial class WeaponShopWindow
         var unboostedFireRate = hasLiveGun ? baseFireRate : baseFireRate + frBonus;
         var fireRate = unboostedFireRate * bulletStormMult;
         var rpm = (int)Math.Round(fireRate * 60f);
-        if (frParts.Count > 0) frParts.Add($"= {rpm} RPM");
+        if (frParts.Count > 0) frParts.Add($"= {Rpm(rpm)}");
         frParts.AddRange(researchFr);
-        StatBarsContainer.AddChild(BuildStatBar("Fire Rate",
-            Math.Min(1f, fireRate / 10f), $"{rpm} RPM",
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-fire-rate",
+            Math.Min(1f, fireRate / 10f), Rpm(rpm),
             researchFr.Count > 0 ? FSUiPalette.StateResearch : frParts.Count > 0 ? FSUiPalette.StatePositive : null,
             frParts.Count > 0 ? string.Join("\n", frParts) : null));
 
@@ -291,7 +293,7 @@ public sealed partial class WeaponShopWindow
         var accFill = accValue / 100f;
         var accText = accValue.ToString();
 
-        StatBarsContainer.AddChild(BuildStatBar("Accuracy",
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-accuracy",
             accFill, accText,
             researchAcc.Count > 0 ? FSUiPalette.StateResearch : accParts.Count > 0 ? FSUiPalette.StatePositive : null,
             accParts.Count > 0 ? string.Join("\n", accParts) : null));
@@ -299,7 +301,7 @@ public sealed partial class WeaponShopWindow
         var (capFill, capText, capRaw) = GetCapacityDisplay(shopComp, weapon, weaponProto, entMan);
         if (capParts.Count > 0) capParts.Add($"= {capText}");
         capParts.AddRange(researchCap);
-        StatBarsContainer.AddChild(BuildStatBar("Capacity", capFill, capText,
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-capacity", capFill, capText,
             researchCap.Count > 0 ? FSUiPalette.StateResearch : capParts.Count > 0 ? FSUiPalette.StatePositive : null,
             capParts.Count > 0 ? string.Join("\n", capParts) : null));
 
@@ -314,26 +316,29 @@ public sealed partial class WeaponShopWindow
         _rangedCache.IsRanged          = true;
     }
 
-    private static (float Min, float Max, float Inc) AngleDeltaPerLevel(WeaponUpgradeDef def) => def.Type switch
-    {
-        WeaponUpgradeType.Accuracy => (def.ValuePerLevel * 0.5f, def.ValuePerLevel * 0.2f, def.ValuePerLevel * 0.3f),
-        WeaponUpgradeType.AngleMax => (0f, def.ValuePerLevel, 0f),
-        _                          => (0f, 0f, 0f),
-    };
+    private static string UpgradeTag(string name, int level) => level > 1
+        ? Loc.GetString("fs-weapon-shop-tag-level", ("name", name), ("level", level))
+        : Loc.GetString("fs-weapon-shop-tag", ("name", name));
+
+    private static string Rpm(int rpm) => Loc.GetString("fs-weapon-shop-rpm", ("rpm", rpm.ToString()));
+
+    private static string PerWave(int amount) => Loc.GetString("fs-weapon-shop-per-wave", ("amount", amount.ToString()));
+
+    private static string Seconds(string seconds) => Loc.GetString("fs-weapon-shop-seconds", ("seconds", seconds));
 
     private void BuildMeleeStats(MeleeWeaponComponent? meleeComp, MeleeWeaponComponent? meleeProto,
         float damageMultiplier, float attackSpeedMult)
     {
         var baseDamage = (float)(meleeComp?.Damage ?? meleeProto?.Damage)!.GetTotal();
         baseDamage *= damageMultiplier;
-        StatBarsContainer.AddChild(BuildStatBar("Damage", Math.Min(1f, baseDamage / 50f), $"{baseDamage:0.#}"));
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-damage", Math.Min(1f, baseDamage / 50f), $"{baseDamage:0.#}"));
 
         var attackRate = (meleeComp?.AttackRate ?? meleeProto?.AttackRate ?? 1f) * attackSpeedMult;
         var secPerSwing = attackRate > 0f ? 1f / attackRate : 0f;
-        StatBarsContainer.AddChild(BuildStatBar("Attack Rate", Math.Min(1f, attackRate / 4f), $"{secPerSwing:F1}s"));
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-attack-rate", Math.Min(1f, attackRate / 4f), Seconds($"{secPerSwing:F1}")));
 
         var range = meleeComp?.Range ?? meleeProto?.Range ?? 1.5f;
-        StatBarsContainer.AddChild(BuildStatBar("Range", Math.Min(1f, range / 3f), $"{range:F1}"));
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-range", Math.Min(1f, range / 3f), $"{range:F1}"));
     }
 
     private void BuildGrenadeStats(FSGrenadePackComponent? live, FSGrenadePackComponent? proto)
@@ -345,19 +350,19 @@ public sealed partial class WeaponShopWindow
         var stunDuration = live?.StunDuration ?? proto?.StunDuration ?? 3f;
         var packType     = live?.PackType     ?? proto?.PackType     ?? GrenadeType.Frag;
 
-        StatBarsContainer.AddChild(BuildStatBar("Capacity", Math.Min(1f, maxStock / 8f), $"{maxStock}"));
-        StatBarsContainer.AddChild(BuildStatBar("Regen", Math.Min(1f, regenPerWave / 5f), $"{regenPerWave}/wave"));
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-capacity", Math.Min(1f, maxStock / 8f), $"{maxStock}"));
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-regen", Math.Min(1f, regenPerWave / 5f), PerWave(regenPerWave)));
 
         switch (packType)
         {
             case GrenadeType.Flash:
-                StatBarsContainer.AddChild(BuildStatBar("Stun", Math.Min(1f, stunDuration / 7f), $"{stunDuration:F0}s"));
+                StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-stun", Math.Min(1f, stunDuration / 7f), Seconds($"{stunDuration:F0}")));
                 break;
             case GrenadeType.Incendiary:
-                StatBarsContainer.AddChild(BuildStatBar("Burn", Math.Min(1f, burnDuration / 15f), $"{burnDuration:F0}s"));
+                StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-burn", Math.Min(1f, burnDuration / 15f), Seconds($"{burnDuration:F0}")));
                 break;
             default:
-                StatBarsContainer.AddChild(BuildStatBar("Blast", Math.Min(1f, (1f + blastBonus) / 2f), $"×{1f + blastBonus:F2}"));
+                StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-blast", Math.Min(1f, (1f + blastBonus) / 2f), $"×{1f + blastBonus:F2}"));
                 break;
         }
     }
@@ -367,8 +372,8 @@ public sealed partial class WeaponShopWindow
     {
         var baseCritChance = critComp?.BaseCritChance ?? critProto?.BaseCritChance ?? 0f;
         var critChance     = Math.Min(1f, baseCritChance + critChanceBonus);
-        StatBarsContainer.AddChild(BuildStatBar("Crit %", critChance, $"{critChance * 100f:F1}%"));
-        StatBarsContainer.AddChild(BuildStatBar("Crit DMG",
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-crit-chance", critChance, $"{critChance * 100f:F1}%"));
+        StatBarsContainer.AddChild(BuildStatBar("fs-weapon-shop-stat-crit-damage",
             Math.Min(1f, (critDamageMult - 1f) / 2f), $"{critDamageMult:F1}x"));
     }
 
@@ -383,7 +388,7 @@ public sealed partial class WeaponShopWindow
             string name = nodeId;
             if (_proto.TryIndex<FSTechNodePrototype>(nodeId, out var node))
                 name = node.Name;
-            lines.Add($"[Research] {name}");
+            lines.Add(Loc.GetString("fs-weapon-shop-research-line", ("name", name)));
         }
         return lines;
     }

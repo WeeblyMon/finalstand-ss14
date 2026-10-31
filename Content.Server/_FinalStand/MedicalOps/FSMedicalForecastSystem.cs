@@ -2,8 +2,6 @@ using Content.Server._FinalStand.Chat;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.Ailments;
-using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking;
 using Robust.Shared.Prototypes;
 
@@ -36,13 +34,13 @@ public sealed partial class FSMedicalForecastSystem : EntitySystem
         _firstWave.Clear();
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         if (_waves.TryGetActiveState(out var wave) && Build(wave.WaveNumber, wave.NextWaveEnemyTypes) is { } forecast)
             _chat.DispatchServerMarkupAnnouncement(forecast);
     }
 
-    private void OnDarkWaveWarning(FSDarkWaveWarningEvent ev)
+    private void OnDarkWaveWarning(ref FSDarkWaveWarningEvent ev)
     {
         if (_waves.TryGetActiveState(out var wave) && Build(wave.WaveNumber, [DarkRevenant]) is { } forecast)
             _chat.DispatchServerMarkupAnnouncement(forecast);

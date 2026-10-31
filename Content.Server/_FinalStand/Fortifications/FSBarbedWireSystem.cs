@@ -1,4 +1,3 @@
-// Wave attackers that melee a wired barricade take a cut and a short slow. Nobody is credited for the cut.
 using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.Spawners;
@@ -16,6 +15,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Fortifications;
 
+// Nobody is credited for wire cuts.
 public sealed partial class FSBarbedWireSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;

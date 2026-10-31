@@ -1,4 +1,3 @@
-// Shared "put this item somewhere on the player" rule for shop purchases and upgrade payloads.
 using Content.Shared.Inventory;
 using Content.Shared.Storage.EntitySystems;
 

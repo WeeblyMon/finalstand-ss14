@@ -10,43 +10,43 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponUnholyHalberd
     price: 5000
-    category: Melee Polearm
+    category: fs-weapon-shop-category-melee-polearm
     statDamage: 35
     statFireRate: 70
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: halberd-honed
-      name: Honed Edge
-      description: +90% damage per level.
+      name: fs-upgrade-halberd-honed
+      description: fs-upgrade-halberd-honed-desc
       maxLevel: 3
       baseCost: 4000
       type: Damage
       valuePerLevel: 0.9
     - id: halberd-balanced
-      name: Balanced Haft
-      description: Attack speed +15% per level.
+      name: fs-upgrade-halberd-balanced
+      description: fs-upgrade-halberd-balanced-desc
       maxLevel: 5
       baseCost: 5000
       type: AttackSpeed
       valuePerLevel: 0.15
     - id: halberd-impaler
-      name: Impaler
-      description: +10% crit chance per level.
+      name: fs-upgrade-halberd-impaler
+      description: fs-upgrade-halberd-impaler-desc
       maxLevel: 3
       baseCost: 4000
       type: CritChance
       valuePerLevel: 0.1
     - id: halberd-whirlwind
-      name: Whirlwind
-      description: Hold right click to keep spinning, at 4 health a spin. Stops before it would put you down.
+      name: fs-upgrade-halberd-whirlwind
+      description: fs-upgrade-halberd-whirlwind-desc
       maxLevel: 1
       baseCost: 9000
       type: Whirlwind
       valuePerLevel: 1
     - id: halberd-cyclone
-      name: Cyclone
-      description: Whirlwind spins 30% faster per level, at the same health a second.
+      name: fs-upgrade-halberd-cyclone
+      description: fs-upgrade-halberd-cyclone-desc
       maxLevel: 4
       baseCost: 7000
       type: MeleeSignature
@@ -54,16 +54,16 @@
       valuePerLevel: 0.3
       requiresUpgrade: halberd-whirlwind
     - id: halberd-brace
-      name: Brace
-      description: Thrusts from a standing start drive through two zombies behind and knock back twice as hard.
+      name: fs-upgrade-halberd-brace
+      description: fs-upgrade-halberd-brace-desc
       maxLevel: 1
       baseCost: 9000
       type: MeleeSignature
       signature: Brace
       valuePerLevel: 1
     - id: halberd-sanguine-thrust
-      name: Sanguine Thrust
-      description: Each thrust that lands restores 2 health per level.
+      name: fs-upgrade-halberd-sanguine-thrust
+      description: fs-upgrade-halberd-sanguine-thrust-desc
       maxLevel: 3
       baseCost: 5000
       type: StabLifeSteal

@@ -24,27 +24,41 @@ public sealed partial class FSLeashSystem : EntitySystem
     // TODO(finalstand): tune LOS timeout
     private static readonly TimeSpan LosTimeout = TimeSpan.FromSeconds(3);
 
-    private float _accumulator;
-    private const float TickInterval = 0.25f; // 4 Hz — cheap, LOS raycasts amortised
+    // How long a target the leash gave up on is ignored by the hunt, long enough to walk back further than the chase went.
+    private static readonly TimeSpan LeashIgnoreTime = TimeSpan.FromSeconds(5);
+
+    // A target in view is only re-checked this often, so the recorded sighting can trail the real last one by
+    // about this much; the timeout adds it back so ducking out of view still takes the full LosTimeout.
+    private static readonly TimeSpan LosRecheck = TimeSpan.FromSeconds(1);
+
+    // Each zombie is checked every few ticks, a slice per tick, so the LOS raycasts don't all land on one tick.
+    private const int TickBuckets = 8;
+    private int _tick;
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        _accumulator += frameTime;
-        if (_accumulator < TickInterval)
-            return;
-        _accumulator -= TickInterval;
-
+        var bucket = _tick++ % TickBuckets;
         var curTime = _timing.CurTime;
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
-            Tick(uid, htn, curTime);
+        {
+            if (FSTickBucket.Of(uid, TickBuckets) == bucket)
+                Tick(uid, htn, curTime);
+        }
     }
 
     private void Tick(EntityUid uid, HTNComponent htn, TimeSpan curTime)
     {
         var bb = htn.Blackboard;
+
+        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.LeashedUntil, out var leashedUntil, EntityManager)
+            && curTime >= leashedUntil)
+        {
+            bb.Remove<EntityUid>(FSAIBlackboardKeys.LeashedTarget);
+            bb.Remove<TimeSpan>(FSAIBlackboardKeys.LeashedUntil);
+        }
 
         if (!bb.TryGetValue<EntityUid>("Target", out var target, EntityManager)
             || !Exists(target)
@@ -56,6 +70,13 @@ public sealed partial class FSLeashSystem : EntitySystem
             return;
         }
 
+        // The objective is never given up on; leashing it made zombies drop the CCC partway there. Nor are a bait
+        // or a breach target, which have their own plans and aren't something to chase.
+        if (IsKeyed(bb, NPCBlackboard.CurrentOrderedTarget, target)
+            || IsKeyed(bb, FSAIBlackboardKeys.BaitTarget, target)
+            || IsKeyed(bb, FSAIBlackboardKeys.BreachTarget, target))
+            return;
+
         if (!bb.TryGetValue<MapCoordinates>(FSAIBlackboardKeys.AggroOrigin, out var aggroOrigin, EntityManager))
         {
             aggroOrigin = _transform.GetMapCoordinates(uid);
@@ -64,34 +85,49 @@ public sealed partial class FSLeashSystem : EntitySystem
             return;
         }
 
-        if (_examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))
-            bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
+        var graced = bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil, out var graceUntil, EntityManager)
+                     && curTime < graceUntil;
 
-        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil, out var graceUntil, EntityManager)
-            && curTime < graceUntil)
-            return;
-
-        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen, out var lastSeen, EntityManager)
-            && curTime - lastSeen > LosTimeout)
-        {
-            ClearTarget(htn, bb);
-            return;
-        }
-
+        // Distance is free; only raycast when it doesn't already decide.
         var curPos = _transform.GetMapCoordinates(uid);
-        if (curPos.MapId != aggroOrigin.MapId ||
-            (curPos.Position - aggroOrigin.Position).Length() > LeashDistance)
+        if (!graced && (curPos.MapId != aggroOrigin.MapId
+                        || (curPos.Position - aggroOrigin.Position).Length() > LeashDistance))
         {
-            ClearTarget(htn, bb);
+            GiveUp(htn, bb, target, curTime);
+            return;
         }
+
+        var hasSeen = bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen, out var lastSeen, EntityManager);
+        if ((!hasSeen || curTime - lastSeen >= LosRecheck)
+            && _examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))
+        {
+            hasSeen = true;
+            lastSeen = curTime;
+            bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
+        }
+
+        if (graced)
+            return;
+
+        if (hasSeen && curTime - lastSeen > LosTimeout + LosRecheck)
+            GiveUp(htn, bb, target, curTime);
     }
 
-    private void ClearTarget(HTNComponent htn, NPCBlackboard bb)
+    private bool IsKeyed(NPCBlackboard bb, string key, EntityUid target)
+    {
+        return bb.TryGetValue<EntityUid>(key, out var keyed, EntityManager) && keyed == target;
+    }
+
+    // The chase itself has to stop: a replan keeps the running plan unless the new one ranks higher, and only a bait
+    // or retaliation outranks a chase, so the zombie kept following its target's live position.
+    private void GiveUp(HTNComponent htn, NPCBlackboard bb, EntityUid target, TimeSpan curTime)
     {
         bb.Remove<EntityUid>("Target");
         bb.Remove<MapCoordinates>(FSAIBlackboardKeys.AggroOrigin);
         bb.Remove<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen);
         bb.Remove<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil);
-        _htn.Replan(htn);
+        bb.SetValue(FSAIBlackboardKeys.LeashedTarget, target);
+        bb.SetValue(FSAIBlackboardKeys.LeashedUntil, curTime + LeashIgnoreTime);
+        _htn.AbortPlan(htn);
     }
 }

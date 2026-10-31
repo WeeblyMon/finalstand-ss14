@@ -22,10 +22,10 @@ public sealed partial class PerkShopWindow
             SelectedPerkIcon.TexturePath = null;
             SelectedIconBox.PanelOverride = Box(FSUiPalette.BgRecess, FSUiPalette.BgTrack, new Thickness(1));
             CategoryTag.Visible = false;
-            SelectedNameLabel.Text = "Select a perk";
+            SelectedNameLabel.Text = Loc.GetString("fs-perk-shop-select");
             SelectedLevelLabel.Text = "";
             SelectedDescLabel.SetMessage(FormattedMessage.FromMarkupPermissive(
-                $"[color={FSUiPalette.TextMuted.ToHex()}]Pick a perk from the list to see what each level does.[/color]"));
+                $"[color={FSUiPalette.TextMuted.ToHex()}]{FormattedMessage.EscapeText(Loc.GetString("fs-perk-shop-select-hint"))}[/color]"));
             LevelEffectsBox.RemoveAllChildren();
             ShortfallLabel.Visible = false;
             UpgradeButton.Visible = false;
@@ -44,9 +44,9 @@ public sealed partial class PerkShopWindow
         SelectedNameLabel.Text = def.Name;
         CategoryTag.Visible = true;
         CategoryTag.PanelOverride = Box(FSPerkPalette.Background[def.Category], FSPerkPalette.Edge[def.Category], new Thickness(1));
-        SelectedCategoryLabel.Text = CatLabel[def.Category];
+        SelectedCategoryLabel.Text = Loc.GetString(CatLabel[def.Category]);
         SelectedCategoryLabel.FontColorOverride = accent;
-        SelectedLevelLabel.Text = locked ? "Not owned" : $"Level {level} of {FSPerkDef.MaxLevel}";
+        SelectedLevelLabel.Text = locked ? Loc.GetString("fs-perk-shop-not-owned") : Loc.GetString("fs-perk-shop-level-of", ("level", level), ("max", FSPerkDef.MaxLevel));
         SelectedDescLabel.SetMessage(FormattedMessage.FromMarkupPermissive(
             $"[color={Color.FromHex("#c2beb8").ToHex()}]{FormattedMessage.EscapeText(def.Description)}[/color]"));
 
@@ -67,7 +67,7 @@ public sealed partial class PerkShopWindow
                     : Loc.GetString("fs-mastery-progress-max", ("tier", Loc.GetString(FSPerkMastery.TierLocId(tier))),
                         ("kills", masteryKills.ToString("N0"))),
                 FontOverride = _fontSmallBold,
-                FontColorOverride = tier == FSMasteryTier.None ? FSUiPalette.TextMuted : FSPerkMastery.TierColor(tier),
+                FontColorOverride = tier == FSMasteryTier.None ? FSUiPalette.TextMuted : FSPerkPalette.Mastery[tier],
                 ToolTip = Loc.GetString("fs-mastery-hint"),
                 Margin = new Thickness(0, 6, 0, 0),
             });
@@ -78,7 +78,9 @@ public sealed partial class PerkShopWindow
         var affordable = !maxed && points >= cost;
 
         UpgradeButton.Visible = true;
-        UpgradeButton.Text = maxed ? "MAX LEVEL" : $"{(locked ? "UNLOCK" : $"UPGRADE TO L{level + 1}")} · {cost} PP";
+        UpgradeButton.Text = maxed ? Loc.GetString("fs-perk-shop-max-level")
+            : locked ? Loc.GetString("fs-perk-shop-unlock-cost", ("cost", cost.ToString()))
+            : Loc.GetString("fs-perk-shop-upgrade-cost", ("level", level + 1), ("cost", cost.ToString()));
         UpgradeButton.Disabled = !affordable;
         UpgradeButton.StyleBoxOverride = affordable
             ? Box(FSUiPalette.Currency, Color.FromHex("#e3bd70"), new Thickness(1))
@@ -87,13 +89,13 @@ public sealed partial class PerkShopWindow
         UpgradeButton.Label.HorizontalAlignment = HAlignment.Center;
 
         ShortfallLabel.Visible = !maxed && !affordable;
-        ShortfallLabel.Text = $"You need {cost - points} more PP.";
+        ShortfallLabel.Text = Loc.GetString("fs-perk-shop-shortfall", ("amount", (cost - points).ToString()));
 
         var slot = _state == null ? -1 : Array.IndexOf(_state.Slots, def.Id);
         var hasFree = _state?.Slots.Any(string.IsNullOrEmpty) == true;
         EquipButton.Visible = !locked;
         EquipButton.Disabled = slot < 0 && !hasFree;
-        EquipButton.Text = slot >= 0 ? $"UNEQUIP FROM SLOT {slot + 1}" : hasFree ? "EQUIP TO NEXT FREE SLOT" : "ALL 6 SLOTS FULL";
+        EquipButton.Text = slot >= 0 ? Loc.GetString("fs-perk-shop-unequip", ("slot", slot + 1)) : hasFree ? Loc.GetString("fs-perk-shop-equip") : Loc.GetString("fs-perk-shop-slots-full");
         EquipButton.Label.HorizontalAlignment = HAlignment.Center;
     }
 
@@ -112,7 +114,7 @@ public sealed partial class PerkShopWindow
         var box = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 10 };
         box.AddChild(new Label
         {
-            Text = $"L{index + 1}",
+            Text = Loc.GetString("fs-perk-shop-level-short", ("level", index + 1)),
             MinWidth = 22,
             FontOverride = _fontBodyBold,
             FontColorOverride = owned ? accent : FSUiPalette.BorderSubtle,
@@ -121,10 +123,12 @@ public sealed partial class PerkShopWindow
         var text = new RichTextLabel { HorizontalExpand = true, MaxWidth = 190 };
         var color = owned || next ? FSUiPalette.TextPrimary : FSUiPalette.TextMuted;
         text.SetMessage(FormattedMessage.FromMarkupPermissive(
-            $"[color={color.ToHex()}]{FormattedMessage.EscapeText(def.LevelEffects[index])}[/color]"));
+            $"[color={color.ToHex()}]{FormattedMessage.EscapeText(def.LevelEffect(index))}[/color]"));
         box.AddChild(text);
 
-        var tag = owned ? "OWNED" : next ? (level == 0 ? "UNLOCK" : "NEXT") : "";
+        var tag = owned ? Loc.GetString("fs-perk-shop-ladder-owned")
+            : next ? Loc.GetString(level == 0 ? "fs-perk-shop-ladder-unlock" : "fs-perk-shop-ladder-next")
+            : "";
         box.AddChild(new Label
         {
             Text = tag,
@@ -141,10 +145,10 @@ public sealed partial class PerkShopWindow
     {
         var eligible = _playerLevel >= 50;
 
-        PrestigeLevelLabel.Text = $"Prestige {_prestigeLevel} — Level {_playerLevel}";
-        PrestigeXpBonusLabel.Text = $"Current XP Bonus: +{_prestigeLevel * 20}%";
+        PrestigeLevelLabel.Text = Loc.GetString("fs-perk-shop-prestige-level", ("prestige", _prestigeLevel), ("level", _playerLevel));
+        PrestigeXpBonusLabel.Text = Loc.GetString("fs-perk-shop-prestige-bonus", ("bonus", _prestigeLevel * 20));
 
-        PrestigeRequirementLabel.Text = "Reach Level 50 to Prestige";
+        PrestigeRequirementLabel.Text = Loc.GetString("fs-perk-shop-prestige-requirement");
         PrestigeRequirementLabel.Modulate = eligible ? FSUiPalette.Currency : FSUiPalette.TextMuted;
 
         PrestigeButton.Disabled = !eligible;
@@ -163,53 +167,53 @@ public sealed partial class PerkShopWindow
         var freeLoadout = Array.FindIndex(_state.Loadouts, l => l is not { IsEmpty: false });
         var refund = Invested(_state.Levels);
 
-        var dialog = new FancyWindow { Title = "Respec", Resizable = false, SetWidth = 520 };
+        var dialog = new FancyWindow { Title = Loc.GetString("fs-perk-shop-respec-title"), Resizable = false, SetWidth = 520 };
         ((Control)dialog).Stylesheet = ((Control)this).Stylesheet;
 
         var vbox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, Margin = new Thickness(20), SeparationOverride = 14 };
 
-        vbox.AddChild(new Label { Text = "RESPEC ALL PERKS?", FontOverride = _fontTitle, FontColorOverride = FSUiPalette.TextPrimary });
+        vbox.AddChild(new Label { Text = Loc.GetString("fs-perk-shop-respec-heading"), FontOverride = _fontTitle, FontColorOverride = FSUiPalette.TextPrimary });
         var intro = new RichTextLabel { MaxWidth = 480 };
         intro.SetMessage(FormattedMessage.FromMarkupPermissive(
-            $"You get [color={FSUiPalette.Currency.ToHex()}][bold]{refund} PP[/bold][/color] back and can rebuild from scratch."));
+            Loc.GetString("fs-perk-shop-respec-intro", ("color", FSUiPalette.Currency.ToHex()), ("refund", refund.ToString()))));
         vbox.AddChild(intro);
 
-        var reset = Section("WILL BE RESET", FSPerkPalette.Accent[PerkCategory.Red],
+        var reset = Section(Loc.GetString("fs-perk-shop-respec-reset"), FSPerkPalette.Accent[PerkCategory.Red],
             FSPerkPalette.Background[PerkCategory.Red], FSPerkPalette.Edge[PerkCategory.Red]);
-        reset.Body.AddChild(BodyLabel($"{owned.Count} perks go back to level 0 · {equipped} equipped slots are cleared"));
+        reset.Body.AddChild(BodyLabel(Loc.GetString("fs-perk-shop-respec-reset-body", ("perks", owned.Count), ("slots", equipped))));
         var chips = new GridContainer { Columns = 7, HSeparationOverride = 6, VSeparationOverride = 6 };
         foreach (var (id, lvl) in owned.OrderBy(kv => FSPerkDef.All[kv.Key].Category))
             chips.AddChild(OwnedChip(id, lvl));
         reset.Body.AddChild(chips);
         vbox.AddChild(reset.Root);
 
-        var kept = Section("KEPT", FSPerkPalette.Accent[PerkCategory.Green],
+        var kept = Section(Loc.GetString("fs-perk-shop-respec-kept"), FSPerkPalette.Accent[PerkCategory.Green],
             FSPerkPalette.Background[PerkCategory.Green], FSPerkPalette.Edge[PerkCategory.Green]);
         kept.Body.AddChild(BodyLabel(saved > 0
-            ? $"Your {saved} saved loadout{(saved > 1 ? "s" : "")} — load one later to rebuild instantly"
-            : "No saved loadouts yet"));
-        kept.Body.AddChild(BodyLabel($"Your {_state.PerkPoints} unspent PP"));
+            ? Loc.GetString("fs-perk-shop-respec-kept-loadouts", ("count", saved))
+            : Loc.GetString("fs-perk-shop-respec-kept-no-loadouts")));
+        kept.Body.AddChild(BodyLabel(Loc.GetString("fs-perk-shop-respec-kept-points", ("points", _state.PerkPoints.ToString()))));
         vbox.AddChild(kept.Root);
 
         var buttons = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 8, HorizontalAlignment = HAlignment.Right };
 
-        var cancel = DialogButton("CANCEL");
+        var cancel = DialogButton(Loc.GetString("fs-perk-shop-respec-cancel"));
         cancel.OnPressed += _ => dialog.Close();
         buttons.AddChild(cancel);
 
         if (freeLoadout >= 0 && owned.Count > 0)
         {
-            var bank = DialogButton($"SAVE TO LOADOUT {freeLoadout + 1} FIRST");
+            var bank = DialogButton(Loc.GetString("fs-perk-shop-respec-save-first", ("loadout", freeLoadout + 1)));
             bank.OnPressed += _ =>
             {
                 OnSaveLoadout?.Invoke(new FSSaveLoadoutMessage { LoadoutIndex = freeLoadout });
-                bank.Text = $"SAVED TO LOADOUT {freeLoadout + 1}";
+                bank.Text = Loc.GetString("fs-perk-shop-respec-saved", ("loadout", freeLoadout + 1));
                 bank.Disabled = true;
             };
             buttons.AddChild(bank);
         }
 
-        var confirm = DialogButton($"RESPEC · +{refund} PP");
+        var confirm = DialogButton(Loc.GetString("fs-perk-shop-respec-confirm", ("refund", refund.ToString())));
         confirm.Disabled = owned.Count == 0;
         confirm.StyleBoxOverride = Box(RespecFill, FSPerkPalette.Accent[PerkCategory.Red], new Thickness(1), 16, 0);
         confirm.Label.FontColorOverride = Color.White;
@@ -245,13 +249,13 @@ public sealed partial class PerkShopWindow
         var def = FSPerkDef.All[id];
         var chip = new PanelContainer
         {
-            ToolTip = $"{def.Name} — level {level}",
+            ToolTip = Loc.GetString("fs-perk-shop-chip", ("perk", def.Name), ("level", level)),
             PanelOverride = Box(FSPerkPalette.Background[def.Category], FSPerkPalette.Edge[def.Category], new Thickness(1), 4, 2),
         };
         var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 4 };
         if (GetPerkIcon(id) is { } icon)
             row.AddChild(new FSMipmapRect { TexturePath = icon, SetSize = new Vector2(20, 20) });
-        row.AddChild(new Label { Text = $"L{level}", FontOverride = _fontSmallBold, FontColorOverride = FSUiPalette.TextPrimary, VerticalAlignment = VAlignment.Center });
+        row.AddChild(new Label { Text = Loc.GetString("fs-perk-shop-level-short", ("level", level)), FontOverride = _fontSmallBold, FontColorOverride = FSUiPalette.TextPrimary, VerticalAlignment = VAlignment.Center });
         chip.AddChild(row);
         return chip;
     }
@@ -266,23 +270,23 @@ public sealed partial class PerkShopWindow
 
     private void ShowPrestigeConfirmation()
     {
-        var dialog = new FancyWindow { Title = "Confirm Prestige", Resizable = false, SetSize = new Vector2(400, 200) };
+        var dialog = new FancyWindow { Title = Loc.GetString("fs-perk-shop-prestige-confirm-title"), Resizable = false, SetSize = new Vector2(400, 200) };
         ((Control)dialog).Stylesheet = ((Control)this).Stylesheet;
 
         var vbox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, Margin = new Thickness(12) };
-        vbox.AddChild(new Label { Text = "Prestige? Your level resets to 1.", Margin = new Thickness(0, 0, 0, 4) });
-        vbox.AddChild(new Label { Text = "Perks and points are kept.", Margin = new Thickness(0, 0, 0, 4) });
+        vbox.AddChild(new Label { Text = Loc.GetString("fs-perk-shop-prestige-confirm-reset"), Margin = new Thickness(0, 0, 0, 4) });
+        vbox.AddChild(new Label { Text = Loc.GetString("fs-perk-shop-prestige-confirm-kept"), Margin = new Thickness(0, 0, 0, 4) });
         vbox.AddChild(new Label
         {
-            Text = "You gain +20% permanent XP bonus.",
+            Text = Loc.GetString("fs-perk-shop-prestige-confirm-bonus"),
             FontColorOverride = FSUiPalette.Currency,
             Margin = new Thickness(0, 0, 0, 16),
         });
 
         var btnRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
-        var confirm = new Button { Text = "Confirm", HorizontalExpand = true, Margin = new Thickness(0, 0, 6, 0) };
+        var confirm = new Button { Text = Loc.GetString("fs-perk-shop-prestige-confirm"), HorizontalExpand = true, Margin = new Thickness(0, 0, 6, 0) };
         confirm.Label.FontColorOverride = FSUiPalette.Currency;
-        var cancel = new Button { Text = "Cancel", HorizontalExpand = true };
+        var cancel = new Button { Text = Loc.GetString("fs-perk-shop-prestige-cancel"), HorizontalExpand = true };
 
         confirm.OnPressed += _ =>
         {

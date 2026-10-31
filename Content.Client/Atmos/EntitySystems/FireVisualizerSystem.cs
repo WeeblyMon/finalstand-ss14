@@ -83,7 +83,7 @@ public sealed partial class FireVisualizerSystem : VisualizerSystem<FireVisualsC
         AppearanceSystem.TryGetData<bool>(uid, FireVisuals.OnFire, out var onFire, appearance);
         AppearanceSystem.TryGetData<float>(uid, FireVisuals.FireStacks, out var fireStacks, appearance);
         AppearanceSystem.TryGetData<string?>(uid, FireVisuals.FireDisplacement, out var fireDisplacement, appearance);
-        AppearanceSystem.TryGetData<bool>(uid, FSHealingFireVisuals.Healing, out var healing, appearance);
+        AppearanceSystem.TryGetData<bool>(uid, FSHealingFireVisuals.Healing, out var healing, appearance); // FINALSTAND
         SpriteSystem.LayerSetVisible((uid, sprite), index, onFire);
         SpriteSystem.LayerSetColor((uid, sprite), index, healing ? HealingTint : Color.White);
 

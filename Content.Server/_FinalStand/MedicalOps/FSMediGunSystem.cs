@@ -38,20 +38,44 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private FSUberSystem _uber = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
 
+    // How far from the cursor a click still counts as aiming at a player.
     private const float ClickAssistRadius = 0.9f;
 
     private readonly HashSet<Entity<FSFriendlyFireComponent>> _nearClick = new();
     private readonly List<EntityUid> _pulsing = new();
 
+    private EntityQuery<BatteryComponent> _batteryQuery;
+    private EntityQuery<DamageableComponent> _damageableQuery;
+
     public override void Initialize()
     {
         base.Initialize();
+
+        _batteryQuery = GetEntityQuery<BatteryComponent>();
+        _damageableQuery = GetEntityQuery<DamageableComponent>();
+
         SubscribeLocalEvent<FSMediGunComponent, AfterInteractEvent>(OnAfterInteract);
         SubscribeLocalEvent<FSMediGunComponent, EntParentChangedMessage>(OnParentChanged);
         SubscribeLocalEvent<FSMediGunComponent, ItemUnwieldedEvent>(OnUnwielded);
+        SubscribeLocalEvent<FSMediGunHealedComponent, EntityTerminatingEvent>(OnPatientTerminating);
     }
 
     public static bool IsPatient(IEntityManager entMan, EntityUid uid) => entMan.HasComponent<FSFriendlyFireComponent>(uid);
+
+    // A patient deleted mid-beam (gibbed, cryo) drops off every gun healing it, so nothing reads a dead uid.
+    private void OnPatientTerminating(Entity<FSMediGunHealedComponent> ent, ref EntityTerminatingEvent args)
+    {
+        foreach (var source in ent.Comp.Sources)
+        {
+            if (!TryComp<FSMediGunComponent>(source, out var gun) || !gun.Patients.Remove(ent.Owner))
+                continue;
+
+            if (gun.Patients.Count == 0)
+                Release((source, gun));
+            else
+                Dirty(source, gun);
+        }
+    }
 
     public override void Update(float frameTime)
     {
@@ -90,30 +114,32 @@ public sealed partial class FSMediGunSystem : EntitySystem
     private bool Treat(Entity<FSMediGunComponent> gun, EntityUid patient)
     {
         var comp = gun.Comp;
+
+        // A downed or dead medic isn't holding a beam steady - nothing else stops the gun for this.
         if (comp.Medic is not { } medic
             || TerminatingOrDeleted(medic)
             || _mobState.IsIncapacitated(medic)
             || !InRange(gun, patient)
-            || !TryComp<DamageableComponent>(patient, out var damageable)
+            || !_damageableQuery.TryComp(patient, out var damageable)
             || !DrawCharge(gun))
             return false;
 
         var clotted = _ailments.Clot(patient, comp.ClotPerSecond * comp.PulseSeconds, medic);
-        Mend(comp, patient, medic);
+        var mended = Mend(comp, patient, medic);
 
         var potency = new FSHealingPotencyEvent(1f, patient);
         RaiseLocalEvent(medic, ref potency);
-
-        if (clotted || damageable.TotalDamage > 0)
-            _combatMedic.OnHealedAlly(medic, patient);
 
         var scale = GetHealScale((patient, damageable), comp);
         AnnounceSoftCap(gun, patient, scale <= 0f);
         _uber.Cover(gun, patient);
 
+        // Combat Medic counts treatment that landed, not a beam held on someone it can't help.
         if (scale <= 0f)
         {
-            _overheal.Feed(patient, comp, comp.OverhealPerTick * potency.Multiplier);
+            if (_overheal.Feed(patient, comp, comp.OverhealPerTick * potency.Multiplier) || clotted || mended)
+                _combatMedic.OnHealedAlly(medic, patient);
+
             _uber.AddCharge(gun, comp.UberChargeWhileCapped);
             return true;
         }
@@ -126,9 +152,16 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         scale *= _ailments.GetIncomingHealScale(patient) * potency.Multiplier;
 
-        var damageBefore = _damageable.GetTotalDamage((patient, damageable)).Float();
+        // TryChangeDamage reports what was asked for, not what landed, so measure the real change.
+        var before = _damageable.GetTotalDamage((patient, damageable)).Float();
         _damageable.TryChangeDamage(patient, comp.HealPerPulse * scale, ignoreResistances: true, interruptsDoAfters: false, origin: medic);
-        _uber.AddCharge(gun, (damageBefore - _damageable.GetTotalDamage((patient, damageable)).Float()) * comp.UberChargePerHp);
+
+        var restored = before - _damageable.GetTotalDamage((patient, damageable)).Float();
+        _uber.AddCharge(gun, restored * comp.UberChargePerHp);
+
+        if (restored > 0f || clotted || mended)
+            _combatMedic.OnHealedAlly(medic, patient);
+
         return true;
     }
 
@@ -141,7 +174,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
     private bool DrawCharge(Entity<FSMediGunComponent> gun)
     {
-        if (gun.Comp.UberActive || !HasComp<BatteryComponent>(gun))
+        if (gun.Comp.UberActive || !_batteryQuery.HasComp(gun.Owner))
             return true;
 
         if (_battery.TryUseCharge(gun.Owner, gun.Comp.ChargePerPulse))
@@ -162,26 +195,34 @@ public sealed partial class FSMediGunSystem : EntitySystem
         healed.SoftCapAnnounced = capped;
     }
 
-    private void Mend(FSMediGunComponent comp, EntityUid patient, EntityUid medic)
+    // Returns whether the beam worked on a bone or burn this pulse.
+    private bool Mend(FSMediGunComponent comp, EntityUid patient, EntityUid medic)
     {
+        var mended = false;
         var speed = _medicalBonus.GetDelayMultiplier(medic, FSMedicalBonusCategory.TreatmentSpeed);
         if (comp.CanSetBones && _ailments.Has(patient, FSAilmentSlot.Bone))
         {
             var seconds = _ailments.IsBroken(patient) ? comp.BoneSetSeconds : comp.MendingSetSeconds;
             _ailments.AddMend(patient, FSAilmentSlot.Bone, comp.PulseSeconds / (seconds * speed), medic);
+            mended = true;
         }
 
         if (comp.CanClearBurns && _ailments.Has(patient, FSAilmentSlot.Burn))
+        {
             _ailments.AddMend(patient, FSAilmentSlot.Burn, comp.PulseSeconds / (comp.BurnClearSeconds * speed), medic);
+            mended = true;
+        }
+
+        return mended;
     }
 
-    public void ClearTreatable(FSMediGunComponent comp, EntityUid patient, EntityUid medic)
+    public void ClearTreatable(Entity<FSMediGunComponent> gun, EntityUid patient, EntityUid medic)
     {
         _ailments.StopBleeding(patient, medic, FSCureKind.Mass);
-        if (comp.CanSetBones)
+        if (gun.Comp.CanSetBones)
             _ailments.Cure(patient, FSAilmentSlot.Bone, medic, FSCureKind.Mass);
 
-        if (comp.CanClearBurns)
+        if (gun.Comp.CanClearBurns)
             _ailments.Cure(patient, FSAilmentSlot.Burn, medic, FSCureKind.Mass);
     }
 
@@ -213,7 +254,8 @@ public sealed partial class FSMediGunSystem : EntitySystem
             return;
         }
 
-        if (_useDelay.IsDelayed(gun.Owner))
+        // The click assist picks anyone near the cursor; a link the beam can't reach would only break next pulse.
+        if (_useDelay.IsDelayed(gun.Owner) || !InRange(gun, target))
             return;
 
         if (gun.Comp.Patients.Contains(target))
@@ -225,6 +267,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         args.Handled = true;
     }
 
+    // Only crew are patients; a miss near a player snaps onto them so fast-moving targets are clickable.
     private EntityUid? PickTarget(EntityUid? clicked, EntityCoordinates click, EntityUid user)
     {
         if (clicked is { } direct && direct != user && IsPatient(EntityManager, direct))
@@ -279,7 +322,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
     public void Release(Entity<FSMediGunComponent> gun)
     {
         foreach (var patient in gun.Comp.Patients)
-            ForgetSource(patient, gun);
+            ForgetSource(gun, patient);
 
         gun.Comp.Patients.Clear();
         gun.Comp.Medic = null;
@@ -291,7 +334,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (!gun.Comp.Patients.Remove(patient))
             return;
 
-        ForgetSource(patient, gun);
+        ForgetSource(gun, patient);
         if (gun.Comp.Patients.Count == 0)
             gun.Comp.Medic = null;
 
@@ -299,8 +342,11 @@ public sealed partial class FSMediGunSystem : EntitySystem
         _audio.PlayPvs(gun.Comp.LostSound, gun);
     }
 
-    private void ForgetSource(EntityUid patient, EntityUid gun)
+    // Runs while the gun still names its medic, so the uber can tell a patient from the medic it covers.
+    private void ForgetSource(Entity<FSMediGunComponent> gun, EntityUid patient)
     {
+        _uber.Uncover(gun, patient);
+
         if (!TryComp<FSMediGunHealedComponent>(patient, out var healed) || !healed.Sources.Remove(gun))
             return;
 

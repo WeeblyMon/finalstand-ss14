@@ -13,8 +13,6 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Server._FinalStand.Commands;
 
-// Dumps a snapshot of every wave zombie's state — position, target, speed, steering status,
-// flow-field reachability, HTN keys. Useful for diagnosing idling / stranded / stuck zombies.
 [AdminCommand(AdminFlags.Debug)]
 public sealed partial class FSDebugZombiesCommand : LocalizedEntityCommands
 {

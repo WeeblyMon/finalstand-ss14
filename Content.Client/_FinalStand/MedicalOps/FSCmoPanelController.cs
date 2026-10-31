@@ -73,6 +73,7 @@ public sealed partial class FSCmoPanelController : UIController
     private readonly Dictionary<FSCmoAbility, int> _shownSeconds = new();
 
     private BoxContainer? _frame;
+    private Vector2? _shownPosition;
 
     public override void Initialize()
     {
@@ -95,6 +96,7 @@ public sealed partial class FSCmoPanelController : UIController
         if (FindWidget<HotbarGui>(screen)?.Parent is not LayoutContainer container)
             return;
 
+        _shownPosition = null;
         _frame = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Horizontal,
@@ -219,7 +221,6 @@ public sealed partial class FSCmoPanelController : UIController
         _frame = null;
         _slots.Clear();
         _shownSeconds.Clear();
-
     }
 
     public override void FrameUpdate(FrameEventArgs args)
@@ -294,7 +295,13 @@ public sealed partial class FSCmoPanelController : UIController
         var x = (vitals.Right - origin.X) / scale + EdgePadding;
         var y = (vitals.Bottom - origin.Y) / scale - _frame.DesiredSize.Y;
 
-        LayoutContainer.SetPosition(_frame, new Vector2(x, y));
+        // SetPosition relayouts the screen even when nothing moved.
+        var position = new Vector2(x, y);
+        if (_shownPosition == position)
+            return;
+
+        _shownPosition = position;
+        LayoutContainer.SetPosition(_frame, position);
     }
 
     private static FSMedicalDirective? DirectiveOf(FSCmoAbility ability) => ability switch

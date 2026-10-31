@@ -1,9 +1,9 @@
 ﻿using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
-using Content.Client.Mech.Ui;
+using Content.Client.Mech.Ui; // FINALSTAND
 using Robust.Client.GameObjects;
-using Robust.Shared.Containers;
+using Robust.Shared.Containers; // FINALSTAND
 using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client.Mech;
@@ -13,7 +13,7 @@ public sealed partial class MechSystem : SharedMechSystem
 {
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private SpriteSystem _sprite = default!;
-    [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!; // FINALSTAND
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -21,10 +21,11 @@ public sealed partial class MechSystem : SharedMechSystem
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, AppearanceChangeEvent>(OnAppearanceChanged);
-        SubscribeLocalEvent<MechComponent, EntInsertedIntoContainerMessage>(OnEquipmentChanged);
-        SubscribeLocalEvent<MechComponent, EntRemovedFromContainerMessage>(OnEquipmentChanged);
+        SubscribeLocalEvent<MechComponent, EntInsertedIntoContainerMessage>(OnEquipmentChanged); // FINALSTAND
+        SubscribeLocalEvent<MechComponent, EntRemovedFromContainerMessage>(OnEquipmentChanged); // FINALSTAND
     }
 
+    // FINALSTAND: an open mech panel refreshes when equipment is mounted or removed.
     private void OnEquipmentChanged(EntityUid uid, MechComponent component, ContainerModifiedMessage args)
     {
         if (args.Container.ID != component.EquipmentContainerId)

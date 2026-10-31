@@ -1,5 +1,3 @@
-// The RCD's second material source: the silo network, when any silo is in reach. Inventory is spent first; the network's
-// share of a build is reserved when the build starts so two engineers can't both spend the same stock.
 using Content.Server._FinalStand.Materials;
 using Content.Server.Administration.Logs;
 using Content.Shared._FinalStand.RCD;
@@ -10,13 +8,17 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.RCD;
 
+// The network's share of a build is reserved at start so two engineers can't spend the same stock.
 public sealed partial class FSRCDEngineerOnlySystem
 {
     [Dependency] private FSSiloNetworkSystem _silo = default!;
     [Dependency] private SharedMaterialStorageSystem _storage = default!;
     [Dependency] private IAdminLogManager _adminLog = default!;
 
-    private readonly Dictionary<EntityUid, List<(string Material, int Volume)>> _rcdReservations = new();
+    // One entry per build an RCD has started, oldest first: vanilla lets several run at once.
+    private readonly Dictionary<EntityUid, Queue<PendingBuild>> _pendingBuilds = new();
+
+    private readonly record struct PendingBuild(TimeSpan StartedAt, List<(string Material, int Volume)> Reserved);
 
     public int SiloSheets(EntityUid user, ProtoId<StackPrototype> stack) => _silo.Sheets(user, stack);
 
@@ -28,7 +30,6 @@ public sealed partial class FSRCDEngineerOnlySystem
     // Reserves the part of a recipe the user's inventory can't cover. False if the network can't cover it either.
     private bool TryReserve(EntityUid rcd, EntityUid user, FSBuildRecipePrototype recipe)
     {
-        Release(rcd);
         var reservations = new List<(string Material, int Volume)>();
         foreach (var (stack, need) in recipe.Materials)
         {
@@ -47,9 +48,10 @@ public sealed partial class FSRCDEngineerOnlySystem
             reservations.Add((sheet.Material, volume));
         }
 
-        if (reservations.Count > 0)
-            _rcdReservations[rcd] = reservations;
+        if (!_pendingBuilds.TryGetValue(rcd, out var queue))
+            _pendingBuilds[rcd] = queue = new Queue<PendingBuild>();
 
+        queue.Enqueue(new PendingBuild(_timing.CurTime, reservations));
         return true;
     }
 
@@ -61,16 +63,35 @@ public sealed partial class FSRCDEngineerOnlySystem
         return false;
     }
 
-    private void Release(EntityUid rcd)
+    // Builds on one RCD finish roughly in the order they started, so the oldest share goes back.
+    private void ReleaseOldest(EntityUid rcd)
     {
-        if (_rcdReservations.Remove(rcd, out var reservations))
-            Abandon(reservations);
+        if (!_pendingBuilds.TryGetValue(rcd, out var queue) || !queue.TryDequeue(out var build))
+            return;
+
+        Abandon(build.Reserved);
+        if (queue.Count == 0)
+            _pendingBuilds.Remove(rcd);
+    }
+
+    // A build vanilla refused after we reserved never finishes or cancels, so its share times out.
+    private void ExpireReservations()
+    {
+        _expired.Clear();
+        foreach (var (rcd, queue) in _pendingBuilds)
+        {
+            if (queue.Peek().StartedAt + ReservationTimeout < _timing.CurTime)
+                _expired.Add(rcd);
+        }
+
+        foreach (var rcd in _expired)
+            ReleaseOldest(rcd);
     }
 
     // Spends inventory first, then the network. Releases the reservation either way.
     private bool TryCommit(EntityUid rcd, EntityUid user, FSBuildRecipePrototype recipe)
     {
-        Release(rcd);
+        ReleaseOldest(rcd);
 
         var inventory = new Dictionary<ProtoId<StackPrototype>, int>();
         var fromPool = new Dictionary<string, int>();
@@ -89,12 +110,13 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         if (fromPool.Count > 0)
         {
-            if (_silo.PoolFor(user) is not { } pool)
+            if (_silo.PoolFor(user) == null)
                 return false;
 
+            // Free, not the raw amount: stock other engineers reserved for their builds isn't ours to take.
             foreach (var (material, volume) in fromPool)
             {
-                if (_storage.GetMaterialAmount(pool, material) < volume)
+                if (_silo.Free(material) < volume)
                     return false;
             }
         }

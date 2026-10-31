@@ -1,5 +1,3 @@
-// Links an ammo crate to the nearest HMG within reach and keeps that gun's belt topped up from it.
-// A crate being dragged feeds nothing; one crate feeds one gun.
 using Content.Server._FinalStand.Engineering;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.HMG;
@@ -11,6 +9,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.HMG;
 
+// A crate being dragged feeds nothing; one crate feeds one gun.
 public sealed partial class FSAmmoCrateSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
@@ -18,6 +17,7 @@ public sealed partial class FSAmmoCrateSystem : EntitySystem
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private FSEngineeringResearchSystem _engineering = default!;
+    [Dependency] private FSHMGSystem _hmg = default!;
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
     private const float SentryFeedRange = 1.5f;
@@ -136,8 +136,8 @@ public sealed partial class FSAmmoCrateSystem : EntitySystem
             Dirty(old, oldComp);
         }
 
-        gun.Comp.Crate = crate;
-        Dirty(gun);
+        // A no-op when unchanged: an HMG with no crate nearby is re-checked every interval.
+        _hmg.SetCrate(gun, crate);
 
         if (crate is { } uid && TryComp<FSAmmoCrateComponent>(uid, out var comp))
         {

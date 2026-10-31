@@ -1,8 +1,8 @@
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawner
   name: Wave Enemy Spawner
   description: Marks a location where wave enemies spawn.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
   - type: Sprite
@@ -12,10 +12,10 @@
     - state: red
 
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawnerNorth
   name: Wave Enemy Spawner (North)
   description: North spawn point. Unlocks wave 1.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 1
@@ -26,10 +26,10 @@
     - state: red
 
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawnerEast
   name: Wave Enemy Spawner (East)
   description: East spawn point. Unlocks wave 4.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 4
@@ -40,10 +40,10 @@
     - state: green
 
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawnerSouth
   name: Wave Enemy Spawner (South)
   description: South spawn point. Unlocks wave 7.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 7
@@ -54,10 +54,10 @@
     - state: blue
 
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawnerWest
   name: Wave Enemy Spawner (West)
   description: West spawn point. Unlocks wave 10.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 10
@@ -68,10 +68,10 @@
     - state: pink
 
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawnerSecondaryNorth
   name: Secondary Wave Spawner (North)
   description: Supporting north spawn point. Sometimes active, spawns fewer enemies.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 1
@@ -83,10 +83,10 @@
     - state: pink
 
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawnerSecondaryEast
   name: Secondary Wave Spawner (East)
   description: Supporting east spawn point. Sometimes active, spawns fewer enemies.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 4
@@ -98,10 +98,10 @@
     - state: pink
 
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawnerSecondarySouth
   name: Secondary Wave Spawner (South)
   description: Supporting south spawn point. Sometimes active, spawns fewer enemies.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 7
@@ -113,10 +113,10 @@
     - state: pink
 
 - type: entity
+  parent: MarkerBase
   id: WaveEnemySpawnerSecondaryWest
   name: Secondary Wave Spawner (West)
   description: Supporting west spawn point. Sometimes active, spawns fewer enemies.
-  parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 10

@@ -4,9 +4,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Tutorial;
 
 [AnyCommand]
-public sealed partial class FSTutorialCommand : LocalizedCommands
+public sealed partial class FSTutorialCommand : LocalizedEntityCommands
 {
-    [Dependency] private IEntityManager _entMan = default!;
+    [Dependency] private FSNewPlayerTipSystem _tutorial = default!;
 
     public override string Command => "tutorial";
 
@@ -18,23 +18,22 @@ public sealed partial class FSTutorialCommand : LocalizedCommands
             return;
         }
 
-        var tutorial = _entMan.System<FSNewPlayerTipSystem>();
         switch (args.Length == 0 ? string.Empty : args[0].ToLowerInvariant())
         {
             case "on":
-                tutorial.SetEnabled(player.UserId, true);
+                _tutorial.SetEnabled(player.UserId, true);
                 shell.WriteLine(Loc.GetString("cmd-tutorial-on"));
                 break;
             case "off":
-                tutorial.SetEnabled(player.UserId, false);
+                _tutorial.SetEnabled(player.UserId, false);
                 shell.WriteLine(Loc.GetString("cmd-tutorial-off"));
                 break;
             case "replay":
-                tutorial.Replay(player.UserId);
+                _tutorial.Replay(player.UserId);
                 shell.WriteLine(Loc.GetString("cmd-tutorial-replay"));
                 break;
             default:
-                shell.WriteLine(Loc.GetString(tutorial.WantsTips(player) ? "cmd-tutorial-status-on" : "cmd-tutorial-status-off"));
+                shell.WriteLine(Loc.GetString(_tutorial.WantsTips(player) ? "cmd-tutorial-status-on" : "cmd-tutorial-status-off"));
                 break;
         }
     }

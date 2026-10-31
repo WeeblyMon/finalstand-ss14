@@ -16,7 +16,7 @@ public sealed partial class SetOnFireUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnHit);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;
@@ -27,8 +27,7 @@ public sealed partial class SetOnFireUpgradeSystem : EntitySystem
         if (!TryComp<FlammableComponent>(ev.Target, out var flammable))
             return;
 
-        // TODO(finalstand): tune fire stacks / duration
-        flammable.FireStacks += 3f;
+        flammable.FireStacks += state.SetOnFireStacks;
         _flammable.Ignite(ev.Target, ev.Shooter ?? ev.Target, flammable, ignitionSourceUser: ev.Shooter);
     }
 }

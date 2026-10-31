@@ -1,10 +1,11 @@
 # FINALSTAND: Bloater — exploding zombie that prioritises players and detonates on death.
 # Spawns wave 7+, weighted at ~25% of wave composition via FSFlamethrowerSystem weighted selection.
 - type: entity
-  id: FSZombieBloater
   parent: FSZombieFootsoldierBase
-  suffix: Bloater
+  id: FSZombieBloater
   name: bloater
+  suffix: Bloater
+  description: A swollen corpse full of volatile gas. It bursts when it dies, so kill it well away from anyone you like.
   components:
   - type: FSSignatureAilment
     ailments:

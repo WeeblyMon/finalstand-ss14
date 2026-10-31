@@ -98,8 +98,8 @@
   - GroupSpeciesBreathToolMedical
 
 - type: entity
-  id: SpawnPointCombatMedic
   parent: SpawnPointJobBase
+  id: SpawnPointCombatMedic
   name: combat medic
   components:
   - type: SpawnPoint

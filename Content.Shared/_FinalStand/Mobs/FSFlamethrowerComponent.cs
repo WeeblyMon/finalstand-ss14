@@ -14,6 +14,10 @@ public sealed partial class FSFlamethrowerComponent : Component
     [DataField] public float ParticleSpawnRate = 0.08f;
     [DataField] public int ParticlesPerBurst = 2;
     [DataField] public float FireProjectileSpeed = 10f;
+    // Seconds a flame lasts; with the speed this sets how far the fire reaches. The client's flame emitter matches it.
+    [DataField] public float FlameLifetime = 0.6f;
+    // Fire stacks each flame adds to whatever it sets alight.
+    [DataField] public float FireStacks = 0.1f;
     [DataField] public float WindupDuration = 0.6f;
     [DataField] public float TrackingRotationSpeed = 3.0f; // radians per second
 
@@ -35,8 +39,6 @@ public sealed partial class FSFlamethrowerComponent : Component
     public float AcquireAccumulator = 0f;
     public float ParticleAccumulator = 0f;
     public EntityUid? FireSoundEntity = null;
-
-    public EntityUid? GlowEntity = null;
 
     // Locked when firing starts; tracking follows this, not whoever is nearest now.
     public EntityUid? Target = null;

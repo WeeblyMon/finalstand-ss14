@@ -247,7 +247,7 @@
   - type: Clothing
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
     equipSound:
-      path: /Audio/_FinalStand/Weapons/N1984/equip.ogg
+      path: /Audio/_FinalStand/Weapons/N1984/equip.ogg # FINALSTAND
   - type: Gun
     minAngle: 0.7
     maxAngle: 14
@@ -257,14 +257,14 @@
     availableModes:
     - SemiAuto
     soundGunshot:
-      path: /Audio/_FinalStand/Weapons/N1984/fire.ogg
+      path: /Audio/_FinalStand/Weapons/N1984/fire.ogg # FINALSTAND
     soundEmpty:
-      path: /Audio/_FinalStand/Weapons/N1984/fire_dry.ogg
+      path: /Audio/_FinalStand/Weapons/N1984/fire_dry.ogg # FINALSTAND
   - type: ItemSlots
     slots:
       gun_magazine:
         name: Magazine
-        startingItem: FSMagazineMagnumN1984
+        startingItem: FSMagazineMagnumN1984 # FINALSTAND
         insertSound: /Audio/_FinalStand/Weapons/N1984/reload.ogg
         ejectSound: /Audio/Weapons/Guns/MagOut/pistol_magout.ogg
         priority: 2

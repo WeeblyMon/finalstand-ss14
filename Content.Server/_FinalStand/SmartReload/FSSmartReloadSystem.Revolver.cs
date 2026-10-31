@@ -17,14 +17,14 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (empty == 0 && spent == 0)
         {
             if (!isChainReload)
-                _popup.PopupEntity("Cylinder is full.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-cylinder-full"), gun, user);
             return;
         }
 
         if (HasMixedRevolverAmmo(comp))
         {
             if (!isChainReload)
-                _popup.PopupEntity("Mixed ammo in cylinder — reload manually.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-cylinder-mixed"), gun, user);
             return;
         }
 
@@ -32,14 +32,14 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (source == null)
         {
             if (!isChainReload)
-                _popup.PopupEntity("No compatible ammo found.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-no-ammo"), gun, user);
             return;
         }
 
         if (_activeChamberFills.ContainsKey(gun))
             return;
 
-        // TryRevolverInsert only accepts null chambers — eject spent cases first.
+        // TryRevolverInsert only accepts null chambers, so eject spent cases first.
         if (empty == 0 && spent > 0)
             _gunSystem.EmptyRevolver((gun, comp), user);
 

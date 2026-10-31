@@ -42,6 +42,7 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSKnockedBackSystem _knockedBack = default!;
 
     private readonly ObjectPool<HashSet<Entity<ActorComponent>>> _actorPool =
         new DefaultObjectPool<HashSet<Entity<ActorComponent>>>(new SetPolicy<Entity<ActorComponent>>());
@@ -53,6 +54,18 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
     private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(1);
 
     private const int DashProbeSteps = 8;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSGiantAbilitiesComponent, ComponentShutdown>(OnShutdown);
+    }
+
+    // Wave cleanup can delete the giant mid-ability, which would leave its telegraphs on the floor.
+    private void OnShutdown(Entity<FSGiantAbilitiesComponent> ent, ref ComponentShutdown args)
+    {
+        ClearMarkers(ent);
+    }
 
     public override void Update(float frameTime)
     {
@@ -314,8 +327,7 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
         Finish(ent, now);
     }
 
-    // Same wave/player scaling WaveEnemyScalingSystem already applies to melee - the ability kit
-    // rode a flat number before this, so it fell behind trash mobs at high waves.
+    // Same wave/player scaling WaveEnemyScalingSystem applies to melee, so abilities keep up with trash mobs at high waves.
     private float GetDamageMultiplier(EntityUid ent)
         => TryComp<FSWaveDamageScaleComponent>(ent, out var scale) ? scale.MeleeDamageMultiplier : 1f;
 
@@ -464,9 +476,7 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
         _throwing.TryThrow(target, heading * distance, speed, compensateFriction: true,
             recoil: false, animated: false, playSound: false, doSpin: false);
 
-        var comp = EnsureComp<FSKnockedBackComponent>(target);
-        comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(distance / speed);
-        Dirty(target, comp);
+        _knockedBack.KnockBack(target, TimeSpan.FromSeconds(distance / speed));
     }
 
     private void Slow(EntityUid target, float factor, float seconds)

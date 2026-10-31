@@ -5,6 +5,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._FinalStand.Onboarding;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSPlayerBadgeSystem))]
 public sealed partial class FSPlayerBadgeComponent : Component
 {
     [DataField, AutoNetworkedField]

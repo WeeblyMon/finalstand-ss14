@@ -8,7 +8,6 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
-using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Player;
 
@@ -32,7 +31,7 @@ public sealed class WaveObjectiveTest : GameTest
 
         SEntMan.EnsureComponent<FSPlayerWalletComponent>(mindId);
         Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
-        SEntMan.System<WaveGameRuleSystem>().ForceNextWave(Server.ResolveDependency<IServerConsoleHost>().LocalShell, 6);
+        SEntMan.System<WaveGameRuleSystem>().ForceNextWave(6);
         return (mindId, body);
     }
 
@@ -53,7 +52,6 @@ public sealed class WaveObjectiveTest : GameTest
             var current = objectives.Current!;
             Assert.That(current.Target, Is.EqualTo(25), "a lone defender gets the base quota");
 
-            var before = wallet.Credits;
             for (var i = 0; i < current.Target - 1; i++)
                 Kill(body);
             Assert.That(current.Result, Is.EqualTo(FSWaveObjectiveResult.InProgress));
@@ -62,15 +60,37 @@ public sealed class WaveObjectiveTest : GameTest
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref orphan);
             Assert.That(current.Progress, Is.EqualTo(current.Target - 1), "kills nobody made don't count");
 
+            // Each kill also pays its own credits, so the objective is what the completing kill paid over a plain one.
+            var before = wallet.Credits;
             Kill(body);
-            Assert.Multiple(() =>
-            {
-                Assert.That(current.Result, Is.EqualTo(FSWaveObjectiveResult.Completed));
-                Assert.That(wallet.Credits - before, Is.EqualTo(300 + 30 * 6));
-            });
+            var completing = wallet.Credits - before;
+            Assert.That(current.Result, Is.EqualTo(FSWaveObjectiveResult.Completed));
 
+            before = wallet.Credits;
             Kill(body);
-            Assert.That(wallet.Credits - before, Is.EqualTo(300 + 30 * 6), "it pays once");
+            var plainKill = wallet.Credits - before;
+            Assert.That(completing - plainKill, Is.EqualTo(300 + 30 * 6), "it pays once, on the kill that completes it");
+        });
+    }
+
+    [Test]
+    public async Task ProgressCanOnlyBeSetWhileTheObjectiveRuns()
+    {
+        var map = await Pair.CreateTestMap();
+
+        await Server.WaitAssertion(() =>
+        {
+            var objectives = SEntMan.System<FSWaveObjectiveSystem>();
+            SetUp(map.GridCoords);
+            Assert.That(objectives.TryStart(Objective("FSObjectiveCullTheHerd")), Is.True);
+            var current = objectives.Current!;
+
+            Assert.That(objectives.SetProgress(3), Is.True);
+            Assert.That(current.Progress, Is.EqualTo(3));
+
+            objectives.ForceResult(completed: true);
+            Assert.That(objectives.SetProgress(5), Is.False, "a settled objective can't be moved, and says so");
+            Assert.That(current.Progress, Is.EqualTo(3));
         });
     }
 
@@ -136,7 +156,7 @@ public sealed class WaveObjectiveTest : GameTest
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref ended);
             Assert.That(current.Result, Is.EqualTo(FSWaveObjectiveResult.Completed));
 
-            SEntMan.System<WaveGameRuleSystem>().ForceNextWave(Server.ResolveDependency<IServerConsoleHost>().LocalShell);
+            SEntMan.System<WaveGameRuleSystem>().ForceNextWave();
             Assert.That(objectives.Current, Is.Null, "the next prep phase clears the objective");
         });
     }
@@ -151,7 +171,7 @@ public sealed class WaveObjectiveTest : GameTest
             Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(objectives.TryStartRandom(), Is.False, "nothing during prep");
 
-            SEntMan.System<WaveGameRuleSystem>().ForceNextWave(Server.ResolveDependency<IServerConsoleHost>().LocalShell, 10);
+            SEntMan.System<WaveGameRuleSystem>().ForceNextWave(10);
             Assert.That(objectives.TryStartRandom(), Is.False, "boss waves are left alone");
             Assert.That(objectives.Current, Is.Null);
         });

@@ -25,7 +25,7 @@ public sealed partial class FSWeaponRechargeAudioSystem : EntitySystem
 
             if (!audioComp.WasEmpty && isEmpty)
             {
-                // Battery just hit empty — apply the punishment delay and play the SFX.
+                // Battery just hit empty: apply the punishment delay and play the SFX.
                 _battery.SetChargeCooldown((uid, recharger), audioComp.EmptyPenaltyDuration);
                 _audio.PlayPvs(audioComp.RechargeStartSound, uid);
             }

@@ -1,4 +1,3 @@
-// Applies a fortification's grade look (base state, tint, crack overlay) and keeps crack stages in step with its max health.
 using Content.Client.Damage;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.Repair;

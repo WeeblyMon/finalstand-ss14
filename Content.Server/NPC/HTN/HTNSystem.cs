@@ -175,6 +175,24 @@ public sealed partial class HTNSystem : EntitySystem
         component.PlanAccumulator = 0f;
     }
 
+    // FINALSTAND: drops the running plan and any plan being made, then plans again from the blackboard as it is now.
+    // Replan alone keeps the running plan unless the new one ranks higher, and a job already in flight planned
+    // from the old keys.
+    public void AbortPlan(HTNComponent component)
+    {
+        component.PlanningToken?.Cancel();
+        component.PlanningToken = null;
+        component.PlanningJob = null;
+
+        if (component.Plan != null)
+        {
+            ShutdownTask(component.Plan.CurrentOperator, component.Blackboard, HTNOperatorStatus.Failed);
+            ShutdownPlan(component);
+        }
+
+        component.PlanAccumulator = 0f;
+    }
+
     public void UpdateNPC(ref int count, int maxUpdates, float frameTime)
     {
         _planQueue.Process();

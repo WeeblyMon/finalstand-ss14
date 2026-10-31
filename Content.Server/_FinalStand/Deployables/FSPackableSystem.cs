@@ -63,7 +63,7 @@ public sealed partial class FSPackableSystem : EntitySystem
     {
         if (ent.Comp.MedicalOnly && !_medical.IsMedical(user))
         {
-            _popup.PopupEntity(Loc.GetString("fs-medical-only-use"), user, user);
+            _popup.PopupEntity(Loc.GetString("fs-medical-only"), user, user);
             return false;
         }
 
@@ -145,7 +145,7 @@ public sealed partial class FSPackableSystem : EntitySystem
         }
 
         _hands.TryPickupAnyHand(args.User, item);
-        Del(ent.Owner);
+        QueueDel(ent.Owner);
     }
 
     private void OnDeployed(Entity<FSDeployableLifetimeComponent> ent, ref FSDeployableDeployedEvent args)
@@ -155,5 +155,6 @@ public sealed partial class FSPackableSystem : EntitySystem
 
         ent.Comp.ExpiresAt = _timing.CurTime + banked.Remaining;
         Dirty(ent);
+        RemComp<FSBankedLifetimeComponent>(args.Item);
     }
 }

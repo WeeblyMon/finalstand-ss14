@@ -14,6 +14,7 @@ public sealed partial class FSZombieVisualizerSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IPrototypeManager _protoManager = default!;
+    [Dependency] private FSFlamethrowerVisualsSystem _flames = default!;
 
     private const string TeslaGlowShader      = "FSTeslaGlow";
     private const string FlamerGlowShader     = "FSFlamerGlow";
@@ -32,8 +33,11 @@ public sealed partial class FSZombieVisualizerSystem : EntitySystem
         SubscribeLocalEvent<FSZombieVisualsComponent, AfterAutoHandleStateEvent>(OnStateHandled);
         SubscribeLocalEvent<FSZombieVisualsComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSFlamethrowerComponent, AfterAutoHandleStateEvent>(OnFlamethrowerStateHandled);
+        SubscribeLocalEvent<FSFlamethrowerComponent, ComponentStartup>(OnFlamethrowerStartup);
         SubscribeLocalEvent<FSTeslaZombieComponent, AfterAutoHandleStateEvent>(OnTeslaStateHandled);
+        SubscribeLocalEvent<FSTeslaZombieComponent, ComponentStartup>(OnTeslaStartup);
         SubscribeLocalEvent<FSArmouredDeflectComponent, AfterAutoHandleStateEvent>(OnArmouredDeflectStateHandled);
+        SubscribeLocalEvent<FSArmouredDeflectComponent, ComponentStartup>(OnArmouredDeflectStartup);
         SubscribeLocalEvent<FSDevastatorComponent, ComponentStartup>(OnDevastatorStartup);
         SubscribeLocalEvent<FSDevastatorComponent, AfterAutoHandleStateEvent>(OnDevastatorStateHandled);
     }
@@ -47,18 +51,33 @@ public sealed partial class FSZombieVisualizerSystem : EntitySystem
     private void OnMobStateChanged(EntityUid uid, FSZombieVisualsComponent comp, MobStateChangedEvent args)
         => UpdateSprite(uid, comp);
 
+    private void OnFlamethrowerStartup(EntityUid uid, FSFlamethrowerComponent comp, ComponentStartup args)
+        => UpdateFlamerGlow(uid, comp);
+
     private void OnFlamethrowerStateHandled(EntityUid uid, FSFlamethrowerComponent comp, AfterAutoHandleStateEvent args)
     {
         if (TryComp<FSZombieVisualsComponent>(uid, out var visuals))
             UpdateSprite(uid, visuals);
 
+        UpdateFlamerGlow(uid, comp);
+        _flames.Refresh(uid);
+    }
+
+    private void UpdateFlamerGlow(EntityUid uid, FSFlamethrowerComponent comp)
+    {
         SetGlow(uid, FlamerGlowShader, comp.IsWindingUp || comp.IsFiring);
     }
+
+    private void OnArmouredDeflectStartup(EntityUid uid, FSArmouredDeflectComponent comp, ComponentStartup args)
+        => SetGlow(uid, ArmourGlowShader, comp.IsGlowing);
 
     private void OnArmouredDeflectStateHandled(EntityUid uid, FSArmouredDeflectComponent comp, AfterAutoHandleStateEvent args)
     {
         SetGlow(uid, ArmourGlowShader, comp.IsGlowing);
     }
+
+    private void OnTeslaStartup(EntityUid uid, FSTeslaZombieComponent comp, ComponentStartup args)
+        => SetGlow(uid, TeslaGlowShader, comp.IsFiring);
 
     private void OnTeslaStateHandled(EntityUid uid, FSTeslaZombieComponent comp, AfterAutoHandleStateEvent args)
     {
@@ -75,20 +94,23 @@ public sealed partial class FSZombieVisualizerSystem : EntitySystem
 
     private void SetGlow(EntityUid uid, string shaderId, bool enabled)
     {
-        if (!TryComp<SpriteComponent>(uid, out var sprite))
+        // A zombie arriving mid-attack gets its first state before the sprite initializes; its startup sets the glow.
+        if (!TryComp<SpriteComponent>(uid, out var sprite) || sprite.LifeStage < ComponentLifeStage.Initialized)
             return;
 
-        ShaderInstance? desired = null;
-        if (enabled)
+        if (!enabled)
         {
-            if (!_glows.TryGetValue(shaderId, out desired))
-            {
-                desired = _protoManager.Index<ShaderPrototype>(shaderId).Instance();
-                _glows[shaderId] = desired;
-            }
+            _sprite.RemovePostShader(sprite, FSPostShaders.ZombieGlow);
+            return;
         }
 
-        sprite.PostShader = desired;
+        if (!_glows.TryGetValue(shaderId, out var glow))
+        {
+            glow = _protoManager.Index<ShaderPrototype>(shaderId).Instance();
+            _glows[shaderId] = glow;
+        }
+
+        FSPostShaders.SetGlow(_sprite, (uid, sprite), FSPostShaders.ZombieGlow, glow);
     }
 
     private void OnDevastatorStateHandled(EntityUid uid, FSDevastatorComponent comp, AfterAutoHandleStateEvent args)

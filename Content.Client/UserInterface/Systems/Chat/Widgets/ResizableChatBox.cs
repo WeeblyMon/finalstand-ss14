@@ -92,7 +92,7 @@ public sealed partial class ResizableChatBox : ChatBox
 
         private float GripBottom()
         {
-            return FSGrip.GlobalPosition.Y - GlobalPosition.Y + FSGrip.Size.Y;
+            return FSGrip.GlobalPosition.Y - GlobalPosition.Y + FSGrip.Size.Y; // FINALSTAND
         }
 
         private DragMode GetDragModeFor(Vector2 relativeMousePos)
@@ -109,7 +109,7 @@ public sealed partial class ResizableChatBox : ChatBox
             else if (relativeMousePos.X > Size.X - DragMarginSize)
                 mode |= DragMode.Right;
 
-            if (mode == DragMode.None && FSGrip.Visible && relativeMousePos.Y <= GripBottom())
+            if (mode == DragMode.None && FSGrip.Visible && relativeMousePos.Y <= GripBottom()) // FINALSTAND
                 mode = DragMode.Move;
 
             return mode;

@@ -7,7 +7,6 @@ using Content.Server._FinalStand.Ladder;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
-using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 
@@ -48,7 +47,6 @@ public sealed class WeeklyChallengeTest : GameTest
         {
             var weekly = SEntMan.System<FSWeeklyChallengeSystem>();
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             var challenge = weekly.GetChallenge(DateTime.UtcNow)!;
 
             Assert.That(weekly.StartWeekly(challenge), Is.False, "no round running");
@@ -67,7 +65,7 @@ public sealed class WeeklyChallengeTest : GameTest
                 Assert.That(waveRule.TryStartRerollVote(null, out _), Is.False, "the weekly's modifiers are fixed");
             });
 
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave();
             Assert.That(waveRule.TryGetRoundSummary(out var summary), Is.True);
             Assert.That(summary.WeeklyKey, Is.EqualTo(FSWeeklyRules.WeekKey(DateTime.UtcNow)));
         });

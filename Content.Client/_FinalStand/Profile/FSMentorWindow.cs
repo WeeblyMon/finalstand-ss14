@@ -3,6 +3,7 @@ using Content.Client._FinalStand.Stylesheets;
 using Content.Client.Resources;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
+using Content.Shared._FinalStand.Mentor;
 using Content.Shared._FinalStand.Titles;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -15,12 +16,12 @@ namespace Content.Client._FinalStand.Profile;
 
 public sealed class FSMentorWindow : FancyWindow
 {
-    private static readonly (string LocId, int Points)[] Earning =
+    private static readonly (LocId Text, int Points)[] Earning =
     {
-        ("fs-mentor-earn-revive", 3),
+        ("fs-mentor-earn-revive", FSMentorRules.ReviveMp),
         ("fs-mentor-earn-heal", 1),
-        ("fs-mentor-earn-escort", 1),
-        ("fs-mentor-earn-first-round", 5),
+        ("fs-mentor-earn-escort", FSMentorRules.WaveEscortMp),
+        ("fs-mentor-earn-first-round", FSMentorRules.FirstRoundMp),
     };
 
     private readonly IPrototypeManager _proto;
@@ -125,11 +126,11 @@ public sealed class FSMentorWindow : FancyWindow
             Margin = new Thickness(10, 8),
         };
         box.AddChild(Text(Loc.GetString("fs-mentor-earn-heading"), _bold, FSUiPalette.TextPrimary));
-        foreach (var (locId, points) in Earning)
+        foreach (var (text, points) in Earning)
         {
             var line = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 8 };
             line.AddChild(Text(Loc.GetString("fs-mentor-earn-points", ("points", points)), _bold, FSUiPalette.Currency));
-            line.AddChild(Text(Loc.GetString(locId), _small, FSUiPalette.TextPrimary, expand: true));
+            line.AddChild(Text(Loc.GetString(text, ("health", (int) FSMentorRules.HealPerMp)), _small, FSUiPalette.TextPrimary, expand: true));
             box.AddChild(line);
         }
         box.AddChild(Wrapped(Loc.GetString("fs-mentor-earn-rules"), FSUiPalette.TextMuted, 520));
@@ -156,8 +157,9 @@ public sealed class FSMentorWindow : FancyWindow
             }
             else
             {
-                var proto = _proto.TryIndex<FSTitlePrototype>(item.Title, out var title) ? title : null;
-                text.AddChild(Text(Loc.GetString("fs-mentor-shop-title", ("title", proto != null ? Loc.GetString(proto.Name) : item.Title)),
+                var titleId = item.Title.Value;
+                var proto = _proto.TryIndex(titleId, out var title) ? title : null;
+                text.AddChild(Text(Loc.GetString("fs-mentor-shop-title", ("title", proto != null ? Loc.GetString(proto.Name) : titleId.Id)),
                     _bold, proto?.Color ?? FSUiPalette.Currency));
                 if (proto != null)
                     text.AddChild(Text(Loc.GetString(proto.Description), _small, FSUiPalette.TextMuted));

@@ -12,6 +12,9 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class ResearchUnlockIndexTest : GameTest
 {
+    // Station research is round state; a fast-recycled pair would hand these unlocks to the next test.
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
+
     [Test]
     public async Task IndexAgreesWithTheUnlockedListThroughEveryTransition()
     {

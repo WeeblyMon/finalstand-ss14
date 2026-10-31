@@ -1,4 +1,3 @@
-// Asks the server why the tile under the RCD ghost would be refused (or what deconstructing it refunds) and shows the answer.
 using Content.Client.Gameplay;
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.RCD;

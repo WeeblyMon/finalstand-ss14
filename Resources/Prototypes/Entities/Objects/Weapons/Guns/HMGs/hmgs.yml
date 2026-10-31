@@ -50,7 +50,7 @@
     angleDecay: 8
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/minigun.ogg
-  - type: FSMinigun
+  - type: FSMinigun # FINALSTAND
   - type: BallisticAmmoProvider
     proto: CartridgeMinigun
     capacity: 1000

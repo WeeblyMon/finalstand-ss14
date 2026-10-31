@@ -10,9 +10,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Titles;
 
-[ByRefEvent]
-public readonly record struct FSTitleEarnedEvent(NetUserId UserId, ProtoId<FSTitlePrototype> Title);
-
 public sealed partial class FSTitleSystem : EntitySystem
 {
     [Dependency] private FSPlayerDataStore _store = default!;
@@ -53,7 +50,7 @@ public sealed partial class FSTitleSystem : EntitySystem
     {
         if (!_proto.TryIndex(titleId, out var title))
         {
-            Log.Error($"[FSTitle] Tried to grant unknown title {titleId} to {userId}");
+            Log.Error($"Tried to grant unknown title {titleId} to {userId}");
             return false;
         }
 
@@ -71,7 +68,7 @@ public sealed partial class FSTitleSystem : EntitySystem
                 ("description", Loc.GetString(title.Description))));
         }
 
-        Log.Info($"[FSTitle] {userId} earned {titleId}");
+        Log.Info($"{userId} earned {titleId}");
         var earned = new FSTitleEarnedEvent(userId, titleId);
         RaiseLocalEvent(ref earned);
         return true;

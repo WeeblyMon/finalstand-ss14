@@ -19,11 +19,16 @@ public sealed partial class NpcFactionSystem : EntitySystem
     /// </summary>
     private FrozenDictionary<string, FactionData> _factions = FrozenDictionary<string, FactionData>.Empty;
 
+    // FINALSTAND: members per faction, so hostile scans can skip the range lookup when the wanted factions are small.
+    private readonly Dictionary<ProtoId<NpcFactionPrototype>, HashSet<EntityUid>> _members = new();
+    private const int DirectScanLimit = 128;
+
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<NpcFactionMemberComponent, ComponentStartup>(OnFactionStartup);
+        SubscribeLocalEvent<NpcFactionMemberComponent, ComponentShutdown>(OnFactionShutdown);
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnProtoReload);
 
         InitializeException();
@@ -38,7 +43,33 @@ public sealed partial class NpcFactionSystem : EntitySystem
 
     private void OnFactionStartup(Entity<NpcFactionMemberComponent> ent, ref ComponentStartup args)
     {
+        foreach (var faction in ent.Comp.Factions)
+            AddMember(ent, faction);
+
         RefreshFactions(ent);
+    }
+
+    private void OnFactionShutdown(Entity<NpcFactionMemberComponent> ent, ref ComponentShutdown args)
+    {
+        foreach (var faction in ent.Comp.Factions)
+            RemoveMember(ent, faction);
+    }
+
+    private void AddMember(EntityUid uid, ProtoId<NpcFactionPrototype> faction)
+    {
+        if (!_members.TryGetValue(faction, out var members))
+        {
+            members = new HashSet<EntityUid>();
+            _members[faction] = members;
+        }
+
+        members.Add(uid);
+    }
+
+    private void RemoveMember(EntityUid uid, ProtoId<NpcFactionPrototype> faction)
+    {
+        if (_members.TryGetValue(faction, out var members))
+            members.Remove(uid);
     }
 
     /// <summary>
@@ -113,6 +144,8 @@ public sealed partial class NpcFactionSystem : EntitySystem
         if (!ent.Comp.Factions.Add(faction))
             return;
 
+        AddMember(ent, faction);
+
         if (dirty)
             RefreshFactions((ent, ent.Comp));
     }
@@ -132,7 +165,8 @@ public sealed partial class NpcFactionSystem : EntitySystem
                 continue;
             }
 
-            ent.Comp.Factions.Add(faction);
+            if (ent.Comp.Factions.Add(faction))
+                AddMember(ent, faction);
         }
 
         if (dirty)
@@ -156,6 +190,8 @@ public sealed partial class NpcFactionSystem : EntitySystem
         if (!ent.Comp.Factions.Remove(faction))
             return;
 
+        RemoveMember(ent, faction);
+
         if (dirty)
             RefreshFactions((ent, ent.Comp));
     }
@@ -167,6 +203,9 @@ public sealed partial class NpcFactionSystem : EntitySystem
     {
         if (!Resolve(ent, ref ent.Comp, false))
             return;
+
+        foreach (var faction in ent.Comp.Factions)
+            RemoveMember(ent, faction);
 
         ent.Comp.Factions.Clear();
 
@@ -204,7 +243,46 @@ public sealed partial class NpcFactionSystem : EntitySystem
     private IEnumerable<EntityUid> GetNearbyFactions(EntityUid entity, float range, [ForbidLiteral] HashSet<ProtoId<NpcFactionPrototype>> factions)
     {
         var xform = Transform(entity);
-        foreach (var ent in _lookup.GetEntitiesInRange<NpcFactionMemberComponent>(_xform.GetMapCoordinates((entity, xform)), range))
+        var coords = _xform.GetMapCoordinates((entity, xform));
+
+        // FINALSTAND: every NPC scans for hostiles, and in a horde a range lookup mostly returns its own side.
+        // When the wanted factions are small, checking their members directly is far cheaper.
+        var candidates = 0;
+        foreach (var faction in factions)
+        {
+            if (_members.TryGetValue(faction, out var members))
+                candidates += members.Count;
+        }
+
+        if (candidates <= DirectScanLimit)
+        {
+            var rangeSquared = range * range;
+            foreach (var faction in factions)
+            {
+                if (!_members.TryGetValue(faction, out var members))
+                    continue;
+
+                foreach (var uid in members)
+                {
+                    if (uid == entity
+                        || !TryComp<NpcFactionMemberComponent>(uid, out var member)
+                        || FirstSharedFaction(factions, member) != faction)
+                        continue;
+
+                    var memberXform = Transform(uid);
+                    if (memberXform.MapID != coords.MapId
+                        || (MetaData(uid).Flags & MetaDataFlags.InContainer) != 0
+                        || (_xform.GetWorldPosition(memberXform) - coords.Position).LengthSquared() > rangeSquared)
+                        continue;
+
+                    yield return uid;
+                }
+            }
+
+            yield break;
+        }
+
+        foreach (var ent in _lookup.GetEntitiesInRange<NpcFactionMemberComponent>(coords, range))
         {
             if (ent.Owner == entity)
                 continue;
@@ -214,6 +292,18 @@ public sealed partial class NpcFactionSystem : EntitySystem
 
             yield return ent.Owner;
         }
+    }
+
+    // An entity in several of the wanted factions is only returned under the first one.
+    private static ProtoId<NpcFactionPrototype>? FirstSharedFaction(HashSet<ProtoId<NpcFactionPrototype>> factions, NpcFactionMemberComponent member)
+    {
+        foreach (var faction in factions)
+        {
+            if (member.Factions.Contains(faction))
+                return faction;
+        }
+
+        return null;
     }
 
     /// <remarks>

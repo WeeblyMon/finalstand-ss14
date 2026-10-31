@@ -8,6 +8,8 @@ using Content.Server._FinalStand.Science;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Database;
 using Content.Shared.Examine;
 using Content.Shared.GameTicking;
 using Content.Shared.Hands.Components;
@@ -43,13 +45,15 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _protoManager = default!;
     [Dependency] private FSShopBindingSystem _binding = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     private const double SellCooldownSeconds = 2.0;
     private const double SellDedupWindowSeconds = 5.0;
-    private const string UpgradedSuffix = " (Upgraded)";
+    private string UpgradedSuffix => " " + Loc.GetString("fs-weapon-shop-upgraded-suffix");
 
     private readonly Dictionary<NetUserId, TimeSpan> _lastSellTime = new();
     private readonly Dictionary<NetEntity, TimeSpan> _recentSells = new();
+    private readonly List<CarriedItem> _prerequisiteCandidates = new();
 
     public override void Initialize()
     {
@@ -220,6 +224,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         var starters = comp.Upgrades.Any(def => def.Starter);
 
+        _adminLogger.Add(LogType.StorePurchase, LogImpact.Low,
+            $"{ToPrettyString(player):player} bought {ToPrettyString(weapon):item} for {comp.Price} credits at {ToPrettyString(uid):store}");
+
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         var (buyAcc, buyNextAcc) = ComputeAccuracy(player, comp);
         SendWeaponLevels(mindId, starters ? CollectShopLevels(player, comp) : new Dictionary<string, int>(), ComputeWeaponTitle(player, comp), buyAcc, buyNextAcc);
@@ -253,7 +260,18 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             ? new HashSet<string> { retarget.Id }
             : ShopProtoIds(comp);
 
-        var found = _search.FindFirst(player, targetIds);
+        CarriedItem? found = null;
+        var carried = new List<CarriedItem>();
+        _search.Collect(player, targetIds, carried);
+        foreach (var item in carried)
+        {
+            if (!_binding.IsUsableBy(item.Uid, player))
+                continue;
+
+            found = item;
+            break;
+        }
+
         if (found == null)
         {
             var label = def.TargetWeaponProtoId?.Id ?? comp.WeaponProtoId.Value.Id;
@@ -278,18 +296,12 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
-        if (def.RequiresUpgrade != null)
+        // The prerequisite lives on the shop's own weapon (the cutlass unlocks flintlock upgrades), and has to be
+        // on a copy this player may use, not one bound to someone else.
+        if (def.RequiresUpgrade is { } required && !HasUsableUpgrade(player, ShopProtoIds(comp), required))
         {
-            var shopWeapon = _search.FindFirst(player, ShopProtoIds(comp));
-            var shopState = shopWeapon != null
-                ? CompOrNull<FSWeaponUpgradeStateComponent>(shopWeapon.Value.Uid)
-                : null;
-            if (shopState == null
-                || shopState.Levels.GetValueOrDefault(def.RequiresUpgrade, 0) <= 0)
-            {
-                _popup.PopupEntity(Loc.GetString("shop-upgrade-locked"), uid, player);
-                return;
-            }
+            _popup.PopupEntity(Loc.GetString("shop-upgrade-locked"), uid, player);
+            return;
         }
 
         var cost = def.LevelCost(currentLevel + 1,
@@ -303,6 +315,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         if (def.Type == WeaponUpgradeType.ConvertWeapon && def.SpawnProtoId is { } result)
         {
+            _adminLogger.Add(LogType.StorePurchase, LogImpact.Low,
+                $"{ToPrettyString(player):player} bought upgrade {def.Id} for {cost} credits, converting {ToPrettyString(weapon):item} into {result}");
+
             ConvertWeapon(player, weapon, state, result, def.Id, cost);
             _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
             var (convAcc, convNextAcc) = ComputeAccuracy(player, comp);
@@ -314,8 +329,11 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         var isFirstUpgradeEver = state.Levels.Count == 0;
         state.Levels[def.Id] = newLevel;
         state.TotalSpent += cost;
-        _upgrades.ApplySingleUpgrade(weapon, player, def, newLevel);
+        weapon = _upgrades.ApplySingleUpgrade(weapon, player, def, newLevel);
         _researchStaticGrant.Reconcile(weapon);
+
+        _adminLogger.Add(LogType.StorePurchase, LogImpact.Low,
+            $"{ToPrettyString(player):player} bought upgrade {def.Id} level {newLevel} on {ToPrettyString(weapon):item} for {cost} credits");
 
         if (isFirstUpgradeEver)
             MarkAsUpgraded(weapon);
@@ -335,6 +353,11 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         convertedState.TotalSpent = state.TotalSpent + cost;
         Dirty(converted, convertedState);
 
+        if (TryComp<FSShopBoundComponent>(weapon, out var bound))
+            _binding.Bind(converted, bound.OwnerMind);
+
+        // Gone at once: a second convert message this tick would still find the old weapon, at level 0, and get
+        // another fully upgraded copy. It also frees the hand for the new one.
         Del(weapon);
         TryGiveItemToPlayer(player, converted);
         _researchStaticGrant.Reconcile(converted);
@@ -412,9 +435,15 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         CleanRecentSells(now);
         var candidates = new List<CarriedItem>();
         _search.Collect(player, ShopProtoIds(comp), candidates, requireUpgradeState: true);
+        for (var i = candidates.Count - 1; i >= 0; i--)
+        {
+            if (!_binding.IsUsableBy(candidates[i].Uid, player))
+                candidates.RemoveAt(i);
+        }
+
         if (candidates.Count == 0)
         {
-            SendSellResponse(userId, success: false, "No copy of this weapon found in inventory.");
+            SendSellResponse(userId, success: false, Loc.GetString("fs-weapon-shop-sell-none-found"));
             return;
         }
 
@@ -445,11 +474,14 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         if (TryComp<FSDeployableItemComponent>(weapon, out var deployable))
             _deployable.ClearDeployed(mindId, deployable.DeployedProtoId);
 
-        QueueDel(weapon);
-        CleanupAmmoForWeapon(player, comp);
-        _wallet.GiveCredits(mindId, totalRefund, earned: false);
+        _adminLogger.Add(LogType.StoreRefund, LogImpact.Low,
+            $"{ToPrettyString(player):player} sold {ToPrettyString(weapon):item} for {totalRefund} credits at {ToPrettyString(shopUid):store}");
 
-        _popup.PopupEntity($"Sold for ${totalRefund:N0}.", shopUid, player);
+        QueueDel(weapon);
+        CleanupAmmoForWeapon(player, comp, ws);
+        _wallet.AddCredits(mindId, totalRefund);
+
+        _popup.PopupEntity(Loc.GetString("fs-weapon-shop-sold-for", ("amount", totalRefund.ToString("N0"))), shopUid, player);
         SendSellResponse(userId, success: true, "");
 
         SendWeaponLevels(mindId, new Dictionary<string, int>(), "");
@@ -507,7 +539,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
     public void TryGiveItemToPlayer(EntityUid player, EntityUid item)
     {
-        // Grenade packs are pocket items — they must stay in inventory, never in hand.
+        // Grenade packs are pocket items; they must stay in inventory, never in hand.
         if (HasComp<FSGrenadePackComponent>(item))
         {
             _stash.Stash(player, item);
@@ -523,8 +555,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     private void MarkAsUpgraded(EntityUid weapon)
     {
         var meta = MetaData(weapon);
-        if (!meta.EntityName.EndsWith(UpgradedSuffix))
-            _metaData.SetEntityName(weapon, meta.EntityName + UpgradedSuffix, meta);
+        var suffix = UpgradedSuffix;
+        if (!meta.EntityName.EndsWith(suffix))
+            _metaData.SetEntityName(weapon, meta.EntityName + suffix, meta);
     }
 
     private string ComputeWeaponTitle(EntityUid player, FSShopWeaponComponent comp)
@@ -538,16 +571,17 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return "";
 
         var rawName = MetaData(matches[0].Uid).EntityName;
-        var baseName = rawName.EndsWith(UpgradedSuffix)
-            ? rawName[..^UpgradedSuffix.Length]
+        var suffix = UpgradedSuffix;
+        var baseName = rawName.EndsWith(suffix)
+            ? rawName[..^suffix.Length]
             : rawName;
         baseName = Capitalize(baseName);
 
         var label = CarryLabel(player, matches[0]);
 
         return matches.Count == 1
-            ? $"{baseName} ({label})"
-            : $"{baseName} No. 1 ({label})";
+            ? Loc.GetString("fs-weapon-shop-title", ("name", baseName), ("where", label))
+            : Loc.GetString("fs-weapon-shop-title-first", ("name", baseName), ("where", label));
     }
 
     private string CarryLabel(EntityUid player, CarriedItem item)
@@ -557,22 +591,22 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             case CarryKind.Hand:
                 if (!TryComp<HandsComponent>(player, out var hands)
                     || !_hands.TryGetHand((player, hands), item.Where, out var hand))
-                    return "Hand";
+                    return Loc.GetString("fs-weapon-shop-carry-hand");
                 return hand.Value.Location switch
                 {
-                    HandLocation.Left  => "Left Hand",
-                    HandLocation.Right => "Right Hand",
-                    _                  => "Hand",
+                    HandLocation.Left  => Loc.GetString("fs-weapon-shop-carry-left-hand"),
+                    HandLocation.Right => Loc.GetString("fs-weapon-shop-carry-right-hand"),
+                    _                  => Loc.GetString("fs-weapon-shop-carry-hand"),
                 };
             default:
                 return item.Where switch
                 {
-                    "belt"        => "Belt",
-                    "suitstorage" => "Suit Storage",
-                    "pocket1"     => "Pocket 1",
-                    "pocket2"     => "Pocket 2",
-                    "shoes"       => "Boots",
-                    "back"        => "Backpack",
+                    "belt"        => Loc.GetString("fs-weapon-shop-carry-belt"),
+                    "suitstorage" => Loc.GetString("fs-weapon-shop-carry-suit-storage"),
+                    "pocket1"     => Loc.GetString("fs-weapon-shop-carry-pocket", ("number", 1)),
+                    "pocket2"     => Loc.GetString("fs-weapon-shop-carry-pocket", ("number", 2)),
+                    "shoes"       => Loc.GetString("fs-weapon-shop-carry-boots"),
+                    "back"        => Loc.GetString("fs-weapon-shop-carry-backpack"),
                     _             => Capitalize(item.Where),
                 };
         }
@@ -581,26 +615,36 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     private static string Capitalize(string s) =>
         s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 
-    private void CleanupAmmoForWeapon(EntityUid player, FSShopWeaponComponent shopComp)
+    // Takes back what this copy came with, not every matching item: another copy or gun may share the ammo.
+    private void CleanupAmmoForWeapon(EntityUid player, FSShopWeaponComponent shopComp, FSWeaponUpgradeStateComponent? state)
     {
-        var ammoProtos = new HashSet<string>();
-        if (shopComp.StarterAmmoProtoId != null)
-            ammoProtos.Add(shopComp.StarterAmmoProtoId.Value.Id);
+        var budget = new Dictionary<string, int>();
+        if (shopComp.StarterAmmoProtoId is { } starter)
+            budget[starter.Id] = shopComp.StarterAmmoCount;
+
         foreach (var upgrade in shopComp.Upgrades)
         {
-            if (upgrade.Type == WeaponUpgradeType.SpawnItem && upgrade.SpawnProtoId != null)
-                ammoProtos.Add(upgrade.SpawnProtoId.Value.Id);
+            if (upgrade.Type != WeaponUpgradeType.SpawnItem || upgrade.SpawnProtoId is not { } spawned)
+                continue;
+
+            var level = state?.Levels.GetValueOrDefault(upgrade.Id) ?? 0;
+            budget[spawned.Id] = budget.GetValueOrDefault(spawned.Id) + level * upgrade.SpawnCountPerLevel;
         }
-        if (ammoProtos.Count == 0)
+
+        if (budget.Count == 0)
             return;
 
-        var toDelete = new List<CarriedItem>();
-        _search.Collect(player, ammoProtos, toDelete);
+        var carried = new List<CarriedItem>();
+        _search.Collect(player, budget.Keys.ToHashSet(), carried);
 
-        foreach (var item in toDelete)
+        foreach (var item in carried)
         {
-            if (Exists(item.Uid))
-                QueueDel(item.Uid);
+            var proto = MetaData(item.Uid).EntityPrototype?.ID;
+            if (proto == null || budget.GetValueOrDefault(proto) <= 0)
+                continue;
+
+            budget[proto]--;
+            QueueDel(item.Uid);
         }
     }
 
@@ -614,5 +658,20 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         RaiseNetworkEvent(
             new UpgradeLevelsUpdatedEvent(new Dictionary<string, int>(levels), title, accuracy, nextAccuracy),
             Filter.SinglePlayer(session));
+    }
+
+    private bool HasUsableUpgrade(EntityUid player, IReadOnlySet<string> protoIds, string upgradeId)
+    {
+        _prerequisiteCandidates.Clear();
+        _search.Collect(player, protoIds, _prerequisiteCandidates);
+        foreach (var item in _prerequisiteCandidates)
+        {
+            if (_binding.IsUsableBy(item.Uid, player)
+                && TryComp<FSWeaponUpgradeStateComponent>(item.Uid, out var state)
+                && state.Levels.GetValueOrDefault(upgradeId, 0) > 0)
+                return true;
+        }
+
+        return false;
     }
 }

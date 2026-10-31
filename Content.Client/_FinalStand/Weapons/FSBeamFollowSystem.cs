@@ -1,3 +1,4 @@
+using Robust.Shared.Map;
 using System.Numerics;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Client.GameObjects;
@@ -13,6 +14,15 @@ public sealed partial class FSBeamFollowSystem : EntitySystem
     private const float TravelPadding = 0.5f;
     private const float TravelTrim = 1.5f;
     private const float MinLength = 0.01f;
+
+    // Keeps a hitscan beam segment pinned between its shooter and the impact point as the shooter moves.
+    public void Follow(EntityUid segment, EntityUid shooter, EntityCoordinates impact, SharedGunSystem.HitscanPart part)
+    {
+        var follow = EnsureComp<FSBeamFollowComponent>(segment);
+        follow.Shooter = shooter;
+        follow.Impact = impact;
+        follow.Part = part;
+    }
 
     public override void FrameUpdate(float frameTime)
     {

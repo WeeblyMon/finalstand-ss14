@@ -1,6 +1,6 @@
 - type: entity
-  id: FSFieldHospitalItem
   parent: BaseItem
+  id: FSFieldHospitalItem
   name: field hospital kit
   description: A folded medical tent. Pitch it anywhere and anyone resting beside it mends. Press Z to aim a placement, click to deploy.
   components:
@@ -23,9 +23,9 @@
 - type: entity
   parent: BaseStructure
   id: FSFieldHospitalDeployed
+  categories: [ HideSpawnMenu ]
   name: field hospital
   description: A pitched medical tent. Stand inside its green ring and your injuries mend while you rest.
-  categories: [ HideSpawnMenu ]
   components:
   - type: GuideHelp
     guides: [ FSInjuries ]

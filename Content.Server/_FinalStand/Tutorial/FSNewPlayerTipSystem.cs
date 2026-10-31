@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Server._FinalStand.CCC;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
@@ -12,6 +11,7 @@ using Robust.Server.Player;
 using Robust.Shared.Enums;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Tutorial;
 
@@ -21,19 +21,22 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
     [Dependency] private FSOnboardingSystem _onboarding = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public const string OptOutFlag = "_off";
     public const string OptInFlag = "_on";
+    private static readonly TimeSpan CccTipInterval = TimeSpan.FromSeconds(1);
 
     private readonly Dictionary<NetUserId, HashSet<string>> _cache = new();
     private readonly HashSet<FSTutorialTip> _enemiesSeen = new();
+    private TimeSpan _nextCccTip;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawned,
             after: new[] { typeof(FSOnboardingSystem) });
-        SubscribeLocalEvent<WavePrepStartedEvent>(_ =>
+        SubscribeLocalEvent<WavePrepStartedEvent>((ref WavePrepStartedEvent _) =>
         {
             ShowToAll(FSTutorialTip.Prep);
             ShowToAll(FSTutorialTip.PerkShop);
@@ -43,12 +46,13 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSWaveEnemySpawnedEvent>(OnEnemySpawned);
-        SubscribeLocalEvent<FSCccDamagedEvent>((ref FSCccDamagedEvent _) => ShowToAll(FSTutorialTip.CccAttacked));
+        SubscribeLocalEvent<FSCccDamagedEvent>(OnCccDamaged);
         SubscribeLocalEvent<FSActiveGrenadeComponent, ComponentStartup>(OnGrenadeReady);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
         {
             _cache.Clear();
             _enemiesSeen.Clear();
+            _nextCccTip = TimeSpan.Zero;
         });
     }
 
@@ -94,6 +98,17 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
         _store.SetTutorialFlag(user.UserId, remove, false);
     }
 
+    // Admin wipes: the next read comes from the database again.
+    public void Forget(NetUserId user) => _cache.Remove(user);
+
+    // Admin reset: forgets every tip the player has seen, and this round's enemy tips for everyone.
+    public void ResetSeen(NetUserId user)
+    {
+        _store.ClearTutorial(user.UserId);
+        _cache.Remove(user);
+        _enemiesSeen.Clear();
+    }
+
     public void Replay(NetUserId user)
     {
         _store.ClearTutorial(user.UserId);
@@ -103,8 +118,11 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
 
     private void ShowToAll(FSTutorialTip tip)
     {
-        foreach (var session in _playerManager.Sessions.Where(s => s.AttachedEntity != null))
-            TryShow(session, tip);
+        foreach (var session in _playerManager.Sessions)
+        {
+            if (session.AttachedEntity != null)
+                TryShow(session, tip);
+        }
     }
 
     private void OnSpawned(PlayerSpawnCompleteEvent ev) => ShowSpawnTips(ev.Player);
@@ -127,7 +145,7 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
             TryShow(actor.PlayerSession, FSTutorialTip.Grenades);
     }
 
-    private void OnCombatStarted(WaveCombatStartedEvent ev)
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev)
     {
         if (!_waveRule.TryGetActiveState(out var state))
             return;
@@ -138,6 +156,16 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
     }
 
     private void OnWaveEnded(ref WaveEndedEvent ev) => ShowToAll(FSTutorialTip.Perks);
+
+    private void OnCccDamaged(ref FSCccDamagedEvent ev)
+    {
+        // one per zombie swing; a pass a second still reaches anyone who attached since
+        if (_timing.CurTime < _nextCccTip)
+            return;
+
+        _nextCccTip = _timing.CurTime + CccTipInterval;
+        ShowToAll(FSTutorialTip.CccAttacked);
+    }
 
     private void OnEnemySpawned(ref FSWaveEnemySpawnedEvent ev)
     {

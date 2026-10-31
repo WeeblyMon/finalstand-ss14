@@ -623,19 +623,19 @@
   id: Fruit # SpecialDigestible: OrganReptilianStomach. CargoBounty: BountyFruit
 
 - type: Tag
-  id: FSAlcoholTolerant
+  id: FSAlcoholTolerant # FINALSTAND: set on bodies with a drunk perk (FSDrunkPerkSystem); ethanol skips its poison damage and vomiting.
 
 - type: Tag
-  id: FSArmorTierItem # FinalStand: marks a hardsuit spawned by the Armor Vendor so it can be safely replaced on tier upgrade.
+  id: FSArmorTierItem # FINALSTAND: marks a hardsuit spawned by the Armor Vendor so it can be safely replaced on tier upgrade.
 
 - type: Tag
-  id: FSBarricade # FinalStand: deployable barricades, for perks like Built To Last.
+  id: FSBarricade # FINALSTAND: deployable barricades, for perks like Built To Last.
 
 - type: Tag
   id: FSCartridgeRayGun
 
 - type: Tag
-  id: FSMedicalTool
+  id: FSMedicalTool # FINALSTAND
 
 - type: Tag
   id: FSRayGunCell
@@ -1311,7 +1311,7 @@
   id: ShellShotgun # Ammo: AmmoProviderShotgunShell, ClothingBeltBandolier, BaseMagazineShotgun, BaseWeaponShotgun, WeaponFlareGunSecurity
 
 - type: Tag
-  id: ShellDoubleBarrelFS # FS-only ammo for FSWeaponDoubleBarrel; no structural damage
+  id: ShellDoubleBarrelFS # FINALSTAND: FS-only ammo for FSWeaponDoubleBarrel; no structural damage
 
 - type: Tag
   id: ShellShotgunLight # Shotgun shells that are compatible with the flare gun. Subset of ShellShotgun.
@@ -1432,7 +1432,7 @@
   id: SyringeGunAmmo # Storage whitelist: LauncherSyringe
 
 - type: Tag
-  id: FSSyringeMagazine # Magazine slot whitelist: LauncherSyringe
+  id: FSSyringeMagazine # Magazine slot whitelist: LauncherSyringe # FINALSTAND
 
 - type: Tag
   id: Spellbook # Storage whitelist: Bookshelf
@@ -1559,22 +1559,22 @@
   id: WeaponAntiqueLaser # Storage whitelist: GlassBoxLaser
 
 - type: Tag
-  id: WeaponGunBallistic # FinalStand: kinetic/cartridge guns - Ordnance ballistic research bonuses.
+  id: WeaponGunBallistic # FINALSTAND: kinetic/cartridge guns - Ordnance ballistic research bonuses.
 
 - type: Tag
-  id: WeaponGunEnergy # FinalStand: laser/pulse guns - Ordnance energy research bonuses.
+  id: WeaponGunEnergy # FINALSTAND: laser/pulse guns - Ordnance energy research bonuses.
 
 - type: Tag
-  id: WeaponGunLauncher # FinalStand: launchers (RPG, grenade launcher) - augment checks and Ordnance launcher research bonuses.
+  id: WeaponGunLauncher # FINALSTAND: launchers (RPG, grenade launcher) - augment checks and Ordnance launcher research bonuses.
 
 - type: Tag
-  id: WeaponExplosive # FinalStand: grenades and rockets - Ordnance blast-intensity research bonuses.
+  id: WeaponExplosive # FINALSTAND: grenades and rockets - Ordnance blast-intensity research bonuses.
 
 - type: Tag
-  id: WeaponHarvester # FinalStand: the Science Harvester - Ordnance research bonuses, required only so its GunRefreshModifiersEvent routes through TagComponent.
+  id: WeaponHarvester # FINALSTAND: the Science Harvester - Ordnance research bonuses, required only so its GunRefreshModifiersEvent routes through TagComponent.
 
 - type: Tag
-  id: WeaponGunShotgun # FinalStand: marks a weapon as a shotgun for KnockbackBlast augment.
+  id: WeaponGunShotgun # FINALSTAND: marks a weapon as a shotgun for KnockbackBlast augment.
 
 - type: Tag
   id: WeaponPistolCHIMPUpgradeKit # ConstructionGraph: UpgradeWeaponPistolCHIMP

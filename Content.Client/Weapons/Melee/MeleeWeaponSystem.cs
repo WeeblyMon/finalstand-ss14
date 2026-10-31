@@ -38,7 +38,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     [Dependency] private MapSystem _map = default!;
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
-    [Dependency] private IClientGameTiming _clientTiming = default!; // fs
+    [Dependency] private IClientGameTiming _clientTiming = default!; // FINALSTAND
     [Dependency] private FSMeleeJuiceSystem _fsJuice = default!; // FINALSTAND
 
     public const string MeleeLungeKey = "melee-lunge"; // FINALSTAND: public
@@ -222,7 +222,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         // This should really be improved. GetEntitiesInArc uses pos instead of bounding boxes.
         // Server will validate it with InRangeUnobstructed.
         var entities = GetNetEntityList(ArcRayCast(userPos, direction.ToWorldAngle(), component.Angle, distance, userXform.MapID, user).OrderByDescending(e => IsEnemy(user, e)).ToList()); // FINALSTAND: living enemies take the target slots before corpses, teammates and walls
-        RaisePredictiveEvent(new HeavyAttackEvent(GetNetEntity(meleeUid), entities.GetRange(0, Math.Min(MaxTargets, entities.Count)), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // fs
+        RaisePredictiveEvent(new HeavyAttackEvent(GetNetEntity(meleeUid), entities.GetRange(0, Math.Min(MaxTargets, entities.Count)), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // FINALSTAND
     }
 
     private void ClientDisarm(EntityUid attacker, MapCoordinates mousePos, EntityCoordinates coordinates)
@@ -232,7 +232,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         if (_stateManager.CurrentState is GameplayStateBase screen)
             target = screen.GetClickedEntity(mousePos);
 
-        RaisePredictiveEvent(new DisarmAttackEvent(GetNetEntity(target), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // fs
+        RaisePredictiveEvent(new DisarmAttackEvent(GetNetEntity(target), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // FINALSTAND
     }
 
     private void ClientLightAttack(EntityUid attacker, MapCoordinates mousePos, EntityCoordinates coordinates, EntityUid weaponUid, MeleeWeaponComponent meleeComponent)
@@ -264,9 +264,10 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
                 new MapCoordinates(attackerPos.Position + direction.Normalized() * meleeComponent.Range, attackerPos.MapId));
         }
 
-        RaisePredictiveEvent(new LightAttackEvent(GetNetEntity(target), GetNetEntity(weaponUid), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // fs
+        RaisePredictiveEvent(new LightAttackEvent(GetNetEntity(target), GetNetEntity(weaponUid), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // FINALSTAND
     }
 
+    // FINALSTAND: nearest living enemy in a 70 degree cone toward the cursor
     private EntityUid? FindLightTarget(EntityUid attacker, MapCoordinates attackerPos, Vector2 direction, float range)
     {
         EntityUid? best = null;
@@ -287,6 +288,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         return best;
     }
 
+    // FINALSTAND
     private bool IsEnemy(EntityUid attacker, EntityUid uid)
     {
         return HasComp<MobStateComponent>(uid) && !MobState.IsDead(uid) && !_fsJuice.IsAlly(attacker, uid);

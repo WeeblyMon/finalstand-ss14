@@ -8,7 +8,7 @@ public sealed partial class PathfindingSystem
 {
     private PathResult UpdateBFSPath(IRobustRandom random, BFSPathRequest request)
     {
-        if (request.Task.IsCanceled)
+        if (request.CancelToken.IsCancellationRequested) // FINALSTAND
         {
             return PathResult.NoPath;
         }
@@ -55,21 +55,24 @@ public sealed partial class PathfindingSystem
             return PathResult.NoPath;
         }
 
-        request.Frontier.Add((0.0f, startNode));
-        request.CostSoFar[startNode] = 0.0f;
-        var count = 0;
+        // FINALSTAND: seeded once and counted on the request, as in A*.
+        if (request.Expanded == 0)
+        {
+            request.Frontier.Add((0.0f, startNode));
+            request.CostSoFar[startNode] = 0.0f;
+        }
 
-        while (request.Frontier.Count > 0 && count < NodeLimit && count < request.ExpansionLimit)
+        while (request.Frontier.Count > 0 && request.Expanded < NodeLimit && request.Expanded < request.ExpansionLimit)
         {
             // Handle whether we need to pause if we've taken too long
-            if (count % 20 == 0 && count > 0 && request.Stopwatch.Elapsed > PathTime)
+            if (request.Expanded % 20 == 0 && request.Expanded > 0 && request.Stopwatch.Elapsed > PathTime)
             {
                 // I had this happen once in testing but I don't think it should be possible?
                 DebugTools.Assert(request.Frontier.Count > 0);
                 return PathResult.Continuing;
             }
 
-            count++;
+            request.Expanded++;
 
             // Actual pathfinding here
             (_, currentNode) = request.Frontier.Take();

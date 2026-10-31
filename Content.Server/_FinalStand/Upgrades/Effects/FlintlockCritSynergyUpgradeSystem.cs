@@ -1,4 +1,3 @@
-// Pirate cross-family crit: kill with cutlass arms flintlock; kill with flintlock, or land a cutlass-fired shot, arms cutlass. Consumed on use, dropped weapons untag, 5s expiry.
 using Content.Server._FinalStand.Crit;
 using Content.Shared._FinalStand.Melee;
 using Content.Shared._FinalStand.Shop;
@@ -135,7 +134,7 @@ public sealed partial class FlintlockCritSynergyUpgradeSystem : EntitySystem
         CloseWindow(args.User);
     }
 
-    private void OnProjectileHitEffect(FSProjectileHitEffectEvent ev)
+    private void OnProjectileHitEffect(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Shooter is not { } shooter || ev.Weapon is not { } weapon)
             return;

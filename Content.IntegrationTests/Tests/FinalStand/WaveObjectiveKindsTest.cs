@@ -19,7 +19,6 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
-using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
@@ -48,7 +47,7 @@ public sealed class WaveObjectiveKindsTest : GameTest
 
         SEntMan.EnsureComponent<FSPlayerWalletComponent>(mindId);
         Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival, out var rule), Is.True);
-        SEntMan.System<WaveGameRuleSystem>().ForceNextWave(Server.ResolveDependency<IServerConsoleHost>().LocalShell, 6);
+        SEntMan.System<WaveGameRuleSystem>().ForceNextWave(6);
 
         _rule = rule;
         _spawner = SEntMan.SpawnEntity(null, coords.Offset(new Vector2(20, 0)));
@@ -103,7 +102,7 @@ public sealed class WaveObjectiveKindsTest : GameTest
         {
             StartCombat(map.GridCoords);
             var ccc = SEntMan.SpawnEntity("FinalStandCCC", map.GridCoords);
-            var max = SEntMan.GetComponent<FinalStandCCCTagComponent>(ccc).MaxHealth;
+            var max = SEntMan.GetComponent<FinalStandCCCComponent>(ccc).MaxHealth;
             Assert.That(max, Is.GreaterThan(0f), "test precondition");
 
             var current = Start("FSObjectiveHoldTheLine");
@@ -315,11 +314,14 @@ public sealed class WaveObjectiveKindsTest : GameTest
             titles.Equip(user, "FSTitleWeeklyChampion");
 
             var wallet = SEntMan.GetComponent<FSPlayerWalletComponent>(mind);
+            // The wave clear pays on the same event, without the title bonus.
+            var rewards = SEntMan.EntityQuery<FSWaveRewardsComponent>().Single();
+            var clearPay = rewards.ClearBase + rewards.ClearPerWave * 6;
             var before = wallet.Credits;
             var current = Start("FSObjectiveFortress");
             EndWave();
             Assert.That(current.Result, Is.EqualTo(FSWaveObjectiveResult.Completed));
-            Assert.That(wallet.Credits - before, Is.EqualTo((int) MathF.Round((350 + 35 * 6) * 1.05f)));
+            Assert.That(wallet.Credits - before, Is.EqualTo(clearPay + (int) MathF.Round((350 + 35 * 6) * 1.05f)));
         });
     }
 }

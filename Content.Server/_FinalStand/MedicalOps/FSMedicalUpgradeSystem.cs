@@ -106,7 +106,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 
     public float SoftCapBonus => Unlocked(FocusedNanites) ? 0.1f : 0f;
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (!NodeSet.Contains(ev.NodeId))
             return;
@@ -325,5 +325,4 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 
         Dirty(ent);
     }
-
 }

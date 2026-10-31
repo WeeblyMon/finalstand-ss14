@@ -25,7 +25,7 @@ public sealed partial class GameTopMenuBarUIController : UIController
     [Dependency] private SandboxUIController _sandbox = default!;
     [Dependency] private GuidebookUIController _guidebook = default!;
     [Dependency] private EmotesUIController _emotes = default!;
-    [Dependency] private FSLeaderboardUIController _leaderboard = default!;
+    [Dependency] private FSLeaderboardUIController _leaderboard = default!; // FINALSTAND
 
     private GameTopMenuBar? GameTopMenuBar => UIManager.GetActiveUIWidgetOrNull<GameTopMenuBar>();
 

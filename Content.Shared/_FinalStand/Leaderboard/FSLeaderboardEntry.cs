@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Content.Shared._FinalStand.Titles;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Leaderboard;
@@ -16,7 +18,7 @@ public sealed record FSLeaderboardEntry(
     int Credits,
     int Score,
     bool Rookie = false,
-    string? Title = null)
+    ProtoId<FSTitlePrototype>? Title = null)
 {
     public int Fortify { get; init; }
 

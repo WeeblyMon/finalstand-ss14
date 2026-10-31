@@ -1,7 +1,5 @@
-// Hand teleporter portals close after a lifetime that only counts down during combat.
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Teleportation;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Teleportation;
 using Content.Shared.Teleportation.Components;
 using Robust.Server.Audio;
@@ -16,6 +14,7 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private HandTeleporterSystem _teleporter = default!;
     [Dependency] private WaveGameRuleSystem _wave = default!;
+    [Dependency] private FSExpiringPortalSystem _expiring = default!;
 
     private static readonly SoundSpecifier CollapseSound = new SoundCollectionSpecifier("sparks");
 
@@ -26,7 +25,7 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
 
         var left = TimeSpan.FromSeconds(lifetime);
         ent.Comp.PortalsExpireAt = _timing.CurTime + left;
-        ent.Comp.PortalsPausedLeft = IsPrep() ? left : null;
+        ent.Comp.PortalsPausedLeft = _wave.IsPrep() ? left : null;
         Sync(ent);
     }
 
@@ -45,16 +44,7 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
         if (Deleted(portal))
             return;
 
-        var comp = EnsureComp<FSExpiringPortalComponent>(portal.Value);
-        comp.ExpiresAt = expiresAt;
-        comp.PausedLeft = pausedLeft;
-        comp.Lifetime = lifetime;
-        Dirty(portal.Value, comp);
-    }
-
-    private bool IsPrep()
-    {
-        return _wave.TryGetWaveStatus(out _, out var phase) && phase == WavePhase.Prep;
+        _expiring.SetExpiry(portal.Value, expiresAt, pausedLeft, lifetime);
     }
 
     public override void Update(float frameTime)
@@ -69,7 +59,7 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
             if (teleporter.PortalsExpireAt is not { } expiresAt)
                 continue;
 
-            prep ??= IsPrep();
+            prep ??= _wave.IsPrep();
             if (prep.Value)
             {
                 if (teleporter.PortalsPausedLeft != null)

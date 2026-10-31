@@ -1,12 +1,14 @@
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Hitscan.Events;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
@@ -15,8 +17,13 @@ public sealed partial class FSRadiationMarkSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
 
     private const float MarkDurationSeconds = 3f;
+
+    // The DoT lands in steps, not every tick: each step is a full damage event for every listener on the mob.
+    private static readonly TimeSpan DotInterval = TimeSpan.FromSeconds(0.5);
+    private static readonly ProtoId<DamageTypePrototype> RadiationDamage = "Radiation";
 
     private EntityQuery<MobStateComponent> _mobQuery;
 
@@ -25,7 +32,6 @@ public sealed partial class FSRadiationMarkSystem : EntitySystem
         base.Initialize();
         _mobQuery = GetEntityQuery<MobStateComponent>();
         SubscribeLocalEvent<FSXrayRaycastComponent, HitscanRaycastFiredEvent>(OnXRayHit);
-        // DamageModifyEvent is a class event (EntityEventArgs) — no ref keyword.
         SubscribeLocalEvent<FSRadiationMarkComponent, DamageModifyEvent>(OnDamageModify);
     }
 
@@ -42,16 +48,17 @@ public sealed partial class FSRadiationMarkSystem : EntitySystem
                 continue;
             }
 
-            if (!comp.HasDot || comp.DotRemaining <= 0f)
+            if (!comp.HasDot || comp.DotRemaining <= 0f || curTime < comp.NextDot)
                 continue;
+
+            comp.NextDot = curTime + DotInterval;
             if (!_mobQuery.TryGetComponent(uid, out var ms) || ms.CurrentState != MobState.Alive)
                 continue;
 
-            var tick = Math.Min(comp.DotPerSecond * frameTime, comp.DotRemaining);
-            comp.DotRemaining -= tick;
-            var dot = new DamageSpecifier();
-            dot.DamageDict.Add("Radiation", FixedPoint2.New(tick));
-            _damageable.TryChangeDamage(uid, dot, ignoreResistances: true);
+            var amount = MathF.Min(comp.DotPerSecond * (float) DotInterval.TotalSeconds, comp.DotRemaining);
+            comp.DotRemaining -= amount;
+            var dot = new DamageSpecifier(_proto.Index(RadiationDamage), FixedPoint2.New(amount));
+            _damageable.TryChangeDamage(uid, dot, ignoreResistances: true, origin: comp.Origin);
         }
     }
 
@@ -70,17 +77,27 @@ public sealed partial class FSRadiationMarkSystem : EntitySystem
             coatingResearchBonus = state.RadiationCoatingResearchBonus;
         }
 
+        var now = _timing.CurTime;
         var duration = MarkDurationSeconds + coatingLevel;
         var mark = EnsureComp<FSRadiationMarkComponent>(target);
+        var dotRunning = mark.HasDot && mark.DotRemaining > 0f;
         mark.DamageMultiplier = 1.5f;
-        mark.ExpiresAt = _timing.CurTime + TimeSpan.FromSeconds(duration);
+        mark.ExpiresAt = now + TimeSpan.FromSeconds(duration);
+        mark.Origin = args.Data.Shooter;
 
         if (coatingLevel > 0)
         {
             mark.HasDot = true;
             mark.DotPerSecond = 8f * coatingLevel * (1f + coatingResearchBonus);
             mark.DotRemaining = (1.5f + coatingLevel) * mark.DotPerSecond;
+
+            // A running DoT keeps its next step, even one due this tick (hits land before Update). Restarting the
+            // timer on a hit made a gun firing on the step's tick push it back every time.
+            if (!dotRunning)
+                mark.NextDot = now + DotInterval;
         }
+
+        Dirty(target, mark);
     }
 
     private void OnDamageModify(EntityUid uid, FSRadiationMarkComponent comp, DamageModifyEvent args)

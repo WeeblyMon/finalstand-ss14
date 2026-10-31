@@ -1,4 +1,3 @@
-// Spins and bobs a ground pickup's sprite so it reads as collectible.
 namespace Content.Shared._FinalStand.Perks;
 
 [RegisterComponent]

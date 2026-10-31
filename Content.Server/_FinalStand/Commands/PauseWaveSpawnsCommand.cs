@@ -14,6 +14,12 @@ public sealed partial class PauseWaveSpawnsCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        _waveRule.ToggleSpawnPause(shell);
+        if (!_waveRule.TryToggleSpawnPause(out var paused))
+        {
+            shell.WriteError(Loc.GetString("cmd-wave-rule-not-active"));
+            return;
+        }
+
+        shell.WriteLine(Loc.GetString(paused ? "cmd-pausewavespawns-paused" : "cmd-pausewavespawns-resumed"));
     }
 }

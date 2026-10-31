@@ -23,8 +23,8 @@ public sealed partial class HandTeleporterSystem : EntitySystem
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private SharedDoAfterSystem _doafter = default!;
     [Dependency] private PopupSystem _popup = default!;
-    [Dependency] private SharedChargesSystem _charges = default!; // FS
-    [Dependency] private FSPortalExpirySystem _expiry = default!; // FS
+    [Dependency] private SharedChargesSystem _charges = default!; // FINALSTAND
+    [Dependency] private FSPortalExpirySystem _expiry = default!; // FINALSTAND
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -77,7 +77,7 @@ public sealed partial class HandTeleporterSystem : EntitySystem
             if (xform.ParentUid != xform.GridUid)
                 return;
 
-            // FS: opening a new pair costs a charge
+            // FINALSTAND: opening a new pair costs a charge
             if (component.FirstPortal == null && TryComp<LimitedChargesComponent>(uid, out var charges) && _charges.IsEmpty((uid, charges)))
             {
                 _popup.PopupEntity(Loc.GetString("handheld-teleporter-no-charge"), uid, args.User);
@@ -135,7 +135,7 @@ public sealed partial class HandTeleporterSystem : EntitySystem
             if (xform.ParentUid != xform.GridUid)
                 return;
 
-            // FS
+            // FINALSTAND
             if (TryComp<LimitedChargesComponent>(uid, out var charges) && !_charges.TryUseCharge((uid, charges)))
                 return;
 
@@ -144,7 +144,7 @@ public sealed partial class HandTeleporterSystem : EntitySystem
             component.FirstPortal = Spawn(component.FirstPortalPrototype, Transform(user).Coordinates);
             Dirty(uid, component);
 
-            _expiry.Start((uid, component)); // FS
+            _expiry.Start((uid, component)); // FINALSTAND
 
             if (component.AllowPortalsOnDifferentMaps && TryComp<PortalComponent>(component.FirstPortal, out var portal))
                 portal.CanTeleportToOtherMaps = true;
@@ -174,7 +174,7 @@ public sealed partial class HandTeleporterSystem : EntitySystem
 
             _adminLogger.Add(LogType.EntitySpawn, LogImpact.High, $"{ToPrettyString(user):player} opened {ToPrettyString(component.SecondPortal.Value)} at {Transform(component.SecondPortal.Value).Coordinates} linked to {ToPrettyString(component.FirstPortal!.Value)} using {ToPrettyString(uid)}");
             _link.TryLink(component.FirstPortal!.Value, component.SecondPortal.Value, true);
-            _expiry.Sync((uid, component)); // FS
+            _expiry.Sync((uid, component)); // FINALSTAND
             _audio.PlayPvs(component.NewPortalSound, uid);
         }
         else
@@ -213,8 +213,8 @@ public sealed partial class HandTeleporterSystem : EntitySystem
 
         entity.Comp.FirstPortal = null;
         entity.Comp.SecondPortal = null;
-        entity.Comp.PortalsExpireAt = null; // FS
-        entity.Comp.PortalsPausedLeft = null; // FS
+        entity.Comp.PortalsExpireAt = null; // FINALSTAND
+        entity.Comp.PortalsPausedLeft = null; // FINALSTAND
         Dirty(entity);
         _audio.PlayPvs(entity.Comp.ClearPortalsSound, entity);
 

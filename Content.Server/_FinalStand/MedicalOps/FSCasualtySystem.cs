@@ -45,6 +45,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
     private readonly Dictionary<EntityUid, TimeSpan> _priority = new();
     private readonly Dictionary<EntityUid, TimeSpan> _tagReadyAt = new();
     private TimeSpan _nextBroadcast;
+    private bool _sentEmpty;
 
     public override void Initialize()
     {
@@ -95,6 +96,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
         _priority.Clear();
         _tagReadyAt.Clear();
         _nextBroadcast = TimeSpan.Zero;
+        _sentEmpty = false;
     }
 
     private void OnBoardAction(FSCasualtyBoardActionEvent args)
@@ -185,7 +187,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     public void Respond(EntityUid medic, EntityUid patient)
     {
-        if (!_calls.TryGetValue(patient, out var call) || TerminatingOrDeleted(patient))
+        // Already on the way: the popups, sound and broadcast would only repeat.
+        if (!_calls.TryGetValue(patient, out var call) || TerminatingOrDeleted(patient) || call.Responder == medic)
             return;
 
         call.Responder = medic;
@@ -208,9 +211,10 @@ public sealed partial class FSCasualtySystem : EntitySystem
     {
         foreach (var session in _player.Sessions)
         {
+            // A silent row (bleeding or broken, still standing) is promoted to a real call once they're down.
             if (session.AttachedEntity is not { } mob
                 || TerminatingOrDeleted(mob)
-                || _calls.ContainsKey(mob))
+                || _calls.TryGetValue(mob, out var call) && !call.Silent)
             {
                 continue;
             }
@@ -226,13 +230,13 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
         var now = _timing.CurTime;
 
-        SweepCasualties();
-
         _finished.Clear();
         foreach (var (patient, call) in _calls)
         {
+            // A player who is still down keeps their call (and its responder) however long it takes;
+            // the lifetime only ends hurt pings and bodies whose player has left.
             if (TerminatingOrDeleted(patient)
-                || call.Expires <= now
+                || call.Expires <= now && !StillDown(patient)
                 || (call.CalledHurt && IsRecovered(patient))
                 || (call.Silent && _mobState.IsAlive(patient) && !NeedsSilentRow(patient)))
             {
@@ -258,20 +262,23 @@ public sealed partial class FSCasualtySystem : EntitySystem
         foreach (var patient in _finished)
             _priority.Remove(patient);
 
-        if (_finished.Count > 0)
-        {
-            Broadcast();
+        if (_finished.Count == 0 && now < _nextBroadcast)
             return;
-        }
 
-        if (now >= _nextBroadcast)
-            Broadcast();
+        // Catches anyone who was already down when they got a body; the state-change hook never saw them.
+        SweepCasualties();
+        Broadcast();
     }
 
     private void Broadcast()
     {
         _nextBroadcast = _timing.CurTime + BroadcastInterval;
 
+        // Medics already hold the empty board sent when the last call cleared.
+        if (_calls.Count == 0 && _sentEmpty)
+            return;
+
+        _sentEmpty = _calls.Count == 0;
         var board = BuildBoard();
         foreach (var (session, _) in _roster.Medics())
             RaiseNetworkEvent(board, session);
@@ -335,6 +342,11 @@ public sealed partial class FSCasualtySystem : EntitySystem
             return FSCasualtyState.Dead;
 
         return _mobState.IsCritical(patient) ? FSCasualtyState.Critical : FSCasualtyState.Hurt;
+    }
+
+    private bool StillDown(EntityUid patient)
+    {
+        return HasComp<ActorComponent>(patient) && (_mobState.IsCritical(patient) || _mobState.IsDead(patient));
     }
 
     private bool IsRecovered(EntityUid patient)

@@ -2,6 +2,7 @@ using Content.Client._FinalStand.Interface;
 using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared._FinalStand.Leveling;
+using Content.Shared._FinalStand.Onboarding;
 using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -75,7 +76,6 @@ public sealed partial class FSXpHudController : UIController, IOnSystemChanged<F
             Value = 0f,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
-        // FINALSTAND: palette-matched to the rest of the HUD.
         _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = FSPalette.Warn };
         _bar.BackgroundStyleBoxOverride = new StyleBoxFlat
         {
@@ -86,7 +86,7 @@ public sealed partial class FSXpHudController : UIController, IOnSystemChanged<F
 
         _label = new Label
         {
-            Text = "LVL 1",
+            Text = Loc.GetString("fs-xp-bar-level", ("level", 1)),
             Align = Label.AlignMode.Center,
             Modulate = FSPalette.TextBright,
             MouseFilter = Control.MouseFilterMode.Ignore,
@@ -149,11 +149,16 @@ public sealed partial class FSXpHudController : UIController, IOnSystemChanged<F
             ? (float) ev.Experience / ev.XpToNextLevel
             : 0f;
 
-        var level = ev.PrestigeLevel > 0
-            ? $"P{ev.PrestigeLevel}  LVL {ev.Level}"
-            : $"LVL {ev.Level}";
-        var next = Loc.GetString("fs-xp-hud-next-reward", ("points", FSLevelingRules.PerkPointsForReaching(ev.Level + 1)));
-        var catchUp = ev.CatchUp ? Loc.GetString("fs-xp-hud-catch-up") : string.Empty;
-        _label.Text = $"{level}  —  {ev.Experience:N0} / {ev.XpToNextLevel:N0} XP  —  {next}{catchUp}";
+        var xp = ev.Experience.ToString("N0");
+        var next = ev.XpToNextLevel.ToString("N0");
+        var progress = ev.PrestigeLevel > 0
+            ? Loc.GetString("fs-xp-bar-progress-prestige",
+                ("prestige", ev.PrestigeLevel), ("level", ev.Level), ("xp", xp), ("next", next))
+            : Loc.GetString("fs-xp-bar-progress", ("level", ev.Level), ("xp", xp), ("next", next));
+        var reward = Loc.GetString("fs-xp-hud-next-reward", ("points", FSLevelingRules.PerkPointsForReaching(ev.Level + 1)));
+        var catchUp = ev.CatchUp
+            ? Loc.GetString("fs-xp-hud-catch-up", ("multiplier", FSRookieRules.CatchUpXpMultiplier))
+            : string.Empty;
+        _label.Text = $"{progress}  —  {reward}{catchUp}";
     }
 }

@@ -17,6 +17,10 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
 
     private Predicate<EntityUid> _stillMissing = default!;
 
+    // Deleted targets are skipped when drawing; the sweep only keeps the set from growing all round.
+    private const float RevealSweepInterval = 1f;
+    private float _revealSweepTimer;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -24,7 +28,7 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
         _stillMissing = uid => !Exists(uid);
 
         _numberOverlay = new FSDamageNumberOverlay();
-        _hpBarOverlay  = new FSRevealedHealthBarOverlay(EntityManager);
+        _hpBarOverlay  = new FSRevealedHealthBarOverlay(EntityManager, _overlayManager);
 
         _overlayManager.AddOverlay(_numberOverlay);
         _overlayManager.AddOverlay(_hpBarOverlay);
@@ -47,6 +51,12 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
         _numberOverlay?.Age(frameTime);
+
+        _revealSweepTimer += frameTime;
+        if (_revealSweepTimer < RevealSweepInterval)
+            return;
+
+        _revealSweepTimer = 0f;
         _hpBarOverlay?.RevealedEntities.RemoveWhere(_stillMissing);
     }
 
@@ -101,6 +111,6 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
         Spawn(ev.Target, ev.Text, 0f, 0f, lifetime: 1.6f, reveal: false, color: ev.Color);
 
     private void OnLevelUpNumber(FSLevelUpNumberEvent ev) =>
-        Spawn(ev.Target, $"LEVEL UP +{ev.ApGained}PP", 0f, 0f, isLevelUp: true, levelUpAp: ev.ApGained,
-            lifetime: 2.0f, reveal: false);
+        Spawn(ev.Target, Loc.GetString("fs-level-up-floater", ("points", ev.ApGained)), 0f, 0f, isLevelUp: true,
+            levelUpAp: ev.ApGained, lifetime: 2.0f, reveal: false);
 }

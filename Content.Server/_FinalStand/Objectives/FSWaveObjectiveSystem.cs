@@ -59,7 +59,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
-        SubscribeLocalEvent<WavePrepStartedEvent>(_ => Clear());
+        SubscribeLocalEvent<WavePrepStartedEvent>((ref WavePrepStartedEvent _) => Clear());
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnEnemyDied);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
@@ -68,7 +68,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         InitializeKinds();
     }
 
-    private void OnCombatStarted(WaveCombatStartedEvent ev)
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev)
     {
         Clear();
         var chance = _cfg.GetCVar(CCVars.FSWaveObjectiveChance);
@@ -205,6 +205,26 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         _chat.DispatchServerAnnouncement(Loc.GetString("fs-objective-failed",
             ("name", Loc.GetString(current.Prototype.Name))), Color.Gray);
         SendState(Filter.Broadcast());
+    }
+
+    // Admin tooling: settle or nudge the running objective by hand.
+    public void ForceResult(bool completed)
+    {
+        if (completed)
+            Complete();
+        else
+            Fail();
+    }
+
+    // False once the objective is settled: its result already paid out or failed.
+    public bool SetProgress(int progress)
+    {
+        if (Current is not { Result: FSWaveObjectiveResult.InProgress } current)
+            return false;
+
+        current.Progress = Math.Clamp(progress, 0, current.Target);
+        SendState(Filter.Broadcast());
+        return true;
     }
 
     private void Clear()

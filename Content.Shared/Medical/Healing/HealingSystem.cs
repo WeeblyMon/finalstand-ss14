@@ -34,9 +34,9 @@ public sealed partial class HealingSystem : EntitySystem
     [Dependency] private MobThresholdSystem _mobThresholdSystem = default!;
     [Dependency] private SharedPopupSystem _popupSystem = default!;
     [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
-    [Dependency] private FSAilmentSystem _ailments = default!;
-    [Dependency] private FSAilmentCureSystem _cures = default!;
-    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!; // FINALSTAND
+    [Dependency] private FSAilmentCureSystem _cures = default!; // FINALSTAND
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!; // FINALSTAND
 
     public override void Initialize()
     {
@@ -95,15 +95,21 @@ public sealed partial class HealingSystem : EntitySystem
         var potency = new FSHealingPotencyEvent(1f, target.Owner);
         RaiseLocalEvent(args.User, ref potency);
         var scale = _damageable.UniversalTopicalsHealModifier * potency.Multiplier * _ailments.GetIncomingHealScale(target.Owner);
-        if (!_damageable.TryChangeDamage(target.Owner, healing.Damage * scale, out var healed, true, origin: args.Args.User)
+        var changedDamage = _damageable.TryChangeDamage(target.Owner, healing.Damage * scale, out var healed, true, origin: args.Args.User);
+        if (!changedDamage
             && healing.BloodlossModifier != 0
             && stoppedBleed <= 0f
             && !curing)
             return;
 
-        var appliedEv = new FSTopicalAppliedEvent(args.Args.User, target.Owner);
-        RaiseLocalEvent(target.Owner, ref appliedEv);
-        _cures.Treated(args.Used.Value, target.Owner, args.User, stoppedBleed);
+        // FINALSTAND: only treatment that landed counts (someone else may have healed them mid do-after).
+        if (changedDamage || stoppedBleed > 0f || curing)
+        {
+            var appliedEv = new FSTopicalAppliedEvent(args.Args.User, target.Owner);
+            RaiseLocalEvent(target.Owner, ref appliedEv);
+        }
+
+        _cures.Treated(args.Used.Value, target.Owner, args.User, stoppedBleed); // FINALSTAND
 
         var total = healed.GetTotal();
 
@@ -148,7 +154,7 @@ public sealed partial class HealingSystem : EntitySystem
         if (args.User == target.Owner)
             args.Args.Delay = healing.Delay
                 * GetScaledHealingPenalty(target.Owner, healing.SelfHealPenaltyMultiplier)
-                * _medicalBonus.GetDelayMultiplier(args.User, FSMedicalBonusCategory.TreatmentSpeed);
+                * _medicalBonus.GetDelayMultiplier(args.User, FSMedicalBonusCategory.TreatmentSpeed); // FINALSTAND
     }
 
     private bool HasDamage(Entity<HealingComponent> healing, Entity<DamageableComponent> target)
@@ -242,7 +248,7 @@ public sealed partial class HealingSystem : EntitySystem
             ? healing.Comp.Delay
             : healing.Comp.Delay * GetScaledHealingPenalty(target, healing.Comp.SelfHealPenaltyMultiplier);
 
-        delay = _cures.GetTreatmentDelay(user, target.Owner, delay);
+        delay = _cures.GetTreatmentDelay(user, target.Owner, delay); // FINALSTAND
 
         var doAfterEventArgs =
             new DoAfterArgs(EntityManager, user, delay, new HealingDoAfterEvent(), target, target: target, used: healing)

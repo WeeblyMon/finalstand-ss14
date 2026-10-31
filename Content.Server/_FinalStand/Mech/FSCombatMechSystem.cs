@@ -1,5 +1,3 @@
-// Combat mechs on the server: the pilot's factions ride with the mech so zombies go for it, guns refill from mech power,
-// and rounds fired from a mech don't hit it and pay a flat amount. A wreck unplants and takes no more damage, so it stays until repaired.
 using Content.Server.Destructible;
 using Content.Server.Mech.Systems;
 using Content.Server._FinalStand.Effects;
@@ -26,6 +24,7 @@ using Content.Shared._FinalStand.Particles;
 
 namespace Content.Server._FinalStand.Mech;
 
+// A wrecked mech unplants and takes no more damage, so it stays until repaired.
 public sealed partial class FSCombatMechSystem : EntitySystem
 {
     [Dependency] private NpcFactionSystem _faction = default!;

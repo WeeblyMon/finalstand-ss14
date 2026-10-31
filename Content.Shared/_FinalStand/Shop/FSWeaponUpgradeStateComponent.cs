@@ -8,7 +8,9 @@ namespace Content.Shared._FinalStand.Shop;
 public sealed partial class FSWeaponUpgradeStateComponent : Component
 {
     [DataField] public float CritChance = 0f;
-    [DataField] public float CritDamageMultiplier = 2f;
+    // Added on top of the weapon's own crit multiplier (FSCritMath).
+    [DataField] public float CritDamageBonus;
+    // Pierce, damage and attack speed are networked: FSWeaponUpgradeDamageSystem predicts melee and hitscan with them.
     [DataField, AutoNetworkedField] public FixedPoint2 PierceThreshold = FixedPoint2.Zero;
 
     [DataField] public Dictionary<string, int> Levels = new();
@@ -21,16 +23,20 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public int BeamChainTargets = 0;
     [DataField] public int KnockbackLevel = 0;
     [DataField] public bool SetOnFireEnabled = false;
+    [DataField] public float SetOnFireStacks = 0f;
     [DataField] public bool APRoundsEnabled = false;
     [DataField] public float ArmorShredMagnitude = 0f;
     [DataField] public float ReloadSpeedMultiplier = 1.0f;
     [DataField] public bool SpeedLoaderEnabled = false;
     [DataField] public float LifeStealPercent = 0f;
     [DataField] public int StaminaStealLevel = 0;
+    [DataField] public float StaminaStealDrain = 0f;
     [DataField, AutoNetworkedField] public float DamageMultiplier = 1.0f;
     [DataField] public int ExtraPellets = 0;
     [DataField] public bool ScrapshotEnabled = false;
     [DataField] public int BleedLevel = 0;
+    // Bleed damage per second as a share of the hit's damage.
+    [DataField] public float BleedScale = 0f;
     [DataField] public bool FlechetteEnabled = false;
     [DataField] public bool SplinterImpactEnabled = false;
     [DataField] public bool OverchargeShotEnabled = false;
@@ -48,7 +54,8 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 
     [DataField] public int MagazineSizeBonus = 0;
     [DataField] public float ResearchMagazinePercent = 0f;
-    [DataField] public float BatteryFireCostReduction = 0f;
+    // Networked: switching fire mode runs predicted, and the client works out the fire cost from it too.
+    [DataField, AutoNetworkedField] public float BatteryFireCostReduction = 0f;
 
     [DataField, AutoNetworkedField] public float AttackSpeedMultiplier = 1f;
     [DataField] public int ConcussionClubStunMs = 0;

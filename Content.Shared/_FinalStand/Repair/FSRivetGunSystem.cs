@@ -1,4 +1,3 @@
-// The rivet gun feeds itself a sheet at a time from the steel its holder is carrying.
 using Content.Shared._FinalStand.Materials;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
@@ -6,6 +5,7 @@ using Content.Shared.Weapons.Ranged.Systems;
 
 namespace Content.Shared._FinalStand.Repair;
 
+// The rivet gun feeds itself a sheet at a time from the steel its holder carries.
 public sealed partial class FSRivetGunSystem : EntitySystem
 {
     [Dependency] private SharedGunSystem _gun = default!;
@@ -16,6 +16,21 @@ public sealed partial class FSRivetGunSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSRivetGunComponent, AttemptShootEvent>(OnAttemptShoot);
         SubscribeLocalEvent<FSRivetGunComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
+    }
+
+    public void SetResearchBonuses(Entity<FSRivetGunComponent> ent, float fireRateMultiplier, float repairCap)
+    {
+        if (ent.Comp.FireRateMultiplier.Equals(fireRateMultiplier) && ent.Comp.RepairCap.Equals(repairCap))
+            return;
+
+        ent.Comp.RepairCap = repairCap;
+        if (!ent.Comp.FireRateMultiplier.Equals(fireRateMultiplier))
+        {
+            ent.Comp.FireRateMultiplier = fireRateMultiplier;
+            _gun.RefreshModifiers(ent.Owner);
+        }
+
+        Dirty(ent);
     }
 
     private void OnRefreshModifiers(Entity<FSRivetGunComponent> ent, ref GunRefreshModifiersEvent args)

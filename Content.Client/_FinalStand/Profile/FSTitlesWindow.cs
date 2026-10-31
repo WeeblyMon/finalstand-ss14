@@ -24,7 +24,7 @@ public sealed class FSTitlesWindow : FancyWindow
     private readonly BoxContainer _list;
     private readonly Button _unequip;
 
-    public event Action<string?>? OnEquip;
+    public event Action<ProtoId<FSTitlePrototype>?>? OnEquip;
 
     public FSTitlesWindow()
     {

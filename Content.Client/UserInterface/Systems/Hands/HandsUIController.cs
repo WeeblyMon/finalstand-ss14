@@ -26,7 +26,7 @@ public sealed partial class HandsUIController : UIController, IOnStateEntered<Ga
 
     [UISystemDependency] private readonly HandsSystem _handsSystem = default!;
     [UISystemDependency] private readonly UseDelaySystem _useDelay = default!;
-    [UISystemDependency] private readonly CCCUnderAttackClientSystem _cccAttack = default!;
+    [UISystemDependency] private readonly CCCUnderAttackClientSystem _cccAttack = default!; // FINALSTAND
 
     private HandsComponent? _playerHandsComponent;
     private HandButton? _activeHand;
@@ -38,6 +38,10 @@ public sealed partial class HandsUIController : UIController, IOnStateEntered<Ga
     // ("middle" hands are hardcoded as right, whatever)
     private HandButton? _statusHandLeft;
     private HandButton? _statusHandRight;
+
+    // FINALSTAND: what the CCC banner last showed, so it is only rebuilt when the lit dash moves.
+    private HotbarGui? _cccShownOn;
+    private int _cccShownDash;
 
     private HotbarGui? HandsGui => UIManager.GetActiveUIWidgetOrNull<HotbarGui>();
 
@@ -382,15 +386,22 @@ public sealed partial class HandsUIController : UIController, IOnStateEntered<Ga
             }
         }
 
-        // CCC Under Attack indicator
+        // FINALSTAND: CCC under attack banner
         if (_cccAttack.IsActive)
         {
             handsGui.CCCUnderAttackLabel.Visible = true;
-            handsGui.CCCUnderAttackLabel.Text = _cccAttack.GetMarkup();
+            var dash = _cccAttack.DashIndex;
+            if (_cccShownOn != handsGui || _cccShownDash != dash)
+            {
+                _cccShownOn = handsGui;
+                _cccShownDash = dash;
+                handsGui.CCCUnderAttackLabel.SetMessage(_cccAttack.GetMessage());
+            }
         }
         else
         {
             handsGui.CCCUnderAttackLabel.Visible = false;
+            _cccShownOn = null;
         }
     }
 

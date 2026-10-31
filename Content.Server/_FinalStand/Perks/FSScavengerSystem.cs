@@ -1,4 +1,3 @@
-// Scavenger perk: kills can drop a private supply cache that gives its owner ammo, a heal or credits.
 using Content.Server._FinalStand.Ammo;
 using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Perks;

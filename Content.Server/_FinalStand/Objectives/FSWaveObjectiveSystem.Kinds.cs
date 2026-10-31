@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._FinalStand.CCC;
+using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.MedicalOps;
@@ -24,9 +25,9 @@ public sealed partial class FSWaveObjectiveSystem
 
     public const float SupplyDeliveryRange = 3f;
     private static readonly TimeSpan SupplyCheckInterval = TimeSpan.FromSeconds(0.5);
-    private const string TargetLabel = "fs-objective-marker-target";
-    private const string BountyLabel = "fs-objective-marker-bounty";
-    private const string SupplyLabel = "fs-objective-marker-supplies";
+    private static readonly LocId TargetLabel = "fs-objective-marker-target";
+    private static readonly LocId BountyLabel = "fs-objective-marker-bounty";
+    private static readonly LocId SupplyLabel = "fs-objective-marker-supplies";
     public static readonly Color BountyTint = Color.FromHex("#FFD24A");
 
     private TimeSpan _nextSupplyCheck;
@@ -38,13 +39,7 @@ public sealed partial class FSWaveObjectiveSystem
         SubscribeLocalEvent<FSAllyHealedEvent>(OnAllyHealed);
         SubscribeLocalEvent<FSPlayerHurtEvent>(OnPlayerHurt);
         SubscribeLocalEvent<FSWaveEnemySpawnedEvent>(OnEnemySpawned);
-        _wallet.CreditsSpent += OnCreditsSpent;
-    }
-
-    public override void Shutdown()
-    {
-        base.Shutdown();
-        _wallet.CreditsSpent -= OnCreditsSpent;
+        SubscribeLocalEvent<FSCreditsSpentEvent>(OnCreditsSpent);
     }
 
     private void SetUp(ActiveObjective current)
@@ -117,7 +112,7 @@ public sealed partial class FSWaveObjectiveSystem
         current.Supply = null;
     }
 
-    private void Mark(ActiveObjective current, EntityUid uid, string label, Color? tint = null)
+    private void Mark(ActiveObjective current, EntityUid uid, LocId label, Color? tint = null)
     {
         var marker = EnsureComp<FSObjectiveMarkerComponent>(uid);
         marker.Label = label;
@@ -216,10 +211,10 @@ public sealed partial class FSWaveObjectiveSystem
         if (Current is not { Result: FSWaveObjectiveResult.InProgress, Prototype.Kind: FSWaveObjectiveKind.HoldTheLine } current
             || current.Ccc != args.Ccc
             || !TryComp<DamageableComponent>(args.Ccc, out var damageable)
-            || !TryComp<FinalStandCCCTagComponent>(args.Ccc, out var tag))
+            || !TryComp<FinalStandCCCComponent>(args.Ccc, out var ccc))
             return;
 
-        var lost = (int) MathF.Floor(FSWaveObjectiveRules.PercentLost(damageable.TotalDamage.Float() - current.CccStartDamage, tag.MaxHealth));
+        var lost = (int) MathF.Floor(FSWaveObjectiveRules.PercentLost(damageable.TotalDamage.Float() - current.CccStartDamage, ccc.MaxHealth));
         if (lost == current.Progress)
             return;
 
@@ -264,7 +259,7 @@ public sealed partial class FSWaveObjectiveSystem
             SendState(Filter.Broadcast());
     }
 
-    private void OnCreditsSpent(EntityUid mindId, int amount)
+    private void OnCreditsSpent(ref FSCreditsSpentEvent args)
     {
         if (Current is { Result: FSWaveObjectiveResult.InProgress, Prototype.Kind: FSWaveObjectiveKind.NoSpending })
             Fail();

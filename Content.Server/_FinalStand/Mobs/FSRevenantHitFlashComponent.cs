@@ -1,7 +1,7 @@
 namespace Content.Server._FinalStand.Mobs;
 
-[RegisterComponent]
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FSRevenantHitFlashComponent : Component
 {
-    public TimeSpan LastFlash;
+    [AutoPausedField] public TimeSpan LastFlash;
 }

@@ -1,5 +1,3 @@
-// Draws a combat mech's mounted guns on its body: the heavy weapon on the shoulder, the rest in the right then left hand.
-// Each mount has a layer over the mech and one under it, so whatever sits behind the body in a view is hidden by it.
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Tag;
@@ -9,6 +7,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Mech;
 
+// Each mount has a layer over and one under the mech, so the body hides whatever sits behind it.
 public sealed partial class FSMechWeaponVisualSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;

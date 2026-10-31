@@ -6,7 +6,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
 public sealed partial class FSMediGunComponent : Component
 {
     public const float DefaultSoftCap = 0.7f;
@@ -98,7 +98,7 @@ public sealed partial class FSMediGunComponent : Component
     [DataField]
     public bool UberInfiniteStamina;
 
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, AutoPausedField]
     public TimeSpan? UberEndTime;
 
     [DataField]
@@ -107,13 +107,17 @@ public sealed partial class FSMediGunComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? UberAction;
 
+    // Who popped the running uber. The gun can lose its links or change hands while it runs; this medic's cover can't.
+    [ViewVariables]
+    public EntityUid? UberMedic;
+
     [ViewVariables, AutoNetworkedField]
     public EntityUid? Medic;
 
     [ViewVariables, AutoNetworkedField]
     public List<EntityUid> Patients = new();
 
-    [ViewVariables]
+    [ViewVariables, AutoPausedField]
     public TimeSpan NextPulse;
 
     [ViewVariables]

@@ -17,10 +17,12 @@ public static class FSDiscordMessages
 
     public readonly record struct Mvp(string Name, int Kills, int Revives);
 
+    // VictoryWave is the wave the round was won at, null if it wasn't won.
     public readonly record struct RoundReport(
         string ServerName,
         int RoundId,
         FSRunRecord Run,
+        int? VictoryWave,
         Mvp? TopKiller,
         Mvp? TopMedic,
         IReadOnlyList<(FSRunRecord Run, FSRunRecord? Previous)> Records,
@@ -30,15 +32,12 @@ public static class FSDiscordMessages
     public static WebhookPayload RoundSummary(RoundReport report)
     {
         var run = report.Run;
-        var difficulty = Loc.GetString(FSDifficultyRules.NameLocId(run.Difficulty));
-        var bracket = Loc.GetString(FSLadder.BracketLocId(run.Bracket));
-
         var fields = new List<WebhookEmbedField>
         {
-            Field(Loc.GetString("fs-discord-field-result"), run.Victory
-                ? Loc.GetString("fs-discord-result-victory")
+            Field(Loc.GetString("fs-discord-field-result"), report.VictoryWave is { } victoryWave
+                ? Loc.GetString("fs-discord-result-victory", ("wave", victoryWave))
                 : Loc.GetString("fs-discord-result-fell", ("waves", run.Waves))),
-            Field(Loc.GetString("fs-discord-field-difficulty"), $"{difficulty} · {bracket}"),
+            Field(Loc.GetString("fs-discord-field-difficulty"), LadderName(run.Difficulty, run.Bracket)),
             Field(Loc.GetString("fs-discord-field-time"), TimeSpan.FromSeconds(run.DurationSeconds).ToString(@"h\:mm\:ss")),
             Field(Loc.GetString("fs-discord-field-kills"), run.Kills.ToString("N0")),
             Field(Loc.GetString("fs-discord-field-defenders"), run.Players, inline: false),
@@ -152,7 +151,8 @@ public static class FSDiscordMessages
             Title = report.ServerName,
             Description = report.Updated is { } updated
                 ? Loc.GetString(report.Phase == StatusPhase.Offline ? "fs-discord-status-went-offline" : "fs-discord-status-checked",
-                    ("time", $"<t:{new DateTimeOffset(updated).ToUnixTimeSeconds()}:R>"))
+                    ("time", $"<t:{new DateTimeOffset(updated).ToUnixTimeSeconds()}:R>"),
+                    ("minutes", (int) FSDiscordStatusSystem.Heartbeat.TotalMinutes))
                 : "",
             Color = report.Phase switch
             {
@@ -210,11 +210,16 @@ public static class FSDiscordMessages
     {
         var ladder = record.Weekly != null
             ? Loc.GetString("fs-discord-weekly-ladder")
-            : $"{Loc.GetString(FSDifficultyRules.NameLocId(record.Difficulty))} · {Loc.GetString(FSLadder.BracketLocId(record.Bracket))}";
+            : LadderName(record.Difficulty, record.Bracket);
         return previous == null
             ? Loc.GetString("fs-discord-record-first", ("ladder", ladder), ("players", record.Players))
             : Loc.GetString("fs-discord-record-beaten", ("ladder", ladder), ("players", record.Players), ("previous", previous.Players));
     }
+
+    private static string LadderName(FSDifficulty difficulty, FSPlayerBracket bracket)
+        => Loc.GetString("fs-discord-ladder-name",
+            ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(difficulty))),
+            ("bracket", Loc.GetString(FSLadder.BracketLocId(bracket))));
 
     private static WebhookEmbedField Field(string name, string value, bool inline = true) => new()
     {

@@ -3,10 +3,12 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.ReadyCheck;
 using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.CCC;
-using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.ReadyCheck;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Chat;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Database;
+using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Roles.Jobs;
 using Robust.Server.GameObjects;
@@ -18,18 +20,25 @@ namespace Content.Server._FinalStand.CCC;
 public sealed partial class CCCInteractionSystem : EntitySystem
 {
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
-    [Dependency] private ReadyCheckSystem _readyCheck = default!;
+    [Dependency] private FSReadyUpSystem _readyUp = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private IChatManager _chatManager = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     private const int BroadcastMaxLength = 500;
     private static readonly TimeSpan BroadcastCooldown = TimeSpan.FromSeconds(5);
 
-    private float _stateTimer;
+    // The CCC can be hit many times a second; an open console only needs to see that twice a second.
+    // The enemy estimate is checked on the same beat: the difficulty vote and round modifiers move it in prep
+    // without raising anything.
+    private static readonly TimeSpan DamageCheckInterval = TimeSpan.FromSeconds(0.5);
+    private TimeSpan _nextDamageCheck;
+    private readonly Dictionary<EntityUid, int> _shownDamage = new();
+    private int _shownEstimate = -1;
     private readonly HashSet<EntityUid> _openActors = new();
     private readonly Dictionary<EntityUid, TimeSpan> _lastBroadcastTime = new();
     private Predicate<EntityUid> _actorGone = default!;
@@ -42,6 +51,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<ReadyCheckUpdatedEvent>(OnReadyCheckUpdated);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _shownDamage.Clear());
 
         Subs.BuiEvents<FinalStandCCCComponent>(CCCUiKey.Key, subs =>
         {
@@ -55,10 +65,27 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        _stateTimer += frameTime;
-        if (_stateTimer < 2f) return;
-        _stateTimer = 0f;
-        PushCCCState();
+        if (_openActors.Count == 0 || _timing.CurTime < _nextDamageCheck)
+            return;
+
+        _nextDamageCheck = _timing.CurTime + DamageCheckInterval;
+        if (_waveRule.GetEnemyTotal() != _shownEstimate)
+        {
+            PushCCCState();
+            return;
+        }
+
+        var query = EntityQueryEnumerator<FinalStandCCCComponent, DamageableComponent>();
+        while (query.MoveNext(out var uid, out _, out var damageable))
+        {
+            if (_shownDamage.GetValueOrDefault(uid, -1) != GetDamage((uid, damageable)))
+                PushCCCStateTo(uid);
+        }
+    }
+
+    private int GetDamage(Entity<DamageableComponent> ccc)
+    {
+        return (int) _damageable.GetTotalDamage((ccc.Owner, ccc.Comp)).Float();
     }
 
     private void OnCCCOpened(EntityUid uid, FinalStandCCCComponent comp, BoundUIOpenedEvent args)
@@ -71,13 +98,12 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     private void OnCCCClosed(EntityUid uid, FinalStandCCCComponent comp, BoundUIClosedEvent args)
     {
         _openActors.Remove(args.Actor);
-        _lastBroadcastTime.Remove(args.Actor);
     }
 
     private void SendCanStartWave(EntityUid actor)
     {
         var jobId = GetJobId(actor);
-        var canStart = !_readyCheck.IsCombatPhase()
+        var canStart = _waveRule.IsPrep()
             && jobId != null
             && ReadyCheckDepts.IsCaptain(jobId);
         if (!TryComp<ActorComponent>(actor, out var actorComp)) return;
@@ -92,16 +118,16 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             SendCanStartWave(actor);
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); _lastBroadcastTime.Clear(); }
-    private void OnCombatStarted(WaveCombatStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
-    private void OnReadyCheckUpdated(ReadyCheckUpdatedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
+    private void OnPrepStarted(ref WavePrepStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); _lastBroadcastTime.Clear(); }
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
+    private void OnReadyCheckUpdated(ref ReadyCheckUpdatedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
 
     private void OnStartWave(EntityUid uid, FinalStandCCCComponent comp, CCCStartWaveMessage args)
     {
-        if (_readyCheck.IsCombatPhase()) return;
+        if (!_waveRule.IsPrep()) return;
         var jobId = GetJobId(args.Actor);
         if (jobId == null || !ReadyCheckDepts.IsCaptain(jobId)) return;
-        RaiseLocalEvent(new WaveStartRequestEvent());
+        _waveRule.RequestWaveStart();
     }
 
     private string? GetJobId(EntityUid player)
@@ -123,8 +149,10 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             return;
         _lastBroadcastTime[args.Actor] = now;
 
-        var text = args.Text.Length > BroadcastMaxLength ? args.Text[..BroadcastMaxLength] : args.Text;
-        _chatManager.DispatchServerAnnouncement($"[COMMAND] {text}", Color.FromHex("#66CCFF"));
+        // Same trimming and newline cap as the comms console; DispatchServerAnnouncement escapes markup.
+        var text = SharedChatSystem.SanitizeAnnouncement(args.Text, BroadcastMaxLength);
+        _adminLogger.Add(LogType.Chat, LogImpact.Medium, $"{ToPrettyString(args.Actor):player} sent a CCC broadcast: {text}");
+        _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-ccc-broadcast", ("text", text)), Color.FromHex("#66CCFF"));
     }
 
     private void PushCCCState()
@@ -143,27 +171,25 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             return;
 
         var cccDmg = TryComp<DamageableComponent>(cccUid, out var dmgComp)
-            ? (int)_damageable.GetTotalDamage((cccUid, dmgComp)).Float()
+            ? GetDamage((cccUid, dmgComp))
             : 0;
+        _shownDamage[cccUid] = cccDmg;
+        _shownEstimate = wave.TotalEnemies;
 
-        var cccMax = TryComp<FinalStandCCCTagComponent>(cccUid, out var tag) ? (int)tag.MaxHealth : 0;
+        var cccMax = TryComp<FinalStandCCCComponent>(cccUid, out var ccc) ? (int) ccc.MaxHealth : 0;
 
+        var (ready, crew) = _readyUp.Count();
         var state = new CCCBoundUserInterfaceState(
             waveNumber: wave.WaveNumber,
             estimatedEnemyCount: wave.TotalEnemies,
-            factionDisplay: wave.FactionDisplay,
+            factionDisplay: Loc.GetString(wave.FactionDisplay),
             isBossWave: wave.IsBossWave,
-            waveModifier: wave.IsDarkWave ? "DARK WAVE" : wave.IsBossWave ? "BOSS WAVE" : "Normal",
-            currentPhase: wave.Phase,
-            secondsToPhaseEnd: wave.SecondsLeft,
-            aliveEnemyCount: wave.AliveEnemies,
             activeSpawnerDirections: wave.SpawnerDirections,
-            readiedPlayerCount: _readyCheck.GetReadyCount(),
-            totalPlayerCount: _readyCheck.GetTotalCount(),
+            readiedPlayerCount: ready,
+            totalPlayerCount: crew,
             nextWaveEnemyTypes: wave.NextWaveEnemyTypes,
             cccCurrentDamage: cccDmg,
-            cccMaxHealth: cccMax,
-            isDarkWave: wave.IsDarkWave);
+            cccMaxHealth: cccMax);
 
         _ui.SetUiState(cccUid, CCCUiKey.Key, state);
     }

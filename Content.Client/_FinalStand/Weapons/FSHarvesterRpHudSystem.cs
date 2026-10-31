@@ -50,7 +50,7 @@ public sealed partial class FSHarvesterRpHudSystem : EntitySystem
     private void OnPersonalResearchState(FSPersonalResearchStateEvent ev)
     {
         _personalLine = ev.NodeId is { } nodeId && _prototype.TryIndex(nodeId, out var node)
-            ? $"{node.Name}: {ev.Progress}/{node.Cost}"
+            ? Loc.GetString("fs-harvester-hud-personal", ("name", node.Name), ("progress", ev.Progress), ("cost", node.Cost))
             : null;
 
         UpdateOverlayLine();
@@ -60,7 +60,7 @@ public sealed partial class FSHarvesterRpHudSystem : EntitySystem
     private void OnSharedResearchState(FSSharedResearchStateEvent ev)
     {
         _sharedLine = ev.NodeId is { } nodeId && _prototype.TryIndex(nodeId, out var node)
-            ? $"{node.Name}: {ev.Progress}/{node.Cost} (shared, 2x)"
+            ? Loc.GetString("fs-harvester-hud-shared", ("name", node.Name), ("progress", ev.Progress), ("cost", node.Cost))
             : null;
 
         UpdateOverlayLine();

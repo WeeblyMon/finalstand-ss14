@@ -12,6 +12,18 @@ public sealed partial class FSRevenantBoundSystem : EntitySystem
 
     private readonly List<EntityUid> _expired = new();
 
+    // False if they're already bound; a bind can't be refreshed while it holds.
+    public bool TryBind(EntityUid target, TimeSpan duration)
+    {
+        if (HasComp<FSRevenantBoundComponent>(target))
+            return false;
+
+        var bound = AddComp<FSRevenantBoundComponent>(target);
+        bound.ExpiresAt = _timing.CurTime + duration;
+        Dirty(target, bound);
+        return true;
+    }
+
     public override void Initialize()
     {
         base.Initialize();

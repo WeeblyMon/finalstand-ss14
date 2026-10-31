@@ -1,4 +1,3 @@
-// Counts the materials zombies drop and engineers spend each wave and logs them at wave end, so the economy can be tuned.
 using System.Linq;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared.GameTicking;

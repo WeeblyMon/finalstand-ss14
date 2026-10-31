@@ -4,9 +4,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Records;
 
 [AnyCommand]
-public sealed partial class FSRecordsCommand : LocalizedCommands
+public sealed partial class FSRecordsCommand : LocalizedEntityCommands
 {
-    [Dependency] private IEntityManager _entMan = default!;
+    [Dependency] private FSRecordsSystem _records = default!;
 
     public override string Command => "records";
 
@@ -18,7 +18,7 @@ public sealed partial class FSRecordsCommand : LocalizedCommands
             return;
         }
 
-        var profile = _entMan.System<FSRecordsSystem>().GetProfile(player.UserId);
+        var profile = _records.GetProfile(player.UserId);
         if (profile.RoundsPlayed == 0)
         {
             shell.WriteLine(Loc.GetString("cmd-records-empty"));

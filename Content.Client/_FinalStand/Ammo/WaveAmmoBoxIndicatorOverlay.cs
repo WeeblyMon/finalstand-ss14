@@ -5,7 +5,7 @@ namespace Content.Client._FinalStand.Ammo;
 
 public sealed class WaveAmmoBoxIndicatorOverlay : FSWorldLabelOverlay<WaveAmmoBoxTagComponent>
 {
-    protected override string Label => "RESUPPLY";
+    protected override string Label { get; } = Loc.GetString("fs-world-label-resupply");
     protected override int FontSize => 7;
     protected override float VerticalOffset => 50f;
     protected override Color LabelColor => Color.White;

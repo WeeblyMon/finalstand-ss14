@@ -75,8 +75,8 @@
 - type: entity
   parent: MagazineMagnum
   id: FSMagazineMagnumN1984
-  name: pistol magazine (.45 magnum, N1984)
   categories: [ HideSpawnMenu ]
+  name: pistol magazine (.45 magnum, N1984)
   components:
   - type: BallisticAmmoProvider
     proto: FSCartridgeMagnumN1984
@@ -85,8 +85,8 @@
 - type: entity
   parent: BaseShellShotgun
   id: FSShellDoubleBarrel
-  name: shell (.50 pellet)
   categories: [ HideSpawnMenu ]
+  name: shell (.50 pellet)
   components:
   - type: Tag
     tags:
@@ -142,8 +142,8 @@
 # can reload by dragging MagazineBoxMagnum onto the gun instead of one cartridge at a time.
 
 - type: entity
-  id: FSWeaponMateba
   parent: BaseItem
+  id: FSWeaponMateba
   name: Mateba
   description: A modern revolver used by Nanotrasen's elite Death Squad. Its unique trigger action enables a high fire rate with minimal muzzle flip. Loads 6 rounds of .45 magnum.
   components:
@@ -193,8 +193,8 @@
 # WeaponLauncherHydraFS: replaces RevolverAmmoProvider with BallisticAmmoProvider
 # so the SmartReload system can tube-feed grenades one at a time (same fix as FSWeaponMateba).
 - type: entity
-  id: WeaponLauncherHydraFS
   parent: [ BaseWeaponLauncher, BaseMajorContraband ]
+  id: WeaponLauncherHydraFS
   name: hydra
   description: PLOOP... FSSSSSS...
   components:
@@ -332,8 +332,8 @@
 # SMG overrides — buffed FS ammo.
 
 - type: entity
-  id: FSWeaponAtreides
   parent: WeaponSubMachineGunAtreides
+  id: FSWeaponAtreides
   suffix: FinalStand
   components:
   - type: Tag
@@ -362,8 +362,8 @@
     baseCritChance: 0.05
 
 - type: entity
-  id: FSWeaponWt550
   parent: WeaponSubMachineGunWt550
+  id: FSWeaponWt550
   suffix: FinalStand
   components:
   - type: Tag
@@ -392,8 +392,8 @@
     baseCritChance: 0.05
 
 - type: entity
-  id: FSWeaponC20r
   parent: WeaponSubMachineGunC20r
+  id: FSWeaponC20r
   suffix: FinalStand
   components:
   - type: ChamberMagazineAmmoProvider
@@ -424,8 +424,8 @@
     baseCritChance: 0.05
 
 - type: entity
-  id: FSWeaponDrozd
   parent: WeaponSubMachineGunDrozd
+  id: FSWeaponDrozd
   suffix: FinalStand
   components:
   - type: Tag
@@ -456,8 +456,8 @@
 # Shotgun overrides — FS magazine for doubled base damage.
 
 - type: entity
-  id: FSWeaponShotgunBulldog
   parent: WeaponShotgunBulldog
+  id: FSWeaponShotgunBulldog
   suffix: FinalStand
   components:
   - type: Tag
@@ -481,8 +481,8 @@
 
 # Hushpup override — uses FS pellets for +40% base damage.
 - type: entity
-  id: FSWeaponShotgunHushpup
   parent: WeaponShotgunHushpup
+  id: FSWeaponShotgunHushpup
   suffix: FinalStand
   components:
   - type: Tag
@@ -499,8 +499,8 @@
 # Also uses FS laser projectiles for +50% base damage.
 
 - type: entity
-  id: FSWeaponEnergyShotgun
   parent: WeaponEnergyShotgun
+  id: FSWeaponEnergyShotgun
   suffix: FinalStand
   components:
   - type: Tag
@@ -538,8 +538,8 @@
 # Laser Carbine override — full-auto bullet spray instead of semi-auto hitscan beam.
 
 - type: entity
-  id: FSWeaponLaserCarbine
   parent: WeaponLaserCarbine
+  id: FSWeaponLaserCarbine
   suffix: FinalStand
   components:
   - type: Tag
@@ -578,8 +578,8 @@
 # Pulse Rifle override — perfectly accurate, semi-auto by default; FullAuto upgrade unlocks full auto.
 
 - type: entity
-  id: FSWeaponPulseRifle
   parent: WeaponPulseRifle
+  id: FSWeaponPulseRifle
   suffix: FinalStand
   components:
   - type: Tag
@@ -603,15 +603,15 @@
 
 # .20 rifle ammo chain — +40% damage (17 → 24 Piercing)
 - type: entity
-  id: FSCartridgeRifle
   parent: CartridgeRifle
+  id: FSCartridgeRifle
   components:
   - type: CartridgeAmmo
     proto: FSBulletRifle
 
 - type: entity
-  id: FSMagazineRifle
   parent: MagazineRifle
+  id: FSMagazineRifle
   components:
   - type: BallisticAmmoProvider
     proto: FSCartridgeRifle
@@ -619,23 +619,23 @@
 
 # .30 rifle ammo chain — +40% damage (19 → 27 Piercing)
 - type: entity
-  id: FSCartridgeLightRifle
   parent: CartridgeLightRifle
+  id: FSCartridgeLightRifle
   components:
   - type: CartridgeAmmo
     proto: FSBulletLightRifle
 
 - type: entity
-  id: FSMagazineLightRifle
   parent: MagazineLightRifle
+  id: FSMagazineLightRifle
   components:
   - type: BallisticAmmoProvider
     proto: FSCartridgeLightRifle
     capacity: 30
 
 - type: entity
-  id: FSMagazineLightRifleBox
   parent: MagazineLightRifleBox
+  id: FSMagazineLightRifleBox
   categories: [ HideSpawnMenu ]
   components:
   - type: BallisticAmmoProvider
@@ -644,8 +644,8 @@
 
 # Lecter override — uses FS .20 rifle magazine
 - type: entity
-  id: FSWeaponRifleLecter
   parent: WeaponRifleLecter
+  id: FSWeaponRifleLecter
   suffix: FinalStand
   components:
   - type: Tag
@@ -674,8 +674,8 @@
 
 # AK override — uses FS .30 rifle magazine
 - type: entity
-  id: FSWeaponRifleAk
   parent: WeaponRifleAk
+  id: FSWeaponRifleAk
   suffix: FinalStand
   components:
   - type: Tag
@@ -704,8 +704,8 @@
 
 # L6 SAW override — fixes reversed wield accuracy bonus.
 - type: entity
-  id: FSWeaponLightMachineGunL6
   parent: WeaponLightMachineGunL6
+  id: FSWeaponLightMachineGunL6
   suffix: FinalStand
   components:
   - type: Tag
@@ -724,8 +724,8 @@
 
 # Cutlass override — 23 Slash plus a 40% follow-up strike, about the old 32 per swing.
 - type: entity
-  id: FSWeaponCutlass
   parent: Cutlass
+  id: FSWeaponCutlass
   suffix: FinalStand
   components:
   - type: FSMeleeShotState
@@ -788,8 +788,8 @@
 
 # Chainsaw override — doubled base damage (4/4 → 8/8 Slash/Blunt, wield bonus 4 → 8 Slash).
 - type: entity
-  id: FSWeaponChainsaw
   parent: Chainsaw
+  id: FSWeaponChainsaw
   suffix: FinalStand
   components:
   - type: FSMeleeBlood
@@ -880,8 +880,8 @@
 
 # Dual energy blades override — doubled active damage (12/12 → 24/24 Slash/Heat) and attack rate (1.5 → 3).
 - type: entity
-  id: FSEnergySwordDouble
   parent: EnergySwordDouble
+  id: FSEnergySwordDouble
   suffix: FinalStand
   components:
   - type: EnergySword
@@ -961,10 +961,10 @@
 
 # ── Tesla Gun FS override — fires FSTeslaGunBullet ────────────────────────────
 - type: entity
-  id: WeaponTeslaGunFS
   parent: WeaponTeslaGun
-  suffix: FinalStand
+  id: WeaponTeslaGunFS
   categories: [ HideSpawnMenu ]
+  suffix: FinalStand
   components:
   - type: Tag
     tags:
@@ -983,10 +983,10 @@
 
 # ── X-Ray Cannon FS override — fires FSXrayLaser (wall-piercing) ───────────────
 - type: entity
-  id: WeaponXrayCannonFS
   parent: WeaponXrayCannon
-  suffix: FinalStand
+  id: WeaponXrayCannonFS
   categories: [ HideSpawnMenu ]
+  suffix: FinalStand
   components:
   - type: FSScienceOnly
   - type: FSResearchHud
@@ -1017,10 +1017,10 @@
 
 # ── Minigun FS override — tags for Ordnance team-wide ballistic research bonuses ───
 - type: entity
-  id: FSWeaponMinigun
   parent: WeaponMinigun
-  suffix: FinalStand
+  id: FSWeaponMinigun
   categories: [ HideSpawnMenu ]
+  suffix: FinalStand
   components:
   - type: Tag
     tags:
@@ -1032,8 +1032,8 @@
 - type: entity
   parent: CartridgeMinigun
   id: FSCartridgeMinigun
-  suffix: FinalStand
   categories: [ HideSpawnMenu ]
+  suffix: FinalStand
   components:
   - type: CartridgeAmmo
     proto: FSBulletMinigun
@@ -1041,10 +1041,10 @@
 
 # ── RPG-7 FS override — tags for Ordnance launcher research bonuses ────────────
 - type: entity
-  id: FSWeaponLauncherRocket
   parent: WeaponLauncherRocket
-  suffix: FinalStand
+  id: FSWeaponLauncherRocket
   categories: [ HideSpawnMenu ]
+  suffix: FinalStand
   components:
   - type: Tag
     tags:
@@ -1052,11 +1052,11 @@
 
 # ── Harvester — original FS weapon. Fires FSHarvesterBeam at a very high fire rate (20/sec) so consecutive hitscan shots overlap into a continuous-looking beam. ──
 - type: entity
-  id: WeaponHarvesterFS
-  name: harvester
   parent: [BaseWeaponBattery, BaseGunWieldable]
-  description: An experimental purple energy weapon that harvests residual bio-radiation from its targets, feeding it back to the station's research systems.
+  id: WeaponHarvesterFS
   categories: [ HideSpawnMenu ]
+  name: harvester
+  description: An experimental purple energy weapon that harvests residual bio-radiation from its targets, feeding it back to the station's research systems.
   components:
   - type: FSHarvester
   - type: FSResearchHud

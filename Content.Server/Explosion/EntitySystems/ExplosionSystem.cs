@@ -62,7 +62,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     [Dependency] private EntityQuery<ProjectileComponent> _projectileQuery = default!;
     [Dependency] private EntityQuery<MobStateComponent> _mobStateQuery = default!;
 
-    // FinalStand: these explosion types only deal Cellular damage to mobs (see FSExplosionFilterSystem),
+    // FINALSTAND: these explosion types only deal Cellular damage to mobs (see FSExplosionFilterSystem),
     // so don't also fling every table/light/dropped item in range around - it's pure physics-lag noise.
     private static readonly HashSet<string> FsExplosionTypes = new()
     {
@@ -174,7 +174,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
                 user = shooter;
             else if (TryComp<ThrownItemComponent>(uid, out var thrown) && thrown.Thrower is { } thrower)
                 user = thrower;
-            else if (TryComp<FSGrenadeOwnerComponent>(uid, out var owner) && owner.Thrower.IsValid())
+            else if (TryComp<FSGrenadeOwnerComponent>(uid, out var owner) && owner.Thrower.IsValid()) // FINALSTAND
                 user = owner.Thrower;
         }
 

@@ -27,7 +27,7 @@ public sealed partial class FSMarksmansRhythmSystem : EntitySystem
         comp.LastShotTime = _timing.CurTime;
     }
 
-    private void OnProjectileHit(FSProjectileHitEffectEvent ev)
+    private void OnProjectileHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;
@@ -36,15 +36,20 @@ public sealed partial class FSMarksmansRhythmSystem : EntitySystem
         if (!HasComp<MobStateComponent>(ev.Target))
             return;
 
+        var newHolder = ev.Shooter != null && ev.Shooter != comp.Shooter;
         if (ev.Shooter != null)
             comp.Shooter = ev.Shooter;
 
         var bonus = 1f + comp.DamagePerStack * comp.CurrentStacks;
         ev.AdditionalMultiplier *= bonus;
 
+        var before = comp.CurrentStacks;
         comp.CurrentStacks = Math.Min(comp.CurrentStacks + 1, comp.MaxStacks);
         comp.LastHitTime = _timing.CurTime;
-        BroadcastState(comp);
+
+        // Every pellet is a hit; at the cap nothing the HUD shows has changed.
+        if (comp.CurrentStacks != before || newHolder)
+            BroadcastState(comp);
     }
 
     public override void Update(float frameTime)

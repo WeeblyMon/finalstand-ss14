@@ -41,7 +41,7 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         _menu?.UpdateEquipmentView();
     }
 
-    public void Refresh()
+    public void Refresh() // FINALSTAND
     {
         _menu?.UpdateMechStats();
         _menu?.UpdateEquipmentView();

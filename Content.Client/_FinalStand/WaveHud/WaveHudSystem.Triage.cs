@@ -1,4 +1,3 @@
-// Feeds the triage panel from the casualty board's pushed list.
 using System.Numerics;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
@@ -42,8 +41,8 @@ public sealed partial class WaveHudSystem
                 entry.Name,
                 _board.StateLabel(entry, now),
                 FSCasualtyBoardSystem.StateColor(entry),
-                range is { } r ? $"{(int) r}m" : string.Empty,
-                entry.Responder,
+                range is { } r ? Loc.GetString("fs-hud-triage-range", ("range", (int) r)) : string.Empty,
+                entry.Responder is { } responder ? "> " + responder : null,
                 dir,
                 entry.Pips,
                 _board.NeedsLabel(entry),

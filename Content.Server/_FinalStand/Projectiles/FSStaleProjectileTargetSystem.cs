@@ -1,11 +1,8 @@
-// Vanilla TargetedProjectileComponent.Target is a non-nullable EntityUid checked only when the
-// shot is fired. If the target dies while the bullet is still travelling, every PVS serialization
-// of that bullet throws in GetNetEntity — once per client per tick, each with a stack-trace
-// capture, inside the parallel serialize loop. A wave game kills targets mid-flight constantly.
 using Content.Shared.Weapons.Ranged.Components;
 
 namespace Content.Server._FinalStand.Projectiles;
 
+// Vanilla never clears a TargetedProjectile target that died mid-flight, and every PVS send of the bullet then throws.
 public sealed class FSStaleProjectileTargetSystem : EntitySystem
 {
     public override void Update(float frameTime)

@@ -10,7 +10,7 @@ public abstract partial class SharedOreSiloSystem : EntitySystem
     [Dependency] private SharedMaterialStorageSystem _materialStorage = default!;
     [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
-    [Dependency] private FSSiloReachSystem _fsReach = default!; // FS
+    [Dependency] private FSSiloReachSystem _fsReach = default!; // FINALSTAND
 
     [Dependency] private EntityQuery<OreSiloClientComponent> _clientQuery = default!;
 
@@ -145,7 +145,7 @@ public abstract partial class SharedOreSiloSystem : EntitySystem
         UpdateOreSiloUi((ent.Comp.Silo.Value, silo));
     }
 
-    // FS
+    // FINALSTAND
     public void FSLinkClient(Entity<OreSiloComponent> pool, Entity<OreSiloClientComponent> client)
     {
         if (client.Comp.Silo == pool.Owner)
@@ -172,7 +172,7 @@ public abstract partial class SharedOreSiloSystem : EntitySystem
         if (!Resolve(silo, ref silo.Comp1, ref silo.Comp2))
             return false;
 
-        if (HasComp<FSSiloNetworkComponent>(silo.Owner)) // FS
+        if (HasComp<FSSiloNetworkComponent>(silo.Owner)) // FINALSTAND
             return _fsReach.InReach(client);
 
         if (!_powerReceiver.IsPowered(silo.Owner))

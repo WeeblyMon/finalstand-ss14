@@ -28,7 +28,7 @@ public sealed partial class FSDeployableResearchSystem : EntitySystem
 
     private bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (ev.NodeId is not (BeaconSpareCasing or BeaconWideBandTargeting or NullFieldSpareCore or NullFieldGeometryTuning))
             return;

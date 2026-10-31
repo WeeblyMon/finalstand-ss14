@@ -1,6 +1,7 @@
 ﻿using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.WaveHud;
 using System.Numerics;
+using Content.Client._FinalStand.Pings;
 using Content.Client._FinalStand.Shop;
 using Content.Client._FinalStand.UI;
 using Content.Client.UserInterface.Screens;
@@ -13,6 +14,7 @@ using Robust.Client.Input;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
@@ -50,7 +52,7 @@ public sealed partial class WaveHudOverlay : Overlay
     private Control? _alertsControl;
     private Control? _alertsScreen;
 
-    private float panelW0 = 150f;
+    private float _panelW0 = 150f;
 
     private string _layoutRaw = "";
     private bool _isSeparatedLayout;
@@ -59,6 +61,7 @@ public sealed partial class WaveHudOverlay : Overlay
     private float _hudScale = 1f;
     private float _hudResolutionFactor = 1f;
 
+    private const int FitCacheLimit = 256;
     private readonly Dictionary<(string Text, Font Font, int Width), string> _fitCache = new();
 
     private string FitText(DrawingHandleScreen screen, Font font, string text, float maxWidth)
@@ -67,7 +70,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (_fitCache.TryGetValue(key, out var cached))
             return cached;
 
-        if (_fitCache.Count > 256)
+        if (_fitCache.Count > FitCacheLimit)
             _fitCache.Clear();
 
         return _fitCache[key] = TrimToWidth(screen, font, text, maxWidth);
@@ -205,35 +208,84 @@ public sealed partial class WaveHudOverlay : Overlay
     public float HarvestAccrued;
     public float HarvestCap;
 
-
-
     public event Action<bool>? OnReadyUpClicked;
     private bool _prevClickDown;
+    private bool _uiHadPointerLastFrame;
 
     private readonly Dictionary<string, string?> _perkIconPaths = new();
     private readonly List<(UIBox2 Cell, string Id)> _augCells = new();
 
     private readonly List<(UIBox2 Cell, string Label, string[] Tooltip)> _bonusRowCells = new();
 
-    private readonly record struct EarningsPopup(List<FSPerkEarningsEntry> Entries, float Life, float TotalLife);
+    private readonly record struct EarningsRow(string PerkId, string? Credits, string? Research);
+    private readonly record struct EarningsPopup(List<EarningsRow> Rows, float Life, float TotalLife);
     private readonly List<EarningsPopup> _earningsPopups = new();
     private float _creditsRowY;
 
     public void AddEarningsPopup(List<FSPerkEarningsEntry> entries)
     {
         const float life = 6f;
+        var rows = new List<EarningsRow>(entries.Count);
+        foreach (var entry in entries)
+        {
+            rows.Add(new EarningsRow(entry.PerkId,
+                entry.WaveCredits > 0
+                    ? Loc.GetString("fs-hud-earnings-credits", ("wave", entry.WaveCredits.ToString("N0")), ("game", entry.GameCredits.ToString("N0")))
+                    : null,
+                entry.WaveResearch > 0
+                    ? Loc.GetString("fs-hud-earnings-research", ("wave", entry.WaveResearch.ToString("N0")), ("game", entry.GameResearch.ToString("N0")))
+                    : null));
+        }
+
         _earningsPopups.Clear();
-        _earningsPopups.Add(new EarningsPopup(entries, life, life));
+        _earningsPopups.Add(new EarningsPopup(rows, life, life));
     }
 
     public void AddHealPayout(int amount, bool diminished)
     {
         const float life = 1.6f;
-        _healPayouts.Add(new HealPayout(amount, diminished, life, life));
+        var text = Loc.GetString("fs-hud-heal-payout", ("amount", amount.ToString("N0")));
+        _healPayouts.Add(new HealPayout(text, diminished, life, life));
     }
 
-    private readonly record struct HealPayout(int Amount, bool Diminished, float Life, float TotalLife);
+    private readonly record struct HealPayout(string Text, bool Diminished, float Life, float TotalLife);
     private readonly List<HealPayout> _healPayouts = new();
+
+    private readonly string _labelWave = Loc.GetString("fs-hud-wave");
+    private readonly string _labelSurvive = Loc.GetString("fs-hud-survive");
+    private readonly string _labelEnemiesLeft = Loc.GetString("fs-hud-enemies-left");
+    private readonly string _labelNext = Loc.GetString("fs-hud-next");
+    private readonly string _labelReadyUp = Loc.GetString("fs-hud-ready-up");
+    private readonly string _labelYes = Loc.GetString("fs-hud-ready-yes");
+    private readonly string _labelNo = Loc.GetString("fs-hud-ready-no");
+    private readonly string _labelPerks = Loc.GetString("fs-hud-perks");
+    private readonly string _labelNotUpgraded = Loc.GetString("fs-hud-perk-not-upgraded");
+
+    private readonly FSHudText<int> _surviveText = new(s => $"{s / 60}:{s % 60:D2}");
+    private readonly FSHudText<int> _prepText = new(s => $"{s / 60}:{s % 60:D2}");
+    private readonly FSHudText<int> _fundText = new(amount => Loc.GetString("fs-hud-medical-fund", ("amount", amount)));
+    private readonly FSHudText<(int Ready, int Total)> _readyText =
+        new(v => Loc.GetString("fs-hud-ready-count", ("ready", v.Ready), ("total", v.Total)));
+    private readonly FSHudText<int> _perkLevelText =
+        new(level => Loc.GetString("fs-hud-perk-level", ("level", level), ("max", FSPerkDef.MaxLevel)));
+    private readonly Dictionary<int, string> _numberText = new();
+    private readonly Dictionary<int, string> _secondsText = new();
+
+    private string NumberText(int value)
+    {
+        if (!_numberText.TryGetValue(value, out var text))
+            _numberText[value] = text = value.ToString();
+
+        return text;
+    }
+
+    private string SecondsText(int seconds)
+    {
+        if (!_secondsText.TryGetValue(seconds, out var text))
+            _secondsText[seconds] = text = Loc.GetString("fs-hud-seconds", ("seconds", seconds));
+
+        return text;
+    }
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -273,7 +325,7 @@ public sealed partial class WaveHudOverlay : Overlay
         {
             _labelFont = new VectorFont(notoRes, labelPt);
             _cachedLabelPt = labelPt;
-            _cachedLabelH = screen.GetDimensions(_labelFont, "ENEMIES LEFT", 1f).Y;
+            _cachedLabelH = screen.GetDimensions(_labelFont, _labelEnemiesLeft, 1f).Y;
         }
         if (_cachedValuePt != valuePt)
         {
@@ -322,7 +374,7 @@ public sealed partial class WaveHudOverlay : Overlay
         PanelTop = y;
         PanelWidth = panelW;
 
-        panelW0 = panelW;
+        _panelW0 = panelW;
 
         var waveBox = new UIBox2(panelX, y, panelX + panelW, y + totalH);
         DrawPanel(screen, waveBox, VitalsBack, VitalsEdge, FSPalette.Danger);
@@ -351,10 +403,10 @@ public sealed partial class WaveHudOverlay : Overlay
             screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
             y += sepH + rowPad;
 
-            screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), "READY UP", muted);
+            screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), _labelReadyUp, muted);
             y += labelH + 2f;
 
-            var countText  = ReadyUpTotal > 0 ? $"{ReadyUpCount} / {ReadyUpTotal} ready" : "—";
+            var countText  = ReadyUpTotal > 0 ? _readyText.Get((ReadyUpCount, ReadyUpTotal)) : "—";
             var countColor = ReadyUpCount > 0 ? FSPalette.Ok : Color.White;
             screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), countText, countColor);
             y += labelH + 3f;
@@ -371,15 +423,15 @@ public sealed partial class WaveHudOverlay : Overlay
             DrawRounded(screen, ReadyUpYesBounds, yesBg, 2f);
             DrawRounded(screen, ReadyUpNoBounds,  noBg,  2f);
 
-            var yesDim = screen.GetDimensions(_labelFont!, "YES", 1f);
-            var noDim  = screen.GetDimensions(_labelFont!, "NO",  1f);
+            var yesDim = screen.GetDimensions(_labelFont!, _labelYes, 1f);
+            var noDim  = screen.GetDimensions(_labelFont!, _labelNo,  1f);
 
             screen.DrawString(_labelFont!,
                 new Vector2(btnX + (halfW - yesDim.X) * 0.5f, y + (btnH - yesDim.Y) * 0.5f),
-                "YES", FSPalette.Ok);
+                _labelYes, FSPalette.Ok);
             screen.DrawString(_labelFont!,
                 new Vector2(btnX + halfW + 3f + (halfW - noDim.X) * 0.5f, y + (btnH - noDim.Y) * 0.5f),
-                "NO", FSPalette.Danger);
+                _labelNo, FSPalette.Danger);
 
             y += btnH + rowPad;
         }
@@ -405,17 +457,17 @@ public sealed partial class WaveHudOverlay : Overlay
             return y + sepH + rowH;
         }
 
-        y = DrawRow(IconWave, "WAVE", _waveText, FSPalette.Danger);
+        y = DrawRow(IconWave, _labelWave, _waveText, FSPalette.Danger);
 
         if (IsDarkWave)
         {
             var secs = Math.Max(0f, DarkWaveSecondsRemaining);
-            var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
-            y = DrawRow(IconEnemies, "SURVIVE", survive, FSPalette.Warn, _midFont);
+            var survive = _surviveText.Get((int) secs);
+            y = DrawRow(IconEnemies, _labelSurvive, survive, FSPalette.Warn, _midFont);
         }
         else if (EnemiesTotal > 0)
         {
-            y = DrawRow(IconEnemies, "ENEMIES LEFT", _enemiesText, FSPalette.DangerSoft, _midFont);
+            y = DrawRow(IconEnemies, _labelEnemiesLeft, _enemiesText, FSPalette.DangerSoft, _midFont);
         }
 
         if (ObjectiveLabel != null)
@@ -424,7 +476,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
             var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
-            y = DrawRow(IconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", FSPalette.Warn, _midFont);
+            y = DrawRow(IconTimer, _labelNext, _prepText.Get(secs), FSPalette.Warn, _midFont);
         }
 
         DrawReadyUpBlock();
@@ -437,7 +489,7 @@ public sealed partial class WaveHudOverlay : Overlay
         var leftX = TopLeftX + TopLeftPad;
         var leftY = topLeftTop;
 
-        DrawShadowed(screen, _labelFont!, new Vector2(leftX, leftY), "PERKS", muted);
+        DrawShadowed(screen, _labelFont!, new Vector2(leftX, leftY), _labelPerks, muted);
         var augIconsY = leftY + labelH + 4f;
 
         _augCells.Clear();
@@ -463,7 +515,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
                 if (PerkStacks.TryGetValue(id, out var stacks) && stacks > 0)
                 {
-                    var stackStr = stacks.ToString();
+                    var stackStr = NumberText(stacks);
                     var stackDim = screen.GetDimensions(_labelFont!, stackStr, 1f);
                     var tx = cell.Right - stackDim.X - 1f;
                     var ty = cell.Bottom - stackDim.Y;
@@ -485,7 +537,7 @@ public sealed partial class WaveHudOverlay : Overlay
         LeftColumnBottom = _creditsRowY + screen.GetDimensions(_valueFont!, _creditsText, 1f).Y;
         if (ShowMedicalFund)
         {
-            var fundText = Loc.GetString("fs-hud-medical-fund", ("amount", MedicalFund));
+            var fundText = _fundText.Get(MedicalFund);
             DrawShadowed(screen, _labelFont!,
                 new Vector2(leftX, LeftColumnBottom + 2f),
                 fundText, FSPalette.Ok);
@@ -504,7 +556,7 @@ public sealed partial class WaveHudOverlay : Overlay
             var popupX = leftX + creditsW + 10f;
             var rowY = _creditsRowY - floatOffset;
 
-            foreach (var entry in p.Entries)
+            foreach (var entry in p.Rows)
             {
                 var tex = GetPerkIcon(entry.PerkId, popupIconSz);
                 if (tex != null)
@@ -513,20 +565,18 @@ public sealed partial class WaveHudOverlay : Overlay
                         Color.White.WithAlpha(alpha));
 
                 var textX = popupX + popupIconSz + 4f;
-                if (entry.WaveCredits > 0)
+                if (entry.Credits is { } text)
                 {
-                    var text = $"+${entry.WaveCredits:N0}  (${entry.GameCredits:N0} total)";
                     var dim = screen.GetDimensions(_labelFont!, text, 1f);
                     screen.DrawString(_labelFont!, new Vector2(textX, rowY + (popupIconSz - dim.Y) * 0.5f),
                         text, FSPalette.Money.WithAlpha(alpha));
                     textX += dim.X + 8f;
                 }
-                if (entry.WaveResearch > 0)
+                if (entry.Research is { } research)
                 {
-                    var text = $"+{entry.WaveResearch:N0} RP  ({entry.GameResearch:N0} total)";
-                    var dim = screen.GetDimensions(_labelFont!, text, 1f);
+                    var dim = screen.GetDimensions(_labelFont!, research, 1f);
                     screen.DrawString(_labelFont!, new Vector2(textX, rowY + (popupIconSz - dim.Y) * 0.5f),
-                        text, FSPalette.StaminaFill.WithAlpha(alpha));
+                        research, FSPalette.StaminaFill.WithAlpha(alpha));
                 }
 
                 rowY += popupIconSz + 2f;
@@ -555,7 +605,7 @@ public sealed partial class WaveHudOverlay : Overlay
             var h = _healPayouts[hi];
             var ht = h.Life / h.TotalLife;
             var halpha = MathF.Min(1f, ht * 4f);
-            var text = $"+${h.Amount:N0}";
+            var text = h.Text;
             var colour = h.Diminished ? FSPalette.TextDim : FSPalette.Ok;
 
             screen.DrawString(_labelFont!,
@@ -572,13 +622,14 @@ public sealed partial class WaveHudOverlay : Overlay
                 break;
 
             var level = PerkLevels.GetValueOrDefault(id, 0);
-            var levelText = $"Level {level} / {FSPerkDef.MaxLevel}";
-            var effectText = level > 0 ? def.LevelEffects[level - 1] : "Not yet upgraded.";
+            var levelText = _perkLevelText.Get(level);
+            var effectText = level > 0 ? def.LevelEffect(level - 1) : _labelNotUpgraded;
+            var name = def.Name;
 
             const float tipPad = 8f;
             const float tipW = 200f;
 
-            var nameDims = screen.GetDimensions(_tooltipNameFont!, def.Name, 1f);
+            var nameDims = screen.GetDimensions(_tooltipNameFont!, name, 1f);
             var levelDims = screen.GetDimensions(_tooltipBodyFont!, levelText, 1f);
             var effectDims = screen.GetDimensions(_tooltipBodyFont!, effectText, 1f);
 
@@ -597,7 +648,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
             var tx = tipX + tipPad;
             var ty = tipY + tipPad;
-            screen.DrawString(_tooltipNameFont!, new Vector2(tx, ty), def.Name, Color.White);
+            screen.DrawString(_tooltipNameFont!, new Vector2(tx, ty), name, Color.White);
             ty += nameDims.Y + 4f;
             screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), levelText, FSPalette.Money);
             ty += levelDims.Y + 4f;
@@ -667,10 +718,15 @@ public sealed partial class WaveHudOverlay : Overlay
         if (DirectiveFlash > 0f)
             DirectiveFlash = MathF.Max(0f, DirectiveFlash - args.DeltaSeconds * 2f);
 
+        // A ring, the ping wheel, a popup or a window's close button can shut on the click that picks from it, in
+        // input handling, which runs before this. The UI having had the pointer the frame before keeps that click its own.
         var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
         var mousePos = _input.MouseScreenPosition.Position;
+        var uiHasPointer = UiHasPointer();
+        var pressed = down && !_prevClickDown && !uiHasPointer && !_uiHadPointerLastFrame;
+        _uiHadPointerLastFrame = uiHasPointer;
 
-        if (IsReadyUpVisible && down && !_prevClickDown)
+        if (IsReadyUpVisible && pressed)
         {
             if (ReadyUpYesBounds.Contains(mousePos))
                 OnReadyUpClicked?.Invoke(true);
@@ -678,10 +734,37 @@ public sealed partial class WaveHudOverlay : Overlay
                 OnReadyUpClicked?.Invoke(false);
         }
 
-        if (down && !_prevClickDown)
+        if (pressed)
             HandleThrowableClick(mousePos);
 
         _prevClickDown = down;
+    }
+
+    // The HUD is drawn under the UI, so a click on a window over it (the escape menu, a console, a shop) is that
+    // window's. Otherwise opening the escape menu over the ready-up buttons and clicking it changes your answer. The
+    // build and upgrade rings and the ping wheel take every click while they're open, and so does an open popup, which
+    // a click anywhere else closes.
+    private bool UiHasPointer()
+    {
+        foreach (var child in _uiManager.PopupRoot.Children)
+        {
+            if (child is FSRingControl or FSPingWheel)
+                return true;
+        }
+
+        foreach (var child in _uiManager.ModalRoot.Children)
+        {
+            if (child.Visible)
+                return true;
+        }
+
+        for (var control = _uiManager.CurrentlyHovered; control != null; control = control.Parent)
+        {
+            if (control is BaseWindow or Popup)
+                return true;
+        }
+
+        return false;
     }
 
     private Font? _tinyFont;
@@ -767,7 +850,7 @@ public sealed partial class WaveHudOverlay : Overlay
                 if (icon != null)
                     screen.DrawTextureRect(icon, new UIBox2(margin, y, margin + iconSz, y + iconSz), Color.White);
 
-                var value = buff.SecondsRemaining >= 0 ? $"{buff.SecondsRemaining}s" : string.Empty;
+                var value = buff.SecondsRemaining >= 0 ? SecondsText(buff.SecondsRemaining) : string.Empty;
                 var valueDims = screen.GetDimensions(_tinyFont, value, 1f);
                 var valuePos = new Vector2(margin + iconSz + iconTextGap, y + (iconSz - valueDims.Y) * 0.5f);
                 screen.DrawString(_tinyFont, valuePos, value, MedicalBuffColour);
@@ -813,7 +896,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private static Control? FindNamedControlRecursive(Control root, string name, int depth)
     {
-        // StoragePanel sits 6 levels under the screen - the old cap of 5 cut off one level short.
+        // StoragePanel sits 6 levels under the screen.
         if (depth > 8)
             return null;
         foreach (var child in root.Children)
@@ -955,27 +1038,27 @@ public sealed partial class WaveHudOverlay : Overlay
         var holdingExplosive = _shop.IsHoldingExplosive();
         var holdingMelee = _shop.IsHoldingMelee();
 
-        if (holdingNonLauncherGun) AddPctRow(_bonusRows, "Gun", "damage", GunDamage);
-        if (holdingGun) AddPctRow(_bonusRows, "Fire Rate", "firerate", FireRate);
-        if (holdingMelee) AddPctRow(_bonusRows, "Melee", "melee", MeleeDamage);
-        if (holdingExplosive) AddPctRow(_bonusRows, "Explosive", "explosive", ExplosiveDamage);
-        if (holdingGun) AddPctRow(_bonusRows, "Reload", "reload", ReloadSpeed);
-        if (holdingGun) AddPctRow(_bonusRows, "Mag Size", "magsize", MagazineSize);
-        if (holdingGun || holdingMelee) AddPctRow(_bonusRows, "Crit Chance", "crit", CritChance);
-        if (holdingGun || holdingMelee) AddPctRow(_bonusRows, "Crit Dmg", "critdmg", CritDamage);
-        if (holdingMelee) AddPctRow(_bonusRows, "Atk Speed", "atkspeed", AttackSpeed);
-        AddPctRow(_bonusRows, "Resist", "resist", Resistance);
-        AddPctRow(_bonusRows, "Speed", "speed", MoveSpeed);
+        if (holdingNonLauncherGun) AddPctRow(_bonusRows, "fs-hud-bonus-row-gun", "damage", GunDamage);
+        if (holdingGun) AddPctRow(_bonusRows, "fs-hud-bonus-row-fire-rate", "firerate", FireRate);
+        if (holdingMelee) AddPctRow(_bonusRows, "fs-hud-bonus-row-melee", "melee", MeleeDamage);
+        if (holdingExplosive) AddPctRow(_bonusRows, "fs-hud-bonus-row-explosive", "explosive", ExplosiveDamage);
+        if (holdingGun) AddPctRow(_bonusRows, "fs-hud-bonus-row-reload", "reload", ReloadSpeed);
+        if (holdingGun) AddPctRow(_bonusRows, "fs-hud-bonus-row-mag-size", "magsize", MagazineSize);
+        if (holdingGun || holdingMelee) AddPctRow(_bonusRows, "fs-hud-bonus-row-crit-chance", "crit", CritChance);
+        if (holdingGun || holdingMelee) AddPctRow(_bonusRows, "fs-hud-bonus-row-crit-damage", "critdmg", CritDamage);
+        if (holdingMelee) AddPctRow(_bonusRows, "fs-hud-bonus-row-attack-speed", "atkspeed", AttackSpeed);
+        AddPctRow(_bonusRows, "fs-hud-bonus-row-resist", "resist", Resistance);
+        AddPctRow(_bonusRows, "fs-hud-bonus-row-speed", "speed", MoveSpeed);
 
         return _bonusRows;
     }
 
-    private static void AddPctRow(List<BonusRow> rows, string label, string iconKey, FSBonusCategory cat)
+    private static void AddPctRow(List<BonusRow> rows, string labelKey, string iconKey, FSBonusCategory cat)
     {
         if (MathF.Abs(cat.Percent) < 0.05f)
             return;
         var text = $"{(cat.Percent >= 0 ? "+" : "")}{cat.Percent:0.#}%";
-        rows.Add(new BonusRow(label, text, cat.Percent >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
+        rows.Add(new BonusRow(Loc.GetString(labelKey), text, cat.Percent >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
     }
 
     private float GetViewportPixelWidth()

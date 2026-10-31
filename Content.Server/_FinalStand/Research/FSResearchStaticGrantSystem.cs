@@ -15,7 +15,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Research;
 
-// Handles every Ordnance node effect that isn't a GunRefreshModifiersEvent field; applied idempotently via FSResearchAppliedComponent.
+// Ordnance node effects that aren't GunRefreshModifiersEvent fields, applied idempotently via FSResearchAppliedComponent.
 public sealed partial class FSResearchStaticGrantSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _research = default!;
@@ -23,6 +23,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
     [Dependency] private FSPlayerUpgradesSystem _playerUpgrades = default!;
+    [Dependency] private FSXrayRaycastSystem _xray = default!;
 
     public override void Initialize()
     {
@@ -37,7 +38,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
         Reconcile(uid);
     }
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         var query = EntityQueryEnumerator<GunComponent>();
         while (query.MoveNext(out var uid, out _))
@@ -162,10 +163,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
         {
             var d = Delta(tracker, "FSOrdnanceWaveParticleHarnessing", isXray && Unlocked("FSOrdnanceWaveParticleHarnessing") ? 1 : 0);
             if (d != 0)
-            {
-                xray.MaxDistance *= MathF.Pow(1.08f, d);
-                Dirty(weapon, xray);
-            }
+                _xray.ScaleRange((weapon, xray), MathF.Pow(1.08f, d));
         }
 
         var critDelta = 0f;

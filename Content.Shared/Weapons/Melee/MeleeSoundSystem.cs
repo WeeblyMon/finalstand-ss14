@@ -1,7 +1,11 @@
+using Content.Shared._FinalStand.Effects;
 using Content.Shared.Weapons.Melee.Components;
 using Content.Shared.Weapons.Melee.Events;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Network;
+using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Shared.Weapons.Melee;
 
@@ -11,8 +15,16 @@ namespace Content.Shared.Weapons.Melee;
 public sealed partial class MeleeSoundSystem : EntitySystem
 {
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private INetManager _net = default!; // FINALSTAND
+    [Dependency] private IGameTiming _timing = default!; // FINALSTAND
 
     public const float DamagePitchVariation = 0.05f;
+
+    // FINALSTAND: a crowd clawing one target sent hundreds of networked sounds a second. The server plays at
+    // most one hit sound per target, and one NPC swing per small area, per interval. Predicted sounds are unaffected.
+    private static readonly TimeSpan SoundInterval = TimeSpan.FromSeconds(0.15);
+    private readonly FSEffectThrottle<EntityUid> _hitSounds = new(SoundInterval);
+    private readonly FSEffectThrottle<(EntityUid, Vector2i)> _swingSounds = new(SoundInterval);
 
     /// <summary>
     /// Plays the SwingSound from a weapon component
@@ -21,6 +33,12 @@ public sealed partial class MeleeSoundSystem : EntitySystem
     /// </summary>
     public void PlaySwingSound(EntityUid userUid, EntityUid weaponUid, MeleeWeaponComponent weaponComponent)
     {
+        // FINALSTAND
+        if (_net.IsServer
+            && !HasComp<ActorComponent>(userUid)
+            && !_swingSounds.TryReserve(FSEffectArea.Key(Transform(userUid)), _timing.CurTime))
+            return;
+
         _audio.PlayPredicted(weaponComponent.SwingSound, weaponUid, userUid);
     }
 
@@ -39,6 +57,10 @@ public sealed partial class MeleeSoundSystem : EntitySystem
         var playedSound = false;
 
         if (Deleted(targetUid))
+            return;
+
+        // FINALSTAND
+        if (_net.IsServer && !_hitSounds.TryReserve(targetUid, _timing.CurTime))
             return;
 
         // hitting can obv destroy an entity so we play at coords and not following them
@@ -105,5 +127,4 @@ public sealed partial class MeleeSoundSystem : EntitySystem
             }
         }
     }
-
 }

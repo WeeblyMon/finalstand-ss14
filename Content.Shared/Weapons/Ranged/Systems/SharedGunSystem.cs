@@ -44,7 +44,7 @@ namespace Content.Shared.Weapons.Ranged.Systems;
 public abstract partial class SharedGunSystem : EntitySystem
 {
     [Dependency] private ActionBlockerSystem _actionBlockerSystem = default!;
-    [Dependency] private Content.Shared._FinalStand.Mech.FSMechWeaponSelectSystem _mechWeapons = default!;
+    [Dependency] private Content.Shared._FinalStand.Mech.FSMechWeaponSelectSystem _mechWeapons = default!; // FINALSTAND
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private INetManager _netManager = default!;
     [Dependency] private ItemSlotsSystem _slots = default!;
@@ -75,7 +75,7 @@ public abstract partial class SharedGunSystem : EntitySystem
     /// </summary>
     public const float ProjectileSpeed = 40f;
 
-    public const float MuzzleOffset = 0.15f; // fs
+    public const float MuzzleOffset = 0.15f; // FINALSTAND
 
     /// <summary>
     ///     Name of the container slot used as the gun's chamber
@@ -89,9 +89,7 @@ public abstract partial class SharedGunSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> TrashTag = "Trash";
 
-    private const uint MaxShotTickDrift = 64; // fs
-
-    private GameTick _shotTick;
+    private const uint MaxShotTickDrift = 64; // FINALSTAND
 
     private const float InteractNextFire = 0.3f;
     private const double SafetyNextFire = 0.5;
@@ -158,27 +156,22 @@ public abstract partial class SharedGunSystem : EntitySystem
         if (user == null || !_combatMode.IsInCombatMode(user))
             return;
 
+        // FINALSTAND: a mech pilot fires every armed mech gun, so the request names which one.
         if (!_mechWeapons.TryGetPilotGun(user.Value, GetEntity(msg.Gun), out var gun)
             && (!TryGetGun(user.Value, out gun) || gun.Owner != GetEntity(msg.Gun)))
             return;
 
         gun.Comp.ShootCoordinates = GetCoordinates(msg.Coordinates);
         gun.Comp.Target = GetEntity(msg.Target);
-        _shotTick = ValidShotTick(msg.ShotTick); // fs
-        try
-        {
-            AttemptShoot(user.Value, gun);
-        }
-        finally
-        {
-            _shotTick = GameTick.Zero;
-        }
+        AttemptShoot(user.Value, gun);
 
         if (msg.Continuous)
             gun.Comp.ShotCounter = 0;
     }
 
-    public GameTick ValidShotTick(GameTick tick) // fs
+    // FINALSTAND: the client's shot tick, kept within reach of the server's. Lag compensation rewinds to it; spread
+    // doesn't seed from it, since a client free to pick the tick could pick the seed too.
+    public GameTick ValidShotTick(GameTick tick)
     {
         var now = Timing.CurTick.Value;
         if (tick == GameTick.Zero || tick.Value > now + MaxShotTickDrift || tick.Value + MaxShotTickDrift < now)
@@ -186,8 +179,6 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         return tick;
     }
-
-    public GameTick CurrentShotTick => _shotTick == GameTick.Zero ? Timing.CurTick : _shotTick;
 
     protected Angle GetRecoilAngle(TimeSpan curTime, Entity<GunComponent> gun, Angle direction)
     {
@@ -200,7 +191,7 @@ public abstract partial class SharedGunSystem : EntitySystem
         DirtyField(gun.AsNullable(), nameof(GunComponent.LastFire));
 
         IRobustRandom random = new RobustRandom();
-        random.SetSeed(SharedRandomExtensions.HashCodeCombine((int) CurrentShotTick.Value, GetNetEntity(gun).Id));
+        random.SetSeed(SharedRandomExtensions.HashCodeCombine((int) Timing.CurTick.Value, GetNetEntity(gun).Id));
         var offset = random.NextFloat(-0.5f, 0.5f);
         var spread = component.CurrentAngle.Theta * offset;
         DebugTools.Assert(spread <= component.MaxAngleModified.Theta);
@@ -230,7 +221,7 @@ public abstract partial class SharedGunSystem : EntitySystem
             return;
         }
 
-        if (_mechWeapons.TryGetPilotGun(user, gunUid, out var pilotGun))
+        if (_mechWeapons.TryGetPilotGun(user, gunUid, out var pilotGun)) // FINALSTAND
         {
             StopShooting(pilotGun);
             return;
@@ -260,7 +251,7 @@ public abstract partial class SharedGunSystem : EntitySystem
     {
         gun = default;
 
-        // FS: a mech pilot fires the mech's selected gun.
+        // FINALSTAND: a mech pilot fires the mech's selected gun.
         if (TryComp<Content.Shared.Vehicle.Components.VehicleOperatorComponent>(entity, out var mechOperator)
             && TryComp<Content.Shared.Mech.Components.MechComponent>(mechOperator.Vehicle, out var mech)
             && mech.CurrentSelectedEquipment is { } equipment
@@ -270,7 +261,7 @@ public abstract partial class SharedGunSystem : EntitySystem
             return true;
         }
 
-        // FS: a gunner seated on an HMG fires the HMG, whatever they hold.
+        // FINALSTAND: a gunner seated on an HMG fires the HMG, whatever they hold.
         if (TryComp<Content.Shared._FinalStand.HMG.FSHMGGunnerComponent>(entity, out var gunner)
             && TryComp(gunner.Hmg, out GunComponent? hmgGun))
         {
@@ -286,7 +277,7 @@ public abstract partial class SharedGunSystem : EntitySystem
                 return true;
             }
 
-            // FS: unwrap virtual items so firing works from either hand.
+            // FINALSTAND: unwrap virtual items so firing works from either hand.
             // Mirrors the safety guard in SharedVirtualItemSystem.OnGetUsedEntity — only unwrap
             // when the real gun is also held by the same user.
             if (TryComp<VirtualItemComponent>(held, out var virtualItem)
@@ -559,7 +550,7 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         TransformSystem.SetWorldRotation(uid, direction.ToWorldAngle() + projectile.Angle);
 
-        var launched = new FSProjectileLaunchedEvent(gunUid, shooter); // fs
+        var launched = new FSProjectileLaunchedEvent(gunUid, shooter); // FINALSTAND
         RaiseLocalEvent(uid, ref launched);
     }
 

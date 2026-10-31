@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Shared.NPC;
 using Robust.Shared.Map;
 using Robust.Shared.Utility;
@@ -13,7 +14,7 @@ public sealed partial class PathfindingSystem
             return PathResult.Path;
         }
 
-        if (request.Task.IsCanceled)
+        if (request.CancelToken.IsCancellationRequested) // FINALSTAND
         {
             return PathResult.NoPath;
         }
@@ -62,35 +63,57 @@ public sealed partial class PathfindingSystem
         }
 
         currentNode = startNode;
-        request.Frontier.Add((0.0f, startNode));
-        request.CostSoFar[startNode] = 0.0f;
-        var count = 0;
+
+        // FINALSTAND: a resumed search already holds the start.
+        if (request.Expanded == 0)
+        {
+            request.Frontier.Add((0.0f, startNode));
+            request.CostSoFar[startNode] = 0.0f;
+        }
+
         var arrived = false;
 
-        while (request.Frontier.Count > 0 && count < NodeLimit)
+        // FINALSTAND: the end in the start graph's frame, worked out once. The range check used to do two
+        // coordinate conversions per expansion; nodes on another graph still take that route.
+        var rangeGraph = EntityUid.Invalid;
+        var endInGraph = Vector2.Zero;
+        if (request.Distance > 0f && TryComp(startNode.GraphUid, out TransformComponent? graphXform))
+        {
+            var endMap = _transform.ToMapCoordinates(request.End, logError: false);
+            if (endMap.MapId == graphXform.MapID && endMap.MapId != MapId.Nullspace)
+            {
+                rangeGraph = startNode.GraphUid;
+                endInGraph = Vector2.Transform(endMap.Position, _transform.GetInvWorldMatrix(graphXform));
+            }
+        }
+
+        // FINALSTAND: counted on the request. Counted per slice, a search that kept being sliced never reached the
+        // limit and could flood every reachable node over many ticks.
+        while (request.Frontier.Count > 0 && request.Expanded < NodeLimit)
         {
             // Handle whether we need to pause if we've taken too long
-            if (count % 20 == 0 && count > 0 && request.Stopwatch.Elapsed > PathTime)
+            if (request.Expanded % 20 == 0 && request.Expanded > 0 && request.Stopwatch.Elapsed > PathTime)
             {
                 // I had this happen once in testing but I don't think it should be possible?
                 DebugTools.Assert(request.Frontier.Count > 0);
                 return PathResult.Continuing;
             }
 
-            count++;
+            request.Expanded++;
 
             // Actual pathfinding here
             (_, currentNode) = request.Frontier.Take();
 
             // If we're inside the required distance OR we're at the end node.
-            if ((request.Distance > 0f &&
-                currentNode.Coordinates.TryDistance(EntityManager, request.End, out var distance) &&
-                distance <= request.Distance) ||
+            // FINALSTAND: range check via WithinRequestRange
+            if ((request.Distance > 0f && WithinRequestRange(currentNode, request, rangeGraph, endInGraph)) ||
                 currentNode.Equals(endNode))
             {
                 arrived = true;
                 break;
             }
+
+            var currentCost = request.CostSoFar[currentNode]; // FINALSTAND: once per node, not per neighbour
 
             foreach (var neighbor in currentNode.Neighbors)
             {
@@ -104,7 +127,7 @@ public sealed partial class PathfindingSystem
                 // f = g + h
                 // gScore is distance to the start node
                 // hScore is distance to the end node
-                var gScore = request.CostSoFar[currentNode] + tileCost;
+                var gScore = currentCost + tileCost; // FINALSTAND
                 if (request.CostSoFar.TryGetValue(neighbor, out var nextValue) && gScore >= nextValue)
                 {
                     continue;
@@ -130,8 +153,8 @@ public sealed partial class PathfindingSystem
         }
 
         var route = ReconstructPath(request.CameFrom, currentNode);
-        var path = new Queue<EntityCoordinates>(route.Count);
 
+        // FINALSTAND: this also filled a coordinate queue nothing read.
         foreach (var node in route)
         {
             // Due to partial planning some nodes may have been invalidated.
@@ -139,12 +162,19 @@ public sealed partial class PathfindingSystem
             {
                 return PathResult.NoPath;
             }
-
-            path.Enqueue(node.Coordinates);
         }
 
         DebugTools.Assert(route.Count > 0);
         request.Polys = route;
         return PathResult.Path;
+    }
+
+    // FINALSTAND
+    private bool WithinRequestRange(PathPoly node, AStarPathRequest request, EntityUid rangeGraph, Vector2 endInGraph)
+    {
+        if (node.GraphUid == rangeGraph)
+            return (node.Box.Center - endInGraph).LengthSquared() <= request.Distance * request.Distance;
+
+        return node.Coordinates.TryDistance(EntityManager, request.End, out var distance) && distance <= request.Distance;
     }
 }

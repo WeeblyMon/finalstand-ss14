@@ -15,9 +15,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.CCC;
 
-[ByRefEvent]
-public readonly record struct FSCccDamagedEvent(EntityUid Ccc);
-
 public sealed partial class FinalStandCCCSystem : EntitySystem
 {
     [Dependency] private RoundEndSystem _roundEnd = default!;
@@ -52,38 +49,35 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
 
     private void OnWaveEnded(ref WaveEndedEvent ev)
     {
-        var query = EntityQueryEnumerator<FinalStandCCCComponent, FinalStandCCCTagComponent>();
-        while (query.MoveNext(out var uid, out var comp, out var tag))
+        var query = EntityQueryEnumerator<FinalStandCCCComponent>();
+        while (query.MoveNext(out var uid, out var comp))
         {
-            if (comp.HealFractionPerWave <= 0f || tag.MaxHealth <= 0f)
+            if (comp.HealFractionPerWave <= 0f || comp.MaxHealth <= 0f)
                 continue;
 
-            _damageable.HealEvenly(uid, FixedPoint2.New(-tag.MaxHealth * comp.HealFractionPerWave));
+            _damageable.HealEvenly(uid, FixedPoint2.New(-comp.MaxHealth * comp.HealFractionPerWave));
         }
     }
 
     private void OnCCCMapInit(EntityUid uid, FinalStandCCCComponent comp, MapInitEvent args)
     {
-        if (!TryComp<FinalStandCCCTagComponent>(uid, out var tag))
-            return;
-
-        tag.MaxHealth = _destructible.TryGetDestroyedAt(uid, out var destroyedAt)
+        comp.MaxHealth = _destructible.TryGetDestroyedAt(uid, out var destroyedAt)
             ? destroyedAt.Value.Float()
             : 0f;
-        tag.LivesLeft = tag.Lives;
+        comp.LivesLeft = comp.Lives;
 
-        Dirty(uid, tag);
+        Dirty(uid, comp);
     }
 
     private void OnCCCDestroyed(EntityUid uid, FinalStandCCCComponent comp, DestructionEventArgs args)
     {
-        Log.Info("[FinalStand] Central Command Console destroyed. Ending round.");
+        Log.Info("Central Command Console destroyed. Ending round.");
         _roundEnd.EndRound(RoundEndCountdown);
     }
 
     private void OnBeforeDamage(Entity<FinalStandCCCComponent> ent, ref BeforeDamageChangedEvent args)
     {
-        if (TryComp<FinalStandCCCTagComponent>(ent, out var tag) && _timing.CurTime < tag.ShieldUntil && args.Damage.AnyPositive())
+        if (_timing.CurTime < ent.Comp.ShieldUntil && args.Damage.AnyPositive())
             args.Cancelled = true;
     }
 
@@ -95,12 +89,11 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
         var damaged = new FSCccDamagedEvent(uid);
         RaiseLocalEvent(ref damaged);
 
-        if (TryComp<FinalStandCCCTagComponent>(uid, out var tag)
-            && tag.MaxHealth > 0f
-            && tag.LivesLeft > 1
-            && _damageable.GetTotalDamage((uid, args.Damageable)).Float() >= tag.MaxHealth)
+        if (comp.MaxHealth > 0f
+            && comp.LivesLeft > 1
+            && _damageable.GetTotalDamage((uid, args.Damageable)).Float() >= comp.MaxHealth)
         {
-            LoseLife(uid, tag);
+            LoseLife(uid, comp);
             return;
         }
 
@@ -112,23 +105,23 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
         RaiseNetworkEvent(new CCCUnderAttackEvent(), Filter.Broadcast());
     }
 
-    private void LoseLife(EntityUid uid, FinalStandCCCTagComponent tag)
+    private void LoseLife(EntityUid uid, FinalStandCCCComponent comp)
     {
-        tag.LivesLeft--;
-        tag.ShieldUntil = _timing.CurTime + ShieldTime;
-        Dirty(uid, tag);
+        comp.LivesLeft--;
+        comp.ShieldUntil = _timing.CurTime + ShieldTime;
+        Dirty(uid, comp);
         _damageable.ClearAllDamage(uid);
 
         _flair.Burst(LifeLostRing, uid, kick: 2.5f);
         _flair.Burst(LifeLostSparks, uid);
         var wave = _waves.FailWave() ?? 0;
 
-        var last = tag.LivesLeft == 1;
+        var last = comp.LivesLeft == 1;
         _chat.DispatchGlobalAnnouncement(
-            Loc.GetString(last ? "fs-ccc-last-life" : "fs-ccc-life-lost", ("left", tag.LivesLeft), ("wave", wave)),
+            Loc.GetString(last ? "fs-ccc-last-life" : "fs-ccc-life-lost", ("left", comp.LivesLeft), ("wave", wave)),
             Loc.GetString("fs-ccc-announcer"),
             announcementSound: last ? LastLifeSound : LifeLostSound,
             colorOverride: AlarmColor);
-        RaiseNetworkEvent(new FSCCCLifeLostEvent(GetNetEntity(uid), tag.LivesLeft, tag.Lives), Filter.Broadcast());
+        RaiseNetworkEvent(new FSCCCLifeLostEvent(GetNetEntity(uid), comp.LivesLeft, comp.Lives), Filter.Broadcast());
     }
 }

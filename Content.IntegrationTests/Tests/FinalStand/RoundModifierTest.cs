@@ -5,7 +5,6 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.Damage.Components;
-using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 
@@ -95,7 +94,6 @@ public sealed class RoundModifierTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
-            var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
 
             Assert.That(waveRule.TryStartRerollVote(null, out _), Is.False, "no round, no vote");
             Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
@@ -103,7 +101,7 @@ public sealed class RoundModifierTest : GameTest
             Assert.That(waveRule.TryStartRerollVote(ServerSession, out var error), Is.True, error);
             Assert.That(waveRule.TryStartRerollVote(ServerSession, out _), Is.False, "one reroll vote at a time");
 
-            waveRule.ForceNextWave(shell);
+            waveRule.ForceNextWave();
             Assert.That(waveRule.TryStartRerollVote(ServerSession, out _), Is.False, "modifiers lock with wave 1");
             Assert.That(waveRule.TrySetModifiers(new List<ProtoId<FSRoundModifierPrototype>>()), Is.False);
         });

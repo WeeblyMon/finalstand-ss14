@@ -1,8 +1,8 @@
 using System.Numerics;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Utility;
+using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Spawners;
-using Content.Server._FinalStand.CCC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
@@ -17,6 +17,7 @@ using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Mobs;
 
@@ -30,12 +31,13 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSTargetAcquisitionSystem _targeting = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
 
     private readonly ObjectPool<HashSet<Entity<FSFriendlyFireComponent>>> _chainSetPool =
         new DefaultObjectPool<HashSet<Entity<FSFriendlyFireComponent>>>(
             new SetPolicy<Entity<FSFriendlyFireComponent>>());
 
-    private const string BeamSegment = "FSTeslaBeamSegment";
+    private static readonly EntProtoId BeamSegment = "FSTeslaBeamSegment";
     private const string HitEffect = "FSTeslaHitEffect";
 
     public override void Initialize()
@@ -55,6 +57,8 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
             Dirty(uid, mover);
         }
     }
+
+    private const float AcquireRetryInterval = 0.25f;
 
     public override void Update(float frameTime)
     {
@@ -81,8 +85,12 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
             return;
         }
 
+        // The lookup and LOS raycast are too costly to retry every tick while nothing is in range.
         if (_targeting.AcquireTarget(uid, comp.DetectionRange) is not { } target)
+        {
+            comp.CooldownAccumulator = AcquireRetryInterval;
             return;
+        }
 
         var myPos = _transform.GetMapCoordinates(uid);
         var dir = _transform.GetMapCoordinates(target).Position - myPos.Position;
@@ -147,7 +155,7 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
         primaryDmg.DamageDict["Shock"] = comp.PrimaryDamageShock;
         _damageable.TryChangeDamage(primaryTarget.Value, primaryDmg, ignoreResistances: false, origin: uid);
 
-        DrawTeslaBeam(uid, primaryTarget.Value);
+        _flair.Beam(uid, primaryTarget.Value, BeamSegment);
         Spawn(HitEffect, new EntityCoordinates(primaryTarget.Value, Vector2.Zero));
 
         var chainDmg = new DamageSpecifier();
@@ -166,38 +174,13 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
             if (!_examine.InRangeUnOccluded(primaryTarget.Value, chainUid, comp.ChainRange, null)) continue;
 
             _damageable.TryChangeDamage(chainUid, chainDmg, ignoreResistances: false, origin: uid);
-            DrawTeslaBeam(primaryTarget.Value, chainUid);
+            _flair.Beam(primaryTarget.Value, chainUid, BeamSegment);
             Spawn(HitEffect, new EntityCoordinates(chainUid, Vector2.Zero));
             chainCount++;
         }
         _chainSetPool.Return(chainCandidates);
 
         _audio.PlayPvs(comp.FireSound, uid);
-    }
-
-    private void DrawTeslaBeam(EntityUid from, EntityUid to)
-    {
-        var fromPos = _transform.GetMapCoordinates(from);
-        var toPos = _transform.GetMapCoordinates(to);
-
-        if (fromPos.MapId != toPos.MapId)
-            return;
-
-        var dir = toPos.Position - fromPos.Position;
-        if (dir.LengthSquared() < 0.01f)
-            return;
-
-        var distance = dir.Length();
-        var normalized = Vector2.Normalize(dir);
-        var angle = dir.ToAngle();
-        var segCount = Math.Max(1, (int)Math.Ceiling(distance));
-
-        for (var i = 0; i < segCount; i++)
-        {
-            var pos = new MapCoordinates(fromPos.Position + normalized * i, fromPos.MapId);
-            var seg = Spawn(BeamSegment, pos);
-            _transform.SetWorldRotation(seg, angle);
-        }
     }
 
     private void StopFiring(EntityUid uid, FSTeslaZombieComponent comp)

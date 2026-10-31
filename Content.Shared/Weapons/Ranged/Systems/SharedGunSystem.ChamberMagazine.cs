@@ -330,6 +330,7 @@ public abstract partial class SharedGunSystem
 
     private bool TryInsertChamber(EntityUid uid, EntityUid ammo)
     {
+        // FINALSTAND: a predicted client-side round never goes in the chamber, where it jammed the gun.
         if (IsClientSide(ammo))
         {
             Del(ammo);

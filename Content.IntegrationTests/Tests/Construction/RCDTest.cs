@@ -57,7 +57,7 @@ public sealed class RCDTest : InteractionTest
 
         var rcd = await PlaceInHands(RCDProtoId);
 
-        await Server.WaitPost(() => SEntMan.RemoveComponent<FSEngineerOnlyRCDComponent>(ToServer(rcd)));
+        await Server.WaitPost(() => SEntMan.RemoveComponent<FSEngineerOnlyRCDComponent>(ToServer(rcd))); // FINALSTAND
 
         // Give the RCD enough charges to do everything.
         var sCharges = SEntMan.System<SharedChargesSystem>();

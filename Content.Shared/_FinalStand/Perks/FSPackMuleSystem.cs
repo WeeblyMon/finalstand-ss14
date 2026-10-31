@@ -12,7 +12,6 @@ using Content.Shared.StatusEffectNew;
 using Content.Shared.Stunnable;
 using Content.Shared.Temperature.Systems;
 using Content.Shared.Wieldable;
-using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Perks;
 
@@ -45,6 +44,15 @@ public sealed partial class FSPackMuleSystem : EntitySystem
         args.ModifySpeed(Eased(args.WalkSpeedModifier, easing), Eased(args.SprintSpeedModifier, easing));
     }
 
+    public void SetLevel(Entity<FSPackMuleComponent> ent, int level)
+    {
+        if (ent.Comp.Level == level)
+            return;
+
+        ent.Comp.Level = level;
+        Dirty(ent);
+    }
+
     private static float Eased(float modifier, float easing)
     {
         if (modifier >= 1f || modifier <= 0f)
@@ -52,11 +60,4 @@ public sealed partial class FSPackMuleSystem : EntitySystem
 
         return (1f - (1f - modifier) * (1f - easing)) / modifier;
     }
-}
-
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
-public sealed partial class FSPackMuleComponent : Component
-{
-    [AutoNetworkedField]
-    public int Level;
 }

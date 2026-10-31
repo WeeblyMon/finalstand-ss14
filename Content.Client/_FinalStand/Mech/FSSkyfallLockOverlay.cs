@@ -1,5 +1,3 @@
-// Missile lock reticles: red corner brackets snap in around each zombie a Skyfall missile is chasing, then hold and pulse.
-// Before launch the pilot sees dim brackets on what the swarm would take, and a reload bar by the cursor while it reloads.
 using System.Numerics;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Interaction;
@@ -16,6 +14,7 @@ using Robust.Client.Player;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
@@ -40,6 +39,8 @@ public sealed partial class FSSkyfallLockOverlay : Overlay
     private const int Swarm = 12;
     private static readonly ProtoId<NpcFactionPrototype> ZombieFaction = "FSZombie";
     private static readonly Color ReloadColor = Color.FromHex("#ffb35c");
+    private static readonly TimeSpan PreviewInterval = TimeSpan.FromSeconds(0.1);
+    private static readonly (float X, float Y)[] Corners = { (-1f, -1f), (1f, -1f), (-1f, 1f), (1f, 1f) };
 
     private readonly Dictionary<EntityUid, TimeSpan> _since = new();
     private readonly Dictionary<EntityUid, int> _counts = new();
@@ -49,8 +50,13 @@ public sealed partial class FSSkyfallLockOverlay : Overlay
     private SharedInteractionSystem? _interaction;
     private MobStateSystem? _mobState;
     private NpcFactionSystem? _faction;
+    private FSMechWeaponSelectSystem? _weapons;
     private readonly HashSet<Entity<MobStateComponent>> _nearby = new();
-    private readonly List<(EntityUid Target, float Distance)> _preview = new();
+    private readonly List<(EntityUid Target, MapCoordinates At, float Distance)> _candidates = new();
+    private readonly List<EntityUid> _preview = new();
+    private readonly SharedInteractionSystem.Ignored _ignore;
+    private EntityUid _ignoreMech;
+    private TimeSpan _nextPreview;
     private Font? _font;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
@@ -58,6 +64,7 @@ public sealed partial class FSSkyfallLockOverlay : Overlay
     public FSSkyfallLockOverlay()
     {
         IoCManager.InjectDependencies(this);
+        _ignore = e => e == _ignoreMech || _entMan.HasComponent<MobStateComponent>(e);
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -117,17 +124,17 @@ public sealed partial class FSSkyfallLockOverlay : Overlay
 
     private EntityUid? ArmedPod(EntityUid mech, MechComponent mechComp)
     {
-        var weapons = _entMan.System<FSMechWeaponSelectSystem>();
+        _weapons ??= _entMan.System<FSMechWeaponSelectSystem>();
         foreach (var equipment in mechComp.EquipmentContainer.ContainedEntities)
         {
-            if (_entMan.HasComponent<FSSkyfallLauncherComponent>(equipment) && weapons.IsArmed(mech, equipment))
+            if (_entMan.HasComponent<FSSkyfallLauncherComponent>(equipment) && _weapons.IsArmed(mech, equipment))
                 return equipment;
         }
 
         return null;
     }
 
-    private void DrawPilot(DrawingHandleScreen handle, Matrix3x2 matrix, Robust.Shared.Map.MapId map, TimeSpan now)
+    private void DrawPilot(DrawingHandleScreen handle, Matrix3x2 matrix, MapId map, TimeSpan now)
     {
         if (_player.LocalEntity is not { } local
             || !_entMan.TryGetComponent<VehicleOperatorComponent>(local, out var op)
@@ -135,7 +142,10 @@ public sealed partial class FSSkyfallLockOverlay : Overlay
             || !_entMan.TryGetComponent<MechComponent>(mech, out var mechComp)
             || ArmedPod(mech, mechComp) is not { } pod
             || !_entMan.TryGetComponent<GunComponent>(pod, out var gun))
+        {
+            ResetPreview();
             return;
+        }
 
         var left = (float) (gun.NextFire - _timing.CurTime).TotalSeconds;
         if (left > 0.3f)
@@ -146,46 +156,80 @@ public sealed partial class FSSkyfallLockOverlay : Overlay
             var bar = UIBox2.FromDimensions(at + new Vector2(0f, 14f), new Vector2(54f, 4f));
             handle.DrawRect(bar, Color.Black.WithAlpha(0.6f));
             handle.DrawRect(UIBox2.FromDimensions(bar.TopLeft, new Vector2(54f * progress, 4f)), ReloadColor);
+            ResetPreview();
             return;
         }
 
         if (_counts.Count > 0)
-            return;
-
-        _lookup ??= _entMan.System<EntityLookupSystem>();
-        _interaction ??= _entMan.System<SharedInteractionSystem>();
-        _mobState ??= _entMan.System<MobStateSystem>();
-        _faction ??= _entMan.System<NpcFactionSystem>();
-
-        var eye = _xform!.GetMapCoordinates(mech);
-        SharedInteractionSystem.Ignored ignore = e => e == mech || _entMan.HasComponent<MobStateComponent>(e);
-        _nearby.Clear();
-        _preview.Clear();
-        _lookup.GetEntitiesInRange(eye, SearchRange, _nearby);
-        foreach (var zombie in _nearby)
         {
-            if (!_mobState.IsAlive(zombie) || !_faction.IsMember(zombie.Owner, ZombieFaction))
-                continue;
-
-            var at = _xform.GetMapCoordinates(zombie);
-            if (_interaction.InRangeUnobstructed(eye, at, 0f, CollisionGroup.Opaque, ignore))
-                _preview.Add((zombie.Owner, (at.Position - eye.Position).LengthSquared()));
+            ResetPreview();
+            return;
         }
 
-        _preview.Sort((a, b) => a.Distance.CompareTo(b.Distance));
-        var color = LockColor.WithAlpha(0.3f + 0.15f * MathF.Sin((float) now.TotalSeconds * 4f));
-        for (var i = 0; i < Math.Min(Swarm, _preview.Count); i++)
+        _mobState ??= _entMan.System<MobStateSystem>();
+
+        // The preview is a hint, so the target pick runs at 10 Hz; brackets still follow the targets every frame.
+        if (now >= _nextPreview)
         {
-            var world = _xform.GetMapCoordinates(_preview[i].Target);
+            _nextPreview = now + PreviewInterval;
+            RefreshPreview(mech);
+        }
+
+        var color = LockColor.WithAlpha(0.3f + 0.15f * MathF.Sin((float) now.TotalSeconds * 4f));
+        foreach (var target in _preview)
+        {
+            if (!_mobState.IsAlive(target))
+                continue;
+
+            var world = _xform!.GetMapCoordinates(target);
             if (world.MapId == map)
                 Brackets(handle, Vector2.Transform(world.Position, matrix), Size * 0.6f, color);
         }
     }
 
+    private void RefreshPreview(EntityUid mech)
+    {
+        _lookup ??= _entMan.System<EntityLookupSystem>();
+        _interaction ??= _entMan.System<SharedInteractionSystem>();
+        _faction ??= _entMan.System<NpcFactionSystem>();
+
+        var eye = _xform!.GetMapCoordinates(mech);
+        _ignoreMech = mech;
+        _nearby.Clear();
+        _candidates.Clear();
+        _preview.Clear();
+        _lookup.GetEntitiesInRange(eye, SearchRange, _nearby);
+        foreach (var zombie in _nearby)
+        {
+            if (!_mobState!.IsAlive(zombie, zombie.Comp) || !_faction.IsMember(zombie.Owner, ZombieFaction))
+                continue;
+
+            var at = _xform.GetMapCoordinates(zombie);
+            _candidates.Add((zombie.Owner, at, (at.Position - eye.Position).LengthSquared()));
+        }
+
+        // Nearest first, so only enough rays are cast to fill the swarm.
+        _candidates.Sort((a, b) => a.Distance.CompareTo(b.Distance));
+        foreach (var (target, at, _) in _candidates)
+        {
+            if (_preview.Count >= Swarm)
+                break;
+
+            if (_interaction.InRangeUnobstructed(eye, at, 0f, CollisionGroup.Opaque, _ignore))
+                _preview.Add(target);
+        }
+    }
+
+    private void ResetPreview()
+    {
+        _preview.Clear();
+        _nextPreview = TimeSpan.Zero;
+    }
+
     private static void Brackets(DrawingHandleScreen handle, Vector2 center, float half, Color color)
     {
         var arm = half * 2f * Corner;
-        foreach (var (sx, sy) in new[] { (-1f, -1f), (1f, -1f), (-1f, 1f), (1f, 1f) })
+        foreach (var (sx, sy) in Corners)
         {
             var corner = center + new Vector2(sx * half, sy * half);
             var x0 = sx < 0 ? corner.X : corner.X - arm;

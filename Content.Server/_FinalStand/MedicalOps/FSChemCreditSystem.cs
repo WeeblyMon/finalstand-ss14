@@ -4,9 +4,12 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.Chemistry.Components;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.GameTicking;
 using Content.Shared.Database;
 using Content.Shared.Mind;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
@@ -18,6 +21,7 @@ public sealed partial class FSChemCreditSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private FSMedicalFundSystem _medFund = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private static readonly TimeSpan ClaimLifetime = TimeSpan.FromSeconds(120);
 
@@ -49,12 +53,45 @@ public sealed partial class FSChemCreditSystem : EntitySystem
             return;
         }
 
+        var expires = _timing.CurTime + ClaimLifetime;
+
+        // Topping up a live claim extends it and hands it to the latest supplier, but keeps what's left of the
+        // budget. Resetting it on every dose let a stream of cheap darts take a cut of every kill forever.
+        if (_claims.TryGetValue(target, out var existing) && existing.Expires > _timing.CurTime && existing.Remaining > 0)
+        {
+            existing.SupplierMind = mindId;
+            existing.Expires = expires;
+            return;
+        }
+
         _claims[target] = new Claim
         {
             SupplierMind = mindId,
-            Expires = _timing.CurTime + ClaimLifetime,
+            Expires = expires,
             Remaining = budget ?? FSMedicalPayoutRates.ChemClaimBudget,
         };
+    }
+
+    // Only a combat buff earns the supplier a cut of the target's kills.
+    public bool AppliesCombatBuff(Solution payload)
+    {
+        foreach (var quantity in payload.Contents)
+        {
+            if (!_prototypes.TryIndex(quantity.Reagent.Prototype, out ReagentPrototype? reagent)
+                || reagent.ReactiveEffects == null)
+                continue;
+
+            foreach (var (_, reactive) in reagent.ReactiveEffects)
+            {
+                foreach (var effect in reactive.Effects)
+                {
+                    if (effect is FSApplyCombatBuff)
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void OnWaveEnemyDied(ref FSWaveEnemyDiedEvent args)

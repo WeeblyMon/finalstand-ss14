@@ -1,7 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Shared.CombatMode;
+using Content.Shared.Hands.Components;
+using Content.Shared.Inventory;
 using Content.Shared.NPC;
+using Content.Shared.Vehicle.Components;
+using Content.Shared.Weapons.Melee;
 using Robust.Shared.Map;
 using Robust.Shared.Random;
 
@@ -10,6 +16,13 @@ namespace Content.Server.NPC.Systems;
 public sealed partial class NPCCombatSystem
 {
     private const float TargetMeleeLostRange = 14f;
+
+    // FINALSTAND
+    [Dependency] private EntityQuery<WaveSpawnedTagComponent> _waveTagQuery = default!;
+    [Dependency] private EntityQuery<HandsComponent> _handsQuery = default!;
+    [Dependency] private EntityQuery<InventoryComponent> _inventoryQuery = default!;
+    [Dependency] private EntityQuery<MeleeWeaponComponent> _meleeQuery = default!;
+    [Dependency] private EntityQuery<VehicleOperatorComponent> _vehicleOperatorQuery = default!;
 
     private void InitializeMelee()
     {
@@ -56,7 +69,9 @@ public sealed partial class NPCCombatSystem
     {
         component.Status = CombatStatus.Normal;
 
-        if (!_melee.TryGetWeapon(uid, out var weaponUid, out var weapon))
+        // FINALSTAND: body weapon first
+        if (!TryGetBodyWeapon(uid, out var weaponUid, out var weapon)
+            && !_melee.TryGetWeapon(uid, out weaponUid, out weapon))
         {
             component.Status = CombatStatus.NoWeapon;
             return;
@@ -89,7 +104,8 @@ public sealed partial class NPCCombatSystem
         }
 
         // TODO: When I get parallel operators move this as NPC combat shouldn't be handling this.
-        _steering.Register(uid, new EntityCoordinates(component.Target, Vector2.Zero), steering);
+        steering = _steering.Register(uid, new EntityCoordinates(component.Target, Vector2.Zero), steering);
+        steering.ReachRange = weapon.Range; // FINALSTAND
 
         if (distance > weapon.Range)
         {
@@ -110,5 +126,18 @@ public sealed partial class NPCCombatSystem
         {
             _melee.AttemptLightAttack(uid, weaponUid, weapon, component.Target);
         }
+    }
+
+    // FINALSTAND: with no hands, inventory or vehicle a wave zombie can only fight with its own body, and
+    // TryGetWeapon raises an event and walks hands and slots for every NPC in melee every tick.
+    private bool TryGetBodyWeapon(EntityUid uid, out EntityUid weaponUid, [NotNullWhen(true)] out MeleeWeaponComponent? weapon)
+    {
+        weaponUid = uid;
+        weapon = null;
+        return _waveTagQuery.HasComponent(uid)
+               && !_handsQuery.HasComponent(uid)
+               && !_inventoryQuery.HasComponent(uid)
+               && !_vehicleOperatorQuery.HasComponent(uid)
+               && _meleeQuery.TryGetComponent(uid, out weapon);
     }
 }

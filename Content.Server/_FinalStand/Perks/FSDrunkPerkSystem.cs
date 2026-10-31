@@ -29,6 +29,7 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
     public static readonly string[] DrunkPerks = ["DrunkenBerserker", "ExplosiveEngineering", "RagingAlcoholic"];
     private static readonly ProtoId<TagPrototype> TolerantTag = "FSAlcoholTolerant";
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(0.5);
+    private static readonly TimeSpan RegenInterval = TimeSpan.FromSeconds(1);
     private TimeSpan _nextCheck;
     private TimeSpan _nextRegen;
 
@@ -135,7 +136,7 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
         var now = _timing.CurTime;
         if (now >= _nextRegen)
         {
-            _nextRegen = now + TimeSpan.FromSeconds(1);
+            _nextRegen = now + RegenInterval;
             Regenerate();
         }
 
@@ -158,10 +159,4 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
             }
         }
     }
-}
-
-[RegisterComponent]
-public sealed partial class FSDrunkPerkComponent : Component
-{
-    public bool WasDrunk;
 }

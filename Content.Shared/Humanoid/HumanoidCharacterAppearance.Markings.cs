@@ -22,9 +22,18 @@ public sealed partial class HumanoidCharacterAppearance
     /// </summary>
     private static CharacterPalette GetRandomClampedPalette(SkinColorationPrototype skinColoration, IRobustRandom random)
     {
-        var baseColor = new Color(random.NextFloat(1), random.NextFloat(1), random.NextFloat(1), 1);
-        var palette = GetPaletteFromBase(baseColor, random.Next(4));
-        return ClampPaletteToStrategy(palette, skinColoration, random);
+        // FINALSTAND: the appearance truncates colours to bytes. In a dark range (FSVoxFeathers) one byte is more
+        // saturation than the strategy's tolerance, so a skin clamped to the edge can drop back out; draw again.
+        CharacterPalette palette = default!;
+        for (var i = 0; i < 8; i++)
+        {
+            var baseColor = new Color(random.NextFloat(1), random.NextFloat(1), random.NextFloat(1), 1);
+            palette = ClampPaletteToStrategy(GetPaletteFromBase(baseColor, random.Next(4)), skinColoration, random);
+            if (skinColoration.Strategy.VerifySkinColor(ClampColor(palette.SkinColor), out _))
+                break;
+        }
+
+        return palette;
     }
 
     /// <summary>

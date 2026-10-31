@@ -37,6 +37,36 @@ public sealed partial class NPCSteeringComponent : Component
     // TODO: Update radius, also danger points debug only
     public readonly List<Vector2> DangerPoints = new();
 
+    // FINALSTAND: wall avoidance for wave zombies, reused while they stand still (see NPCSteeringSystem).
+    [ViewVariables]
+    public readonly float[] StaticDanger = new float[SharedNPCSteeringSystem.InterestDirections];
+
+    [ViewVariables]
+    public Vector2 StaticDangerPosition = new(float.NaN, float.NaN);
+
+    [ViewVariables]
+    public Angle StaticDangerRotation;
+
+    [ViewVariables]
+    public TimeSpan StaticDangerUntil;
+
+    // FINALSTAND: a wave zombie queued behind another holds still until this, then looks again.
+    [ViewVariables, AutoPausedField]
+    public TimeSpan QueuedUntil;
+
+    // FINALSTAND: melee sets this to its weapon range. Standing still within it of the entity being steered to, with
+    // nothing in the way, is fighting it, not being stuck.
+    [ViewVariables]
+    public float ReachRange;
+
+    // FINALSTAND: where the destination was when CurrentPath was planned, to tell whether it has since moved.
+    [ViewVariables]
+    public MapCoordinates PathPlannedFor = MapCoordinates.Nullspace;
+
+    // FINALSTAND: the grid changed nearby (a door opened), so plan again while still following the current path.
+    [ViewVariables]
+    public bool RepathRequested;
+
     #endregion
 
     /// <summary>

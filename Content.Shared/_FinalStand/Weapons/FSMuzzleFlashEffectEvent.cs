@@ -1,8 +1,8 @@
-// Raised on a gun as the client draws its muzzle flash, so mounted guns can move it to the barrel tip and react to each shot.
 using System.Numerics;
 
 namespace Content.Shared._FinalStand.Weapons;
 
+// Raised as the client draws the muzzle flash, so mounted guns can move it to the barrel tip.
 [ByRefEvent]
 public record struct FSMuzzleFlashEffectEvent(Angle Angle)
 {

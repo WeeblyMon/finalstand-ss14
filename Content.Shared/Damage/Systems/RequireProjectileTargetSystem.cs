@@ -1,7 +1,7 @@
 using Content.Shared.Damage.Components;
 using Content.Shared.Projectiles;
 using Content.Shared.Standing;
-using Content.Shared.Vehicle.Components;
+using Content.Shared.Vehicle.Components; // FINALSTAND
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Containers;
 using Robust.Shared.Physics.Events;
@@ -19,7 +19,8 @@ public sealed partial class RequireProjectileTargetSystem : EntitySystem
         SubscribeLocalEvent<RequireProjectileTargetComponent, DownedEvent>(LayingBulletPass);
     }
 
-    public bool IsVehicleOperator(EntityUid shooter)
+    // FINALSTAND: a mech pilot is in a container but aims like someone outside it.
+    private bool IsVehicleOperator(EntityUid shooter)
     {
         return _container.TryGetContainingContainer(shooter, out var holder) && HasComp<VehicleComponent>(holder.Owner);
     }
@@ -46,7 +47,7 @@ public sealed partial class RequireProjectileTargetSystem : EntitySystem
             if (TerminatingOrDeleted(shooter.Value))
                 return;
 
-            if (!_container.IsEntityOrParentInContainer(shooter.Value) || IsVehicleOperator(shooter.Value))
+            if (!_container.IsEntityOrParentInContainer(shooter.Value) || IsVehicleOperator(shooter.Value)) // FINALSTAND
                args.Cancelled = true;
         }
     }

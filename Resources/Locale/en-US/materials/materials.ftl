@@ -5,6 +5,7 @@ materials-plasma-glass = plasma glass
 materials-reinforced-plasma-glass = reinforced plasma glass
 materials-uranium-glass = uranium glass
 materials-reinforced-uranium-glass = reinforced uranium glass
+# FINALSTAND: names for materials that had none.
 materials-clockwork-glass = clockwork glass
 
 # Metals

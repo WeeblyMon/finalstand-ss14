@@ -34,7 +34,7 @@ namespace Content.Client.Chemistry.UI
         private readonly List<ItemStorageLocation> _displayed = new();
         private List<ReagentInventoryItem> _inventory = new();
 
-        private FSFieldKitPrototype? _target;
+        private FSFieldKitPrototype? _target; // FINALSTAND
         private Dictionary<string, FixedPoint2> _targetIngredients = new();
         private RecipeTab _tab = RecipeTab.FieldKit;
         private string _filter = string.Empty;
@@ -104,7 +104,7 @@ namespace Content.Client.Chemistry.UI
             RefreshRecipes();
         }
 
-        private HashSet<string> Sourceable(FSFieldKitPrototype? kit = null)
+        private HashSet<string> Sourceable(FSFieldKitPrototype? kit = null) // FINALSTAND
         {
             var sourceable = new HashSet<string>();
             foreach (var card in _cards.Values)
@@ -122,7 +122,7 @@ namespace Content.Client.Chemistry.UI
             return sourceable;
         }
 
-        private void SetTarget(FSFieldKitPrototype kit)
+        private void SetTarget(FSFieldKitPrototype kit) // FINALSTAND
         {
             if (_target?.ID == kit.ID)
             {
@@ -131,7 +131,7 @@ namespace Content.Client.Chemistry.UI
             }
 
             _target = kit;
-            _targetIngredients = FSFieldKitResolver
+            _targetIngredients = FSFieldKitResolver // FINALSTAND
                 .Plan(_prototypeManager, kit.ResolveIngredients(_prototypeManager), Sourceable(kit))
                 .Base;
             _filter = string.Empty;
@@ -257,7 +257,7 @@ namespace Content.Client.Chemistry.UI
             else if (_tab == RecipeTab.Basics)
                 PopulateBasics();
             else
-                FSRecipeHints.Populate(RecipeInfo, _prototypeManager, _held);
+                FSRecipeHints.Populate(RecipeInfo, _prototypeManager, _held); // FINALSTAND
         }
 
         private void PopulateFieldKit()
@@ -278,7 +278,7 @@ namespace Content.Client.Chemistry.UI
         {
             RecipeInfo.Children.Clear();
 
-            var groups = _prototypeManager.EnumeratePrototypes<FSChemGuidePrototype>()
+            var groups = _prototypeManager.EnumeratePrototypes<FSChemGuidePrototype>() // FINALSTAND
                 .OrderBy(guide => guide.Priority);
 
             var any = false;
@@ -317,7 +317,7 @@ namespace Content.Client.Chemistry.UI
             var row = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
             row.AddChild(new Label
             {
-                Text = FSFieldKitResolver.NameOf(reaction, _prototypeManager),
+                Text = FSFieldKitResolver.NameOf(reaction, _prototypeManager), // FINALSTAND
                 Modulate = ready ? ReadyColor : Color.White,
             });
             row.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-line",
@@ -349,7 +349,7 @@ namespace Content.Client.Chemistry.UI
             return _prototypeManager.TryIndex(id, out ReagentPrototype? proto) ? proto.LocalizedName : id;
         }
 
-        private const string BiomassReagent = "FSBiomass";
+        private const string BiomassReagent = "FSBiomass"; // FINALSTAND
 
         private Control BuildFieldKitRow(FSFieldKitPrototype kit, FSFieldKitPlan plan)
         {
@@ -421,7 +421,7 @@ namespace Content.Client.Chemistry.UI
                 if (plan.Steps.Count > 0)
                 {
                     var steps = plan.Steps
-                        .Select((reaction, i) => $"{i + 1}. {FSFieldKitResolver.NameOf(reaction, _prototypeManager)}");
+                        .Select((reaction, i) => $"{i + 1}. {FSFieldKitResolver.NameOf(reaction, _prototypeManager)}"); // FINALSTAND
 
                     body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-steps",
                         ("steps", string.Join("  ", steps)))));

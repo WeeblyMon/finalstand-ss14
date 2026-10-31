@@ -1,4 +1,3 @@
-// Resolves the local player's health and stamina for the vitals block on the wave HUD.
 using Content.Client._FinalStand.Ailments;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.MedicalOps;
@@ -22,6 +21,18 @@ public sealed partial class WaveHudSystem
     [Dependency] private MobStateSystem _mobState = default!;
 
     private readonly List<FSAilmentView> _views = new();
+
+    private string? _heldText;
+    private string? _regenText;
+    private string? _recoveringText;
+    private FSHudText<int> _downClockText = default!;
+    private readonly Dictionary<int, string> _pillSecondsText = new();
+
+    private void InitializeVitalsText()
+    {
+        _downClockText = new(seconds => Loc.GetString("fs-casualty-state-clock",
+            ("time", FSCasualtyBoardSystem.FormatClock(TimeSpan.FromSeconds(seconds)))));
+    }
 
     private void UpdateVitals(WaveHudOverlay overlay)
     {
@@ -72,9 +83,9 @@ public sealed partial class WaveHudSystem
         if (_mobState.IsCritical(player) && TryComp<FSAilmentStateComponent>(player, out var vitals))
         {
             if (vitals.Held)
-                overlay.DownText = Loc.GetString("fs-casualty-state-held");
+                overlay.DownText = _heldText ??= Loc.GetString("fs-casualty-state-held");
             else if (vitals.DownEnd is { } end)
-                overlay.DownText = Loc.GetString("fs-casualty-state-clock", ("time", FSCasualtyBoardSystem.FormatClock(end - _timing.CurTime)));
+                overlay.DownText = _downClockText.Get(FSAilmentVisualsSystem.Seconds(end - _timing.CurTime));
 
             overlay.DownHeld = vitals.Held;
         }
@@ -139,12 +150,12 @@ public sealed partial class WaveHudSystem
         }
 
         if (vitals.Regenerating)
-            overlay.StatusPills.Add(new WaveHudOverlay.VitalPill(Loc.GetString("fs-vitals-regen"), FSPalette.Ok,
-                null, 0f, 0f, 0, WaveHudOverlay.VitalPillStyle.Status));
+            overlay.StatusPills.Add(new WaveHudOverlay.VitalPill(_regenText ??= Loc.GetString("fs-vitals-regen"),
+                FSPalette.Ok, null, 0f, 0f, 0, WaveHudOverlay.VitalPillStyle.Status));
 
         if (vitals.Recovering)
-            overlay.StatusPills.Add(new WaveHudOverlay.VitalPill(Loc.GetString("fs-vitals-recovering"), FSPalette.Ok,
-                null, 0f, 0f, 0, WaveHudOverlay.VitalPillStyle.Status));
+            overlay.StatusPills.Add(new WaveHudOverlay.VitalPill(_recoveringText ??= Loc.GetString("fs-vitals-recovering"),
+                FSPalette.Ok, null, 0f, 0f, 0, WaveHudOverlay.VitalPillStyle.Status));
     }
 
     private static bool Outlasts(FSAilmentView view, FSAilmentView other)
@@ -164,11 +175,15 @@ public sealed partial class WaveHudSystem
         return name;
     }
 
-    private static string Timed(string name, TimeSpan? end, TimeSpan now)
+    private string Timed(string name, TimeSpan? end, TimeSpan now)
     {
         if (end is not { } until)
             return name;
 
-        return $"{name} {FSAilmentVisualsSystem.Seconds(until - now)}s";
+        var seconds = FSAilmentVisualsSystem.Seconds(until - now);
+        if (!_pillSecondsText.TryGetValue(seconds, out var left))
+            _pillSecondsText[seconds] = left = Loc.GetString("fs-hud-seconds", ("seconds", seconds));
+
+        return $"{name} {left}";
     }
 }

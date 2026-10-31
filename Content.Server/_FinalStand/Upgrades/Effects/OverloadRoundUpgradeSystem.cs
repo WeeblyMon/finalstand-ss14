@@ -20,6 +20,7 @@ public sealed partial class OverloadRoundUpgradeSystem : EntitySystem
 {
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private FSHomingProjectileSystem _homing = default!;
 
     private const string OverloadBoltProto = "FSBulletLaserCarbineOverload";
     private const float FallbackBoltSpeed = 20f;
@@ -81,7 +82,7 @@ public sealed partial class OverloadRoundUpgradeSystem : EntitySystem
                 boltProj.Damage = damage;
 
             if (turnRate > 0f)
-                EnsureComp<FSHomingProjectileComponent>(bolt).TurnRateDegrees = turnRate;
+                _homing.Home(bolt, turnRate);
 
             _gun.ShootProjectile(bolt, dir, Vector2.Zero, uid, shooter, speed);
         }

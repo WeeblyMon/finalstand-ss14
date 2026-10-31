@@ -31,9 +31,10 @@ public sealed partial class FSRevenantHeartbeatSystem : EntitySystem
     private float _accum;
     private float _nextBeat = SlowestInterval;
 
-    public override void Update(float frameTime)
+    // Audio only, so real frame time rather than once per predicted tick.
+    public override void FrameUpdate(float frameTime)
     {
-        base.Update(frameTime);
+        base.FrameUpdate(frameTime);
 
         if (_player.LocalSession?.AttachedEntity is not { } local)
             return;

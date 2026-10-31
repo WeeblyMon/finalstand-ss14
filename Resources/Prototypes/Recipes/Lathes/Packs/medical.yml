@@ -27,7 +27,7 @@
   - ChemistryEmptyBottle01
   - ClothingEyesGlassesChemical
   - LauncherSyringe
-  - FSChemistSyringe
+  - FSChemistSyringe # FINALSTAND
   - FSSyringePack
   - FSSplashFlask
   - FSHarvestSatchel
@@ -98,12 +98,12 @@
 - type: latheRecipePack
   id: Chemistry
   recipes:
-  - FSCatalystBottle
+  - FSCatalystBottle # FINALSTAND
   - FSAdrenalBottle
   - FSAnalgesicBottle
   - FSSplashFlaskLarge
   - FSSyringePackLarge
-  - FSMedicalDispenserRestock
+  - FSMedicalDispenserRestock # FINALSTAND
   - FSFieldHospitalItem
   - FSDefibrillatorCompact
   - FSMedicatedSuture

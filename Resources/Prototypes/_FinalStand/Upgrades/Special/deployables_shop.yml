@@ -1,7 +1,7 @@
 ﻿# ── SCI Deployables ──────────────────────────────────────────────────────────────────────────
 - type: entity
-  id: FSDeployableShopNullField
   parent: FSWeaponShopBase
+  id: FSDeployableShopNullField
   name: Null Field Emitter
   description: A portable stasis-field emitter. Slows enemies caught in its radius. Diminishing returns - overlapping fields don't stack.
   components:
@@ -10,15 +10,15 @@
     requiresScience: true
     singlePurchase: true
     price: 3000
-    category: Area Denial Deployable
+    category: fs-weapon-shop-category-area-denial-deployable
     statDamage: 0
     statFireRate: 0
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: null-field-capacity
-      name: Extra Charge
-      description: Carry one additional Null Field charge.
+      name: fs-upgrade-null-field-capacity
+      description: fs-upgrade-null-field-capacity-desc
       maxLevel: 1
       baseCost: 3000
       type: DeployableCapacity
@@ -29,8 +29,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSDeployableShopDamageBeacon
   parent: FSWeaponShopBase
+  id: FSDeployableShopDamageBeacon
   name: Damage Beacon
   description: A portable targeting beacon. Amplifies damage dealt to enemies in its radius. Diminishing returns - overlapping beacons don't stack.
   components:
@@ -39,15 +39,15 @@
     requiresScience: true
     singlePurchase: true
     price: 3500
-    category: Area Denial Deployable
+    category: fs-weapon-shop-category-area-denial-deployable
     statDamage: 0
     statFireRate: 0
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: damage-beacon-capacity
-      name: Extra Charge
-      description: Carry one additional Damage Beacon charge.
+      name: fs-upgrade-damage-beacon-capacity
+      description: fs-upgrade-damage-beacon-capacity-desc
       maxLevel: 1
       baseCost: 3000
       type: DeployableCapacity
@@ -58,8 +58,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSDeployableShopLandmine
   parent: FSWeaponShopBase
+  id: FSDeployableShopLandmine
   name: Landmines
   description: Proximity mines that arm a few seconds after planting and detonate once. They shred anything organic in the blast and leave the station untouched.
   components:
@@ -68,43 +68,43 @@
     requiresScience: false
     singlePurchase: true
     price: 6500
-    category: Area Denial Deployable
+    category: fs-weapon-shop-category-area-denial-deployable
     statDamage: 70
     statFireRate: 0
     statAccuracy: 0
     statCapacity: 30
     upgrades:
     - id: landmine-capacity
-      name: Extra Mines
-      description: Carry one additional mine per level.
+      name: fs-upgrade-landmine-capacity
+      description: fs-upgrade-landmine-capacity-desc
       maxLevel: 2
       baseCost: 4000
       type: DeployableCapacity
       valuePerLevel: 1
     - id: landmine-damage
-      name: Dense Filler
-      description: Each level adds a quarter of the mine's base blast damage.
+      name: fs-upgrade-landmine-damage
+      description: fs-upgrade-landmine-damage-desc
       maxLevel: 3
       baseCost: 5000
       type: LandmineDamage
       valuePerLevel: 2.5
     - id: landmine-detonations
-      name: Reusable Core
-      description: The mine re-arms itself after going off, one extra time per level.
+      name: fs-upgrade-landmine-detonations
+      description: fs-upgrade-landmine-detonations-desc
       maxLevel: 2
       baseCost: 3000
       type: LandmineDetonations
       valuePerLevel: 1
     - id: landmine-regen
-      name: Field Fabricator
-      description: Restock one more mine each wave.
+      name: fs-upgrade-landmine-regen
+      description: fs-upgrade-landmine-regen-desc
       maxLevel: 2
       baseCost: 4000
       type: DeployableRegen
       valuePerLevel: 1
     - id: landmine-he
-      name: High Explosive
-      description: Widens the blast to cover a three by three area.
+      name: fs-upgrade-landmine-he
+      description: fs-upgrade-landmine-he-desc
       maxLevel: 1
       baseCost: 10000
       type: LandmineHighExplosive
@@ -115,8 +115,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSDeployableShopAmmoBox
   parent: FSWeaponShopBase
+  id: FSDeployableShopAmmoBox
   name: Ammo Resupply Box
   description: A portable resupply crate with a limited pool of uses. Its owner can lock it so only they can draw from it.
   components:
@@ -125,22 +125,22 @@
     requiresScience: false
     singlePurchase: true
     price: 5000
-    category: Support Deployable
+    category: fs-weapon-shop-category-support-deployable
     statDamage: 0
     statFireRate: 0
     statAccuracy: 0
     statCapacity: 40
     upgrades:
     - id: ammo-box-uses
-      name: Deeper Stock
-      description: One extra resupply use per level.
+      name: fs-upgrade-ammo-box-uses
+      description: fs-upgrade-ammo-box-uses-desc
       maxLevel: 2
       baseCost: 4000
       type: AmmoBoxUses
       valuePerLevel: 1
     - id: ammo-box-speed
-      name: Quick Release
-      description: Cuts the time it takes to draw a resupply.
+      name: fs-upgrade-ammo-box-speed
+      description: fs-upgrade-ammo-box-speed-desc
       maxLevel: 3
       baseCost: 3000
       type: AmmoBoxSpeed
@@ -152,8 +152,8 @@
 
 # ── Medical Deployables ──────────────────────────────────────────────────────────────────────
 - type: entity
-  id: FSDeployableShopMediDrone
   parent: FSWeaponShopBase
+  id: FSDeployableShopMediDrone
   name: Medi-Drone
   description: A healing drone that follows you and beams wounded allies nearby up to half health. Burns out when its charge runs dry.
   components:
@@ -163,15 +163,15 @@
     requiresMedical: true
     singlePurchase: true
     price: 3000
-    category: Medical Deployable
+    category: fs-weapon-shop-category-medical-deployable
     statDamage: 0
     statFireRate: 0
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: medi-drone-capacity
-      name: Spare Drone
-      description: Carry one more Medi-Drone for when the first burns out.
+      name: fs-upgrade-medi-drone-capacity
+      description: fs-upgrade-medi-drone-capacity-desc
       maxLevel: 1
       baseCost: 3000
       type: DeployableCapacity

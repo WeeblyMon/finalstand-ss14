@@ -56,7 +56,7 @@ public sealed partial class AudioTab : Control
             scale: ContentAudioSystem.InterfaceMultiplier);
 
         Control.AddOptionPercentSlider(
-            CCVars.FSWeaponsVolume,
+            CCVars.FSWeaponsVolume, // FINALSTAND
             SliderVolumeWeapons);
 
         Control.AddOptionSlider(

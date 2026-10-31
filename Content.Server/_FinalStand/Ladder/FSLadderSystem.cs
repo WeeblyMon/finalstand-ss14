@@ -17,12 +17,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Ladder;
 
-[ByRefEvent]
-public readonly record struct FSLadderRecordEvent(FSRunRecord Run, FSRunRecord? Previous);
-
-[ByRefEvent]
-public readonly record struct FSRunRecordedEvent(FSRunRecord Run, FSRunRecord? PreviousHolder, bool IsRecord);
-
 public sealed partial class FSLadderSystem : EntitySystem
 {
     [Dependency] private FSPlayerDataStore _store = default!;
@@ -49,7 +43,7 @@ public sealed partial class FSLadderSystem : EntitySystem
             _provisionalRun = null;
         });
         SubscribeLocalEvent<FSRoundVictoryEvent>((ref FSRoundVictoryEvent _) => SaveProvisionalRun());
-        SubscribeLocalEvent<WavePrepStartedEvent>(_ =>
+        SubscribeLocalEvent<WavePrepStartedEvent>((ref WavePrepStartedEvent _) =>
         {
             if (_provisionalRun != null)
                 SaveProvisionalRun();
@@ -146,7 +140,7 @@ public sealed partial class FSLadderSystem : EntitySystem
         {
             if (mind.UserId is not { } userId || _presence.GetWavesPresent(userId) <= 0 || !seen.Add(userId))
                 continue;
-            names.Add(mind.CharacterName ?? "Unknown");
+            names.Add(mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name"));
         }
 
         return names.Count == 0
@@ -157,7 +151,7 @@ public sealed partial class FSLadderSystem : EntitySystem
     public static FSRunRecord BuildRun(IReadOnlyCollection<string> names, WaveGameRuleSystem.RoundSummary summary,
         int durationSeconds, DateTime endedAtUtc)
     {
-        var players = string.Join(", ", names.OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
+        var players = string.Join(FSLadder.PlayerSeparator, names.OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
         if (players.Length > MaxPlayersText)
             players = players[..(MaxPlayersText - 1)] + "…";
 

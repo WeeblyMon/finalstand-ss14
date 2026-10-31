@@ -1692,6 +1692,7 @@
   - type: SentienceTarget
     flavorKind: station-event-random-sentience-flavor-primate
   - type: AlwaysRevolutionaryConvertible
+  # FINALSTAND: no monkey ghost role.
   - type: Clumsy
     gunShootFailDamage:
       types:
@@ -1922,6 +1923,7 @@
   id: MobMouse
   description: Squeak!
   components:
+  # FINALSTAND: no mouse ghost role.
   - type: Speech
     speechSounds: Squeak
     speechVerb: SmallMob

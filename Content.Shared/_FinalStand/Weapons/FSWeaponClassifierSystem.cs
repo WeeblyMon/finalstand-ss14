@@ -1,5 +1,3 @@
-// One place that decides what kind of weapon an entity is, for the systems that apply research.
-
 using Content.Shared.Item;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Ranged.Components;
@@ -8,6 +6,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Weapons;
 
+// The single place that decides what kind of weapon an entity is, for the systems that apply research.
 public readonly record struct FSWeaponKind(
     bool Ballistic,
     bool Energy,
@@ -28,7 +27,8 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private SharedItemSystem _item = default!;
 
-    private const int LargeWeight = 8;
+    public static readonly ProtoId<ItemSizePrototype> LargeSize = "Large";
+    public static readonly ProtoId<ItemSizePrototype> HugeSize = "Huge";
 
     private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
     private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";
@@ -53,7 +53,7 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
         return HasComp<GunComponent>(uid)
             && !HasComp<WieldableComponent>(uid)
             && TryComp<ItemComponent>(uid, out var item)
-            && _item.GetSizePrototype(item.Size).Weight < LargeWeight;
+            && _item.GetSizePrototype(item.Size) < _item.GetSizePrototype(LargeSize);
     }
 
     public bool IsTwoHandedGun(EntityUid uid)
@@ -63,12 +63,12 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
 
     public bool IsSemiAutoRifle(EntityUid uid)
     {
-        return Prototype(uid)?.ID is { } id && SemiAutoRifleProtos.Contains(id);
+        return PrototypeId(uid) is { } id && SemiAutoRifleProtos.Contains(id);
     }
 
     public FSWeaponKind Classify(EntityUid uid)
     {
-        var protoId = Prototype(uid)?.ID;
+        var protoId = PrototypeId(uid);
 
         return new FSWeaponKind(
             Ballistic: _tags.HasTag(uid, BallisticTag),
@@ -81,5 +81,11 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
             Xray: protoId == XrayProto,
             Tesla: protoId == TeslaProto,
             Harvester: protoId == HarvesterProto);
+    }
+
+    // A weapon can be gone by the time its bullet lands; that's no kind at all rather than an exception.
+    private string? PrototypeId(EntityUid uid)
+    {
+        return TryComp(uid, out MetaDataComponent? meta) ? meta.EntityPrototype?.ID : null;
     }
 }

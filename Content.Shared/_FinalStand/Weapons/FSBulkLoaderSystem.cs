@@ -82,13 +82,19 @@ public sealed partial class FSBulkLoaderSystem : EntitySystem
 
             if (_whitelist.IsWhitelistFail(targetComp.Whitelist, ammoEnt.Value))
             {
-                // Doesn't fit this weapon after all — drop it back where the clip is instead of destroying it.
+                // Doesn't fit this weapon after all; drop it back where the clip is instead of destroying it.
                 _interaction.InteractUsing(user, ammoEnt.Value, source, Transform(source).Coordinates, checkCanInteract: false, checkCanUse: false);
-                continue;
+            }
+            else
+            {
+                _interaction.InteractUsing(user, ammoEnt.Value, target, Transform(target).Coordinates, checkCanInteract: false, checkCanUse: false);
+                inserted++;
             }
 
-            _interaction.InteractUsing(user, ammoEnt.Value, target, Transform(target).Coordinates, checkCanInteract: false, checkCanUse: false);
-            inserted++;
+            // Predicting the load spawns the clip's rounds client-side; the server's container state replaces them,
+            // and without this they'd be left behind on every load (same as the vanilla ammo fill).
+            if (IsClientSide(ammoEnt.Value))
+                Del(ammoEnt.Value);
         }
 
         if (inserted > 0)

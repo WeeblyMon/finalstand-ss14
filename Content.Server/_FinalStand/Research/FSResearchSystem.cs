@@ -18,6 +18,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Research;
 
@@ -30,11 +31,28 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     [Dependency] private Science.FSScienceOnlySystem _scienceOnly = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private FSMedicalResearchSystem _medicalResearch = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly ProtoId<AccessLevelPrototype> ResearchDirectorAccess = "ResearchDirector";
     private static readonly ProtoId<AccessLevelPrototype> CaptainAccess = "Captain";
 
     private EntityUid? _station;
+
+    // Weapons like the Harvester grant points on every hit, so plain progress is batched instead of synced per hit.
+    private static readonly TimeSpan ProgressSyncInterval = TimeSpan.FromSeconds(0.25);
+    private TimeSpan _nextProgressSync;
+    private bool _progressSyncPending;
+
+    // Set when the shared queue starts a node, so banked RP (and overflow from the node that just finished)
+    // goes into it. Done next tick because the queue advances from inside the grant itself.
+    private bool _reinvestPending;
+    private readonly HashSet<EntityUid> _personalSyncPending = new();
+
+    // Last values broadcast to every client; late joiners get theirs on attach.
+    private int? _sentPoints;
+    private bool _sentShared;
+    private ProtoId<FSTechNodePrototype>? _sentActive;
+    private int _sentActiveProgress;
 
     public override void Initialize()
     {
@@ -91,6 +109,10 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent args)
     {
         _station = null;
+        _progressSyncPending = false;
+        _personalSyncPending.Clear();
+        _sentPoints = null;
+        _sentShared = false;
         var query = EntityQueryEnumerator<FSStationResearchComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
@@ -135,15 +157,13 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnConsoleServerLinkChanged(EntityUid uid, FSTechDatabaseComponent comp, ref ResearchRegistrationChangedEvent args)
     {
-        _station = null;
-        if (TerminatingOrDeleted(uid))
-            return;
-
-        if (args.Server is { } server && !TerminatingOrDeleted(server))
-            GetOrCreateStation();
-        SyncConsoles();
+        // A console with no research state yet already shows the empty one; nothing to create here.
+        if (!TerminatingOrDeleted(uid))
+            SyncConsoles();
     }
 
+    // The state is its own entity for the round, like medical research's. It used to live on the R&D server, so
+    // taking the machine apart wiped every unlock, the banked points and the queues.
     public Entity<FSStationResearchComponent> GetOrCreateStation()
     {
         if (TryGetStation(out var found))
@@ -176,47 +196,40 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             return true;
         }
 
-        if (TryFindLinkedServer(out var linkedServer))
-        {
-            var linkedComp = EnsureComp<FSStationResearchComponent>(linkedServer);
-            _station = linkedServer;
-            station = (linkedServer, linkedComp);
-            return true;
-        }
-
-        var serverQuery = EntityQueryEnumerator<ResearchServerComponent>();
-        while (serverQuery.MoveNext(out var serverUid, out _))
-        {
-            if (TerminatingOrDeleted(serverUid))
-                continue;
-
-            var comp = EnsureComp<FSStationResearchComponent>(serverUid);
-            _station = serverUid;
-            station = (serverUid, comp);
-            return true;
-        }
-
         return false;
     }
 
-    private bool TryFindLinkedServer(out EntityUid server)
+    public override void Update(float frameTime)
     {
-        var query = EntityQueryEnumerator<FSTechDatabaseComponent, ResearchClientComponent>();
-        while (query.MoveNext(out _, out _, out var client))
+        base.Update(frameTime);
+
+        if (_reinvestPending)
         {
-            if (client.Server is { } linked && !TerminatingOrDeleted(linked) && HasComp<ResearchServerComponent>(linked))
+            _reinvestPending = false;
+            if (TryGetStation(out var station) && station.Comp.ActiveResearch != null && station.Comp.Points > 0)
             {
-                server = linked;
-                return true;
+                var banked = station.Comp.Points;
+                station.Comp.Points = 0;
+                GrantResearchPoints(banked, "banked-rp-reinvest");
             }
         }
 
-        server = default;
-        return false;
+        if (!_progressSyncPending && _personalSyncPending.Count == 0 || _timing.CurTime < _nextProgressSync)
+            return;
+
+        _nextProgressSync = _timing.CurTime + ProgressSyncInterval;
+        if (_progressSyncPending)
+            SyncConsoles();
+
+        foreach (var mind in _personalSyncPending)
+            SendPersonalResearchState(mind);
+
+        _personalSyncPending.Clear();
     }
 
     public void SyncConsoles()
     {
+        _progressSyncPending = false;
         if (!TryGetStation(out var station))
             return;
 
@@ -240,30 +253,104 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
         while (query.MoveNext(out var uid, out var console))
         {
-            if (console.Track != FSResearchTrack.Science)
-                continue;
-
-            console.UnlockedNodes.Clear();
-            console.UnlockedNodes.AddRange(station.Comp.UnlockedNodes);
-            console.ActiveResearch = station.Comp.ActiveResearch;
-            console.SharedQueue.Clear();
-            console.SharedQueue.AddRange(station.Comp.SharedQueue);
-            console.NodeProgress.Clear();
-            foreach (var (id, amount) in station.Comp.NodeProgress)
-                console.NodeProgress[id] = amount;
-            console.Points = station.Comp.Points;
-            console.PersonalContributorSlots.Clear();
-            foreach (var (id, slots) in contributorSlots)
-                console.PersonalContributorSlots[id] = new List<int>(slots);
-            Dirty(uid, console);
+            if (console.Track == FSResearchTrack.Science)
+                SyncConsole((uid, console), station.Comp, contributorSlots);
         }
 
-        RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.Broadcast());
+        // Clients already hold the last values; resending them at the progress rate is pure traffic.
+        if (_sentPoints != station.Comp.Points)
+        {
+            _sentPoints = station.Comp.Points;
+            RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.Broadcast());
+        }
 
         var activeProgress = station.Comp.ActiveResearch is { } activeId
             ? station.Comp.NodeProgress.GetValueOrDefault(activeId.Id)
             : 0;
-        RaiseNetworkEvent(new FSSharedResearchStateEvent(station.Comp.ActiveResearch, activeProgress), Filter.Broadcast());
+        if (!_sentShared || _sentActive != station.Comp.ActiveResearch || _sentActiveProgress != activeProgress)
+        {
+            _sentShared = true;
+            _sentActive = station.Comp.ActiveResearch;
+            _sentActiveProgress = activeProgress;
+            RaiseNetworkEvent(new FSSharedResearchStateEvent(station.Comp.ActiveResearch, activeProgress), Filter.Broadcast());
+        }
+    }
+
+    // Field by field: progress moves several times a second, the unlocked list and queue hardly ever.
+    private void SyncConsole(Entity<FSTechDatabaseComponent> console, FSStationResearchComponent station,
+        Dictionary<string, List<int>> contributorSlots)
+    {
+        var comp = console.Comp;
+
+        if (!comp.UnlockedNodes.SequenceEqual(station.UnlockedNodes))
+        {
+            comp.UnlockedNodes.Clear();
+            comp.UnlockedNodes.AddRange(station.UnlockedNodes);
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.UnlockedNodes));
+        }
+
+        if (comp.ActiveResearch != station.ActiveResearch)
+        {
+            comp.ActiveResearch = station.ActiveResearch;
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.ActiveResearch));
+        }
+
+        if (!comp.SharedQueue.SequenceEqual(station.SharedQueue))
+        {
+            comp.SharedQueue.Clear();
+            comp.SharedQueue.AddRange(station.SharedQueue);
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.SharedQueue));
+        }
+
+        if (!SameProgress(comp.NodeProgress, station.NodeProgress))
+        {
+            comp.NodeProgress.Clear();
+            foreach (var (id, amount) in station.NodeProgress)
+                comp.NodeProgress[id] = amount;
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.NodeProgress));
+        }
+
+        if (comp.Points != station.Points)
+        {
+            comp.Points = station.Points;
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.Points));
+        }
+
+        if (!SameSlots(comp.PersonalContributorSlots, contributorSlots))
+        {
+            comp.PersonalContributorSlots.Clear();
+            foreach (var (id, slots) in contributorSlots)
+                comp.PersonalContributorSlots[id] = new List<int>(slots);
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.PersonalContributorSlots));
+        }
+    }
+
+    private static bool SameProgress(Dictionary<string, int> shown, Dictionary<string, int> actual)
+    {
+        if (shown.Count != actual.Count)
+            return false;
+
+        foreach (var (id, amount) in actual)
+        {
+            if (!shown.TryGetValue(id, out var have) || have != amount)
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool SameSlots(Dictionary<string, List<int>> shown, Dictionary<string, List<int>> actual)
+    {
+        if (shown.Count != actual.Count)
+            return false;
+
+        foreach (var (id, slots) in actual)
+        {
+            if (!shown.TryGetValue(id, out var have) || !have.SequenceEqual(slots))
+                return false;
+        }
+
+        return true;
     }
 
     private static int GetOrAssignColorSlot(Entity<FSStationResearchComponent> station, EntityUid mindId)
@@ -285,6 +372,10 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     private static bool IsOtherTrack(FSTechDatabaseComponent comp)
         => comp.Track != FSResearchTrack.Science;
 
+    // The console only researches its own branches; a crafted message could otherwise buy medical nodes with RP.
+    private static bool ServesBranch(FSTechDatabaseComponent comp, FSTechNodePrototype node)
+        => comp.Branches.Count == 0 || comp.Branches.Contains(node.Branch);
+
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
     {
         if (comp.Track == FSResearchTrack.Medical)
@@ -300,7 +391,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!player.IsValid())
             return;
 
-        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
+        if (args.NodeId is null
+            || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node)
+            || !ServesBranch(comp, node))
             return;
 
         var station = GetOrCreateStation();
@@ -385,7 +478,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!player.IsValid())
             return;
 
-        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
+        if (args.NodeId is null
+            || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node)
+            || !ServesBranch(comp, node))
             return;
 
         var station = GetOrCreateStation();
@@ -622,6 +717,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             station.Comp.SharedQueue.RemoveAt(0);
             station.Comp.NodeProgress.TryAdd(node.ID, 0);
             station.Comp.ActiveResearch = node.ID;
+            _reinvestPending = true;
             return;
         }
     }
@@ -653,15 +749,16 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         }
     }
 
-    public event Action<EntityUid, int>? PointsContributed;
-
     public void GrantResearchPoints(int amount, string source, EntityUid? contributorMindId = null)
     {
         if (amount <= 0)
             return;
 
         if (contributorMindId is { } credited)
-            PointsContributed?.Invoke(credited, amount);
+        {
+            var contributed = new FSResearchContributedEvent(amount);
+            RaiseLocalEvent(credited, ref contributed);
+        }
 
         var station = GetOrCreateStation();
 
@@ -682,11 +779,13 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             targetId = activeId;
         }
 
-        if (targetId is not { } id || !PrototypeManager.TryIndex<FSTechNodePrototype>(id, out var node))
+        if (targetId is not { } id
+            || !PrototypeManager.TryIndex<FSTechNodePrototype>(id, out var node)
+            || IsExclusivelyBlocked(node, station.Comp.UnlockedLookup))
         {
             station.Comp.Points += amount;
             Dirty(station);
-            SyncConsoles();
+            _progressSyncPending = true;
             return;
         }
 
@@ -707,26 +806,33 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         Dirty(station);
 
         if (station.Comp.NodeProgress[id.Id] >= node.Cost)
+        {
             CompleteResearch(station, node, discounted, contributorMindId);
+            SyncConsoles();
+            if (!discounted && contributorMindId is { } finisher)
+                SendPersonalResearchState(finisher);
+            return;
+        }
 
-        SyncConsoles();
-
+        _progressSyncPending = true;
         if (!discounted && contributorMindId is { } cid)
-            SendPersonalResearchState(cid);
+            _personalSyncPending.Add(cid);
     }
 
     private void CompleteResearch(Entity<FSStationResearchComponent> station, FSTechNodePrototype node, bool wasShared, EntityUid? contributorMindId)
     {
         MarkNodeUnlocked(station.Comp, node.ID);
 
-        if (wasShared)
+        // Picks that this unlock now rules out (the other half of an exclusive choice) are dropped with it,
+        // otherwise both halves kept earning and could both unlock.
+        if (wasShared || IsBlockedBy(station.Comp.ActiveResearch, station.Comp))
         {
             station.Comp.ActiveResearch = null;
             station.Comp.ActiveResearchSetBy = null;
         }
 
         var stale = station.Comp.PersonalPicks
-            .Where(kv => kv.Value.Id == node.ID)
+            .Where(kv => kv.Value.Id == node.ID || IsBlockedBy(kv.Value, station.Comp))
             .Select(kv => kv.Key)
             .ToList();
 
@@ -743,9 +849,18 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         foreach (var mind in stale)
             SendPersonalResearchState(mind);
 
-        RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
+        var completed = new FSResearchNodeCompletedEvent(node.ID);
 
-        Log.Info($"[FSResearch] Completed node {node.ID}");
+        RaiseLocalEvent(ref completed);
+
+        Log.Info($"Completed node {node.ID}");
+    }
+
+    private bool IsBlockedBy(ProtoId<FSTechNodePrototype>? pick, FSStationResearchComponent station)
+    {
+        return pick is { } id
+               && PrototypeManager.TryIndex(id, out var picked)
+               && IsExclusivelyBlocked(picked, station.UnlockedLookup);
     }
 
     private void SendPersonalResearchState(EntityUid mindId)
@@ -753,6 +868,8 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!TryComp<MindComponent>(mindId, out var mindComp) || !_playerManager.TryGetSessionById(mindComp.UserId, out var session))
             return;
 
+        // Only reads: it runs on every attach, the ghost made while everything is being deleted included, and
+        // creating the state there left it behind.
         if (!TryGetStation(out var station))
         {
             RaiseNetworkEvent(new FSPersonalResearchStateEvent(null, 0, new List<string>()), Filter.SinglePlayer(session));
@@ -789,6 +906,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     {
         var station = GetOrCreateStation();
         var alreadyUnlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
+        var pickers = station.Comp.PersonalPicks.Keys.ToList();
 
         var count = 0;
         foreach (var node in PrototypeManager.EnumeratePrototypes<FSTechNodePrototype>())
@@ -797,7 +915,8 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
                 continue;
 
             MarkNodeUnlocked(station.Comp, node.ID);
-            RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
+            var completed = new FSResearchNodeCompletedEvent(node.ID, Earned: false);
+            RaiseLocalEvent(ref completed);
             count++;
         }
 
@@ -811,6 +930,10 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         SyncConsoles();
         count += _medicalResearch.UnlockAllNodes();
         BroadcastUnlockedNodes();
+
+        // Their picks were just cleared, so their personal panels need telling.
+        foreach (var mind in pickers)
+            SendPersonalResearchState(mind);
 
         return count;
     }

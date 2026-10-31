@@ -3,12 +3,15 @@ using Content.Shared.Vehicle.Components;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Containers;
+using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.Mech;
 
 public sealed partial class FSMechWeaponSelectSystem : EntitySystem
 {
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly SoundSpecifier SelectSound = new SoundPathSpecifier("/Audio/Machines/button.ogg");
 
@@ -16,6 +19,7 @@ public sealed partial class FSMechWeaponSelectSystem : EntitySystem
     {
         base.Initialize();
         SubscribeAllEvent<FSMechSelectWeaponEvent>(OnSelect);
+        SubscribeLocalEvent<FSMechWeaponTogglesComponent, EntRemovedFromContainerMessage>(OnRemoved);
     }
 
     private void OnSelect(FSMechSelectWeaponEvent ev, EntitySessionEventArgs args)
@@ -45,9 +49,20 @@ public sealed partial class FSMechWeaponSelectSystem : EntitySystem
         _audio.PlayPredicted(SelectSound, vehicle, pilot);
     }
 
-    public bool IsArmed(EntityUid mech, EntityUid weapon)
+    // A dismounted or deleted weapon mustn't linger in the networked set. Not while applying state: a PVS detach
+    // takes it out of the container on the client too, and the set would drift from the server's.
+    private void OnRemoved(Entity<FSMechWeaponTogglesComponent> ent, ref EntRemovedFromContainerMessage args)
     {
-        return !TryComp<FSMechWeaponTogglesComponent>(mech, out var toggles) || !toggles.Disabled.Contains(weapon);
+        if (_timing.ApplyingState)
+            return;
+
+        if (ent.Comp.Disabled.Remove(args.Entity))
+            Dirty(ent);
+    }
+
+    public bool IsArmed(Entity<FSMechWeaponTogglesComponent?> mech, EntityUid weapon)
+    {
+        return !Resolve(mech, ref mech.Comp, false) || !mech.Comp.Disabled.Contains(weapon);
     }
 
     public bool TryGetArmedGuns(EntityUid pilot, List<Entity<GunComponent>> guns)
@@ -56,9 +71,10 @@ public sealed partial class FSMechWeaponSelectSystem : EntitySystem
         if (!TryGetPilotMech(pilot, out var vehicle, out var mech))
             return false;
 
+        TryComp<FSMechWeaponTogglesComponent>(vehicle, out var toggles);
         foreach (var equipment in mech.EquipmentContainer.ContainedEntities)
         {
-            if (IsArmed(vehicle, equipment) && TryComp<GunComponent>(equipment, out var gun))
+            if (IsArmed((vehicle, toggles), equipment) && TryComp<GunComponent>(equipment, out var gun))
                 guns.Add((equipment, gun));
         }
 
@@ -93,7 +109,7 @@ public sealed partial class FSMechWeaponSelectSystem : EntitySystem
         return true;
     }
 
-    private EntityUid? FirstArmed(MechComponent mech, FSMechWeaponTogglesComponent toggles)
+    private static EntityUid? FirstArmed(MechComponent mech, FSMechWeaponTogglesComponent toggles)
     {
         foreach (var equipment in mech.EquipmentContainer.ContainedEntities)
         {

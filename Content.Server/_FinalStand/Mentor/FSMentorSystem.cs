@@ -8,8 +8,10 @@ using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Server.Players.PlayTimeTracking;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Mentor;
 using Content.Shared.Damage.Systems;
 using Content.Shared._FinalStand.Onboarding;
+using Content.Shared._FinalStand.Titles;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs.Systems;
@@ -18,6 +20,7 @@ using Robust.Server.Player;
 using Robust.Shared.Enums;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Mentor;
@@ -37,16 +40,12 @@ public sealed partial class FSMentorSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private PlayTimeTrackingManager _playTime = default!;
 
-    public const int ReviveMp = 3;
     public const int ReviveCredits = 300;
-    public const float HealPerMp = 50f;
     public const int HealCreditsPerMp = 50;
-    public const int WaveEscortMp = 1;
     public const float WaveEscortRange = 8f;
-    public const int FirstRoundMp = 5;
     public static readonly TimeSpan ReviveCooldown = TimeSpan.FromSeconds(120);
 
-    public readonly record struct ShopItem(string Id, int Cost, string? Title = null, int PerkPoints = 0);
+    public readonly record struct ShopItem(string Id, int Cost, ProtoId<FSTitlePrototype>? Title = null, int PerkPoints = 0);
 
     public static readonly ShopItem[] Shop =
     {
@@ -145,9 +144,9 @@ public sealed partial class FSMentorSystem : EntitySystem
             return;
         _lastRevive[key] = now;
 
-        var granted = Award(mentor, rookie, ReviveMp, "fs-mentor-reason-revive");
+        var granted = Award(mentor, rookie, FSMentorRules.ReviveMp, "fs-mentor-reason-revive");
         if (granted > 0)
-            _wallet.GiveCredits(ev.HealerMind, ReviveCredits * granted / ReviveMp);
+            _wallet.GiveCredits(ev.HealerMind, ReviveCredits * granted / FSMentorRules.ReviveMp);
     }
 
     private void OnHealed(ref FSAllyHealedEvent ev)
@@ -157,7 +156,7 @@ public sealed partial class FSMentorSystem : EntitySystem
 
         var key = (mentor.UserId.UserId, rookie.UserId.UserId);
         var bank = _healBank.GetValueOrDefault(key);
-        var points = FSMentorRules.HealPoints(ref bank, ev.Amount, HealPerMp);
+        var points = FSMentorRules.HealPoints(ref bank, ev.Amount, FSMentorRules.HealPerMp);
         _healBank[key] = bank;
         if (points <= 0)
             return;
@@ -189,7 +188,7 @@ public sealed partial class FSMentorSystem : EntitySystem
                 if (rookiePos.MapId != mentorPos.MapId || (rookiePos.Position - mentorPos.Position).Length() > WaveEscortRange)
                     continue;
 
-                Award(mentor, rookie, WaveEscortMp, "fs-mentor-reason-escort");
+                Award(mentor, rookie, FSMentorRules.WaveEscortMp, "fs-mentor-reason-escort");
             }
         }
     }
@@ -202,7 +201,7 @@ public sealed partial class FSMentorSystem : EntitySystem
         foreach (var mentor in _playerManager.Sessions)
         {
             if (_presence.GetWavesPresent(mentor.UserId) > 0 && CanMentor(mentor, rookie))
-                Award(mentor, rookie, FirstRoundMp, "fs-mentor-reason-first-round");
+                Award(mentor, rookie, FSMentorRules.FirstRoundMp, "fs-mentor-reason-first-round");
         }
     }
 
@@ -218,7 +217,7 @@ public sealed partial class FSMentorSystem : EntitySystem
         _ledger.Void(attacker.UserId, rookie.UserId);
     }
 
-    public int Award(ICommonSession mentor, ICommonSession rookie, int amount, string reasonLocId)
+    public int Award(ICommonSession mentor, ICommonSession rookie, int amount, LocId reason)
     {
         var record = CurrentRecord(mentor.UserId.UserId);
         var granted = _ledger.Grant(mentor.UserId.UserId, rookie.UserId.UserId, amount, record.WeekPoints);
@@ -233,7 +232,7 @@ public sealed partial class FSMentorSystem : EntitySystem
         });
 
         _chat.DispatchServerMessage(mentor, Loc.GetString("fs-mentor-earned",
-            ("points", granted), ("reason", Loc.GetString(reasonLocId, ("rookie", rookie.Name)))));
+            ("points", granted), ("reason", Loc.GetString(reason, ("rookie", rookie.Name)))));
         return granted;
     }
 
@@ -253,7 +252,7 @@ public sealed partial class FSMentorSystem : EntitySystem
             return false;
         }
 
-        if (item.Title != null && _titles.GetOwned(user).Any(t => t.Id == item.Title))
+        if (item.Title is { } wanted && _titles.GetOwned(user).Contains(wanted))
         {
             message = Loc.GetString("fs-mentor-shop-owned");
             return false;
@@ -274,8 +273,8 @@ public sealed partial class FSMentorSystem : EntitySystem
         }
 
         _store.SaveMentor(user.UserId, record with { Balance = record.Balance - item.Cost });
-        if (item.Title != null)
-            _titles.Grant(user, item.Title);
+        if (item.Title is { } title)
+            _titles.Grant(user, title);
         if (session != null)
             _wallet.GivePerkPoints(session, item.PerkPoints);
         message = Loc.GetString("fs-mentor-shop-bought", ("cost", item.Cost));

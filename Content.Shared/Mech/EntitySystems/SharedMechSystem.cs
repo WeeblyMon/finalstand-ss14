@@ -38,9 +38,9 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] protected VehicleSystem Vehicle = default!;
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private Content.Shared._FinalStand.Mech.FSMechMountSystem _mounts = default!; // FS
-    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!; // FS
-    private static readonly Robust.Shared.Audio.SoundSpecifier CycleSound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Machines/button.ogg"); // FS
+    [Dependency] private Content.Shared._FinalStand.Mech.FSMechMountSystem _mounts = default!; // FINALSTAND
+    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!; // FINALSTAND
+    private static readonly Robust.Shared.Audio.SoundSpecifier CycleSound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Machines/button.ogg"); // FINALSTAND
 
     [SubscribeLocalEvent]
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -173,7 +173,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (_net.IsServer)
         {
             _popup.PopupEntity(popupString, uid);
-            _audio.PlayPvs(CycleSound, uid); // FS
+            _audio.PlayPvs(CycleSound, uid); // FINALSTAND
         }
 
         Dirty(uid, component);
@@ -201,7 +201,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (_whitelistSystem.IsWhitelistFail(component.EquipmentWhitelist, toInsert))
             return;
 
-        if (!_mounts.HasRoom(uid, toInsert)) // FS
+        if (!_mounts.HasRoom(uid, toInsert)) // FINALSTAND
             return;
 
         equipmentComponent.EquipmentOwner = uid;
@@ -315,7 +315,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return false;
 
-        if (component.Broken)
+        if (component.Broken) // FINALSTAND
             return false;
 
         if (!_actionBlocker.CanMove(toInsert))

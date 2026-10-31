@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using Content.Shared._FinalStand.Mobs;
 using Content.Shared.ActionBlocker;
 using Content.Shared.CCVar;
 using Content.Shared.Friction;
@@ -58,6 +59,7 @@ public abstract partial class SharedMoverController : VirtualController
     [Dependency] protected EntityQuery<MovementRelayTargetComponent> RelayTargetQuery = default!;
     [Dependency] protected EntityQuery<MovementSpeedModifierComponent> ModifierQuery = default!;
     [Dependency] protected EntityQuery<NoRotateOnMoveComponent> NoRotateQuery = default!;
+    [Dependency] private EntityQuery<FSCoarseFacingComponent> _coarseFacingQuery = default!; // FINALSTAND
     [Dependency] protected EntityQuery<PhysicsComponent> PhysicsQuery = default!;
     [Dependency] protected EntityQuery<PilotComponent> PilotQuery = default!;
     [Dependency] protected EntityQuery<PreventPilotComponent> PreventPilotQuery = default!;
@@ -189,6 +191,7 @@ public abstract partial class SharedMoverController : VirtualController
             || PullableQuery.TryGetComponent(uid, out var pullable) && pullable.BeingPulled)
         {
             UsedMobMovement[uid] = false;
+            mover.WishDir = Vector2.Zero; // FINALSTAND: a conveyor kept adding the last walk to a stunned or pulled mob
             return;
         }
 
@@ -218,6 +221,7 @@ public abstract partial class SharedMoverController : VirtualController
             if (!weightless)
             {
                 UsedMobMovement[uid] = false;
+                mover.WishDir = Vector2.Zero; // FINALSTAND
                 return;
             }
             inAirHelpless = true;
@@ -307,6 +311,11 @@ public abstract partial class SharedMoverController : VirtualController
         var minimumFrictionSpeed = moveSpeedComponent?.MinimumFrictionSpeed ?? MovementSpeedModifierComponent.DefaultMinimumFrictionSpeed;
         Friction(minimumFrictionSpeed, frameTime, friction, ref velocity);
 
+        // FINALSTAND: friction leaves anything under the minimum speed alone, so a mob that stopped walking crept on at
+        // up to that speed for good and its transform went out to every client every tick.
+        if (wishDir == Vector2.Zero && (!weightless || touching) && velocity.LengthSquared() < minimumFrictionSpeed * minimumFrictionSpeed)
+            velocity = Vector2.Zero;
+
         if (!weightless || touching)
             Accelerate(ref velocity, in wishDir, accel, frameTime);
 
@@ -340,8 +349,19 @@ public abstract partial class SharedMoverController : VirtualController
                 // TODO apparently this results in a duplicate move event because "This should have its event run during
                 // island solver"??. So maybe SetRotation needs an argument to avoid raising an event?
                 var worldRot = _transform.GetWorldRotation(xform);
+                var facing = wishDir.ToWorldAngle();
+                var turn = true;
 
-                _transform.SetLocalRotation(uid, xform.LocalRotation + wishDir.ToWorldAngle() - worldRot, xform);
+                // FINALSTAND: coarse facing turns only when the snapped heading changes.
+                if (_coarseFacingQuery.TryComp(uid, out var coarse))
+                {
+                    var heading = FacingIndex(facing, coarse.Steps);
+                    turn = heading != FacingIndex(worldRot, coarse.Steps);
+                    facing = new Angle(heading * Math.Tau / coarse.Steps);
+                }
+
+                if (turn)
+                    _transform.SetLocalRotation(uid, xform.LocalRotation + facing - worldRot, xform);
             }
 
             if (!weightless && MobMoverQuery.TryGetComponent(uid, out var mobMover) &&
@@ -374,13 +394,11 @@ public abstract partial class SharedMoverController : VirtualController
         return mover.Comp.WishDir;
     }
 
+    // FINALSTAND: no Dirty. WishDir isn't part of the mover's state, so dirtying only resent an unchanged state to
+    // every client in range, every tick, for every mob steering.
     public void SetWishDir(Entity<InputMoverComponent> mover, Vector2 wishDir)
     {
-        if (mover.Comp.WishDir.Equals(wishDir))
-            return;
-
         mover.Comp.WishDir = wishDir;
-        Dirty(mover);
     }
 
     public void LerpRotation(EntityUid uid, InputMoverComponent mover, float frameTime)
@@ -412,6 +430,13 @@ public abstract partial class SharedMoverController : VirtualController
             mover.RelativeRotation = mover.TargetRelativeRotation.FlipPositive();
             Dirty(uid, mover);
         }
+    }
+
+    // FINALSTAND
+    private static int FacingIndex(Angle angle, int steps)
+    {
+        var index = (int) Math.Round(angle.Theta / (Math.Tau / steps)) % steps;
+        return index < 0 ? index + steps : index;
     }
 
     public void Friction(float minimumFrictionSpeed, float frameTime, float friction, ref Vector2 velocity)

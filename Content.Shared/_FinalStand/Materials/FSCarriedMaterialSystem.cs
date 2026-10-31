@@ -1,10 +1,10 @@
-// Counts and spends material stacks carried anywhere on a player: hands, pockets, belt, bags inside bags.
 using Content.Shared.Stacks;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Materials;
 
+// Carried means anywhere on the player: hands, pockets, belt, bags inside bags.
 public sealed partial class FSCarriedMaterialSystem : EntitySystem
 {
     [Dependency] private SharedStackSystem _stack = default!;

@@ -1,10 +1,11 @@
 using Content.Server.Ghost;
 using Content.Shared._FinalStand.CryoSleep;
+using Content.Shared.ActionBlocker;
 using Content.Shared.Bed.Cryostorage;
 using Content.Shared.CCVar;
-using Content.Shared.ActionBlocker;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
@@ -12,13 +13,13 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.CryoSleep;
 
-// entering cryosleep, and the record of who has a body waiting
 public sealed partial class FSCryoSleepSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private GhostSystem _ghost = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private ActionBlockerSystem _actionBlocker = default!;
 
@@ -33,7 +34,6 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         _cfg.OverrideDefault(CCVars.GameCryoSleepRejoining, true);
         Subs.CVar(_cfg, CCVars.GameCryoSleepRejoining, value => _rejoinEnabled = value, true);
 
-        SubscribeLocalEvent<CryostorageComponent, InteractHandEvent>(OnPodInteractHand);
         SubscribeLocalEvent<CryostorageComponent, ActivateInWorldEvent>(OnPodActivate);
         SubscribeLocalEvent<CanEnterCryostorageComponent, EntGotInsertedIntoContainerMessage>(OnInsertedIntoPod);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
@@ -77,14 +77,6 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         RaiseNetworkEvent(new FSCryoStatusEvent(TryGetStoredBody(session.UserId, out _, out _)), session);
     }
 
-    private void OnPodInteractHand(Entity<CryostorageComponent> ent, ref InteractHandEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        args.Handled = PromptOrEnter(ent, args.User);
-    }
-
     private void OnPodActivate(Entity<CryostorageComponent> ent, ref ActivateInWorldEvent args)
     {
         if (args.Handled)
@@ -116,6 +108,9 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
 
     private bool TryEnterPod(Entity<CryostorageComponent> pod, EntityUid user)
     {
+        if (!HasComp<CanEnterCryostorageComponent>(user) || _mobState.IsIncapacitated(user))
+            return false;
+
         if (!_container.TryGetContainer(pod.Owner, pod.Comp.ContainerId, out var container))
             return false;
 

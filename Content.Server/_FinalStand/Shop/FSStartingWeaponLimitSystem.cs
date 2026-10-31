@@ -1,4 +1,3 @@
-// Job weapons the shop buys back are issued once per player per round, so rejoining can't farm them.
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.GameTicking;
 using Content.Shared.Popups;
@@ -7,6 +6,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Shop;
 
+// Job weapons the shop buys back are issued once per player per round, so rejoining can't farm them.
 public sealed partial class FSStartingWeaponLimitSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _proto = default!;

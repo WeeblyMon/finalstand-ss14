@@ -4,7 +4,6 @@ using Content.Shared.Atmos.Rotting;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
-using Content.Shared.GameTicking;
 using Content.Shared.Medical;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
@@ -21,55 +20,59 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private SharedRottingSystem _rotting = default!;
 
-    private readonly HashSet<EntityUid> _wasDead = new();
+    // The vanilla zap revives before TargetDefibrillatedEvent, so whether the patient was dead is noted just before it.
+    // Set fresh on every zap, so one that gets cancelled after the check can't leave a living patient marked dead.
+    private EntityUid? _zappedWhileDead;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSAilmentStateComponent, TargetBeforeDefibrillatorZapsEvent>(OnBeforeZap);
         SubscribeLocalEvent<DamageableComponent, TargetDefibrillatedEvent>(OnDefibrillated);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _wasDead.Clear());
     }
 
     private void OnBeforeZap(EntityUid patient, FSAilmentStateComponent state, TargetBeforeDefibrillatorZapsEvent args)
     {
-        if (_mobState.IsDead(patient))
-            _wasDead.Add(patient);
+        _zappedWhileDead = _mobState.IsDead(patient) ? patient : null;
     }
 
     private void OnDefibrillated(EntityUid patient, DamageableComponent damageable, ref TargetDefibrillatedEvent args)
     {
-        var wasDead = _wasDead.Remove(patient);
-        if (TryComp<FSEmergencyDefibComponent>(args.Defibrillator.Owner, out var emergency))
-        {
-            if (wasDead || _mobState.IsDead(patient))
-                Revive(patient, damageable, emergency, args.User);
-            else if (_mobState.IsCritical(patient))
-                StabilizeToward(patient, damageable, MobState.Critical, emergency.ReviveHealthFraction, args.User);
-        }
+        var wasDead = _zappedWhileDead == patient;
+        _zappedWhileDead = null;
+
+        if (!TryComp<FSEmergencyDefibComponent>(args.Defibrillator.Owner, out var emergency))
+            return;
+
+        if (wasDead || _mobState.IsDead(patient))
+            Revive(patient, damageable, emergency, args.User);
+        else if (_mobState.IsCritical(patient))
+            StabilizeToward(patient, damageable, MobState.Critical, emergency.ReviveHealthFraction, args.User);
     }
 
-    private void Revive(EntityUid patient, DamageableComponent damageable, FSEmergencyDefibComponent emergency, EntityUid user)
+    private void Revive(EntityUid patient, DamageableComponent damageable, FSEmergencyDefibComponent emergency, EntityUid medic)
     {
         if (_rotting.IsRotten(patient) || HasComp<UnrevivableComponent>(patient))
             return;
 
-        StabilizeToward(patient, damageable, MobState.Dead, emergency.ReviveHealthFraction, user);
+        StabilizeToward(patient, damageable, MobState.Dead, emergency.ReviveHealthFraction, medic);
         if (_mobState.IsDead(patient)
             && _thresholds.TryGetThresholdForState(patient, MobState.Dead, out var dead)
             && _damageable.GetTotalDamage((patient, damageable)) < dead)
         {
-            _mobState.ChangeMobState(patient, MobState.Critical, origin: user);
+            _mobState.ChangeMobState(patient, MobState.Critical, origin: medic);
         }
 
         if (_mobState.IsDead(patient) || !_upgrades.Unlocked(FSMedicalUpgradeSystem.RestartProtocol))
             return;
 
-        _ailments.Cure(patient, FSAilmentSlot.Bone, user, FSCureKind.Rider);
-        _ailments.Cure(patient, FSAilmentSlot.Burn, user, FSCureKind.Rider);
+        _ailments.Cure(patient, FSAilmentSlot.Bone, medic, FSCureKind.Rider);
+        _ailments.Cure(patient, FSAilmentSlot.Burn, medic, FSCureKind.Rider);
     }
 
-    private void StabilizeToward(EntityUid patient, DamageableComponent damageable, MobState state, float reviveHealthFraction, EntityUid user)
+    // The medic who used the defib is the heal's origin, so it's credited to them rather than whoever treated last.
+    private void StabilizeToward(EntityUid patient, DamageableComponent damageable, MobState state, float reviveHealthFraction,
+        EntityUid medic)
     {
         if (!_thresholds.TryGetThresholdForState(patient, state, out var threshold)
             || threshold is not { } stateThreshold
@@ -83,6 +86,6 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
             return;
 
         var heal = new DamageSpecifier(damageable.Damage) * -((current - target) / current);
-        _damageable.TryChangeDamage(patient, heal, ignoreResistances: true, origin: user);
+        _damageable.TryChangeDamage(patient, heal, ignoreResistances: true, origin: medic);
     }
 }

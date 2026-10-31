@@ -77,10 +77,10 @@ public sealed partial class AlignRCDConstruction : PlacementMode
         if (!_entityManager.TryGetComponent<TransformComponent>(player, out var xform))
             return false;
 
-        var reach = _handsSystem.TryGetActiveItem(player.Value, out var reachRcd) ? _rcdSystem.Reach(reachRcd.Value) : SharedInteractionSystem.InteractionRange; // FS
-        if (!_transformSystem.InRange(xform.Coordinates, position, reach)) // FS
+        var reach = _handsSystem.TryGetActiveItem(player.Value, out var reachRcd) ? _rcdSystem.Reach(reachRcd.Value) : SharedInteractionSystem.InteractionRange; // FINALSTAND
+        if (!_transformSystem.InRange(xform.Coordinates, position, reach)) // FINALSTAND
         {
-            InvalidPlaceColor = InvalidPlaceColor.WithAlpha(PlaceColorBaseAlpha * 0.35f); // FS: faint, not invisible, so "Too far" has a ghost to sit under
+            InvalidPlaceColor = InvalidPlaceColor.WithAlpha(PlaceColorBaseAlpha * 0.35f); // FINALSTAND: faint, not invisible, so "Too far" has a ghost to sit under
             return false;
         }
 
@@ -115,7 +115,7 @@ public sealed partial class AlignRCDConstruction : PlacementMode
         if (!_rcdSystem.IsRCDOperationStillValid(heldEntity.Value, rcd, gridUid.Value, mapGrid, tile, posVector, target, player.Value, false))
             return false;
 
-        // FS: the server's build rules (caps, materials, no-build zones) turn the ghost red too.
+        // FINALSTAND: the server's build rules (caps, materials, no-build zones) turn the ghost red too.
         if (_entityManager.System<Content.Client._FinalStand.RCD.FSRCDGhostHintSystem>().Blocked)
             return false;
 

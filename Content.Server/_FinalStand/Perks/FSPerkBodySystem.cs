@@ -12,6 +12,7 @@ public sealed partial class FSPerkBodySystem : EntitySystem
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private FSDrunkPerkSystem _drunk = default!;
     [Dependency] private FSMedievalistSystem _medievalist = default!;
+    [Dependency] private FSPackMuleSystem _packMule = default!;
 
     public override void Initialize()
     {
@@ -71,11 +72,7 @@ public sealed partial class FSPerkBodySystem : EntitySystem
         var packMule = perks.GetSlottedLevel("PackMule");
         var hadPackMule = TryComp<FSPackMuleComponent>(body, out var mule) ? mule.Level : 0;
         if (packMule > 0)
-        {
-            var muleComp = EnsureComp<FSPackMuleComponent>(body);
-            muleComp.Level = packMule;
-            Dirty(body, muleComp);
-        }
+            _packMule.SetLevel((body, EnsureComp<FSPackMuleComponent>(body)), packMule);
         else
             RemComp<FSPackMuleComponent>(body);
         if (packMule != hadPackMule)

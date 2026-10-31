@@ -1,4 +1,3 @@
-// The engineering world-readout look: slanted segmented bars and rank pips, drawn smooth through FSShapes.
 using System.Numerics;
 using Robust.Client.Graphics;
 

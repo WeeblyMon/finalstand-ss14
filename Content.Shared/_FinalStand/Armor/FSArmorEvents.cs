@@ -1,14 +1,13 @@
 namespace Content.Shared._FinalStand.Armor;
 
-public sealed class ArmorDepletedEvent : EntityEventArgs { }
+[ByRefEvent]
+public readonly record struct ArmorDepletedEvent;
 
-public sealed class FSEnemyHpScaledEvent : EntityEventArgs { }
+[ByRefEvent]
+public readonly record struct FSEnemyHpScaledEvent;
 
-public sealed class FSArmorAbsorbedEvent : EntityEventArgs
-{
-    public EntityUid? Shooter;
-    public float Absorbed;
-}
+[ByRefEvent]
+public readonly record struct FSArmorAbsorbedEvent(EntityUid? Shooter, float Absorbed);
 
 [Flags]
 public enum FinalStandDamageFlags

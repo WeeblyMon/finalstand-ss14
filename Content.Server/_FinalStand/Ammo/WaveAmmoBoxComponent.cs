@@ -1,9 +1,10 @@
 namespace Content.Server._FinalStand.Ammo;
 
 [RegisterComponent]
+[Access(typeof(WaveAmmoBoxSystem))]
 public sealed partial class WaveAmmoBoxComponent : Component
 {
-    /// players that have already used this box this wave. Cleared on WaveEndedEvent.
+    /// players that have already used this box this wave. Cleared when prep starts.
     public readonly HashSet<EntityUid> UsedBy = new();
 
     /// false when the APC circuit is dead; prevents interaction.

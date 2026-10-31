@@ -34,4 +34,13 @@ public static class FSPerkPalette
         [PerkCategory.Yellow] = Color.FromHex("#5c4a26"),
         [PerkCategory.Purple] = Color.FromHex("#4a3b58"),
     };
+
+    // Mastery tier badges, not a category colour.
+    public static readonly Dictionary<FSMasteryTier, Color> Mastery = new()
+    {
+        [FSMasteryTier.None]   = Color.Gray,
+        [FSMasteryTier.Bronze] = Color.FromHex("#CD7F32"),
+        [FSMasteryTier.Silver] = Color.FromHex("#C0C0C0"),
+        [FSMasteryTier.Gold]   = Color.FromHex("#FFD700"),
+    };
 }

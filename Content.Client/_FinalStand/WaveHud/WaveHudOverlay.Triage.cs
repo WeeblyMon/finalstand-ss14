@@ -1,4 +1,3 @@
-// Draws the medical triage panel on the right edge.
 using Content.Client._FinalStand.Ailments;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.MedicalOps;
@@ -10,10 +9,12 @@ namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class WaveHudOverlay
 {
+    private readonly string _labelTriage = Loc.GetString("fs-hud-triage");
+    private readonly string _labelNoCasualties = Loc.GetString("fs-hud-no-casualties");
     private readonly string _priorityText = Loc.GetString("fs-casualty-priority");
 
     public readonly record struct TriageRow(string Name, string State, Color StateColor, string Range,
-        string? Responder, Vector2? Direction, FSAilmentPips Pips, string Needs, bool Priority);
+        string? ResponderTag, Vector2? Direction, FSAilmentPips Pips, string Needs, bool Priority);
 
     public readonly List<TriageRow> TriageRows = new();
 
@@ -38,7 +39,7 @@ public sealed partial class WaveHudOverlay
 
     private static bool HasDetail(TriageRow row)
     {
-        return row.Pips != FSAilmentPips.None || row.Needs.Length > 0 || row.Responder != null;
+        return row.Pips != FSAilmentPips.None || row.Needs.Length > 0 || row.ResponderTag != null;
     }
 
     private float TriageRowHeight(TriageRow row, float lineH)
@@ -66,7 +67,7 @@ public sealed partial class WaveHudOverlay
         var panelH = TriagePad * 2f + labelH + 4f + (TriageRows.Count == 0 ? lineH : rowsH)
                      + (rowCount - 1) * TriageRowGap;
 
-        var x = panelX + panelW0 - TriageWidth;
+        var x = panelX + _panelW0 - TriageWidth;
         var box = new UIBox2(x, top, x + TriageWidth, top + panelH);
         DrawPanel(screen, box, TriageBack, TriageEdge, FSPalette.Warn);
 
@@ -74,12 +75,12 @@ public sealed partial class WaveHudOverlay
         var innerRight = x + TriageWidth - TriagePad;
         var y = top + TriagePad;
 
-        screen.DrawString(_labelFont!, new Vector2(innerX, y), "TRIAGE", TriageMuted);
+        screen.DrawString(_labelFont!, new Vector2(innerX, y), _labelTriage, TriageMuted);
         y += labelH + 4f;
 
         if (TriageRows.Count == 0)
         {
-            screen.DrawString(_labelFont!, new Vector2(innerX, y + 1f), "NO CASUALTIES", TriageResponding);
+            screen.DrawString(_labelFont!, new Vector2(innerX, y + 1f), _labelNoCasualties, TriageResponding);
             return panelH;
         }
 
@@ -134,14 +135,14 @@ public sealed partial class WaveHudOverlay
                         detailX += 4f;
 
                     var room = innerRight - detailX;
-                    var needs = Fit(screen, _labelFont!, row.Needs, row.Responder == null ? room : room * 0.5f);
+                    var needs = Fit(screen, _labelFont!, row.Needs, row.ResponderTag == null ? room : room * 0.5f);
                     screen.DrawString(_labelFont!, new Vector2(detailX, detailY + 1f), needs, FSPalette.Money);
                     detailX += screen.GetDimensions(_labelFont!, needs, 1f).X;
                 }
 
-                if (row.Responder is { } responder)
+                if (row.ResponderTag is { } responder)
                 {
-                    var tag = Fit(screen, _labelFont!, "> " + responder, innerRight - detailX - 6f);
+                    var tag = Fit(screen, _labelFont!, responder, innerRight - detailX - 6f);
                     var tagW = screen.GetDimensions(_labelFont!, tag, 1f).X;
                     screen.DrawString(_labelFont!, new Vector2(innerRight - tagW, detailY + 1f), tag, TriageResponding);
                 }

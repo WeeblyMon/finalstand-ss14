@@ -31,6 +31,8 @@ public sealed partial class FSArmorSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileFlagsComponent, ProjectileHitEvent>(OnFlaggedProjectileHit);
     }
 
+    private const float RegenSyncFraction = 0.05f;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -51,8 +53,13 @@ public sealed partial class FSArmorSystem : EntitySystem
 
             armor.CurrentArmor = MathF.Min(armor.CurrentArmor + armor.RegenRate * frameTime, armor.MaxArmor);
 
-            if (MathF.Abs(armor.CurrentArmor - armor.LastSyncedArmor) > 0.5f)
-                SyncArmor(uid, armor);
+            // Regen ticks every frame on every armoured enemy; only resend once it's moved a visible amount.
+            if (armor.CurrentArmor >= armor.MaxArmor
+                || MathF.Abs(armor.CurrentArmor - armor.LastSyncedArmor) >= armor.MaxArmor * RegenSyncFraction)
+            {
+                armor.LastSyncedArmor = armor.CurrentArmor;
+                DirtyField(uid, armor, nameof(FSArmorComponent.CurrentArmor));
+            }
         }
 
         _pendingFlags.Clear();
@@ -109,17 +116,19 @@ public sealed partial class FSArmorSystem : EntitySystem
             armor.CurrentArmor = 0f;
             armor.RegenDelayAccumulator = armor.RegenDelay;
             args.Damage = args.Damage * ((incoming - absorbed) / incoming);
-            RaiseLocalEvent(uid, new ArmorDepletedEvent());
+            var depleted = new ArmorDepletedEvent();
+            RaiseLocalEvent(uid, ref depleted);
         }
 
         if (flags.HasFlag(FinalStandDamageFlags.ArmorShred) && shredMag > 0f)
             armor.CurrentArmor = MathF.Max(0f, armor.CurrentArmor - absorbed * shredMag);
 
-        RaiseLocalEvent(uid, new FSArmorAbsorbedEvent { Shooter = args.Origin, Absorbed = absorbed });
+        var absorbedEv = new FSArmorAbsorbedEvent(args.Origin, absorbed);
+        RaiseLocalEvent(uid, ref absorbedEv);
         SyncArmor(uid, armor);
     }
 
-    private void OnArmorDepleted(EntityUid uid, FSArmorComponent armor, ArmorDepletedEvent _)
+    private void OnArmorDepleted(EntityUid uid, FSArmorComponent armor, ref ArmorDepletedEvent _)
     {
         if (_mobState.IsDead(uid))
             return;
@@ -127,7 +136,7 @@ public sealed partial class FSArmorSystem : EntitySystem
         // TODO(finalstand): add armor break particle when art assets available
     }
 
-    private void OnHpScaled(EntityUid uid, FSArmorComponent armor, FSEnemyHpScaledEvent _)
+    private void OnHpScaled(EntityUid uid, FSArmorComponent armor, ref FSEnemyHpScaledEvent _)
     {
         if (!TryComp<MobThresholdsComponent>(uid, out var thresholds))
             return;

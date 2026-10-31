@@ -23,10 +23,10 @@ public sealed partial class FSMedicalRosterSystem : EntitySystem
     private static readonly ProtoId<DepartmentPrototype> MedicalDepartment = "Medical";
     private static readonly ProtoId<AccessLevelPrototype> CmoAccess = "ChiefMedicalOfficer";
 
-    public const string CmoJob = "ChiefMedicalOfficer";
-    public const string DoctorJob = "MedicalDoctor";
-    public const string ChemistJob = "Chemist";
-    public const string CombatMedicJob = "CombatMedic";
+    public static readonly ProtoId<JobPrototype> CmoJob = "ChiefMedicalOfficer";
+    public static readonly ProtoId<JobPrototype> DoctorJob = "MedicalDoctor";
+    public static readonly ProtoId<JobPrototype> ChemistJob = "Chemist";
+    public static readonly ProtoId<JobPrototype> CombatMedicJob = "CombatMedic";
 
     public string? JobOf(EntityUid mob)
     {
@@ -42,9 +42,9 @@ public sealed partial class FSMedicalRosterSystem : EntitySystem
         && _prototypes.TryIndex(MedicalDepartment, out var department)
         && department.Roles.Contains(jobId);
 
-    public bool IsChemist(EntityUid mob) => JobOf(mob) == ChemistJob;
+    public bool IsChemist(EntityUid mob) => JobOf(mob) == ChemistJob.Id;
 
-    public bool IsCmoJob(EntityUid mob) => JobOf(mob) == CmoJob;
+    public bool IsCmoJob(EntityUid mob) => JobOf(mob) == CmoJob.Id;
 
     public bool HasCmoAccess(EntityUid user) => _access.FindAccessTags(user).Contains(CmoAccess);
 

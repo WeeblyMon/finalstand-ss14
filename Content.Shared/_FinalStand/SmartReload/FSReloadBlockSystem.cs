@@ -13,6 +13,6 @@ public sealed class FSReloadBlockSystem : EntitySystem
     private void OnAttemptShoot(EntityUid gun, FSReloadingComponent comp, ref AttemptShootEvent args)
     {
         args.Cancelled = true;
-        args.Message = "Reloading.";
+        args.Message = Loc.GetString("fs-smart-reload-reloading");
     }
 }

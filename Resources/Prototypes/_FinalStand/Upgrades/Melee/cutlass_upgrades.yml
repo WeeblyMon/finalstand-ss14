@@ -2,74 +2,74 @@
 # Pirate sabre. Slash-and-stamina playstyle; right click fires the flintlock that comes with it.
 
 - type: entity
-  id: FSWeaponShopCutlass
   parent: FSWeaponShopBase
+  id: FSWeaponShopCutlass
   name: Cutlass
   description: A wickedly curved blade. Pairs well with flintlocks and a sense of dread.
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponCutlass
     price: 4000
-    category: Melee Sword
+    category: fs-weapon-shop-category-melee-sword
     statDamage: 40
     statFireRate: 55
     statAccuracy: 0
     statCapacity: 0
     upgrades:
     - id: cutlass-quick-slash
-      name: Quick Slash
-      description: Lighter blade increases attack speed by 20% per level.
+      name: fs-upgrade-cutlass-quick-slash
+      description: fs-upgrade-cutlass-quick-slash-desc
       maxLevel: 3
       baseCost: 6000
       type: AttackSpeed
       valuePerLevel: 0.2
     - id: cutlass-sharpened
-      name: Sharpened Blade
-      description: Hones the edge for +145% damage per level.
+      name: fs-upgrade-cutlass-sharpened
+      description: fs-upgrade-cutlass-sharpened-desc
       maxLevel: 3
       baseCost: 4750
       type: Damage
       valuePerLevel: 1.45
     - id: cutlass-plunder
-      name: Plunder
-      description: "Pirate's tax: +25% money on each kill."
+      name: fs-upgrade-cutlass-plunder
+      description: fs-upgrade-cutlass-plunder-desc
       maxLevel: 1
       baseCost: 5000
       type: MoneyGainPercent
       valuePerLevel: 0.25
     - id: cutlass-hyper-saber
-      name: Hyper Saber
-      description: Drains +10 stamina per hit.
+      name: fs-upgrade-cutlass-hyper-saber
+      description: fs-upgrade-cutlass-hyper-saber-desc
       maxLevel: 1
       baseCost: 5000
       type: StaminaSteal
-      valuePerLevel: 10
+      valuePerLevel: 15
     - id: cutlass-swashbuckler
-      name: Swashbuckler
-      description: A duelist's eye. +10% crit chance per level. Stacks with the Pirate crit-swap window.
+      name: fs-upgrade-cutlass-swashbuckler
+      description: fs-upgrade-cutlass-swashbuckler-desc
       maxLevel: 3
       baseCost: 4000
       type: CritChance
       valuePerLevel: 0.1
     - id: cutlass-quick-reload
-      name: Quick Reload
-      description: Each cutlass kill brings your next flintlock shot back 1s sooner per level.
+      name: fs-upgrade-cutlass-quick-reload
+      description: fs-upgrade-cutlass-quick-reload-desc
       maxLevel: 2
       baseCost: 5000
       type: MeleeSignature
       signature: QuickReload
       valuePerLevel: 1
     - id: cutlass-broadside
-      name: Broadside
-      description: The cutlass's flintlock shot fires three balls in a spread.
+      name: fs-upgrade-cutlass-broadside
+      description: fs-upgrade-cutlass-broadside-desc
       maxLevel: 1
       baseCost: 9000
       type: MeleeSignature
       signature: Broadside
       valuePerLevel: 1
     - id: cutlass-pirate
-      name: Pirate
-      description: Comes with the cutlass. A flintlock in your pack fires on the cutlass's right click, recharging a shot every 2.5s. A cutlass kill readies a flintlock crit, and a flintlock kill or landed shot readies a cutlass crit, for 5s.
+      name: fs-upgrade-cutlass-pirate
+      description: fs-upgrade-cutlass-pirate-desc
       maxLevel: 1
       baseCost: 6500
       starter: true
@@ -80,8 +80,8 @@
     # ── Flintlock: the cutlass's right-click shot ─────
     # Spare Pistols and Powder Horn live on the cutlass; the rest go on the flintlock it fires through.
     - id: flintlock-spare-pistols
-      name: Spare Pistols
-      description: Carry another loaded pistol. The right click holds 1 more shot per level.
+      name: fs-upgrade-flintlock-spare-pistols
+      description: fs-upgrade-flintlock-spare-pistols-desc
       maxLevel: 3
       baseCost: 4000
       type: MeleeSignature
@@ -89,8 +89,8 @@
       valuePerLevel: 1
       requiresUpgrade: cutlass-pirate
     - id: flintlock-powder-horn
-      name: Powder Horn
-      description: Spent shots come back 0.4s faster per level.
+      name: fs-upgrade-flintlock-powder-horn
+      description: fs-upgrade-flintlock-powder-horn-desc
       maxLevel: 3
       baseCost: 4000
       type: MeleeSignature
@@ -98,8 +98,8 @@
       valuePerLevel: 0.4
       requiresUpgrade: cutlass-pirate
     - id: flintlock-through-and-through
-      name: Through and Through
-      description: The flintlock ball punches through 1 more zombie per level, keeping half its damage each time.
+      name: fs-upgrade-flintlock-through-and-through
+      description: fs-upgrade-flintlock-through-and-through-desc
       maxLevel: 2
       baseCost: 5000
       type: Pierce
@@ -107,8 +107,8 @@
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-heavier-load
-      name: Heavier Load
-      description: Heavier balls make the flintlock shot hit 50% harder per level.
+      name: fs-upgrade-flintlock-heavier-load
+      description: fs-upgrade-flintlock-heavier-load-desc
       maxLevel: 3
       baseCost: 3500
       type: Damage
@@ -116,8 +116,8 @@
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-explosive-shot
-      name: Explosive Shot
-      description: The flintlock ball bursts on impact, hurting the zombies around it. A bigger burst each level.
+      name: fs-upgrade-flintlock-explosive-shot
+      description: fs-upgrade-flintlock-explosive-shot-desc
       maxLevel: 3
       baseCost: 5000
       type: ExplosiveShot
@@ -125,8 +125,8 @@
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-payday
-      name: Payday
-      description: +50 credits per level for each kill the flintlock makes.
+      name: fs-upgrade-flintlock-payday
+      description: fs-upgrade-flintlock-payday-desc
       maxLevel: 3
       baseCost: 2500
       type: MoneyGainBonus

@@ -48,8 +48,8 @@
 
 - type: entity
   id: FSEmplacementPreview
-  name: defensive emplacement
   categories: [ HideSpawnMenu ]
+  name: defensive emplacement
   components:
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
@@ -84,9 +84,9 @@
 - type: entity
   parent: FSAmmoBoxDeployed
   id: FSEmplacementCore
+  categories: [ HideSpawnMenu ]
   name: emplacement supply crate
   description: Refills magazines and feeds the emplacement's sentries. The Chief Engineer can pack the whole emplacement up from here.
-  categories: [ HideSpawnMenu ]
   components:
   - type: FSAmmoBox
     usesLeft: 4
@@ -109,16 +109,16 @@
 - type: entity
   parent: FSBarricadeSandbag
   id: FSEmplacementSandbag
-  name: emplacement sandbags
-  description: Part of the Chief Engineer's emplacement. It comes down when the emplacement is packed.
   categories: [ HideSpawnMenu ]
 
+  name: emplacement sandbags
+  description: Part of the Chief Engineer's emplacement. It comes down when the emplacement is packed.
 - type: entity
   parent: FSSentryTurretDeployed
   id: FSEmplacementSentry
+  categories: [ HideSpawnMenu ]
   name: hardpoint sentry
   description: A sentry on an emplacement mount. It reaches a tile further and the emplacement keeps its belt fed.
-  categories: [ HideSpawnMenu ]
   components:
   - type: FSSentryTurret
     spriteAngleOffset: 0

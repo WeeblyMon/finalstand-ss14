@@ -22,3 +22,4 @@ cmd-fsdbg-help = Usage: fsdbg <subcommand> [args] [player]
     clearladder                       delete every ladder run
     special [proto|all]               spawn special zombies near you as wave enemies
     discord                           print the last Discord payload as JSON
+    ailment [bleed|bone|burn|poison|soaked|all|clear]   give yourself an ailment (all by default; clear removes them)

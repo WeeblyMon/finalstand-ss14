@@ -207,7 +207,7 @@ public sealed partial class FSResearchNodeGraphControl
         var tagFont = FontOf(_monoFont, 9f);
         if (look.Shared || look.Mine)
         {
-            var text = look.Shared ? "RD" : "YOU";
+            var text = look.Shared ? _tagShared : _tagMine;
             var width = handle.GetDimensions(tagFont, text, 1).X + 10f * K;
             DrawTag(handle, tagFont, new Vector2(box.Right - 16f * K - width, box.Top - 8f * K), text, look.Shared ? Gold : OffWhite, Paper);
         }
@@ -222,7 +222,7 @@ public sealed partial class FSResearchNodeGraphControl
     private (string Text, Color Color) ChipSubline(FSResearchNodeView node, Look look)
     {
         if (look.Done)
-            return ("ONLINE", OliveText);
+            return (_tagOnline, OliveText);
         if (node.IsCapstone && node.Proto.WeaponShopUnlock is { } shop)
             return ((_prototype.TryIndex<EntityPrototype>(shop, out var proto) ? proto.Name : shop.Id).ToUpperInvariant(), Amber);
         if (look.Active)

@@ -2,7 +2,6 @@ using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Melee;
-using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server._FinalStand.Titles;
@@ -19,6 +18,7 @@ using Content.Shared.Inventory.Events;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Projectiles;
@@ -37,7 +37,6 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private TagSystem _tags = default!;
-    [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private StaminaSystem _stamina = default!;
@@ -45,8 +44,8 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSBerserkerSystem _berserker = default!;
     [Dependency] private FSStyleSystem _style = default!;
-    [Dependency] private FSUndyingSystem _undying = default!;
     [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
+    [Dependency] private FSPierceSystem _pierce = default!;
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
     [Dependency] private FSStylePointsSystem _stylePoints = default!;
     [Dependency] private InventorySystem _inventory = default!;
@@ -54,6 +53,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
+    private static readonly ProtoId<DamageTypePrototype> Blunt = "Blunt";
+    private static readonly ProtoId<DamageTypePrototype> Slash = "Slash";
+    private static readonly ProtoId<DamageTypePrototype> Piercing = "Piercing";
 
     public override void Initialize()
     {
@@ -66,7 +68,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);
     }
 
-    private void OnProjectileHit(FSProjectileHitEffectEvent ev)
+    private void OnProjectileHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Shooter == null) return;
         if (!_mind.TryGetMind(ev.Shooter.Value, out var mindId, out _)) return;
@@ -77,10 +79,6 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         var spLevel = augs.GetSlottedLevel("StoppingPower");
         if (spLevel > 0 && !isLauncher)
             ev.AdditionalMultiplier *= 1f + spLevel * FSPerkBonusConstants.StoppingPowerPerLevel;
-
-        var profLevel = augs.GetSlottedLevel("Profiteer");
-        if (profLevel > 0 && HasComp<WaveSpawnedTagComponent>(ev.Target) && !_undying.IsActive(ev.Shooter.Value))
-            _wallet.GiveCredits(mindId, (int)(FSPerkBonusConstants.ProfiteerHitBase * profLevel * FSPerkBonusConstants.ProfiteerFraction));
 
         if (augs.GetSlottedLevel("DeathAura") > 0 && TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
             ev.AdditionalMultiplier *= 1f + da.Stacks * FSPerkBonusConstants.DeathAuraPerStack;
@@ -176,9 +174,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
             return 1f;
 
         var coefficients = armor.Modifiers.Coefficients;
-        var average = (coefficients.GetValueOrDefault("Blunt", 1f)
-                       + coefficients.GetValueOrDefault("Slash", 1f)
-                       + coefficients.GetValueOrDefault("Piercing", 1f)) / 3f;
+        var average = (coefficients.GetValueOrDefault(Blunt.Id, 1f)
+                       + coefficients.GetValueOrDefault(Slash.Id, 1f)
+                       + coefficients.GetValueOrDefault(Piercing.Id, 1f)) / 3f;
         return Math.Clamp((average - FSPerkBonusConstants.LookingThinNoBonusArmor)
                           / (1f - FSPerkBonusConstants.LookingThinNoBonusArmor), 0f, 1f);
     }
@@ -253,10 +251,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
         foreach (var projUid in args.FiredProjectiles)
         {
-            if (!TryComp<ProjectileComponent>(projUid, out var proj)) continue;
-            proj.DeleteOnCollide = false;
-            var pierce = EnsureComp<FSPierceComponent>(projUid);
-            pierce.RemainingPierces = Math.Max(pierce.RemainingPierces, level);
+            _pierce.GrantPierces(projUid, level);
         }
     }
 

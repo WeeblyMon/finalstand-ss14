@@ -1,4 +1,3 @@
-// Technician perk: extra deployable stock and deploy cap for whoever carries or places the item.
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mind;

@@ -160,7 +160,8 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 
             state.Comp.UnlockedNodes.Add(node.ID);
             state.Comp.UnlockedLookup.Add(node.ID);
-            RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
+            var completed = new FSResearchNodeCompletedEvent(node.ID, Earned: false);
+            RaiseLocalEvent(ref completed);
             count++;
         }
 
@@ -174,7 +175,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
             return;
 
         var player = args.Actor;
-        if (!player.IsValid() || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
+        if (!player.IsValid() || args.NodeId is null || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
             return;
 
         if (node.Branch != MedicalBranch)
@@ -220,7 +221,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         var announcement = Loc.GetString("fs-medical-research-announcement", ("name", tag));
         _radio.SendRadioMessage(player, announcement, MedicalChannel, player, escapeMarkup: false);
 
-        Log.Info($"[FSMedResearch] {ToPrettyString(player)} bought {node.ID} for {node.Cost}");
+        Log.Info($"{ToPrettyString(player)} bought {node.ID} for {node.Cost}");
     }
 
     private static string TagSafe(string text) =>
@@ -248,14 +249,16 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         state.Comp.UnlockedLookup.Add(node.ID);
         SyncConsoles();
 
-        RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
+        var completed = new FSResearchNodeCompletedEvent(node.ID, Earned: false);
+
+        RaiseLocalEvent(ref completed);
         _science.BroadcastUnlockedNodes();
         return true;
     }
 
     public void SyncConsoles()
     {
-        var state = GetOrCreateState();
+        TryGetState(out var state);
         var balance = _fund.GetBalance();
 
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
@@ -265,7 +268,8 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
                 continue;
 
             console.UnlockedNodes.Clear();
-            console.UnlockedNodes.AddRange(state.Comp.UnlockedNodes);
+            if (state.Comp != null)
+                console.UnlockedNodes.AddRange(state.Comp.UnlockedNodes);
 
             console.Points = balance;
 

@@ -24,7 +24,7 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
     [Dependency] private DestructibleSystem _destructibleSystem = default!;
     [Dependency] private GunSystem _guns = default!;
     [Dependency] private SharedCameraRecoilSystem _sharedCameraRecoil = default!;
-    [Dependency] private FSLagCompensationSystem _lagCompensation = default!; // fs
+    [Dependency] private FSLagCompensationSystem _lagCompensation = default!; // FINALSTAND
 
     public override void Initialize()
     {
@@ -62,20 +62,20 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
             damageRequired = FixedPoint2.Max(damageRequired, FixedPoint2.Zero);
         }
 
-        // FinalStand: block projectile damage between wave players (friendly fire)
+        // FINALSTAND: block projectile damage between wave players (friendly fire)
         if (component.Shooter.HasValue
             && HasComp<FSFriendlyFireComponent>(component.Shooter.Value)
             && HasComp<FSFriendlyFireComponent>(target))
             return;
 
-        var hiddenViewer = _lagCompensation.GetHiddenViewer(uid); // fs
+        var hiddenViewer = _lagCompensation.GetHiddenViewer(uid); // FINALSTAND
 
         if (_damageableSystem.TryChangeDamage((target, damageableComponent), ev.Damage, out var damage, component.IgnoreResistances, origin: component.Shooter) && Exists(component.Shooter))
 
         {
             if (!Deleted(target))
             {
-                var flashFilter = Filter.Pvs(target, entityManager: EntityManager); // fs
+                var flashFilter = Filter.Pvs(target, entityManager: EntityManager); // FINALSTAND
                 if (hiddenViewer != null)
                     flashFilter.RemovePlayer(hiddenViewer);
 
@@ -95,7 +95,7 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
 
         if (!Deleted(target))
         {
-            _guns.PlayImpactSound(target, damage, component.SoundHit, component.ForceSound, hiddenViewer); // fs
+            _guns.PlayImpactSound(target, damage, component.SoundHit, component.ForceSound, hiddenViewer); // FINALSTAND
 
             if (!args.OurBody.LinearVelocity.IsLengthZero())
                 _sharedCameraRecoil.KickCamera(target, args.OurBody.LinearVelocity.Normalized());
@@ -106,7 +106,7 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
 
         if (component.ImpactEffect != null && TryComp(uid, out TransformComponent? xform))
         {
-            var impactFilter = Filter.Pvs(xform.Coordinates, entityMan: EntityManager); // fs
+            var impactFilter = Filter.Pvs(xform.Coordinates, entityMan: EntityManager); // FINALSTAND
             if (hiddenViewer != null)
                 impactFilter.RemovePlayer(hiddenViewer);
 

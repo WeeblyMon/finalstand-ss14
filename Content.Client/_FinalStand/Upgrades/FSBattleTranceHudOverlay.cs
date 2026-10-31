@@ -64,7 +64,6 @@ public sealed partial class FSBattleTranceHudOverlay : Overlay
         var x = MathF.Floor(screenSize.X / 2f - totalWidth / 2f);
         var y = (float)(screenSize.Y - 160);
 
-        // Skull icon (if loaded)
         var textX = x;
         if (hasIcon)
         {
@@ -73,7 +72,6 @@ public sealed partial class FSBattleTranceHudOverlay : Overlay
             textX = x + iconSize + iconGap;
         }
 
-        // Outline pass
         var fullStr = streakStr + bonusStr;
         const float o = 1f;
         var black = Color.Black;
@@ -82,7 +80,6 @@ public sealed partial class FSBattleTranceHudOverlay : Overlay
         screen.DrawString(_font, new Vector2(textX - o, y + o), fullStr, black);
         screen.DrawString(_font, new Vector2(textX + o, y + o), fullStr, black);
 
-        // Streak count in white, bonus in orange-red
         screen.DrawString(_font, new Vector2(textX,               y), streakStr, Color.White);
         screen.DrawString(_font, new Vector2(textX + streakDims.X, y), bonusStr, Color.FromHex("#FF6B35"));
     }

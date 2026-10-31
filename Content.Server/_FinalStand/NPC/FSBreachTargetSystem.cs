@@ -4,6 +4,9 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
+using Content.Server.NPC.Pathfinding;
+using Content.Server.NPC.Systems;
+using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.NPC;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Ghost;
@@ -19,6 +22,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.NPC;
 
@@ -32,18 +36,26 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototype = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSBreachEvaluator _evaluator = default!;
+    [Dependency] private NPCSteeringSystem _steering = default!;
+    [Dependency] private PathfindingSystem _pathfinding = default!;
 
-    private const float TickInterval = 0.1f;
-    private float _accumulator;
+    private const int TickBuckets = 3;
+    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _waveMobBuffer = new();
+    private readonly FSEffectThrottle<EntityUid> _doorReplans = new(TimeSpan.FromSeconds(1));
+    private int _tick;
+    private const int RescanEveryTicks = 10;
     private float _baseZombieDamage = 10f;
 
-    // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
+    // Reused across ticks; these queries run at 10 Hz per zombie and must not allocate.
     private readonly HashSet<Entity<MobStateComponent>> _mobBuffer = new();
-    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _doorBuffer = new();
+    private readonly HashSet<Entity<DoorComponent>> _doorBuffer = new();
 
     private static readonly EntProtoId ZombieNormalProto = "FSZombieNormal";
 
     private const float DoorOpenReplanRadius = 6f;
+
+    // Door changes waiting for the navmesh to take them in.
+    private readonly List<(EntityUid Grid, MapCoordinates At, int Version, GameTick Tick)> _pendingDoorReplans = new();
 
     public override void Initialize()
     {
@@ -60,7 +72,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         }
         else
         {
-            Logger.Warning("[FSBreachTargetSystem] Could not read BaseZombieMeleeDamage from FSZombieNormal prototype — using default 10f");
+            Log.Warning($"Couldn't read melee damage from {ZombieNormalProto}, using the default {_baseZombieDamage}");
         }
     }
 
@@ -96,41 +108,89 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     private void ForceNearbyReplan(EntityUid doorUid)
     {
         var xform = Transform(doorUid);
-        if (xform.MapID == MapId.Nullspace)
+        if (xform.MapID == MapId.Nullspace || TerminatingOrDeleted(xform.MapUid))
+            return;
+
+        // A busy airlock cycles every few seconds; one replan of the local horde per door per second is plenty.
+        if (!_doorReplans.TryReserve(doorUid, _timing.CurTime))
             return;
 
         var epicenter = new MapCoordinates(_transform.GetWorldPosition(xform), xform.MapID);
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
-        _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(epicenter, DoorOpenReplanRadius, nearby);
 
-        foreach (var (npcUid, _) in nearby)
+        // The door stops blocking before it reports open, but the navmesh rebuilds a while after that, so a replan
+        // now plans on the graph with the door still shut and gets the same path back.
+        if (xform.GridUid is { } grid)
+        {
+            _pendingDoorReplans.Add((grid, epicenter, _pathfinding.GetNavmeshVersion(grid), _timing.CurTick));
+            return;
+        }
+
+        ReplanAround(epicenter);
+    }
+
+    private void UpdatePendingDoorReplans()
+    {
+        for (var i = _pendingDoorReplans.Count - 1; i >= 0; i--)
+        {
+            var (grid, at, version, tick) = _pendingDoorReplans[i];
+
+            // A tick later at the earliest: a door being deleted only dirties the navmesh after its shutdown.
+            if (tick == _timing.CurTick || !_pathfinding.IsNavmeshCurrent(grid, version))
+                continue;
+
+            _pendingDoorReplans.RemoveSwap(i);
+            if (!TerminatingOrDeleted(grid))
+                ReplanAround(at);
+        }
+    }
+
+    private void ReplanAround(MapCoordinates epicenter)
+    {
+        _waveMobBuffer.Clear();
+        _lookup.GetEntitiesInRange(epicenter, DoorOpenReplanRadius, _waveMobBuffer);
+
+        foreach (var (npcUid, _) in _waveMobBuffer)
         {
             if (TryComp<HTNComponent>(npcUid, out var htn))
             {
                 if (htn.Blackboard.ContainsKey(FSAIBlackboardKeys.BreachTarget))
                     ClearBreachTarget(htn.Blackboard);
-                _htn.Replan(htn);
+                ReplanBreach(htn);
             }
             if (TryComp<NPCSteeringComponent>(npcUid, out var steering))
-                steering.CurrentPath.Clear();
+                _steering.RequestRepath((npcUid, steering));
         }
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        _accumulator += frameTime;
-        if (_accumulator < TickInterval) return;
-        _accumulator -= TickInterval;
+        UpdatePendingDoorReplans();
+
+        // Each zombie is ticked every TickBuckets server ticks, a different slice each tick, so the work
+        // is spread evenly instead of the whole horde landing on one tick.
+        _tick++;
+        var bucket = _tick % TickBuckets;
+        var dt = frameTime * TickBuckets;
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
-            Tick(uid, htn, TickInterval);
+        {
+            if (Slot(uid).Bucket == bucket)
+                Tick(uid, htn, dt);
+        }
+    }
+
+    // The tick bucket and the rescan turn come from one slot, so every bucket spreads its rescans over all turns.
+    internal static (int Bucket, int RescanTurn) Slot(EntityUid uid)
+    {
+        var slot = FSTickBucket.Of(uid, TickBuckets * RescanEveryTicks);
+        return (slot % TickBuckets, slot / TickBuckets);
     }
 
     private void Tick(EntityUid uid, HTNComponent htn, float dt)
     {
         var bb = htn.Blackboard;
-        TickAttackLock(bb, dt);
+        TickAttackLock(htn, dt);
         TickBreachCooldown(bb, dt);
         CheckBreachInterrupts(uid, htn, bb);
         CheckPathProgress(uid, htn, bb, dt);
@@ -144,16 +204,23 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         else bb.SetValue(FSAIBlackboardKeys.BreachCooldown, cd);
     }
 
-    private void TickAttackLock(NPCBlackboard bb, float dt)
+    // Once the lock runs out the target is weighed again from scratch, which the running plan would never do.
+    private void TickAttackLock(HTNComponent htn, float dt)
     {
+        var bb = htn.Blackboard;
         if (!bb.TryGetValue<float>(FSAIBlackboardKeys.AttackLockTimer, out var lockTimer, EntityManager))
             return;
 
         lockTimer -= dt;
         if (lockTimer <= 0f)
+        {
             ClearBreachTarget(bb);
+            ReplanBreach(htn);
+        }
         else
+        {
             bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, lockTimer);
+        }
     }
 
     private void CheckBreachInterrupts(EntityUid uid, HTNComponent htn, NPCBlackboard bb)
@@ -165,14 +232,14 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             || (TryComp<MobStateComponent>(breachTarget, out _) && _mobState.IsDead(breachTarget)))
         {
             ClearBreachTarget(bb);
-            _htn.Replan(htn);
+            ReplanBreach(htn);
             return;
         }
 
         if (!_evaluator.IsBlockingMovement(breachTarget))
         {
             ClearBreachTarget(bb);
-            _htn.Replan(htn);
+            ReplanBreach(htn);
             return;
         }
 
@@ -193,12 +260,16 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             if (HasComp<GhostComponent>(nearUid)) continue;
             if (_mobState.IsDead(nearUid)) continue;
 
+            // The hunt outranks the breach plan and takes over if it wants this one; if not, the structure is
+            // still in the way.
             ClearBreachTarget(bb);
             _htn.Replan(htn);
             return;
         }
 
-        if (!bb.TryGetValue<float>(FSAIBlackboardKeys.CachedBreachScore, out var cachedScore, EntityManager))
+        // Looking for a better target means two area lookups, so each zombie only does it every few ticks, staggered.
+        if ((Slot(uid).RescanTurn + _tick / TickBuckets) % RescanEveryTicks != 0
+            || !bb.TryGetValue<float>(FSAIBlackboardKeys.CachedBreachScore, out var cachedScore, EntityManager))
             return;
 
         var baseDamage = GetBaseZombieDamage();
@@ -211,8 +282,28 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             bb.SetValue(FSAIBlackboardKeys.BreachTarget, better);
             bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, 15f);
             bb.SetValue(FSAIBlackboardKeys.CachedBreachScore, betterScore);
-            _htn.Replan(htn);
+            ReplanBreach(htn);
         }
+    }
+
+    // A replan never replaces a running plan of the same or higher rank, and the breach plan took its target when it
+    // started. Changing or dropping the target while it runs has to end that plan, or the zombie keeps hitting the
+    // old structure until it breaks.
+    private void ReplanBreach(HTNComponent htn)
+    {
+        if (htn.Plan != null)
+        {
+            foreach (var task in htn.Plan.Tasks)
+            {
+                if (task.Operator is not FSSetBreachTargetOperator)
+                    continue;
+
+                _htn.AbortPlan(htn);
+                return;
+            }
+        }
+
+        _htn.Replan(htn);
     }
 
     private void ClearBreachTarget(NPCBlackboard bb)
@@ -249,18 +340,19 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         if (steering.CurrentPath.Count < directDist * MazePathRatio)
             return;
 
+        var timer = bb.TryGetValue<float>(FSAIBlackboardKeys.MazeCheckTimer, out var mt, EntityManager) ? mt + dt : dt;
+        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, timer);
+        if (timer < MazeCheckInterval)
+            return;
+        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, 0f);
+
+        // A door nearby means the long path is probably just the way round it, not a maze.
         var mapId = Transform(uid).MapID;
         var zombieEpicenter = new MapCoordinates(zombiePos, mapId);
         _doorBuffer.Clear();
         _lookup.GetEntitiesInRange(zombieEpicenter, 2.5f, _doorBuffer);
         if (_doorBuffer.Count > 0)
             return;
-
-        var timer = bb.TryGetValue<float>(FSAIBlackboardKeys.MazeCheckTimer, out var mt, EntityManager) ? mt + dt : dt;
-        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, timer);
-        if (timer < MazeCheckInterval)
-            return;
-        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, 0f);
 
         ApplyEvaluation(uid, htn, bb, zombiePos, mapId, mazeTargetPos: targetPos);
     }
@@ -364,7 +456,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         bb.SetValue(FSAIBlackboardKeys.BreachTarget, result.Value.Best);
         bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, isMazeMode ? MazeAttackLockTime : 15f);
         bb.SetValue(FSAIBlackboardKeys.CachedBreachScore, result.Value.Score);
-        _htn.Replan(htn);
+        ReplanBreach(htn);
     }
 
     private float GetBaseZombieDamage()
