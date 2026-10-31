@@ -356,54 +356,57 @@ public sealed partial class WaveHudOverlay : Overlay
         if (IsRespawnOfferVisible)
         {
             const string headline = "YOU ARE DOWN";
+            const string btnLabel = "REVIVE NOW";
             var subline = $"Wait for a medic, or revive for ${RespawnCost:N0}";
 
             var headDims = screen.GetDimensions(_promptFont!, headline, 1f);
             var subDims = screen.GetDimensions(_promptSubFont!, subline, 1f);
-
-            var promptY = screenSize.Y * 0.30f;
-            var gap = MathF.Round(6f * s);
-
-            DrawVignette(screen, screenSize);
-
-            DrawShadowed(screen, _promptFont!,
-                new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
-                headline, FSPalette.DangerSoft);
-
-            DrawShadowed(screen, _promptSubFont!,
-                new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
-                subline, FSPalette.TextBright);
-
-            var afterTextY = promptY + headDims.Y + gap + subDims.Y;
-
-            if (CasualtyStatus is { } casualty)
-            {
-                var casualtyDims = screen.GetDimensions(_promptSubFont!, casualty, 1f);
-                var casualtyColor = CasualtyResponded ? FSPalette.Ok : FSPalette.TextMuted;
-
-                DrawShadowed(screen, _promptSubFont!,
-                    new Vector2((screenSize.X - casualtyDims.X) * 0.5f, afterTextY + gap * 0.5f),
-                    casualty, casualtyColor);
-
-                afterTextY += gap * 0.5f + casualtyDims.Y;
-            }
-
-            const string btnLabel = "REVIVE NOW";
+            var statusDims = CasualtyStatus is { } statusText ? screen.GetDimensions(_promptSubFont!, statusText, 1f) : Vector2.Zero;
             var btnDim = screen.GetDimensions(_labelFont!, btnLabel, 1f);
+
+            var gap = MathF.Round(6f * s);
+            var pad = MathF.Round(18f * s);
             var btnPadX = MathF.Round(20f * s);
             var btnPadY = MathF.Round(8f * s);
             var respawnBtnW = btnDim.X + btnPadX * 2f;
             var respawnBtnH = btnDim.Y + btnPadY * 2f;
+
+            var contentW = MathF.Max(MathF.Max(headDims.X, subDims.X), MathF.Max(statusDims.X, respawnBtnW));
+            var contentH = headDims.Y + gap + subDims.Y + gap * 2f + respawnBtnH
+                           + (CasualtyStatus != null ? gap * 0.5f + statusDims.Y : 0f);
+            var cardX = (screenSize.X - contentW) * 0.5f - pad;
+            var cardY = screenSize.Y * 0.22f;
+            var card = new UIBox2(cardX, cardY, cardX + contentW + pad * 2f, cardY + contentH + pad * 2f);
+
+            DrawVignette(screen, screenSize);
+            DrawPanel(screen, card, PromptBack, VitalsEdge, FSPalette.Danger);
+
+            var lineY = cardY + pad;
+            DrawShadowed(screen, _promptFont!,
+                new Vector2((screenSize.X - headDims.X) * 0.5f, lineY),
+                headline, FSPalette.HealthLow);
+            lineY += headDims.Y + gap;
+
+            DrawShadowed(screen, _promptSubFont!,
+                new Vector2((screenSize.X - subDims.X) * 0.5f, lineY),
+                subline, FSPalette.TextBright);
+            lineY += subDims.Y;
+
+            if (CasualtyStatus is { } casualty)
+            {
+                lineY += gap * 0.5f;
+                DrawShadowed(screen, _promptSubFont!,
+                    new Vector2((screenSize.X - statusDims.X) * 0.5f, lineY),
+                    casualty, CasualtyResponded ? FSPalette.Ok : FSPalette.TextMuted);
+                lineY += statusDims.Y;
+            }
+
             var btnX = (screenSize.X - respawnBtnW) * 0.5f;
-            var btnY = afterTextY + gap * 2f;
+            var btnY = lineY + gap * 2f;
 
             RespawnButtonBounds = new UIBox2(btnX, btnY, btnX + respawnBtnW, btnY + respawnBtnH);
-            DrawPanel(screen, RespawnButtonBounds, VitalsBack, VitalsEdge, FSPalette.Danger);
-            DrawShadowed(screen,
-                _labelFont!,
-                new Vector2(btnX + btnPadX, btnY + btnPadY),
-                btnLabel,
-                FSPalette.Danger);
+            DrawPanel(screen, RespawnButtonBounds, FSPalette.Money, FSPalette.Money);
+            screen.DrawString(_labelFont!, new Vector2(btnX + btnPadX, btnY + btnPadY), btnLabel, PromptButtonText);
         }
         else
         {
@@ -905,6 +908,8 @@ public sealed partial class WaveHudOverlay : Overlay
     }
 
     private static readonly Color VignetteWash = new(0.47f, 0f, 0f, 0.16f);
+    private static readonly Color PromptBack = FSPalette.PanelDeep.WithAlpha(0.95f);
+    private static readonly Color PromptButtonText = FSPalette.PanelDeep.WithAlpha(1f);
     private const float VignetteMaxDark = 0.72f;
 
     private static void DrawVignette(DrawingHandleScreen screen, Vector2i screenSize)
