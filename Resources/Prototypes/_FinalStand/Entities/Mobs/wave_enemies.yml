@@ -8,10 +8,9 @@
   description: A dead body that got back up. It wants through you, and through the console behind you.
   components:
   - type: Body
-  # Override BaseMobAnimal's organs — LegsAnimal would call MovementBodyPart and reset all
-  # zombie speeds to the 2.5/4.5 defaults.
-  - type: InitialBody
-    organs: {}
+  # No organs: BaseMobAnimal fills five, each a networked metabolizer that dirties itself every second.
+  - type: EntityTableContainerFill
+    containers: {}
   - type: InputMover
   - type: MobMover
   - type: HTN
@@ -434,12 +433,15 @@
 # NavPry: false — do not pry airlocks (would let them open locked doors).
 # NavSmash: true — pathfinder routes through walls; FSBreachTargetSystem handles smash targeting.
 # No Prying component — these mobs smash obstacles, they do not pry.
+# No organs (EntityTableContainerFill), same as FSZombieBase.
 
 - type: entity
   parent: MobXeno
   id: FSMobXeno
   suffix: FinalStand
   components:
+  - type: EntityTableContainerFill
+    containers: {}
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
@@ -472,6 +474,8 @@
   id: FSMobXenoRunner
   suffix: FinalStand
   components:
+  - type: EntityTableContainerFill
+    containers: {}
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
@@ -493,6 +497,8 @@
   id: FSMobXenoDrone
   suffix: FinalStand
   components:
+  - type: EntityTableContainerFill
+    containers: {}
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
@@ -514,6 +520,8 @@
   id: FSMobXenoPraetorian
   suffix: FinalStand
   components:
+  - type: EntityTableContainerFill
+    containers: {}
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
@@ -535,6 +543,8 @@
   id: FSMobSpiderSpace
   suffix: FinalStand
   components:
+  - type: EntityTableContainerFill
+    containers: {}
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
@@ -556,6 +566,8 @@
   id: FSMobFleshJared
   suffix: FinalStand
   components:
+  - type: EntityTableContainerFill
+    containers: {}
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
