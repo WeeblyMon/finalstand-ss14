@@ -21,7 +21,7 @@
     prototype: WehMedipen
   - !type:AddComponentSpecial
     components:
-    - type: FSSteadyHands
+    - type: FSSteadyHands # FINALSTAND
 
 - type: startingGear
   id: DoctorGear

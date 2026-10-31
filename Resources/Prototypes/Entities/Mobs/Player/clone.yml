@@ -40,7 +40,7 @@
   - Fingerprint
   - Grammar # Pronouns
   - HumanoidProfile # Age, Sex, Gender
-  - FSBodySize
+  - FSBodySize # FINALSTAND
   - MeleeWeapon # Attack animation, damage and sound
   - NpcFactionMember
   - RandomPrice

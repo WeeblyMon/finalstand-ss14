@@ -635,7 +635,7 @@
   id: FSCartridgeRayGun
 
 - type: Tag
-  id: FSMedicalTool
+  id: FSMedicalTool # FINALSTAND
 
 - type: Tag
   id: FSRayGunCell
