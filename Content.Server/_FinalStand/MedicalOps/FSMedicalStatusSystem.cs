@@ -20,7 +20,7 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextRefresh;
 
-    private readonly Dictionary<NetUserId, (EntityUid Mob, bool IsMedical, bool ShowPips, float SoftCap)> _lastSent = new();
+    private readonly Dictionary<NetUserId, (EntityUid Mob, bool IsMedical, float SoftCap)> _lastSent = new();
 
     public override void Initialize()
     {
@@ -39,7 +39,6 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
             return;
         _nextRefresh = _timing.CurTime + RefreshInterval;
 
-        var scanners = _upgrades.Unlocked(FSMedicalUpgradeSystem.TraumaScanners);
         var softCap = SoftCap();
         foreach (var session in _playerManager.Sessions)
         {
@@ -47,28 +46,25 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
                 continue;
 
             var isMedical = IsMedicalDepartment(mob);
-            var showPips = isMedical && scanners;
             if (_lastSent.TryGetValue(session.UserId, out var prior)
                 && prior.Mob == mob
                 && prior.IsMedical == isMedical
-                && prior.ShowPips == showPips
                 && prior.SoftCap.Equals(softCap))
             {
                 continue;
             }
 
-            _lastSent[session.UserId] = (mob, isMedical, showPips, softCap);
-            RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical, IsChemist(mob), showPips, softCap), session);
+            _lastSent[session.UserId] = (mob, isMedical, softCap);
+            RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical, IsChemist(mob), softCap), session);
         }
     }
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
         var isMedical = IsMedicalDepartment(ev.Mob);
-        var showPips = isMedical && _upgrades.Unlocked(FSMedicalUpgradeSystem.TraumaScanners);
         var softCap = SoftCap();
-        _lastSent[ev.Player.UserId] = (ev.Mob, isMedical, showPips, softCap);
-        RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical, IsChemist(ev.Mob), showPips, softCap), ev.Player);
+        _lastSent[ev.Player.UserId] = (ev.Mob, isMedical, softCap);
+        RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical, IsChemist(ev.Mob), softCap), ev.Player);
     }
 
     private float SoftCap() => FSMediGunComponent.DefaultSoftCap + _upgrades.SoftCapBonus;

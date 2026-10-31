@@ -18,7 +18,6 @@ public sealed partial class FSHealthBarSystem : EntitySystem
 
     private bool _isMedical;
     private bool _isChemist;
-    private bool _showPips;
     private float _softCap = FSMediGunComponent.DefaultSoftCap;
 
     public float SoftCap => _softCap;
@@ -45,7 +44,6 @@ public sealed partial class FSHealthBarSystem : EntitySystem
     {
         _isMedical = ev.IsMedical;
         _isChemist = ev.IsChemist;
-        _showPips = ev.ShowPips;
         _softCap = ev.SoftCap;
 
         if (_playerManager.LocalEntity is { } local)
@@ -86,7 +84,6 @@ public sealed partial class FSHealthBarSystem : EntitySystem
             return;
 
         overlay.ShowDamageTypes = _isMedical;
-        overlay.ShowAilmentPips = _showPips;
         overlay.MedigunSoftCap = _softCap;
         overlay.MedigunTarget = FindMedigunTarget();
 

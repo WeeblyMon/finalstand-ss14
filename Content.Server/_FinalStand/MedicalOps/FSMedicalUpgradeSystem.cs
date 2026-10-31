@@ -65,7 +65,6 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 
     public const string BoneSetting = "FSMedicalBoneSetting";
     public const string ClottingGauze = "FSMedicalClottingGauze";
-    public const string TraumaScanners = "FSMedicalTraumaScanners";
     public const string RestartProtocol = "FSMedicalRestartProtocol";
 
     private static readonly EntProtoId ClottedWard = "FSWardClotted";
@@ -81,7 +80,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
         LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
         StandingOrders, RapidMobilisation, ExtendedProtocol, TriageDoctrine, MassCasualtyReadiness,
         DepartmentDividend,
-        BoneSetting, ClottingGauze, TraumaScanners, RestartProtocol,
+        BoneSetting, ClottingGauze, RestartProtocol,
     ];
 
     private static readonly FrozenSet<string> NodeSet = AllNodes.ToFrozenSet();

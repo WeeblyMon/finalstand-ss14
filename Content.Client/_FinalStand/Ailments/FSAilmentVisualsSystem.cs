@@ -97,18 +97,6 @@ public sealed partial class FSAilmentVisualsSystem : EntitySystem
         return (pips & (FSAilmentPips) (1 << (int) slot)) != 0;
     }
 
-    public static int Count(FSAilmentPips pips)
-    {
-        var count = 0;
-        foreach (var slot in Slots)
-        {
-            if (Has(pips, slot))
-                count++;
-        }
-
-        return count;
-    }
-
     public static void DrawArc(DrawingHandleWorld handle, Vector2 centre, float radius, float fraction, Color color)
     {
         const int segments = 40;
@@ -147,21 +135,6 @@ public sealed partial class FSAilmentVisualsSystem : EntitySystem
     public Texture? FixIcon(FSAilmentSlot slot)
     {
         return _ailments.Rules.Slots.TryGetValue(slot, out var info) && info.FixIcon is { } icon ? _sprite.Frame0(icon) : null;
-    }
-
-    public float DrawWorldPips(DrawingHandleWorld handle, Vector2 origin, FSAilmentPips pips, float size)
-    {
-        var x = origin.X;
-        foreach (var slot in Slots)
-        {
-            if (!Has(pips, slot) || Pip(slot) is not { } texture)
-                continue;
-
-            handle.DrawTextureRect(texture, new Box2(x, origin.Y, x + size, origin.Y + size), SlotColor(slot));
-            x += size;
-        }
-
-        return x - origin.X;
     }
 
     public float DrawScreenPips(DrawingHandleScreen handle, Vector2 origin, FSAilmentPips pips, float size)

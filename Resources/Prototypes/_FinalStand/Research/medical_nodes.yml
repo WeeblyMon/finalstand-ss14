@@ -91,29 +91,16 @@
   bonusDescription: Gauze and sutures leave the patient CLOTTED for 20 seconds, so no new bleeding can start.
 
 - type: fsTechNode
-  id: FSMedicalTraumaScanners
-  name: Trauma Scanners
-  icon:
-    sprite: Objects/Specific/Medical/healthanalyzer.rsi
-    state: icon
-  branch: Medical
-  tier: 4
-  cost: 1600
-  prerequisites:
-  - FSMedicalBoneSetting
-  bonusDescription: Medics see ailment pips above the health bars of wounded allies.
-
-- type: fsTechNode
   id: FSMedicalRestartProtocol
   name: Restart Protocol
   icon:
     sprite: Objects/Specific/Medical/defib.rsi
     state: icon
   branch: Medical
-  tier: 5
+  tier: 4
   cost: 2200
   prerequisites:
-  - FSMedicalTraumaScanners
+  - FSMedicalClottingGauze
   bonusDescription: A defibrillator revive also clears a broken bone and burns.
 
 # ── Line A: Field care (medigun, defibrillator) ───────────────────────────────────────────────

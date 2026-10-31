@@ -18,8 +18,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private readonly IGameTiming _timing;
     private readonly SharedTransformSystem _transform;
     private readonly IPlayerManager _player;
-    private readonly FSAilmentSystem _ailments;
-    private readonly FSAilmentVisualsSystem _ailmentVisuals;
 
     private readonly Texture? _beam;
     private readonly Texture? _dot;
@@ -63,8 +61,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private const float ParticleOrbit = 0.13f;
     private const float ParticleOrbitSpeed = 2.4f;
 
-    private const float PipMeters = 0.28f;
-    private const float PipLift = 0.72f;
     private const float MendRadius = 0.5f;
 
     private readonly List<DrawVertexUV2D> _verts = new();
@@ -82,8 +78,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
         _player = IoCManager.Resolve<IPlayerManager>();
-        _ailments = _entManager.System<FSAilmentSystem>();
-        _ailmentVisuals = _entManager.System<FSAilmentVisualsSystem>();
 
         _beam = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/medigun_beam.png");
         _dot = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/Particles/dot.png");
@@ -174,13 +168,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private void DrawPatientStatus(DrawingHandleWorld handle, EntityUid patient, Vector2 end, Angle eyeRotation)
     {
         handle.SetTransform(Matrix3x2.Multiply(Matrix3Helpers.CreateRotation(-eyeRotation), Matrix3Helpers.CreateTranslation(end)));
-
-        var pips = _ailments.GetPips(patient);
-        if (pips != FSAilmentPips.None)
-        {
-            var origin = new Vector2(-FSAilmentVisualsSystem.Count(pips) * PipMeters / 2f, PipLift);
-            _ailmentVisuals.DrawWorldPips(handle, origin, pips, PipMeters);
-        }
 
         DrawMend(handle, patient);
         handle.SetTransform(Matrix3x2.Identity);

@@ -1,5 +1,3 @@
-using Content.Client._FinalStand.Ailments;
-using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using System.Numerics;
 using Content.Client.StatusIcon;
@@ -34,18 +32,12 @@ public sealed class EntityHealthBarOverlay : Overlay
     private readonly SpriteSystem _spriteSystem;
     private readonly ProgressColorSystem _progressColor;
     private readonly DamageableSystem _damageable;
-    private readonly FSAilmentSystem _ailments;
-    private readonly FSAilmentVisualsSystem _ailmentVisuals;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
     public HashSet<string> DamageContainers = new();
     public ProtoId<HealthIconPrototype>? StatusIcon;
 
     public bool ShowDamageTypes;
-
-    public bool ShowAilmentPips;
-    private const float PipPixels = 9f;
-    private const float PipLift = 6f;
 
     public EntityUid? MedigunTarget;
     public float MedigunSoftCap = 0.7f;
@@ -81,8 +73,6 @@ public sealed class EntityHealthBarOverlay : Overlay
         _spriteSystem = _entManager.System<SpriteSystem>();
         _progressColor = _entManager.System<ProgressColorSystem>();
         _damageable = _entManager.System<DamageableSystem>();
-        _ailments = _entManager.System<FSAilmentSystem>();
-        _ailmentVisuals = _entManager.System<FSAilmentVisualsSystem>();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -177,14 +167,6 @@ public sealed class EntityHealthBarOverlay : Overlay
                 var strip = new Box2(new Vector2(startX, 4f) / EyeManager.PixelsPerMeter,
                     new Vector2(shieldX, 5f) / EyeManager.PixelsPerMeter).Translated(position);
                 handle.DrawRect(strip, shield.SourceColor);
-            }
-
-            if (ShowAilmentPips && _entManager.HasComponent<FSAilmentStateComponent>(uid)
-                && _ailments.GetPips(uid) is var pips and not FSAilmentPips.None)
-            {
-                var pipX = (widthOfMob - FSAilmentVisualsSystem.Count(pips) * PipPixels) / 2f;
-                var pipOrigin = position + new Vector2(pipX, PipLift) / EyeManager.PixelsPerMeter;
-                _ailmentVisuals.DrawWorldPips(handle, pipOrigin, pips, PipPixels / EyeManager.PixelsPerMeter);
             }
 
             if (ChemBuffed.Contains(uid))
