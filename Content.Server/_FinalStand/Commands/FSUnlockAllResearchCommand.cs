@@ -11,7 +11,7 @@ public sealed partial class FSUnlockAllResearchCommand : IConsoleCommand
     [Dependency] private IEntityManager _entMan = default!;
 
     public string Command => "fsunlockalltech";
-    public string Description => "DEBUG: instantly unlocks every SCI research node (station-wide), including every weapon shop.";
+    public string Description => "DEBUG: instantly unlocks every SCI and medical research node (station-wide), including every weapon shop.";
     public string Help => "fsunlockalltech — no arguments, bypasses cost/materials/prerequisites";
 
     public void Execute(IConsoleShell shell, string argStr, string[] args)

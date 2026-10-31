@@ -4,6 +4,11 @@
   suffix: Revenant
   name: revenant zombie
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Bone: 0
+      Bleeding: 2
+    examine: fs-signature-revenant
   - type: FSSpecialZombie
   - type: FSRevenant
     sliceDamage: 30
@@ -78,6 +83,10 @@
   parent: FSZombieRevenant
   suffix: Revenant, Dark Wave
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Bleeding: 2
+    examine: fs-signature-revenant-dark
   - type: MobThresholds
     thresholds:
       0: Alive

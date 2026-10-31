@@ -204,6 +204,9 @@ public sealed class RookieRoundTest : GameTest
             Assert.That(SEntMan.System<FSMentorSystem>().Award(_veteran, _rookie, 1, "fs-mentor-reason-escort"), Is.EqualTo(1),
                 "the pair is only voided for the round it happened in");
         });
+
+        await Pair.Disconnect();
+        await Pair.Connect();
     }
 
     [Test]

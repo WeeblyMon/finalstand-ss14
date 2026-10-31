@@ -2,7 +2,6 @@
 using Content.Server.Administration.Logs;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Materials;
-using Content.Shared._NF.Storage.Components;
 using Content.Shared.Database;
 using Content.Shared.Examine;
 using Content.Shared.GameTicking;
@@ -11,7 +10,9 @@ using Content.Shared.Materials.OreSilo;
 using Content.Shared.Stacks;
 using Robust.Server.GameStates;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Materials;
 
@@ -25,6 +26,8 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private PvsOverrideSystem _pvs = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private readonly Dictionary<ProtoId<StackPrototype>, (string Material, int PerSheet)?> _sheetMaterials = new();
     private readonly Dictionary<string, int> _reserved = new();
@@ -32,6 +35,9 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
     private bool _dirty;
     private bool _moving;
     private const float MagnetRange = 1.25f;
+    private static readonly TimeSpan MagnetInterval = TimeSpan.FromSeconds(1);
+    private TimeSpan _nextMagnet;
+    private readonly HashSet<EntityUid> _loose = new();
 
     public override void Initialize()
     {
@@ -89,9 +95,6 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
     private void OnSiloInit(Entity<OreSiloComponent> ent, ref MapInitEvent args)
     {
         EnsureComp<FSSiloNetworkComponent>(ent);
-        var magnet = EnsureComp<MaterialStorageMagnetPickupComponent>(ent);
-        magnet.MagnetEnabled = true;
-        magnet.Range = MagnetRange;
         _dirty = true;
     }
 
@@ -141,6 +144,12 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
 
     public override void Update(float frameTime)
     {
+        if (_timing.CurTime >= _nextMagnet)
+        {
+            _nextMagnet = _timing.CurTime + MagnetInterval;
+            PullLooseMaterials();
+        }
+
         if (!_dirty)
             return;
 
@@ -161,6 +170,25 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
         var clients = EntityQueryEnumerator<OreSiloClientComponent>();
         while (clients.MoveNext(out var uid, out var client))
             _oreSilo.FSLinkClient((pool, poolSilo), (uid, client));
+    }
+
+    private void PullLooseMaterials()
+    {
+        var silos = EntityQueryEnumerator<FSSiloNetworkComponent, MaterialStorageComponent>();
+        while (silos.MoveNext(out var uid, out _, out var storage))
+        {
+            _loose.Clear();
+            _lookup.GetEntitiesInRange(uid, MagnetRange, _loose, LookupFlags.Dynamic | LookupFlags.Sundries);
+            foreach (var item in _loose)
+            {
+                if (HasComp<FSSiloEjectedComponent>(item)
+                    || !TryComp<PhysicsComponent>(item, out var physics)
+                    || physics.BodyStatus != BodyStatus.OnGround)
+                    continue;
+
+                _storage.TryInsertMaterialEntity(uid, item, uid, storage);
+            }
+        }
     }
 
     private EntityUid? ChoosePool(EntityUid? except)

@@ -1,3 +1,5 @@
+using Content.Client._FinalStand.Ailments;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Mobs.Systems;
 using System.Numerics;

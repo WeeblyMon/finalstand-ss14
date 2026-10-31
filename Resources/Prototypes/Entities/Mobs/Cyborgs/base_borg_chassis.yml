@@ -136,7 +136,6 @@
       cell_slot:
         name: power-cell-slot-component-slot-name-default
   - type: Body
-  - type: BodyWoundHealing
   - type: StatusEffects
     allowed:
     - Flashed

@@ -251,6 +251,9 @@ public sealed class RoundIntegrityTest : GameTest
             Assert.That(presence.GetWavesPresent(user), Is.EqualTo(1),
                 "waves from an earlier round must not count toward this round's rewards");
         });
+
+        await Pair.Disconnect();
+        await Pair.Connect();
     }
 
     [Test]

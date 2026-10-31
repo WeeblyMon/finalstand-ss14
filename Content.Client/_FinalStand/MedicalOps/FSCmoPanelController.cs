@@ -1,21 +1,17 @@
 using Robust.Shared.Utility;
 using Robust.Client.ResourceManagement;
 using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.UI;
 using Content.Client._FinalStand.WaveHud;
 using System.Numerics;
 using Content.Client.UserInterface.Systems.Gameplay;
-using Content.Client.UserInterface.Systems.Actions.Widgets;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
-using Content.Client.UserInterface.Systems.Inventory.Widgets;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
-using Robust.Shared;
-using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
@@ -25,24 +21,16 @@ public sealed partial class FSCmoPanelController : UIController
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceCache _resource = default!;
-    [Dependency] private IConfigurationManager _cfg = default!;
-    [Dependency] private IClyde _clyde = default!;
-
-    private static readonly Color DirectiveIdle = FSPalette.TextDim;
-    private static readonly Color DirectiveActive = FSPalette.Ok;
-    private static readonly Color AbilityReady = FSPalette.DangerSoft;
-    private static readonly Color AbilityCooling = FSPalette.TextDim;
-    private const float ActionBarFraction = 0.2995f;
-    private const float ActionsHalfWidth = ActionsBar.BarWidth * 0.5f;
-
-    private static readonly Color PanelBg = FSHudStyle.PanelBack;
-    private static readonly Color PanelBorder = FSHudStyle.PanelEdge;
+    [Dependency] private IOverlayManager _overlays = default!;
 
     private const int EdgePadding = 8;
-    private const int WideDirectiveWidth = 92;
-    private const int WideAbilityWidth = 140;
-    private const int NarrowWidth = 116;
-    private const int WideLayoutMinimum = 310;
+    private const int SlotSize = 40;
+    private const int IconSize = 24;
+    private const int SlotGap = 3;
+    private const int GroupGap = 10;
+
+    private static readonly ResPath BoldFont = new("/Fonts/NotoSans/NotoSans-Bold.ttf");
+    private static readonly Color CoolingIcon = Color.White.WithAlpha(0.3f);
 
     private static readonly (FSCmoAbility Ability, string Loc)[] DirectiveSlots =
     {
@@ -58,17 +46,33 @@ public sealed partial class FSCmoPanelController : UIController
         (FSCmoAbility.Dividend, "fs-cmo-dividend"),
     };
 
+    private static readonly StyleBoxFlat IdleBox = new()
+    {
+        BackgroundColor = FSPalette.ChipBack,
+        BorderColor = FSPalette.ChipEdge,
+        BorderThickness = new Thickness(1),
+    };
+
+    private static readonly StyleBoxFlat ReadyBox = new()
+    {
+        BackgroundColor = FSPalette.ChipBack,
+        BorderColor = FSPalette.Money,
+        BorderThickness = new Thickness(1),
+    };
+
+    private static readonly StyleBoxFlat LitBox = new()
+    {
+        BackgroundColor = FSPalette.TextBright.WithAlpha(0.14f),
+        BorderColor = FSPalette.TextBright,
+        BorderThickness = new Thickness(1),
+    };
+
+    private readonly record struct Slot(Button Button, Control Icon, Label Timer);
+
+    private readonly Dictionary<FSCmoAbility, Slot> _slots = new();
     private readonly Dictionary<FSCmoAbility, int> _shownSeconds = new();
 
-    private PanelContainer? _frame;
-    private BoxContainer? _directiveRow;
-    private BoxContainer? _abilityRow;
-    private InventoryGui? _inventory;
-    private HotbarGui? _hotbar;
-    private bool _narrow;
-
-    private readonly Dictionary<FSCmoAbility, Button> _buttons = new();
-    private readonly Dictionary<FSCmoAbility, string> _labels = new();
+    private BoxContainer? _frame;
 
     public override void Initialize()
     {
@@ -85,67 +89,28 @@ public sealed partial class FSCmoPanelController : UIController
         if (screen == null)
             return;
 
-        _buttons.Clear();
-        _labels.Clear();
+        _slots.Clear();
+        _shownSeconds.Clear();
 
-        _hotbar = FindWidget<HotbarGui>(screen);
-        _inventory = FindWidget<InventoryGui>(screen);
-
-        if (_hotbar?.Parent is not LayoutContainer container)
+        if (FindWidget<HotbarGui>(screen)?.Parent is not LayoutContainer container)
             return;
 
-        _directiveRow = BuildRow(DirectiveSlots, WideDirectiveWidth);
-        _abilityRow = BuildRow(AbilitySlots, WideAbilityWidth);
-
-        var rows = new BoxContainer
+        _frame = new BoxContainer
         {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Margin = new Thickness(6),
-        };
-        rows.AddChild(new Label
-        {
-            Text = Loc.GetString("fs-cmo-panel-title"),
-            StyleClasses = { "LabelSubText" },
-            HorizontalAlignment = Control.HAlignment.Center,
-        });
-        rows.AddChild(_directiveRow);
-        rows.AddChild(_abilityRow);
-
-        _frame = new PanelContainer
-        {
-            PanelOverride = new StyleBoxFlat
-            {
-                BackgroundColor = PanelBg,
-                BorderColor = PanelBorder,
-                BorderThickness = new Thickness(1),
-            },
+            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+            SeparationOverride = GroupGap,
             HorizontalAlignment = Control.HAlignment.Left,
             VerticalAlignment = Control.VAlignment.Top,
             Visible = false,
         };
-        _frame.AddChild(rows);
+        _frame.AddChild(BuildGroup("fs-cmo-group-directive", DirectiveSlots));
+        _frame.AddChild(BuildGroup("fs-cmo-group-command", AbilitySlots));
 
         LayoutContainer.SetAnchorPreset(_frame, LayoutContainer.LayoutPreset.TopLeft);
         container.AddChild(_frame);
     }
 
-    private static readonly StyleBoxFlat IdleBox = new()
-    {
-        BackgroundColor = FSPalette.PanelBack,
-        BorderColor = FSPalette.PanelEdge,
-        BorderThickness = new Thickness(1),
-    };
-
-    private static readonly StyleBoxFlat LitBox = new()
-    {
-        BackgroundColor = Color.FromHex("#2f4a2b"),
-        BorderColor = FSPalette.Ok,
-        BorderThickness = new Thickness(2),
-    };
-
-    private const int IconGutter = 28;
-
-    private static ResPath? AbilityIcon(FSCmoAbility ability)
+    private static string AbilityIcon(FSCmoAbility ability)
     {
         var name = ability switch
         {
@@ -154,10 +119,10 @@ public sealed partial class FSCmoPanelController : UIController
             FSCmoAbility.DirectiveTrauma => "trauma",
             FSCmoAbility.DirectivePharma => "pharma",
             FSCmoAbility.DirectiveFieldOps => "field_ops",
-            _ => null,
+            _ => "dividend",
         };
 
-        return name is null ? null : new ResPath($"/Textures/_FinalStand/Interface/CmoPanel/{name}.png");
+        return $"/Textures/_FinalStand/Interface/CmoPanel/{name}.png";
     }
 
     private static T? FindWidget<T>(Control root) where T : Control
@@ -174,68 +139,87 @@ public sealed partial class FSCmoPanelController : UIController
         return null;
     }
 
-    private BoxContainer BuildRow((FSCmoAbility Ability, string Loc)[] slots, int width)
+    private Font Bold(int size)
+    {
+        return new VectorFont(_resource.GetResource<FontResource>(BoldFont), size);
+    }
+
+    private BoxContainer BuildGroup(string title, (FSCmoAbility Ability, string Loc)[] slots)
     {
         var row = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            Margin = new Thickness(0, 3, 0, 0),
+            SeparationOverride = SlotGap,
         };
 
         foreach (var (ability, loc) in slots)
         {
-            var label = Loc.GetString($"{loc}-short");
-
-            var button = new Button
-            {
-                Text = label,
-                MinWidth = width,
-                MinHeight = 30,
-                Margin = new Thickness(2, 0),
-                ToolTip = Loc.GetString($"{loc}-effects"),
-            };
-
-            FSHudStyle.StyleButton(button);
-
-            if (AbilityIcon(ability) is { } iconPath
-                && _resource.TryGetResource<TextureResource>(iconPath, out var icon))
-            {
-                button.AddChild(new TextureRect
-                {
-                    Texture = icon,
-                    HorizontalAlignment = Control.HAlignment.Left,
-                    VerticalAlignment = Control.VAlignment.Center,
-                    Margin = new Thickness(6, 0, 0, 0),
-                    MouseFilter = Control.MouseFilterMode.Ignore,
-                });
-
-                button.Label.Align = Label.AlignMode.Left;
-                button.Label.Margin = new Thickness(IconGutter, 0, 0, 0);
-            }
-
-            var captured = ability;
-            button.OnPressed += _ => EntityManager.System<FSCmoPanelSystem>().Request(captured);
-
-            _labels[ability] = label;
-            _buttons[ability] = button;
-            row.AddChild(button);
+            row.AddChild(BuildSlot(ability, loc));
         }
 
-        return row;
+        var group = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            SeparationOverride = SlotGap,
+            VerticalAlignment = Control.VAlignment.Bottom,
+        };
+        group.AddChild(new Label
+        {
+            Text = Loc.GetString(title),
+            FontOverride = Bold(8),
+            FontColorOverride = FSPalette.TextMuted,
+        });
+        group.AddChild(row);
+        return group;
+    }
+
+    private Button BuildSlot(FSCmoAbility ability, string loc)
+    {
+        var button = new Button
+        {
+            MinSize = new Vector2(SlotSize, SlotSize),
+            SetSize = new Vector2(SlotSize, SlotSize),
+            ToolTip = $"{Loc.GetString($"{loc}-name")}\n{Loc.GetString($"{loc}-effects")}",
+        };
+
+        FSHudStyle.StyleButton(button);
+
+        var icon = new FSMipmapRect
+        {
+            TexturePath = AbilityIcon(ability),
+            SetSize = new Vector2(IconSize, IconSize),
+            HorizontalAlignment = Control.HAlignment.Center,
+            VerticalAlignment = Control.VAlignment.Center,
+            MouseFilter = Control.MouseFilterMode.Ignore,
+        };
+
+        var timer = new Label
+        {
+            FontOverride = Bold(13),
+            FontColorOverride = FSPalette.TextBright,
+            HorizontalAlignment = Control.HAlignment.Center,
+            VerticalAlignment = Control.VAlignment.Center,
+            MouseFilter = Control.MouseFilterMode.Ignore,
+            Visible = false,
+        };
+
+        button.AddChild(icon);
+        button.AddChild(timer);
+
+        var captured = ability;
+        button.OnPressed += _ => EntityManager.System<FSCmoPanelSystem>().Request(captured);
+
+        _slots[ability] = new Slot(button, icon, timer);
+        return button;
     }
 
     private void OnScreenUnload()
     {
         _frame?.Orphan();
         _frame = null;
-        _directiveRow = null;
-        _abilityRow = null;
-        _inventory = null;
-        _hotbar = null;
-        _buttons.Clear();
-        _labels.Clear();
+        _slots.Clear();
+        _shownSeconds.Clear();
 
-        _narrow = false;
     }
 
     public override void FrameUpdate(FrameEventArgs args)
@@ -254,13 +238,13 @@ public sealed partial class FSCmoPanelController : UIController
 
         _frame.Visible = true;
 
-        UpdateButtons(panel);
+        UpdateSlots(panel);
         UpdatePlacement();
     }
 
-    private void UpdateButtons(FSCmoPanelComponent panel)
+    private void UpdateSlots(FSCmoPanelComponent panel)
     {
-        foreach (var (ability, button) in _buttons)
+        foreach (var (ability, slot) in _slots)
         {
             var directive = DirectiveOf(ability);
 
@@ -273,92 +257,44 @@ public sealed partial class FSCmoPanelController : UIController
             };
 
             if (ability == FSCmoAbility.Dividend)
-                button.Visible = panel.DividendUnlocked;
+                slot.Button.Visible = panel.DividendUnlocked;
 
             var remaining = readyAt - _timing.CurTime;
-            var cooling = remaining > TimeSpan.Zero;
-
             var isActive = directive is { } active && active == panel.ActiveDirective;
-            button.Disabled = cooling && !isActive;
+            var cooling = remaining > TimeSpan.Zero && !isActive;
+
+            slot.Button.Disabled = cooling;
+            slot.Icon.Modulate = cooling ? CoolingIcon : Color.White;
+            slot.Timer.Visible = cooling;
 
             var seconds = cooling ? (int) Math.Ceiling(remaining.TotalSeconds) : 0;
             if (!_shownSeconds.TryGetValue(ability, out var shown) || shown != seconds)
             {
                 _shownSeconds[ability] = seconds;
-                button.Text = cooling
-                    ? $"{_labels[ability]}  {seconds:0}s"
-                    : _labels[ability];
+                slot.Timer.Text = seconds.ToString();
             }
 
-            var live = isActive;
-
-            if (live)
-            {
-                button.StyleBoxOverride = LitBox;
-                button.Label.FontColorOverride = FSPalette.TextBright;
-            }
-            else
-            {
-                button.StyleBoxOverride = IdleBox;
-                button.Label.FontColorOverride = directive != null
-                    ? DirectiveIdle
-                    : cooling ? AbilityCooling : AbilityReady;
-            }
+            slot.Button.StyleBoxOverride = isActive
+                ? LitBox
+                : directive == null && !cooling ? ReadyBox : IdleBox;
         }
     }
 
     private void UpdatePlacement()
     {
-        if (_frame == null || _hotbar == null || _directiveRow == null || _abilityRow == null)
+        if (_frame?.Parent is not { } parent
+            || !_overlays.TryGetOverlay<WaveHudOverlay>(out var hud)
+            || hud.VitalsBox is not { } vitals)
+        {
             return;
+        }
 
-        // FINALSTAND: the hotbar widget spans the whole band now, so its Position.X is 0 and the old "gap between inventory and hotbar" arithmetic produced a negative width.
-        var screenW = _frame.Parent?.Size.X ?? 0f;
-        if (screenW <= 0f)
-            return;
-
-        var displayScale = _cfg.GetCVar(CVars.DisplayUIScale);
-        var uiScale = displayScale > 0f ? displayScale : UIManager.DefaultUIScale;
-        var hudScale = WaveHudOverlay.GetResolutionFactor(_clyde.ScreenSize.X) * uiScale;
-        var vitalsRightEdge = WaveHudOverlay.ScreenMargin + WaveHudOverlay.VitalsWidthBase * hudScale;
-
-        var actionsLeft = screenW * ActionBarFraction - ActionsHalfWidth;
-        var gapCentre = (vitalsRightEdge + actionsLeft) * 0.5f;
-        var available = actionsLeft - vitalsRightEdge;
-
-        SetNarrow(available < WideLayoutMinimum);
-
-        var size = _frame.DesiredSize;
-        // Floored against Vitals' real right edge, not a flat edge padding, so it can't collapse onto Health.
-        var x = MathF.Max(vitalsRightEdge + EdgePadding, gapCentre - size.X * 0.5f);
-        var y = _hotbar.Position.Y + _hotbar.Size.Y - size.Y;
+        var scale = parent.UIScale;
+        var origin = parent.GlobalPixelPosition;
+        var x = (vitals.Right - origin.X) / scale + EdgePadding;
+        var y = (vitals.Bottom - origin.Y) / scale - _frame.DesiredSize.Y;
 
         LayoutContainer.SetPosition(_frame, new Vector2(x, y));
-    }
-
-    private void SetNarrow(bool narrow)
-    {
-        if (narrow == _narrow || _directiveRow == null || _abilityRow == null)
-            return;
-
-        _narrow = narrow;
-
-        var orientation = narrow
-            ? BoxContainer.LayoutOrientation.Vertical
-            : BoxContainer.LayoutOrientation.Horizontal;
-
-        _directiveRow.Orientation = orientation;
-        _abilityRow.Orientation = orientation;
-
-        foreach (var (ability, button) in _buttons)
-        {
-            if (narrow)
-                button.MinWidth = NarrowWidth;
-            else
-                button.MinWidth = DirectiveOf(ability) is null ? WideAbilityWidth : WideDirectiveWidth;
-
-            button.Margin = narrow ? new Thickness(0, 1) : new Thickness(2, 0);
-        }
     }
 
     private static FSMedicalDirective? DirectiveOf(FSCmoAbility ability) => ability switch

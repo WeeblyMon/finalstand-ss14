@@ -60,7 +60,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
         SubscribeLocalEvent<GunComponent, AmmoShotEvent>(OnGunShot);
-        SubscribeLocalEvent<MobMoverComponent, RefreshMovementSpeedModifiersEvent>(OnLightweight);
+        SubscribeLocalEvent<MobMoverComponent, RefreshMovementSpeedModifiersEvent>(OnLightweight, after: [typeof(FSPackMuleSystem)]);
         SubscribeLocalEvent<MobMoverComponent, DidEquipEvent>((uid, _, _) => RefreshIfLookingThin(uid));
         SubscribeLocalEvent<MobMoverComponent, DidUnequipEvent>((uid, _, _) => RefreshIfLookingThin(uid));
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);

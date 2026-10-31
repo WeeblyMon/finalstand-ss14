@@ -1,9 +1,6 @@
-using Content.Shared._FinalStand.Medical;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
-using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
-using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
-using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
@@ -31,13 +28,14 @@ public sealed partial class HealingSystem : EntitySystem
     [Dependency] private ISharedAdminLogManager _adminLogger = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private BloodstreamSystem _bloodstreamSystem = default!;
-    [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedStackSystem _stacks = default!;
     [Dependency] private SharedInteractionSystem _interactionSystem = default!;
     [Dependency] private MobThresholdSystem _mobThresholdSystem = default!;
     [Dependency] private SharedPopupSystem _popupSystem = default!;
     [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
+    [Dependency] private FSAilmentCureSystem _cures = default!;
     [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
 
     public override void Initialize()
@@ -51,6 +49,7 @@ public sealed partial class HealingSystem : EntitySystem
 
     private void OnDoAfter(Entity<DamageableComponent> target, ref HealingDoAfterEvent args)
     {
+
         if (args.Handled || args.Cancelled)
             return;
 
@@ -68,49 +67,47 @@ public sealed partial class HealingSystem : EntitySystem
         }
 
         TryComp<BloodstreamComponent>(target, out var bloodstream);
+        var curing = _cures.Cures(args.Used.Value, target.Owner);
+        var stoppedBleed = 0f;
 
+        // Heal some bloodloss damage.
         if (healing.BloodlossModifier != 0 && bloodstream != null)
         {
-            var isBleeding = bloodstream.BleedAmount > 0 || _wounds.IsAnyWoundableBleeding(target.Owner);
+            var bleedBefore = bloodstream.BleedAmount;
+            var isBleeding = bloodstream.BleedAmount > 0;
             _bloodstreamSystem.TryModifyBleedAmount((target.Owner, bloodstream), healing.BloodlossModifier);
+            if (isBleeding && bloodstream.BleedAmount <= 0)
+                stoppedBleed = bleedBefore;
 
-            if (healing.BloodlossModifier < 0)
-            {
-                var targeted = CompOrNull<TargetingComponent>(args.User)?.Target;
-                if (targeted != null && !_wounds.IsAnyWoundableBleeding(target.Owner, targeted))
-                    targeted = null;
-
-                _wounds.TryHealBleedsOnBody(target.Owner, (float) healing.BloodlossModifier, targeted);
-            }
-
-            if (isBleeding != (bloodstream.BleedAmount > 0 || _wounds.IsAnyWoundableBleeding(target.Owner)))
+            if (isBleeding != bloodstream.BleedAmount > 0)
             {
                 var popup = (args.User == target.Owner)
                     ? Loc.GetString("medical-item-stop-bleeding-self")
                     : Loc.GetString("medical-item-stop-bleeding", ("target", Identity.Entity(target.Owner, EntityManager)));
-                _popupSystem.PopupClient(popup, target, args.User);
+                _popupSystem.PopupEntity(popup, target, args.User);
             }
         }
 
+        // Restores missing blood
         if (healing.ModifyBloodLevel != 0 && bloodstream != null)
             _bloodstreamSystem.TryModifyBloodLevel((target.Owner, bloodstream), healing.ModifyBloodLevel);
 
-        var potency = new FSHealingPotencyEvent(1f, target.Owner); // FINALSTAND
+        var potency = new FSHealingPotencyEvent(1f, target.Owner);
         RaiseLocalEvent(args.User, ref potency);
-        var topicalHealing = healing.Damage * (_damageable.UniversalTopicalsHealModifier * potency.Multiplier);
-        var changedDamage = _damageable.TryChangeDamage(target.Owner, topicalHealing, out var healed, true, origin: args.Args.User);
-
-        // FINALSTAND: mob damage floors at zero while limb wounds persist.
-        var healedWounds = _wounds.TryHealWoundsOnOwner(target.Owner, topicalHealing);
-
-        if (!changedDamage && !healedWounds && healing.BloodlossModifier != 0)
+        var scale = _damageable.UniversalTopicalsHealModifier * potency.Multiplier * _ailments.GetIncomingHealScale(target.Owner);
+        if (!_damageable.TryChangeDamage(target.Owner, healing.Damage * scale, out var healed, true, origin: args.Args.User)
+            && healing.BloodlossModifier != 0
+            && stoppedBleed <= 0f
+            && !curing)
             return;
 
         var appliedEv = new FSTopicalAppliedEvent(args.Args.User, target.Owner);
         RaiseLocalEvent(target.Owner, ref appliedEv);
+        _cures.Treated(args.Used.Value, target.Owner, args.User, stoppedBleed);
 
         var total = healed.GetTotal();
 
+        // Re-verify that we can heal the damage.
         var dontRepeat = false;
         if (TryComp<StackComponent>(args.Used.Value, out var stackComp))
         {
@@ -137,15 +134,17 @@ public sealed partial class HealingSystem : EntitySystem
 
         _audio.PlayPredicted(healing.HealingEndSound, target.Owner, args.User);
 
+        // Logic to determine the whether or not to repeat the healing action
         args.Repeat = HasDamage((args.Used.Value, healing), target) && !dontRepeat;
         args.Handled = true;
 
         if (!args.Repeat)
         {
-            _popupSystem.PopupClient(Loc.GetString("medical-item-finished-using", ("item", args.Used)), target.Owner, args.User);
+            _popupSystem.PopupEntity(Loc.GetString("medical-item-finished-using", ("item", args.Used)), target.Owner, args.User);
             return;
         }
 
+        // Update our self heal delay so it shortens as we heal more damage.
         if (args.User == target.Owner)
             args.Args.Delay = healing.Delay
                 * GetScaledHealingPenalty(target.Owner, healing.SelfHealPenaltyMultiplier)
@@ -164,12 +163,9 @@ public sealed partial class HealingSystem : EntitySystem
             }
         }
 
-        // FINALSTAND: limb wounds outlive mob damage, so they gate usability too.
-        if (HasHealableWounds(healing, target))
-            return true;
-
         if (TryComp<BloodstreamComponent>(target, out var bloodstream))
         {
+            // Is ent missing blood that we can restore?
             if (healing.Comp.ModifyBloodLevel > 0
                 && _solutionContainerSystem.ResolveSolution(target.Owner, bloodstream.BloodSolutionName, ref bloodstream.BloodSolution, out var bloodSolution)
                 && _bloodstreamSystem.GetBloodLevel((target, bloodstream)) < 1)
@@ -177,42 +173,14 @@ public sealed partial class HealingSystem : EntitySystem
                 return true;
             }
 
+            // Is ent bleeding and can we stop it?
             if (healing.Comp.BloodlossModifier < 0 && bloodstream.BleedAmount > 0)
             {
                 return true;
             }
         }
 
-        if (healing.Comp.BloodlossModifier < 0 && _wounds.IsAnyWoundableBleeding(target.Owner))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool HasHealableWounds(Entity<HealingComponent> healing, Entity<DamageableComponent> target)
-    {
-        if (!_wounds.TryGetAllOwnerWoundedParts(target.Owner, out var woundables))
-            return false;
-
-        foreach (var woundable in woundables)
-        {
-            foreach (var wound in _wounds.GetWoundableWounds(woundable.Owner, woundable.Comp))
-            {
-                if (wound.Comp.WoundSeverityPoint <= 0
-                    || !healing.Comp.Damage.DamageDict.TryGetValue(wound.Comp.DamageType, out var heal)
-                    || heal >= 0)
-                {
-                    continue;
-                }
-
-                if (_wounds.CanHealWound(wound, wound.Comp))
-                    return true;
-            }
-        }
-
-        return false;
+        return _cures.Cures(healing.Owner, target.Owner);
     }
 
     private void OnHealingUse(Entity<HealingComponent> healing, ref UseInHandEvent args)
@@ -256,7 +224,7 @@ public sealed partial class HealingSystem : EntitySystem
 
         if (!HasDamage(healing, target!))
         {
-            _popupSystem.PopupClient(Loc.GetString("medical-item-cant-use", ("item", healing.Owner)), healing, user);
+            _popupSystem.PopupEntity(Loc.GetString("medical-item-cant-use", ("item", healing.Owner)), healing, user);
             return false;
         }
 
@@ -274,11 +242,13 @@ public sealed partial class HealingSystem : EntitySystem
             ? healing.Comp.Delay
             : healing.Comp.Delay * GetScaledHealingPenalty(target, healing.Comp.SelfHealPenaltyMultiplier);
 
-        delay *= _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.TreatmentSpeed);
+        delay = _cures.GetTreatmentDelay(user, target.Owner, delay);
 
         var doAfterEventArgs =
             new DoAfterArgs(EntityManager, user, delay, new HealingDoAfterEvent(), target, target: target, used: healing)
             {
+                // Didn't break on damage as they may be trying to prevent it and
+                // not being able to heal your own ticking damage would be frustrating.
                 NeedHand = true,
                 BreakOnMove = true,
                 BreakOnWeightlessMove = false,
@@ -288,6 +258,12 @@ public sealed partial class HealingSystem : EntitySystem
         return true;
     }
 
+    /// <summary>
+    /// Scales the self-heal penalty based on the amount of damage taken
+    /// </summary>
+    /// <param name="ent">Entity we're healing</param>
+    /// <param name="mod">Maximum modifier we can have.</param>
+    /// <returns>Modifier we multiply our healing time by</returns>
     public float GetScaledHealingPenalty(Entity<DamageableComponent?, MobThresholdsComponent?> ent, float mod)
     {
         if (!Resolve(ent, ref ent.Comp1, ref ent.Comp2, false))
@@ -297,6 +273,7 @@ public sealed partial class HealingSystem : EntitySystem
             return 1;
 
         var percentDamage = (float)(_damageable.GetTotalDamage(ent) / amount);
+        //basically make it scale from 1 to the multiplier.
 
         var output = percentDamage * (mod - 1) + 1;
         return Math.Max(output, 1);

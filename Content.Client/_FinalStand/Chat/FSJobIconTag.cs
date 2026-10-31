@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Content.Shared.StatusIcon;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
@@ -11,37 +12,32 @@ namespace Content.Client._FinalStand.Chat;
 
 public sealed partial class FSJobIconTag : IMarkupTagHandler
 {
-    [Dependency] private IPrototypeManager _prototype = default!;
-    [Dependency] private IEntitySystemManager _entitySystem = default!;
-    private SpriteSystem? _spriteSystem;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IEntityManager _entMan = default!;
 
-    public string Name => "fsicon";
+    public string Name => "fsjobicon";
 
     public bool TryCreateControl(MarkupNode node, [NotNullWhen(true)] out Control? control)
     {
         control = null;
-
-        if (!node.Attributes.TryGetValue("src", out var id) || id.StringValue == null)
+        if (!node.Attributes.TryGetValue("job", out var job)
+            || job.StringValue is not { } id
+            || !_proto.TryIndex<JobIconPrototype>(id, out var icon))
             return false;
 
-        _spriteSystem ??= _entitySystem.GetEntitySystem<SpriteSystem>();
-        var texture = _prototype.TryIndex<JobIconPrototype>(id.StringValue, out var iconPrototype)
-            ? _spriteSystem.Frame0(iconPrototype.Icon)
-            : null;
-
-        var icon = new TextureRect
+        var rect = new TextureRect
         {
-            Texture = texture,
-            SetWidth = 20,
-            SetHeight = 20,
-            Stretch = TextureRect.StretchMode.Scale,
+            Texture = _entMan.System<SpriteSystem>().Frame0(icon.Icon),
+            TextureScale = new Vector2(2f, 2f),
+            Stretch = TextureRect.StretchMode.KeepAspectCentered,
+            VerticalAlignment = Control.VAlignment.Center,
             MouseFilter = Control.MouseFilterMode.Stop,
         };
 
-        if (node.Attributes.TryGetValue("tooltip", out var tooltip) && tooltip.StringValue != null)
-            icon.ToolTip = tooltip.StringValue;
+        if (node.Attributes.TryGetValue("title", out var title) && !string.IsNullOrEmpty(title.StringValue))
+            rect.ToolTip = title.StringValue;
 
-        control = icon;
+        control = rect;
         return true;
     }
 }

@@ -1,0 +1,4 @@
+- files: ["medigun_beam.png"]
+  license: "CC-BY-SA-3.0"
+  copyright: "Beam sprite taken from Monkestation at commit f2f39fdf7c4b6362c796647e0ed131e92d843a69, frames laid out as one strip"
+  source: "https://github.com/Monkestation/Monkestation2.0/commit/f2f39fdf7c4b6362c796647e0ed131e92d843a69"

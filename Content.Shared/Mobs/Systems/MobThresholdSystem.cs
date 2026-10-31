@@ -8,9 +8,6 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Events;
 using Robust.Shared.GameStates;
-using Robust.Shared.Network;
-using Robust.Shared.Player;
-using Robust.Shared.Serialization;
 
 namespace Content.Shared.Mobs.Systems;
 
@@ -19,7 +16,6 @@ public sealed partial class MobThresholdSystem : EntitySystem
     [Dependency] private MobStateSystem _mobStateSystem = default!;
     [Dependency] private AlertsSystem _alerts = default!;
     [Dependency] private DamageableSystem _damageable = default!;
-    [Dependency] private INetManager _net = default!;
 
     public override void Initialize()
     {
@@ -321,7 +317,8 @@ public sealed partial class MobThresholdSystem : EntitySystem
 
         CheckThresholds(target, mobState, threshold, damageable);
 
-        NotifyThresholdChecked(target);
+        var ev = new MobThresholdChecked(target, mobState, threshold, damageable);
+        RaiseLocalEvent(target, ref ev, true);
         UpdateAlerts(target, mobState.CurrentState, threshold, damageable);
     }
 
@@ -332,19 +329,6 @@ public sealed partial class MobThresholdSystem : EntitySystem
         component.AllowRevives = val;
         Dirty(uid, component);
         VerifyThresholds(uid, component);
-    }
-
-    /// <summary>
-    /// Returns the fraction of damage towards the dead threshold (0–1). Used by health analyzer UI.
-    /// </summary>
-    public FixedPoint2 CheckVitalDamage(EntityUid target, DamageableComponent damageable)
-    {
-        if (!TryGetDeadThreshold(target, out var threshold))
-            return FixedPoint2.Zero;
-        if (threshold.Value <= FixedPoint2.Zero)
-            return FixedPoint2.New(1);
-        var total = damageable.TotalDamage;
-        return total >= threshold.Value ? FixedPoint2.New(1) : total / threshold.Value;
     }
 
     #endregion
@@ -445,7 +429,8 @@ public sealed partial class MobThresholdSystem : EntitySystem
         if (!TryComp<MobStateComponent>(target, out var mobState))
             return;
         CheckThresholds(target, mobState, thresholds, args.Damageable, args.Origin);
-        NotifyThresholdChecked(target);
+        var ev = new MobThresholdChecked(target, mobState, thresholds, args.Damageable);
+        RaiseLocalEvent(target, ref ev, true);
         UpdateAlerts(target, mobState.CurrentState, thresholds, args.Damageable);
     }
 
@@ -461,14 +446,6 @@ public sealed partial class MobThresholdSystem : EntitySystem
     {
         if (component.TriggersAlerts)
             _alerts.ClearAlertCategory(target, component.HealthAlertCategory);
-    }
-
-    public void NotifyThresholdChecked(EntityUid target)
-    {
-        if (!_net.IsServer || !TryComp<ActorComponent>(target, out var actor))
-            return;
-
-        RaiseNetworkEvent(new MobThresholdChecked(GetNetEntity(target)), actor.PlayerSession);
     }
 
     private void OnUpdateMobState(EntityUid target, MobThresholdsComponent component, ref UpdateMobStateEvent args)
@@ -487,7 +464,10 @@ public sealed partial class MobThresholdSystem : EntitySystem
     {
         var (_, thresholds, mobState, damageable) = ent;
         if (Resolve(ent, ref thresholds, ref mobState, ref damageable))
-            NotifyThresholdChecked(ent.Owner);
+        {
+            var ev = new MobThresholdChecked(ent, mobState, thresholds, damageable);
+            RaiseLocalEvent(ent, ref ev, true);
+        }
 
         UpdateAlerts(ent, currentState, thresholds, damageable);
     }
@@ -503,13 +483,10 @@ public sealed partial class MobThresholdSystem : EntitySystem
 /// <summary>
 /// Event that triggers when an entity with a mob threshold is checked
 /// </summary>
-// Shitmed Change - Changed to network event for client overlay support
-[Serializable, NetSerializable]
-public sealed class MobThresholdChecked : EntityEventArgs
-{
-    public NetEntity Uid { get; }
-    public MobThresholdChecked(NetEntity uid)
-    {
-        Uid = uid;
-    }
-}
+/// <param name="Target">Target entity</param>
+/// <param name="Threshold">Threshold Component owned by the Target</param>
+/// <param name="MobState">MobState Component owned by the Target</param>
+/// <param name="Damageable">Damageable Component owned by the Target</param>
+[ByRefEvent]
+public readonly record struct MobThresholdChecked(EntityUid Target, MobStateComponent MobState,
+    MobThresholdsComponent Threshold, DamageableComponent Damageable);

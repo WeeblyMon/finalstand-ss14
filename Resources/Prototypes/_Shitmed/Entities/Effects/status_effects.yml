@@ -1,4 +1,0 @@
-- type: entity
-  parent: StatusEffectSlowdown
-  id: OrgansDamagedSlowdownEffect
-  name: organ damage slowdown

@@ -448,16 +448,5 @@ ui-options-admin-overlay-ghost-hide-distance = Ghost overlay hide range from mou
 ui-options-admin-strip-overlay-title = Strip Overlay
 ui-options-admin-strip-overlay-setting = Show strip overlay by default
 
-ui-options-function-target-head = Target Head
-ui-options-function-target-chest = Target Chest
-ui-options-function-target-groin = Target Groin
-ui-options-function-target-left-arm = Target Left Arm
-ui-options-function-target-right-arm = Target Right Arm
-ui-options-function-target-left-hand = Target Left Hand
-ui-options-function-target-right-hand = Target Right Hand
-ui-options-function-target-left-leg = Target Left Leg
-ui-options-function-target-right-leg = Target Right Leg
-ui-options-function-target-left-foot = Target Left Foot
-ui-options-function-target-right-foot = Target Right Foot
 ui-options-function-fs-ping = Ping (tap) / ping wheel (hold)
 ui-options-function-fs-ping-wheel = Ping wheel (click to pick)

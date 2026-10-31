@@ -1,4 +1,16 @@
-# Wrapper nodes over the vanilla CivilianServices medical subset + Shitmed cybernetics chain - self-contained, drops the old cross-branch BasicRobotics prereq on BasicCybernetics.
+- type: technology
+  id: FSAdvancedTreatment
+  name: research-technology-fs-advanced-treatment
+  icon:
+    sprite: Objects/Specific/Medical/defibsmall.rsi
+    state: icon
+  discipline: CivilianServices
+  tier: 1
+  cost: 5000
+  recipeUnlocks:
+  - FSDefibrillatorCompact
+  - FSMedicatedSuture
+  - FSRegenerativeMesh
 
 - type: fsTechNode
   id: FSMedicalBiochemicalStasis
@@ -16,13 +28,13 @@
   id: FSMedicalAdvancedTreatment
   name: Advanced Treatment
   icon:
-    sprite: _Shitmed/Objects/Specific/Medical/Surgery/e-scalpel.rsi
-    state: e-scalpel-on
+    sprite: Objects/Specific/Medical/defibsmall.rsi
+    state: icon
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Unlocks the compact defibrillator and the powered surgical set - energy scalpel, advanced retractor and omnimed tool.
-  vanillaTechnologyId: AdvancedTreatment
+  bonusDescription: Unlocks the compact defibrillator, medicated sutures, and regenerative mesh at the medical lathe.
+  vanillaTechnologyId: FSAdvancedTreatment
 
 - type: fsTechNode
   id: FSMedicalMechanizedTreatment
@@ -39,18 +51,17 @@
   vanillaTechnologyId: MechanizedTreatment
 
 - type: fsTechNode
-  id: FSMedicalBasicCybernetics
-  name: Basic Cybernetics
+  id: FSMedicalBoneSetting
+  name: Bone Setting
   icon:
-    sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
-    state: eyes
+    sprite: Objects/Specific/Medical/medical.rsi
+    state: brutepack
   branch: Medical
   tier: 2
   cost: 700
   prerequisites:
   - FSMedicalAdvancedTreatment
-  bonusDescription: Unlocks cybernetic arms and hands, so a lost limb can be replaced outright instead of reattached.
-  vanillaTechnologyId: BasicCybernetics
+  bonusDescription: Two bruise packs fix a broken bone instead of three, and a mending bone heals in 45 seconds instead of 90.
 
 - type: fsTechNode
   id: FSMedicalBluespaceChemistry
@@ -67,74 +78,30 @@
   vanillaTechnologyId: BluespaceChemistry
 
 - type: fsTechNode
-  id: FSMedicalBasicAugmentation
-  name: Basic Augmentation
+  id: FSMedicalClottingGauze
+  name: Clotting Gauze
   icon:
-    sprite: _Shitmed/Objects/Augments/power.rsi
-    state: cell
+    sprite: Objects/Specific/Medical/medical.rsi
+    state: gauze
   branch: Medical
   tier: 3
   cost: 1100
   prerequisites:
-  - FSMedicalBasicCybernetics
-  bonusDescription: Unlocks augment power cell and recharger casings, the base for powered implants.
-  vanillaTechnologyId: BasicAugmentation
+  - FSMedicalBoneSetting
+  bonusDescription: Gauze and sutures leave the patient CLOTTED for 20 seconds, so no new bleeding can start.
 
 - type: fsTechNode
-  id: FSMedicalAdvancedCybernetics
-  name: Advanced Cybernetics
+  id: FSMedicalRestartProtocol
+  name: Restart Protocol
   icon:
-    sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
-    state: heart-u-on
-  branch: Medical
-  tier: 4
-  cost: 1600
-  prerequisites:
-  - FSMedicalBasicCybernetics
-  bonusDescription: Unlocks upgraded cybernetic hearts and lungs, and jaws-of-life arms.
-  vanillaTechnologyId: AdvancedCybernetics
-
-- type: fsTechNode
-  id: FSMedicalImplantedTools
-  name: Implanted Tools
-  icon:
-    sprite: _Shitmed/Objects/Augments/arm.rsi
-    state: base
-  branch: Medical
-  tier: 4
-  cost: 1600
-  prerequisites:
-  - FSMedicalBasicAugmentation
-  bonusDescription: Unlocks tool, utility and botany augment panels - implanted kit that cannot be dropped.
-  vanillaTechnologyId: ImplantedTools
-
-- type: fsTechNode
-  id: FSMedicalCombatAugmentation
-  name: Combat Augmentation
-  icon:
-    sprite: _Shitmed/Objects/Augments/arm.rsi
-    state: strength
-  branch: Medical
-  tier: 4
-  cost: 1600
-  prerequisites:
-  - FSMedicalBasicAugmentation
-  bonusDescription: Unlocks strength augment casings and electronics.
-  vanillaTechnologyId: CombatAugmentation
-
-- type: fsTechNode
-  id: FSMedicalHighEndSurgery
-  name: High-End Surgery
-  icon:
-    sprite: _Shitmed/Clothing/Hands/surgery_gloves.rsi
+    sprite: Objects/Specific/Medical/defib.rsi
     state: icon
   branch: Medical
-  tier: 5
+  tier: 4
   cost: 2200
   prerequisites:
-  - FSMedicalAdvancedCybernetics
-  bonusDescription: Unlocks surgical gloves and opens the advanced cybernetics line.
-  vanillaTechnologyId: HighEndSurgery
+  - FSMedicalClottingGauze
+  bonusDescription: A defibrillator revive also clears a broken bone and burns.
 
 # ── Line A: Field care (medigun, defibrillator) ───────────────────────────────────────────────
 
@@ -160,7 +127,7 @@
   cost: 700
   prerequisites:
   - FSMedicalExtendedOptics
-  bonusDescription: The beam restores blood far faster while it is attached.
+  bonusDescription: The beam clots bleeding twice as fast, one level every second.
 
 - type: fsTechNode
   id: FSMedicalFocusedEmitters
@@ -246,14 +213,14 @@
   id: FSMedicalBoneWelder
   name: Bone Welder
   icon:
-    sprite: _Shitmed/Objects/Specific/Medical/Surgery/bonesetter.rsi
-    state: bonesetter
+    sprite: _FinalStand/Objects/Medical/bone_stapler.rsi
+    state: icon
   branch: Medical
   tier: 3
   cost: 1100
   prerequisiteGroups:
   - [ FSMedicalAutoclaveKit, FSMedicalReinforcedCanvas ]
-  bonusDescription: Bone staplers recharge a third faster. Still a partial mend.
+  bonusDescription: Bone staplers recharge in 20 seconds instead of 30.
 
 - type: fsTechNode
   id: FSMedicalRecoveryUplink
@@ -519,7 +486,7 @@
   cost: 1600
   prerequisites:
   - FSMedicalBoneWelder
-  bonusDescription: Surgery inside the field hospital runs half again as fast. Only on the tent.
+  bonusDescription: The field hospital clears ailments in 4 seconds instead of 8, and its regen heals all the way to full health.
 
 - type: fsTechNode
   id: FSMedicalHighFlowManifold
@@ -557,7 +524,7 @@
   tier: 5
   cost: 2200
   prerequisites:
-  - FSMedicalLimbMender
+  - FSMedicalDermalLattice
   bonusDescription: The beam closes wounds to 80% instead of 70%. The last stretch still needs a doctor.
 
 - type: fsTechNode
@@ -610,11 +577,11 @@
   cost: 1100
   prerequisites:
   - FSMedicalHaemostaticBeam
-  bonusDescription: The beam mends broken bones twice as fast.
+  bonusDescription: The beam can set a broken bone in 6 seconds, or 3 if it is already mending.
 
 - type: fsTechNode
-  id: FSMedicalLimbMender
-  name: Limb-Mender Lattice
+  id: FSMedicalDermalLattice
+  name: Dermal Lattice
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
@@ -623,7 +590,7 @@
   cost: 1600
   prerequisites:
   - FSMedicalBoneKnitter
-  bonusDescription: The beam heals limb wounds 60% faster.
+  bonusDescription: The beam clears burns after 6 seconds on the patient.
 
 - type: fsTechNode
   id: FSMedicalSplitBeamTuning

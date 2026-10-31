@@ -793,7 +793,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var count = 0;
         foreach (var node in PrototypeManager.EnumeratePrototypes<FSTechNodePrototype>())
         {
-            if (!alreadyUnlocked.Add(node.ID))
+            if (FSMedicalResearchSystem.IsMedicalNode(node) || !alreadyUnlocked.Add(node.ID))
                 continue;
 
             MarkNodeUnlocked(station.Comp, node.ID);
@@ -809,6 +809,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         station.Comp.ContributorColorSlots.Clear();
         Dirty(station);
         SyncConsoles();
+        count += _medicalResearch.UnlockAllNodes();
         BroadcastUnlockedNodes();
 
         return count;

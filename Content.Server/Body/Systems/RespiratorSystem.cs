@@ -2,6 +2,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Body.Components;
 using Content.Server.Chat.Systems;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared.Body.Systems;
 using Content.Shared.Alert;
 using Content.Shared.Atmos;
@@ -30,13 +31,11 @@ namespace Content.Server.Body.Systems;
 [UsedImplicitly]
 public sealed partial class RespiratorSystem : EntitySystem
 {
-    [Dependency] private Content.Shared.Body.BodySystem _vanillaBody = default!;
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private IGameTiming _gameTiming = default!;
-    [Dependency] private IPrototypeManager _protoMan = default!;
     [Dependency] private AlertsSystem _alertsSystem = default!;
     [Dependency] private AtmosphereSystem _atmosSys = default!;
-    [Dependency] private BodyAppearanceSystem _body = default!;
+    [Dependency] private BodySystem _body = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private DamageableSystem _damageableSys = default!;
     [Dependency] private LungSystem _lungSystem = default!;
@@ -56,11 +55,11 @@ public sealed partial class RespiratorSystem : EntitySystem
         SubscribeLocalEvent<RespiratorComponent, ApplyMetabolicMultiplierEvent>(OnApplyMetabolicMultiplier);
 
         // BodyComp stuff
-        SubscribeLocalEvent<BodyComponent, InhaledGasEvent>(_vanillaBody.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, ExhaledGasEvent>(_vanillaBody.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, CanMetabolizeGasEvent>(_vanillaBody.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, SuffocationEvent>(_vanillaBody.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, StopSuffocatingEvent>(_vanillaBody.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, InhaledGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, ExhaledGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, CanMetabolizeGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, SuffocationEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, StopSuffocatingEvent>(_body.RelayEvent);
 
         SubscribeLocalEvent<LungComponent, BodyRelayedEvent<InhaledGasEvent>>(OnGasInhaled);
         SubscribeLocalEvent<LungComponent, BodyRelayedEvent<ExhaledGasEvent>>(OnGasExhaled);
@@ -87,6 +86,9 @@ public sealed partial class RespiratorSystem : EntitySystem
             respirator.NextUpdate += respirator.AdjustedUpdateInterval;
 
             if (_mobState.IsDead(uid))
+                continue;
+
+            if (_mobState.IsCritical(uid) && HasComp<FSAilmentStateComponent>(uid))
                 continue;
 
             UpdateSaturation(uid, -(float)respirator.UpdateInterval.TotalSeconds, respirator);
@@ -284,7 +286,7 @@ public sealed partial class RespiratorSystem : EntitySystem
         float saturation = 0;
         foreach (var (id, quantity) in solution.Contents)
         {
-            var reagent = _protoMan.Index<ReagentPrototype>(id.Prototype);
+            var reagent = ProtoMan.Index<ReagentPrototype>(id.Prototype);
             if (reagent.Metabolisms == null)
                 continue;
 
@@ -339,7 +341,8 @@ public sealed partial class RespiratorSystem : EntitySystem
         if (ent.Comp.SuffocationCycles >= 2)
             _adminLogger.Add(LogType.Asphyxiation, $"{ToPrettyString(ent):entity} stopped suffocating");
 
-        _damageableSys.ChangeDamage(ent.Owner, ent.Comp.DamageRecovery);
+        if (!HasComp<FSAilmentStateComponent>(ent))
+            _damageableSys.ChangeDamage(ent.Owner, ent.Comp.DamageRecovery);
 
         var ev = new StopSuffocatingEvent();
         RaiseLocalEvent(ent, ref ev);

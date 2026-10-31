@@ -9,7 +9,6 @@ using Content.Server.Station.Components;
 using Content.Shared.CCVar;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;
-using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Mind;
 using Content.Shared.Players;
@@ -199,7 +198,7 @@ namespace Content.Server.GameTicking
                     }
 
                     speciesId = roundStart.Count == 0
-                        ? SharedHumanoidAppearanceSystem.DefaultSpecies
+                        ? HumanoidCharacterProfile.DefaultSpecies
                         : _robustRandom.Pick(roundStart);
                 }
                 else

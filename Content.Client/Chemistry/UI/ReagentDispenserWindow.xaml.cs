@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Client._FinalStand.Interface;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.MedicalOps;
@@ -27,6 +28,7 @@ namespace Content.Client.Chemistry.UI
 
         private static readonly Color ReadyColor = Color.FromHex("#4FBF7A");
         private static readonly Color BlockedColor = Color.FromHex("#C9A227");
+        private static readonly Color NoteColor = FSPalette.Money;
 
         private readonly Dictionary<ItemStorageLocation, ReagentCardControl> _cards = new();
         private readonly List<ItemStorageLocation> _displayed = new();
@@ -295,7 +297,7 @@ namespace Content.Client.Chemistry.UI
                         continue;
 
                     any = true;
-                    RecipeInfo.AddChild(BuildGuideRow(reaction));
+                    RecipeInfo.AddChild(BuildGuideRow(reaction, guide.Notes.TryGetValue(id, out var note) ? note : (LocId?) null));
                 }
             }
 
@@ -303,7 +305,7 @@ namespace Content.Client.Chemistry.UI
                 RecipeInfo.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-empty")));
         }
 
-        private Control BuildGuideRow(ReactionPrototype reaction)
+        private Control BuildGuideRow(ReactionPrototype reaction, LocId? note)
         {
             var parts = reaction.Reactants
                 .OrderBy(kv => kv.Key)
@@ -326,6 +328,9 @@ namespace Content.Client.Chemistry.UI
                 row.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-heat",
                     ("temp", (int) reaction.MinimumTemperature)), BlockedColor));
             }
+
+            if (note is { } noteId)
+                row.AddChild(Sub(Loc.GetString(noteId), NoteColor));
 
             return row;
         }

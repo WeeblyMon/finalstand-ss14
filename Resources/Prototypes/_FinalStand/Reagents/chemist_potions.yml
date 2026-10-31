@@ -132,15 +132,6 @@
     FSWeakeningAgent: 2
 
 - type: reagent
-  id: FSRefinedEnzyme
-  name: reagent-name-fs-enzyme
-  group: Biological
-  desc: reagent-desc-fs-enzyme
-  physicalDesc: reagent-physical-desc-viscous
-  flavor: bitter
-  color: "#8FBF6E"
-
-- type: reagent
   id: FSCatalystSalt
   name: reagent-name-fs-catalyst
   group: Toxins
@@ -148,21 +139,6 @@
   physicalDesc: reagent-physical-desc-crystalline
   flavor: bitter
   color: "#D0D0E0"
-
-- type: reagent
-  id: FSCoagulantMist
-  name: reagent-name-fs-coagulant
-  group: Medicine
-  desc: reagent-desc-fs-coagulant
-  physicalDesc: reagent-physical-desc-cloudy
-  flavor: bitter
-  color: "#C05A6EA0"
-  reactiveEffects:
-    Acidic:
-      methods: [ Touch ]
-      effects:
-      - !type:FSStaunchBleeding
-        amount: 3
 
 - type: reagent
   id: FSEtchant
@@ -179,16 +155,6 @@
       - !type:FSApplyArmorPiercing
         duration: 45
         name: fs-potion-name-etchant
-
-- type: reaction
-  id: FSCoagulantMist
-  reactants:
-    FSBiomass:
-      amount: 2
-    FSRefinedEnzyme:
-      amount: 1
-  products:
-    FSCoagulantMist: 2
 
 - type: reaction
   id: FSEtchant
@@ -301,3 +267,4 @@
       amount: 1
   products:
     FSBattleAnalgesic: 2
+

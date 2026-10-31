@@ -1,4 +1,4 @@
-fs-bone-stapler-used = The brace bites into the bone.
-fs-bone-stapler-nothing-broken = Nothing in there is broken.
-fs-bone-stapler-used-limb = You staple the { $limb } back together.
+fs-bone-stapler-bone = You staple { THE($target) }'s bone back together.
+fs-bone-stapler-bleed = You staple { THE($target) }'s wound shut.
+fs-bone-stapler-nothing = Nothing here the stapler can fix.
 fs-bone-stapler-recharging = The stapler is still recharging.

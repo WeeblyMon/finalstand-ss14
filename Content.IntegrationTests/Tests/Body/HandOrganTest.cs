@@ -1,10 +1,9 @@
-using Content.Shared._FinalStand.Medical;
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared.Body;
-using Content.Shared.Body.Systems;
 using Content.Shared.Hands.Components;
+using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
 
 namespace Content.IntegrationTests.Tests.Body;
@@ -19,21 +18,18 @@ public sealed class HandOrganTest : GameTest
   id: TheBody
   components:
   - type: Body
-  - type: InitialBody
-    organs:
-      Torso: ChestHuman
-      HandLeft: LeftHand
-      HandRight: RightHand
-    relationships:
-      Torso: [ HandLeft, HandRight ]
   - type: Hands
+  - type: EntityTableContainerFill
+    containers:
+      body_organs: !type:AllSelector
+        children:
+        - id: LeftHand
+        - id: RightHand
 
 - type: entity
   id: LeftHand
   components:
   - type: Organ
-    category: HandLeft
-  - type: ChildOrgan
   - type: HandOrgan
     handID: left
     data:
@@ -43,8 +39,6 @@ public sealed class HandOrganTest : GameTest
   id: RightHand
   components:
   - type: Organ
-    category: HandRight
-  - type: ChildOrgan
   - type: HandOrgan
     handID: right
     data:
@@ -63,33 +57,28 @@ public sealed class HandOrganTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var lookup = entityManager.System<OrganLookupSystem>();
-            var manipulation = entityManager.System<OrganManipulationSystem>();
+            var container = entityManager.System<SharedContainerSystem>();
             var body = entityManager.SpawnEntity("TheBody", mapData.GridCoords);
             var hands = entityManager.GetComponent<HandsComponent>(body);
 
             Assert.That(hands.Count, Is.EqualTo(2));
 
-            lookup.TryGetBodyOrgans<HandOrganComponent>(body, out var handOrgans);
-            Assert.That(handOrgans.Count, Is.EqualTo(2));
+            var handsContainer = container.GetContainer(body, BodyComponent.ContainerID);
 
             var expectedCount = 2;
-            foreach (var handOrgan in handOrgans)
+            var contained = handsContainer.ContainedEntities.ToList();
+            foreach (var hand in contained)
             {
                 expectedCount--;
-                manipulation.RemoveOrgan(handOrgan.Owner);
+                container.Remove(hand, handsContainer);
                 Assert.That(hands.Count, Is.EqualTo(expectedCount));
             }
-
-            lookup.TryGetRootOrgan(body, out var rootPart);
-            var chestUid = rootPart.Owner;
 
             var protos = new List<string>() { "LeftHand", "RightHand" };
             foreach (var proto in protos)
             {
                 expectedCount++;
-                var organ = entityManager.SpawnEntity(proto, mapData.GridCoords);
-                manipulation.InsertOrgan(body, organ, chestUid);
+                entityManager.SpawnInContainerOrDrop(proto, body, BodyComponent.ContainerID);
                 Assert.That(hands.Count, Is.EqualTo(expectedCount));
             }
         });

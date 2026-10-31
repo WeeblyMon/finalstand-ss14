@@ -1,12 +1,6 @@
-// SPDX-FileCopyrightText: 2023 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2023 csqrb <56765288+CaptainSqrBeard@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
-//
-// SPDX-License-Identifier: MIT
-
 using System.Linq;
 
-namespace Content.Shared.Humanoid.Markings;
+namespace Content.Shared.Humanoid.Markings.ColoringTypes;
 
 /// <summary>
 ///     Colors marking in color of first defined marking from specified category (in e.x. from Hair category)
@@ -14,17 +8,17 @@ namespace Content.Shared.Humanoid.Markings;
 public sealed partial class CategoryColoring : LayerColoringType
 {
     [DataField("category", required: true)]
-    public MarkingCategories Category;
+    public HumanoidVisualLayers Category;
 
-    public override Color? GetCleanColor(Color? skin, Color? eyes, MarkingSet markingSet)
+    public override Color? GetCleanColor(Color? skin, Color? eyes, List<Marking> otherMarkings)
     {
-        Color? outColor = null;
-        if (markingSet.TryGetCategory(Category, out var markings) &&
-            markings.Count > 0)
+        var markingManager = IoCManager.Resolve<MarkingManager>();
+        foreach (var marking in otherMarkings)
         {
-            outColor = markings[0].MarkingColors.FirstOrDefault();
+            if (markingManager.TryGetMarking(marking, out var proto) && proto.BodyPart == Category)
+                return marking.MarkingColors.FirstOrDefault();
         }
 
-        return outColor;
+        return null;
     }
 }

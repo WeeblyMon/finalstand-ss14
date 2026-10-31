@@ -1,0 +1,17 @@
+- type: marking
+  id: Umaearsandtail
+  bodyPart: HeadTop
+  forcedColoring: true
+  groupWhitelist: [Human]
+  sprites:
+  - sprite: Mobs/Customization/ears.rsi
+    state: Uma_ears_and_tail
+  coloring:
+    default:
+      type:
+        !type:CategoryColoring
+          category: Hair
+      fallbackTypes:
+        - !type:CategoryColoring
+          category: FacialHair
+        - !type:SkinColoring

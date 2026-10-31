@@ -2,13 +2,9 @@ using System.Numerics;
 using Content.Server.Stack;
 using Content.Server.Stunnable;
 using Content.Shared.ActionBlocker;
-using Content.Shared._FinalStand.Medical;
-using Content.Shared.Body;
-using Content.Shared.Body.Systems;
 using Content.Shared.CombatMode;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Explosion;
-using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Input;
@@ -36,7 +32,6 @@ namespace Content.Server.Hands.Systems
         [Dependency] private SharedTransformSystem _transformSystem = default!;
         [Dependency] private PullingSystem _pullingSystem = default!;
         [Dependency] private ThrowingSystem _throwingSystem = default!;
-        [Dependency] private SharedBodyAppearanceSystem _bodySystem = default!;
 
         private EntityQuery<PhysicsComponent> _physicsQuery;
 
@@ -59,12 +54,6 @@ namespace Content.Server.Hands.Systems
 
             // FS: players keep held items on knockdown/stun/crit
             // SubscribeLocalEvent<HandsComponent, DropHandItemsEvent>(OnDropHandItems);
-
-            // FS: body-part events must wire HandsComponent or players spawn with no usable hands
-            // Adding and removing hands with limbs is vanilla HandOrganSystem's job now; we only
-            // react to a limb being disabled, which vanilla has no concept of.
-            SubscribeLocalEvent<HandsComponent, OrganEnabledEvent>(HandleOrganEnabled);
-            SubscribeLocalEvent<HandsComponent, OrganDisabledEvent>(HandleOrganDisabled);
 
             CommandBinds.Builder
                 .Bind(ContentKeyFunctions.ThrowItemInHand, new PointerInputCmdHandler(HandleThrowItem))
@@ -221,21 +210,5 @@ namespace Content.Server.Hands.Systems
         }
 
         #endregion
-
-        private void HandleOrganEnabled(EntityUid uid, HandsComponent component, ref OrganEnabledEvent args)
-        {
-            if (!TryComp<HandOrganComponent>(args.Organ.Owner, out var hand))
-                return;
-
-            AddHand(uid, hand.HandID, hand.Data.Location);
-        }
-
-        private void HandleOrganDisabled(EntityUid uid, HandsComponent component, ref OrganDisabledEvent args)
-        {
-            if (TerminatingOrDeleted(uid) || !TryComp<HandOrganComponent>(args.Organ.Owner, out var hand))
-                return;
-
-            RemoveHand(uid, hand.HandID);
-        }
     }
 }

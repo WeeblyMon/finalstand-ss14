@@ -1,6 +1,6 @@
+using System.Linq;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared._Shitmed.Medical.Surgery;
-using Content.Shared.Actions;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
@@ -22,34 +22,40 @@ public sealed partial class FSCasualtySystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
 
     private static readonly SoundSpecifier RespondSound =
         new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
 
-    private const float MedicalSurgerySpeed = 4f;
     private static readonly TimeSpan CallLifetime = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan BroadcastInterval = TimeSpan.FromSeconds(1);
 
+    private const int MaxPriorityTags = 2;
+    private static readonly TimeSpan PriorityDuration = TimeSpan.FromSeconds(45);
+    private static readonly TimeSpan PriorityCooldown = TimeSpan.FromSeconds(10);
+
     private readonly Dictionary<EntityUid, Call> _calls = new();
     private readonly List<EntityUid> _finished = new();
+    private readonly Dictionary<EntityUid, TimeSpan> _priority = new();
+    private readonly Dictionary<EntityUid, TimeSpan> _tagReadyAt = new();
     private TimeSpan _nextBroadcast;
 
     public override void Initialize()
     {
         base.Initialize();
 
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<FSCasualtyBoardActionEvent>(OnBoardAction);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<FSAilmentInflictedEvent>(OnAilmentInflicted);
         SubscribeNetworkEvent<FSRespondToCasualtyEvent>(OnRespond);
+        SubscribeNetworkEvent<FSPriorityTagRequestEvent>(OnPriorityTag);
     }
 
     private void OnMobStateChanged(MobStateChangedEvent ev)
@@ -63,22 +69,32 @@ public sealed partial class FSCasualtySystem : EntitySystem
         RegisterCall(ev.Target);
     }
 
+    private void OnAilmentInflicted(ref FSAilmentInflictedEvent ev)
+    {
+        if (_calls.ContainsKey(ev.Patient) || !HasComp<ActorComponent>(ev.Patient) || !NeedsSilentRow(ev.Patient))
+            return;
+
+        _calls[ev.Patient] = new Call
+        {
+            Expires = _timing.CurTime + CallLifetime,
+            Silent = true,
+        };
+
+        Broadcast();
+    }
+
+    private bool NeedsSilentRow(EntityUid patient)
+    {
+        return _ailments.IsBroken(patient)
+               || _ailments.GetBleedLevel(patient) >= _ailments.Rules.MajorBleedLevel;
+    }
+
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
         _calls.Clear();
+        _priority.Clear();
+        _tagReadyAt.Clear();
         _nextBroadcast = TimeSpan.Zero;
-    }
-
-    private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
-    {
-        if (!_roster.IsMedicalJob(ev.JobId))
-            return;
-
-        var speed = EnsureComp<SurgerySpeedModifierComponent>(ev.Mob);
-        speed.SpeedModifier = MedicalSurgerySpeed;
-        Dirty(ev.Mob, speed);
-
-        EnsureComp<SurgeryIgnoreClothingComponent>(ev.Mob);
     }
 
     private void OnBoardAction(FSCasualtyBoardActionEvent args)
@@ -94,6 +110,14 @@ public sealed partial class FSCasualtySystem : EntitySystem
         if (_calls.TryGetValue(patient, out var existing))
         {
             existing.Expires = _timing.CurTime + CallLifetime;
+            if (existing.Silent)
+            {
+                existing.Silent = false;
+                existing.CalledHurt = !IsRecovered(patient);
+                EnsureComp<FSCasualtyStatusComponent>(patient);
+                Broadcast();
+            }
+
             return;
         }
 
@@ -114,6 +138,49 @@ public sealed partial class FSCasualtySystem : EntitySystem
             return;
 
         Respond(medic, GetEntity(ev.Patient));
+    }
+
+    public bool IsPriority(EntityUid patient)
+    {
+        return _priority.TryGetValue(patient, out var until) && until > _timing.CurTime;
+    }
+
+    private void OnPriorityTag(FSPriorityTagRequestEvent ev, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } cmo || !HasComp<FSCmoPanelComponent>(cmo))
+            return;
+
+        TogglePriority(cmo, GetEntity(ev.Patient));
+    }
+
+    public void TogglePriority(EntityUid cmo, EntityUid patient)
+    {
+        if (!_calls.ContainsKey(patient))
+            return;
+
+        if (_priority.Remove(patient))
+        {
+            Broadcast();
+            return;
+        }
+
+        var now = _timing.CurTime;
+        if (_tagReadyAt.GetValueOrDefault(cmo) > now)
+        {
+            _popup.PopupEntity(Loc.GetString("fs-casualty-priority-cooldown"), cmo, cmo);
+            return;
+        }
+
+        if (_priority.Count >= MaxPriorityTags)
+        {
+            var oldest = _priority.MinBy(tag => tag.Value).Key;
+            _priority.Remove(oldest);
+        }
+
+        _priority[patient] = now + PriorityDuration;
+        _tagReadyAt[cmo] = now + PriorityCooldown;
+        _popup.PopupEntity(Loc.GetString("fs-casualty-priority-tagged", ("patient", Identity.Name(patient, EntityManager))), cmo, cmo);
+        Broadcast();
     }
 
     public void Respond(EntityUid medic, EntityUid patient)
@@ -166,7 +233,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
         {
             if (TerminatingOrDeleted(patient)
                 || call.Expires <= now
-                || (call.CalledHurt && IsRecovered(patient)))
+                || (call.CalledHurt && IsRecovered(patient))
+                || (call.Silent && _mobState.IsAlive(patient) && !NeedsSilentRow(patient)))
             {
                 _finished.Add(patient);
             }
@@ -178,7 +246,17 @@ public sealed partial class FSCasualtySystem : EntitySystem
                 RemComp<FSCasualtyStatusComponent>(patient);
 
             _calls.Remove(patient);
+            _priority.Remove(patient);
         }
+
+        foreach (var (patient, until) in _priority)
+        {
+            if (until <= now)
+                _finished.Add(patient);
+        }
+
+        foreach (var patient in _finished)
+            _priority.Remove(patient);
 
         if (_finished.Count > 0)
         {
@@ -212,17 +290,43 @@ public sealed partial class FSCasualtySystem : EntitySystem
             if (call.Responder is { } medic && !TerminatingOrDeleted(medic))
                 responder = Identity.Name(medic, EntityManager);
 
+            var state = StateOf(patient);
+            var pips = _ailments.GetPips(patient);
+            TryComp<FSAilmentStateComponent>(patient, out var vitals);
+
             entries.Add(new FSCasualtyEntry
             {
                 Patient = GetNetEntity(patient),
                 Name = Identity.Name(patient, EntityManager),
-                State = StateOf(patient),
+                State = state,
                 Position = GetNetCoordinates(_xform.GetMoverCoordinates(patient)),
                 Responder = responder,
+                DownEnd = vitals?.DownEnd,
+                Held = vitals?.Held ?? false,
+                Pips = pips,
+                Needs = NeedsOf(patient, state, pips),
+                NeedsDefib = state == FSCasualtyState.Dead,
+                Priority = IsPriority(patient),
             });
         }
 
         return new FSCasualtyBoardEvent(entries, open);
+    }
+
+    private FSAilmentPips NeedsOf(EntityUid patient, FSCasualtyState state, FSAilmentPips pips)
+    {
+        var needs = FSAilmentPips.None;
+        var bleed = _ailments.GetBleedLevel(patient);
+        if (bleed >= _ailments.Rules.MajorBleedLevel || bleed > 0 && state == FSCasualtyState.Critical)
+            needs |= FSAilmentPips.Bleeding;
+
+        if (_ailments.IsBroken(patient))
+            needs |= FSAilmentPips.Bone;
+
+        if (_ailments.HasAilment(patient, _ailments.Rules.Poisoned))
+            needs |= FSAilmentPips.Bloater;
+
+        return needs | (pips & FSAilmentPips.Burn);
     }
 
     private FSCasualtyState StateOf(EntityUid patient)
@@ -245,5 +349,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
         public TimeSpan Expires;
         public EntityUid? Responder;
         public bool CalledHurt;
+        public bool Silent;
     }
 }

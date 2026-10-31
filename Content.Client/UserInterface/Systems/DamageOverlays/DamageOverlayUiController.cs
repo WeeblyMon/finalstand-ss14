@@ -9,7 +9,6 @@ using Content.Shared.Traits.Assorted;
 using JetBrains.Annotations;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
-using Robust.Client.Timing;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Shared.Player;
@@ -77,12 +76,12 @@ public sealed partial class DamageOverlayUiController : UIController
         UpdateOverlays(args.Target, args.Component);
     }
 
-    private void OnThresholdCheck(MobThresholdChecked args)
+    private void OnThresholdCheck(ref MobThresholdChecked args)
     {
-        var target = EntityManager.GetEntity(args.Uid);
-        if (target != _playerManager.LocalEntity || !EntityManager.TryGetComponent<MobStateComponent>(target, out var mobState))
+
+        if (args.Target != _playerManager.LocalEntity)
             return;
-        UpdateOverlays(target, mobState);
+        UpdateOverlays(args.Target, args.MobState, args.Damageable, args.Threshold);
     }
 
     private void ClearOverlay()

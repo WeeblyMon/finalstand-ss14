@@ -6,6 +6,10 @@
   suffix: Flamethrower
   name: flamethrower zombie
   components:
+  - type: FSSignatureAilment
+    ailments:
+      Burn: 0
+    examine: fs-signature-flamethrower
   - type: FSMaterialDrop
     materials:
     - SheetPlasma1

@@ -19,6 +19,9 @@
   - !type:GiveItemOnHolidaySpecial
     holiday: DoctorDay
     prototype: WehMedipen
+  - !type:AddComponentSpecial
+    components:
+    - type: FSSteadyHands
 
 - type: startingGear
   id: DoctorGear

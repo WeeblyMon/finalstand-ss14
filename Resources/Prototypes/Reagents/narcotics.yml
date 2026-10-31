@@ -458,9 +458,9 @@
 
 - type: reagent
   id: StrawberryIce
-  name: reagent-name-strawberry-ice
+  name: reagent-name-StrawberryIce
   group: Narcotics
-  desc: reagent-desc-strawberry-ice
+  desc: reagent-desc-StrawberryIce
   physicalDesc: reagent-physical-desc-fizzy
   flavor: fizzy
   color: "#FF36AE"
@@ -520,9 +520,9 @@
 
 - type: reagent
   id: Hydroxysomnolene
-  name: reagent-name-hydroxysomnolene
+  name: reagent-name-Hydroxysomnolene
   group: Toxins
-  desc: reagent-desc-hydroxysomnolene
+  desc: reagent-desc-Hydroxysomnolene
   physicalDesc: reagent-physical-desc-gloopy
   flavor: bitter
   color: "#b51472"

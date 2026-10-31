@@ -719,22 +719,6 @@ public abstract partial class SharedRoleSystem : EntitySystem
         return ProtoMan.TryIndex(jobId, out var job) ? GetRoleRequirements(job) : null;
     }
 
-    public HashSet<JobRequirement>? GetAntagRequirement(ProtoId<AntagPrototype> antag)
-    {
-        if (_requirementOverride != null && _requirementOverride.Antags.TryGetValue(antag, out var req))
-            return req;
-
-        return ProtoMan.Index(antag).Requirements;
-    }
-
-    public HashSet<JobRequirement>? GetAntagRequirement(AntagPrototype antag)
-    {
-        if (_requirementOverride != null && _requirementOverride.Antags.TryGetValue(antag.ID, out var req))
-            return req;
-
-        return antag.Requirements;
-    }
-
     // TODO ROLES Change to readonly?
     /// <inheritdoc cref="GetRoleRequirements(JobPrototype)"/>
     public HashSet<JobRequirement>? GetRoleRequirements(ProtoId<AntagPrototype> antagId)

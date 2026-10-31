@@ -1,16 +1,4 @@
 - type: technology
-  id: FSCoagulantChemistry
-  name: research-technology-fs-coagulant-chemistry
-  icon:
-    sprite: Objects/Specific/Chemistry/bottle.rsi
-    state: bottle-1
-  discipline: CivilianServices
-  tier: 2
-  cost: 5000
-  recipeUnlocks:
-  - FSEnzymeBottle
-
-- type: technology
   id: FSEtchingChemistry
   name: research-technology-fs-etching-chemistry
   icon:
@@ -21,18 +9,6 @@
   cost: 5000
   recipeUnlocks:
   - FSCatalystBottle
-
-- type: fsTechNode
-  id: FSMedicalCoagulantChemistry
-  name: Coagulant Chemistry
-  icon:
-    sprite: Objects/Specific/Chemistry/bottle.rsi
-    state: bottle-1
-  branch: Medical
-  tier: 2
-  cost: 900
-  bonusDescription: Unlocks refined enzyme, the base for coagulant mist - a cloud that staunches bleeding on crew standing in it.
-  vanillaTechnologyId: FSCoagulantChemistry
 
 - type: fsTechNode
   id: FSMedicalEtchingChemistry

@@ -1,0 +1,232 @@
+- type: fsAilmentRules
+  id: Default
+  injuryFloor: 5
+  majorBleedLevel: 2
+  broken: FSAilmentBroken
+  burned: FSAilmentBurned
+  washReagents:
+  - Water
+  bleedDamage:
+    types:
+      Bloodloss: 0.5
+  downDrain:
+    types:
+      Asphyxiation: 1
+  meters:
+    Bleed:
+      slot: Bleeding
+      drainPerSecond: 30
+      injury:
+        bleed: 1
+    Burn:
+      slot: Burn
+      drainPerSecond: 10
+      injury:
+        burn: true
+  slots:
+    Bleeding:
+      label: fs-ailment-bleeding
+      name: fs-ailment-bleeding
+      advice: fs-forecast-advice-bleeding
+      hint: fs-hint-bleeding
+      pip:
+        sprite: _FinalStand/Interface/Ailments/pips.rsi
+        state: drop
+      need: fs-need-gauze
+      effect: fs-ailment-bleeding-effect
+      fixHint: fs-ailment-bleeding-fix
+      fixIcon:
+        sprite: Objects/Specific/Medical/medical.rsi
+        state: gauze
+      sound:
+        path: /Audio/Effects/Fluids/blood1.ogg
+    Bone:
+      label: fs-slot-bone
+      name: fs-ailment-broken
+      advice: fs-forecast-advice-bone
+      hint: fs-hint-bone
+      pip:
+        sprite: _FinalStand/Interface/Ailments/pips.rsi
+        state: bone
+      need: fs-need-stapler
+      fixIcon:
+        sprite: Objects/Specific/Medical/medical.rsi
+        state: brutepack
+      sound:
+        collection: FSMeleeBoneBreak
+    Burn:
+      label: fs-slot-burn
+      name: fs-ailment-burned
+      advice: fs-forecast-advice-burn
+      hint: fs-hint-burn
+      pip:
+        sprite: _FinalStand/Interface/Ailments/pips.rsi
+        state: flame
+      need: fs-need-ointment
+      fixIcon:
+        sprite: Objects/Specific/Medical/medical.rsi
+        state: ointment
+      sound:
+        path: /Audio/Effects/sizzle.ogg
+    Bloater:
+      label: fs-slot-bloat
+      name: fs-ailment-poisoned
+      need: fs-need-water
+      advice: fs-forecast-advice-bloat
+      hint: fs-hint-bloat
+      pip:
+        sprite: _FinalStand/Interface/Ailments/pips.rsi
+        state: drop
+      sound:
+        path: /Audio/Effects/Fluids/splat.ogg
+  clearedSound:
+    path: /Audio/Effects/chime.ogg
+    params:
+      volume: -4
+
+- type: entity
+  parent: MobStatusEffectDebuff
+  id: FSAilmentBase
+  abstract: true
+  components:
+  - type: StatusEffect
+    whitelist:
+      components:
+      - MobState
+      - FSAilmentState
+      requireAll: true
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentBroken
+  name: broken bone
+  components:
+  - type: FSAilment
+    slot: Bone
+    name: fs-ailment-broken
+    examine: fs-ailment-broken-examine
+    effect: fs-ailment-broken-effect
+    fixHint: fs-ailment-broken-fix
+    duration: 30
+    tier: Major
+    becomesOnExpire: FSAilmentMending
+  - type: MovementModStatusEffect
+    walkSpeedModifier: 0.65
+    sprintSpeedModifier: 0.65
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentMending
+  name: mending bone
+  components:
+  - type: FSAilment
+    slot: Bone
+    name: fs-ailment-mending
+    examine: fs-ailment-mending-examine
+    effect: fs-ailment-mending-effect
+    fixHint: fs-ailment-mending-fix
+    duration: 90
+    tier: Minor
+  - type: MovementModStatusEffect
+    walkSpeedModifier: 0.85
+    sprintSpeedModifier: 0.85
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentMendingFieldOps
+  name: mending bone
+  components:
+  - type: FSAilment
+    slot: Bone
+    name: fs-ailment-mending
+    examine: fs-ailment-mending-examine
+    effect: fs-ailment-mending-fieldops-effect
+    fixHint: fs-ailment-mending-fix
+    duration: 90
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentBurned
+  name: burns
+  components:
+  - type: FSAilment
+    slot: Burn
+    name: fs-ailment-burned
+    examine: fs-ailment-burned-examine
+    effect: fs-ailment-burned-effect
+    fixHint: fs-ailment-burned-fix
+    duration: 45
+    tier: Minor
+    blocksRegen: true
+    incomingHealScale: 0.5
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentSoaked
+  name: soaked
+  components:
+  - type: FSAilment
+    slot: Bloater
+    name: fs-ailment-soaked
+    examine: fs-ailment-soaked-examine
+    overlay:
+      sprite: _FinalStand/Mobs/ailment_overlays.rsi
+      state: soaked
+    effect: fs-ailment-soaked-effect
+    suffix: fs-ailment-soaked-suffix
+    duration: 6
+  - type: MovementModStatusEffect
+    walkSpeedModifier: 0.6
+    sprintSpeedModifier: 0.6
+  - type: DamageModifierStatusEffect
+    modifiers:
+      coefficients:
+        Asphyxiation: 2
+        Bloodloss: 2
+        Blunt: 2
+        Caustic: 2
+        Cellular: 2
+        Cold: 2
+        Heat: 2
+        Holy: 2
+        Piercing: 2
+        Poison: 2
+        Radiation: 2
+        Shock: 2
+        Slash: 2
+        Structural: 2
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSWardClotted
+  name: clotted
+  components:
+  - type: FSAilmentWard
+    blocks: Bleeding
+    name: fs-ward-clotted
+    effect: fs-ward-clotted-effect
+    duration: 20
+
+- type: entity
+  parent: FSAilmentBase
+  id: FSAilmentPoisoned
+  name: poisoned
+  components:
+  - type: FSAilment
+    slot: Bloater
+    name: fs-ailment-poisoned
+    examine: fs-ailment-poisoned-examine
+    effect: fs-ailment-poisoned-effect
+    fixHint: fs-ailment-poisoned-fix
+    fixIcon:
+      sprite: Objects/Misc/fire_extinguisher.rsi
+      state: fire_extinguisher_closed
+    overlay:
+      sprite: _FinalStand/Mobs/ailment_overlays.rsi
+      state: poisoned
+    duration: 12
+    tier: Minor
+    blocksRegen: true
+    tickDamage:
+      types:
+        Poison: 1

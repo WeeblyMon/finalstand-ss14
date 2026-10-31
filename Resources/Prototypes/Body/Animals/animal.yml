@@ -1,4 +1,3 @@
-# Goob: base abstract organs used by _Shitmed animal body part files
 - type: entity
   id: OrganAnimalMetabolizer
   abstract: true
@@ -7,7 +6,7 @@
     metabolizerTypes: [ Animal ]
 
 - type: entity
-  parent: OrganBase
+  parent: OrganBaseOrganic
   id: OrganAnimal
   abstract: true
   suffix: Animal
@@ -21,9 +20,36 @@
     sprite: Mobs/Species/Human/organs.rsi
 
 - type: entity
-  parent: BodyOrgansAnimal
+  parent: [ OrganBaseLungs, OrganAnimalInternal, OrganAnimalMetabolizer ]
+  id: OrganAnimalLungs
+
+- type: entity
+  parent: [ OrganBaseHeart, OrganAnimalInternal, OrganAnimalMetabolizer ]
+  id: OrganAnimalHeart
+
+- type: entity
+  parent: [ OrganBaseStomach, OrganAnimalInternal, OrganAnimalMetabolizer ]
+  id: OrganAnimalStomach
+
+- type: entity
+  parent: [ OrganBaseLiver, OrganAnimalInternal, OrganAnimalMetabolizer ]
+  id: OrganAnimalLiver
+
+- type: entity
+  parent: [ OrganBaseKidneys, OrganAnimalInternal, OrganAnimalMetabolizer ]
+  id: OrganAnimalKidneys
+
+- type: entity
   id: BaseMobAnimal
   abstract: true
   components:
   - type: Body
-  - type: BodyWoundHealing
+  - type: EntityTableContainerFill
+    containers:
+      body_organs: !type:AllSelector
+        children:
+        - id: OrganAnimalLungs
+        - id: OrganAnimalHeart
+        - id: OrganAnimalStomach
+        - id: OrganAnimalLiver
+        - id: OrganAnimalKidneys

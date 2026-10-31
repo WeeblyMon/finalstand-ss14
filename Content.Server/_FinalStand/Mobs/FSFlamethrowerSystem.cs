@@ -242,6 +242,8 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
             var shotDir = shotAngle.ToVec();
             var spawnCoords = coords.Offset(shotDir * 0.3f);
             var projectile = Spawn("FSFireProjectile", spawnCoords);
+            if (TryComp<FSFireProjectileComponent>(projectile, out var fire))
+                fire.Shooter = uid;
 
             var body = EnsureComp<PhysicsComponent>(projectile);
             _physics.SetBodyStatus(projectile, body, BodyStatus.InAir);

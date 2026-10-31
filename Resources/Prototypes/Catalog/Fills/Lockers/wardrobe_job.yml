@@ -70,7 +70,7 @@
       children:
       - id: CigPackBlack
       - id: Joint
-      - id: BluntCigar
+      - id: Blunt
       - id: PackPaperRolling
       - id: Cigarette
         amount: !type:RangeNumberSelector

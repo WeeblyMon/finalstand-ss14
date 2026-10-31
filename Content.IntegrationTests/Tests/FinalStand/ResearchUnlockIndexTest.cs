@@ -24,7 +24,10 @@ public sealed class ResearchUnlockIndexTest : GameTest
             var research = entityManager.System<FSResearchSystem>();
             var station = research.GetOrCreateStation();
 
-            var sample = prototypes.EnumeratePrototypes<FSTechNodePrototype>().Take(3).ToList();
+            var sample = prototypes.EnumeratePrototypes<FSTechNodePrototype>()
+                .Where(node => !FSMedicalResearchSystem.IsMedicalNode(node))
+                .Take(3)
+                .ToList();
             Assert.That(sample, Is.Not.Empty, "no research nodes to test against");
 
             foreach (var node in sample)

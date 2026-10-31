@@ -40,11 +40,8 @@ public sealed partial class WaveHudOverlay : Overlay
     private Font? _midFont;
     private Font? _tooltipNameFont;
     private Font? _tooltipBodyFont;
-    private Font? _promptFont;
-    private Font? _promptSubFont;
     private int _cachedLabelPt = -1;
     private int _cachedValuePt = -1;
-    private int _cachedPromptPt = -1;
     private float _cachedLabelH;
     private float _cachedValueH;
 
@@ -208,10 +205,7 @@ public sealed partial class WaveHudOverlay : Overlay
     public float HarvestAccrued;
     public float HarvestCap;
 
-    public UIBox2 RespawnButtonBounds = new(-100, -100, -99, -99);
 
-    public event Action? OnRespawnClicked;
-    private float _respawnClickCooldown;
 
     public event Action<bool>? OnReadyUpClicked;
     private bool _prevClickDown;
@@ -291,13 +285,6 @@ public sealed partial class WaveHudOverlay : Overlay
         _tooltipNameFont ??= new VectorFont(notoRes, 13);
         _tooltipBodyFont ??= new VectorFont(notoRes, 11);
 
-        var promptPt = Math.Max(14, (int)MathF.Round(28f * s));
-        if (_cachedPromptPt != promptPt)
-        {
-            _promptFont = new VectorFont(notoRes, promptPt);
-            _promptSubFont = new VectorFont(notoRes, Math.Max(9, (int)MathF.Round(14f * s)));
-            _cachedPromptPt = promptPt;
-        }
 
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
@@ -354,61 +341,7 @@ public sealed partial class WaveHudOverlay : Overlay
         RightStackHeight = screenSize.Y - BottomBandLift - (weaponTop - 6f - throwH);
 
         if (IsRespawnOfferVisible)
-        {
-            const string headline = "YOU ARE DOWN";
-            var subline = $"Wait for a medic, or revive for ${RespawnCost:N0}";
-
-            var headDims = screen.GetDimensions(_promptFont!, headline, 1f);
-            var subDims = screen.GetDimensions(_promptSubFont!, subline, 1f);
-
-            var promptY = screenSize.Y * 0.30f;
-            var gap = MathF.Round(6f * s);
-
             DrawVignette(screen, screenSize);
-
-            DrawShadowed(screen, _promptFont!,
-                new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
-                headline, FSPalette.DangerSoft);
-
-            DrawShadowed(screen, _promptSubFont!,
-                new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
-                subline, FSPalette.TextBright);
-
-            var afterTextY = promptY + headDims.Y + gap + subDims.Y;
-
-            if (CasualtyStatus is { } casualty)
-            {
-                var casualtyDims = screen.GetDimensions(_promptSubFont!, casualty, 1f);
-                var casualtyColor = CasualtyResponded ? FSPalette.Ok : FSPalette.TextMuted;
-
-                DrawShadowed(screen, _promptSubFont!,
-                    new Vector2((screenSize.X - casualtyDims.X) * 0.5f, afterTextY + gap * 0.5f),
-                    casualty, casualtyColor);
-
-                afterTextY += gap * 0.5f + casualtyDims.Y;
-            }
-
-            const string btnLabel = "REVIVE NOW";
-            var btnDim = screen.GetDimensions(_labelFont!, btnLabel, 1f);
-            var btnPadX = MathF.Round(20f * s);
-            var btnPadY = MathF.Round(8f * s);
-            var respawnBtnW = btnDim.X + btnPadX * 2f;
-            var respawnBtnH = btnDim.Y + btnPadY * 2f;
-            var btnX = (screenSize.X - respawnBtnW) * 0.5f;
-            var btnY = afterTextY + gap * 2f;
-
-            RespawnButtonBounds = new UIBox2(btnX, btnY, btnX + respawnBtnW, btnY + respawnBtnH);
-            DrawPanel(screen, RespawnButtonBounds, VitalsBack, VitalsEdge, FSPalette.Danger);
-            DrawShadowed(screen,
-                _labelFont!,
-                new Vector2(btnX + btnPadX, btnY + btnPadY),
-                btnLabel,
-                FSPalette.Danger);
-        }
-        else
-        {
-            RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);
-        }
 
         void DrawReadyUpBlock()
         {
@@ -734,9 +667,6 @@ public sealed partial class WaveHudOverlay : Overlay
         if (DirectiveFlash > 0f)
             DirectiveFlash = MathF.Max(0f, DirectiveFlash - args.DeltaSeconds * 2f);
 
-        if (_respawnClickCooldown > 0f)
-            _respawnClickCooldown -= args.DeltaSeconds;
-
         var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
         var mousePos = _input.MouseScreenPosition.Position;
 
@@ -746,13 +676,6 @@ public sealed partial class WaveHudOverlay : Overlay
                 OnReadyUpClicked?.Invoke(true);
             else if (ReadyUpNoBounds.Contains(mousePos))
                 OnReadyUpClicked?.Invoke(false);
-        }
-
-        if (IsRespawnOfferVisible && down && !_prevClickDown && _respawnClickCooldown <= 0f
-            && RespawnButtonBounds.Contains(mousePos))
-        {
-            _respawnClickCooldown = 0.5f;
-            OnRespawnClicked?.Invoke();
         }
 
         if (down && !_prevClickDown)

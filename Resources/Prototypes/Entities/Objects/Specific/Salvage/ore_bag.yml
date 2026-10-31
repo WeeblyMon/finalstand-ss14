@@ -6,6 +6,7 @@
   components:
   - type: MagnetPickup
     slotFlags: null
+  - type: FSMagnetToggle
   - type: Sprite
     sprite: Objects/Specific/Mining/ore_bag.rsi
     state: icon

@@ -71,7 +71,11 @@ public sealed partial class FSPerkBodySystem : EntitySystem
         var packMule = perks.GetSlottedLevel("PackMule");
         var hadPackMule = TryComp<FSPackMuleComponent>(body, out var mule) ? mule.Level : 0;
         if (packMule > 0)
-            EnsureComp<FSPackMuleComponent>(body).Level = packMule;
+        {
+            var muleComp = EnsureComp<FSPackMuleComponent>(body);
+            muleComp.Level = packMule;
+            Dirty(body, muleComp);
+        }
         else
             RemComp<FSPackMuleComponent>(body);
         if (packMule != hadPackMule)

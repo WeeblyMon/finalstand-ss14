@@ -27,7 +27,7 @@ public sealed partial class LoadoutSystem : EntitySystem
     {
         base.Initialize();
 
-        // Hands come from organs, so the body has to be assembled before anything is put in them.
+        // Wait until the character has all their organs before we give them their loadout
         SubscribeLocalEvent<LoadoutComponent, MapInitEvent>(OnMapInit, after: [typeof(InitialBodySystem)]);
     }
 
@@ -37,14 +37,6 @@ public sealed partial class LoadoutSystem : EntitySystem
             return string.Empty;
 
         return "Job" + loadout;
-    }
-
-    public static string GetAntagPrototype(string? loadout)
-    {
-        if (string.IsNullOrEmpty(loadout))
-            return string.Empty;
-
-        return "Antag" + loadout;
     }
 
     public EntProtoId? GetFirstOrNull(LoadoutPrototype loadout)
@@ -185,7 +177,7 @@ public sealed partial class LoadoutSystem : EntitySystem
     public HumanoidCharacterProfile GetProfile(EntityUid? uid)
     {
         return TryComp<HumanoidProfileComponent>(uid, out var profile)
-            ? HumanoidCharacterProfile.DefaultWithSpecies(profile.Species)
+            ? HumanoidCharacterProfile.DefaultWithSpecies(profile.Species, profile.Sex)
             : HumanoidCharacterProfile.Random();
     }
 }

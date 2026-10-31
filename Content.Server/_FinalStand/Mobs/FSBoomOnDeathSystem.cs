@@ -1,10 +1,9 @@
-using Content.Server._FinalStand.Upgrades.Effects;
 using System.Numerics;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Mobs;
-using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -14,7 +13,6 @@ using Content.Shared.Ghost.Components;
 using Content.Shared.Ghost.Systems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
-using Content.Shared.Movement.Systems;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -26,8 +24,7 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
-    [Dependency] private FSDamageVulnerabilitySystem _vulnerability = default!;
-    [Dependency] private SlowingUpgradeSystem _slow = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
@@ -132,12 +129,11 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
 
         var blastDamage = new DamageSpecifier();
         blastDamage.DamageDict["Blunt"] = FixedPoint2.New(comp.ExplosionDamage);
-        blastDamage.DamageDict["Toxin"] = FixedPoint2.New(comp.ToxinDamage);
+        blastDamage.DamageDict["Caustic"] = FixedPoint2.New(comp.CausticDamage);
 
-        // One query at the wider radius; each effect then filters by its own.
-        var searchRadius = MathF.Max(comp.ExplosionRadius, comp.SlowRadius);
         var inRange = _damageableSetPool.Get();
-        _lookup.GetEntitiesInRange<DamageableComponent>(epicenter, searchRadius, inRange);
+        _lookup.GetEntitiesInRange<DamageableComponent>(epicenter, comp.ExplosionRadius, inRange);
+        var soaked = _ailments.Rules.Soaked;
 
         foreach (var (targetUid, _) in inRange)
         {
@@ -146,18 +142,14 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
             if (HasComp<GhostComponent>(targetUid)) continue;
             if (!HasComp<MobStateComponent>(targetUid)) continue; // skip structures, walls, machines
 
-            var dist = Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid));
+            var distance = Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid));
+            if (distance > comp.ExplosionRadius)
+                continue;
 
-            if (dist <= comp.ExplosionRadius)
-            {
-                _damageable.TryChangeDamage(targetUid, blastDamage, ignoreResistances: false, origin: uid);
-                _vulnerability.Apply(targetUid, duration: 5f);
-            }
-
-            if (comp.SlowRadius > 0f && dist <= comp.SlowRadius)
-            {
-                _slow.ApplySlow(targetUid, "bloater", comp.SlowAmount, TimeSpan.FromSeconds(comp.SlowDuration));
-            }
+            var scale = MathHelper.Lerp(1f, comp.EdgeDamageScale, distance / comp.ExplosionRadius);
+            _damageable.TryChangeDamage(targetUid, blastDamage * scale, out var dealt, ignoreResistances: false, origin: uid);
+            _ailments.InflictHit(targetUid, comp.Injury, dealt.GetTotal().Float(), uid);
+            _ailments.Apply(targetUid, soaked, uid);
         }
         _damageableSetPool.Return(inRange);
     }

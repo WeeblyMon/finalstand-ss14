@@ -11,6 +11,8 @@ public sealed partial class WaveHudSystem
 
     private const int MaxTriageRows = 5;
 
+    private readonly List<(FSCasualtyEntry Entry, float? Range, Vector2? Dir)> _triageScratch = new();
+
     private void UpdateTriage(WaveHudOverlay overlay)
     {
         overlay.TriageRows.Clear();
@@ -19,7 +21,8 @@ public sealed partial class WaveHudSystem
         if (board.Entries.Count == 0)
             return;
 
-        var ordered = new List<(FSCasualtyEntry Entry, float? Range, Vector2? Dir)>(board.Entries.Count);
+        var ordered = _triageScratch;
+        ordered.Clear();
 
         foreach (var entry in board.Entries)
         {
@@ -27,41 +30,24 @@ public sealed partial class WaveHudSystem
             ordered.Add((entry, range, dir));
         }
 
-        ordered.Sort((a, b) =>
-        {
-            var state = Rank(b.Entry.State).CompareTo(Rank(a.Entry.State));
-            if (state != 0)
-                return state;
-
-            return (a.Range ?? float.MaxValue).CompareTo(b.Range ?? float.MaxValue);
-        });
+        var now = _timing.CurTime;
+        ordered.Sort((a, b) => FSCasualtyBoardSystem.Compare(a.Entry, a.Range, b.Entry, b.Range, now));
 
         foreach (var (entry, range, dir) in ordered)
         {
             if (overlay.TriageRows.Count >= MaxTriageRows)
                 break;
 
-            var state = entry.State switch
-            {
-                FSCasualtyState.Dead => "DOWN",
-                FSCasualtyState.Critical => "CRIT",
-                _ => "HURT",
-            };
-
             overlay.TriageRows.Add(new WaveHudOverlay.TriageRow(
                 entry.Name,
-                state,
+                _board.StateLabel(entry, now),
+                FSCasualtyBoardSystem.StateColor(entry),
                 range is { } r ? $"{(int) r}m" : string.Empty,
-                entry.State == FSCasualtyState.Critical,
-                entry.Responder != null,
-                dir));
+                entry.Responder,
+                dir,
+                entry.Pips,
+                _board.NeedsLabel(entry),
+                entry.Priority));
         }
     }
-
-    private static int Rank(FSCasualtyState state) => state switch
-    {
-        FSCasualtyState.Dead => 2,
-        FSCasualtyState.Critical => 1,
-        _ => 0,
-    };
 }

@@ -1,4 +1,8 @@
 using System.Numerics;
+using Content.Client._FinalStand.Ailments;
+using Content.Client._FinalStand.Interface;
+using Content.Shared._FinalStand.Ailments;
+using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Mind.Components;
@@ -17,6 +21,8 @@ public sealed class FSReviveIndicatorOverlay : Overlay
     private readonly IGameTiming _timing;
     private readonly SharedTransformSystem _transform;
     private readonly MobStateSystem _mobState;
+    private readonly MobThresholdSystem _thresholds;
+    private readonly FSAilmentSystem _ailments;
 
     private readonly Texture? _iconDead;
     private readonly Texture? _iconCrit;
@@ -30,12 +36,16 @@ public sealed class FSReviveIndicatorOverlay : Overlay
     private const float BobAmplitude = 0.05f;
     private const float BobSpeed = 2.6f;
 
+    private const float RingRadius = 0.56f;
+
     public FSReviveIndicatorOverlay(IEntityManager entManager, IGameTiming timing, IResourceCache cache)
     {
         _entManager = entManager;
         _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
         _mobState = _entManager.System<MobStateSystem>();
+        _thresholds = _entManager.System<MobThresholdSystem>();
+        _ailments = _entManager.System<FSAilmentSystem>();
 
         ZIndex = 10;
 
@@ -81,8 +91,47 @@ public sealed class FSReviveIndicatorOverlay : Overlay
 
             handle.DrawTextureRect(icon,
                 new Box2(-halfWidth, centre - halfHeight, halfWidth, centre + halfHeight));
+
+            if (_mobState.IsCritical(uid, mobState) && _entManager.TryGetComponent(uid, out FSAilmentStateComponent? vitals))
+                DrawClock(handle, new Vector2(0f, centre), uid, vitals);
         }
 
         handle.SetTransform(Matrix3x2.Identity);
+    }
+
+    private void DrawClock(DrawingHandleWorld handle, Vector2 centre, EntityUid uid, FSAilmentStateComponent vitals)
+    {
+        float fraction;
+        Color color;
+        if (vitals.Held)
+        {
+            fraction = 1f;
+            color = FSPalette.Ok;
+        }
+        else if (vitals.DownEnd is { } end)
+        {
+            var full = FullClock(uid);
+            fraction = full > 0f ? Math.Clamp((float) (end - _timing.CurTime).TotalSeconds / full, 0f, 1f) : 1f;
+            color = FSPalette.Danger;
+        }
+        else
+        {
+            return;
+        }
+
+        FSAilmentVisualsSystem.DrawArc(handle, centre, RingRadius, fraction, color);
+    }
+
+    private float FullClock(EntityUid uid)
+    {
+        var drain = _ailments.Rules.DownDrain.GetTotal().Float();
+        if (drain <= 0f
+            || !_thresholds.TryGetThresholdForState(uid, MobState.Critical, out var crit)
+            || !_thresholds.TryGetThresholdForState(uid, MobState.Dead, out var dead))
+        {
+            return 0f;
+        }
+
+        return (dead.Value - crit.Value).Float() / drain;
     }
 }

@@ -38,7 +38,7 @@
             - material: GroundCannabis
               doAfter: 2
     - node: blunt
-      entity: BluntCigar
+      entity: Blunt
 
 - type: constructionGraph
   id: smokeableBluntRainbow

@@ -17,4 +17,7 @@ public sealed partial class FSChemGuidePrototype : IPrototype
 
     [DataField(required: true)]
     public List<ProtoId<ReactionPrototype>> Reactions { get; private set; } = new();
+
+    [DataField]
+    public Dictionary<ProtoId<ReactionPrototype>, LocId> Notes { get; private set; } = new();
 }

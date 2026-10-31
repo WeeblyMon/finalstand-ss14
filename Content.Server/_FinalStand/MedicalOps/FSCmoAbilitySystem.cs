@@ -5,8 +5,10 @@ using Content.Shared.Mind;
 using Content.Server._FinalStand.Research;
 using Content.Shared.Database;
 using Content.Server.Radio.EntitySystems;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
+using Content.Shared.Mobs;
 using Content.Shared.Radio;
 using Content.Shared.Popups;
 using Robust.Server.Player;
@@ -31,6 +33,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private FSMedicalFundSystem _fund = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSAilmentSystem _ailments = default!;
 
     private static readonly SoundSpecifier DirectiveSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/directive.ogg");
@@ -51,6 +54,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     };
 
     private static readonly TimeSpan MobilisationDuration = TimeSpan.FromSeconds(20);
+    private const float PharmaWardScale = 1.5f;
     private static readonly TimeSpan DirectiveCooldown = TimeSpan.FromSeconds(60);
 
     private static readonly FrozenDictionary<FSMedicalDirective, DirectiveDef> Directives = new Dictionary<FSMedicalDirective, DirectiveDef>()
@@ -97,7 +101,8 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private void SetActiveDirective(FSMedicalDirective? directive)
     {
         _activeDirective = directive;
-        RefreshDoctrine();
+        _ailments.SetFieldOps(directive == FSMedicalDirective.FieldOps);
+        _ailments.SetWardScale(directive == FSMedicalDirective.Pharma ? PharmaWardScale : 1f);
 
         var query = EntityQueryEnumerator<FSCmoPanelComponent>();
         while (query.MoveNext(out var uid, out var panel))
@@ -118,6 +123,21 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
         SubscribeNetworkEvent<FSCmoAbilityRequestEvent>(OnPanelRequest);
         SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnResearchCompleted);
+        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+    }
+
+    private void OnMobStateChanged(MobStateChangedEvent ev)
+    {
+        if (_activeDirective != FSMedicalDirective.Trauma
+            || ev.OldMobState != MobState.Critical
+            || ev.NewMobState != MobState.Alive
+            || ev.Origin is not { } medic
+            || !_roster.IsMedical(medic))
+        {
+            return;
+        }
+
+        _ailments.StopBleeding(ev.Target, medic, FSCureKind.Rider);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
@@ -145,12 +165,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void RefreshDoctrine()
     {
-        if (!_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine))
-            return;
-
-        if (_activeDirective == null)
-            RemoveFromDepartment(DoctrineSource);
-        else
+        if (_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine))
             ApplyToDepartment(DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
     }
 
@@ -203,9 +218,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             Dirty(ev.Mob, panel);
         }
 
-        if (_activeDirective != null
-            && _upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine)
-            && _roster.IsMedical(ev.Mob))
+        if (_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine) && _roster.IsMedical(ev.Mob))
         {
             _bonus.ApplyBuff(ev.Mob, DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
         }

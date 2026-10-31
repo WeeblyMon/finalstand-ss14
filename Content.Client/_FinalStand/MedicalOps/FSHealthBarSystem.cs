@@ -18,6 +18,9 @@ public sealed partial class FSHealthBarSystem : EntitySystem
 
     private bool _isMedical;
     private bool _isChemist;
+    private float _softCap = FSMediGunComponent.DefaultSoftCap;
+
+    public float SoftCap => _softCap;
 
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(0.25);
     private TimeSpan _nextRefresh;
@@ -41,6 +44,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
     {
         _isMedical = ev.IsMedical;
         _isChemist = ev.IsChemist;
+        _softCap = ev.SoftCap;
 
         if (_playerManager.LocalEntity is { } local)
             EnsureHealthBars(local);
@@ -80,6 +84,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
             return;
 
         overlay.ShowDamageTypes = _isMedical;
+        overlay.MedigunSoftCap = _softCap;
         overlay.MedigunTarget = FindMedigunTarget();
 
         RefreshChemBuffed(overlay);
@@ -123,7 +128,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
         {
             foreach (var source in healed.Sources)
             {
-                if (TryComp<FSMediGunComponent>(source, out var gun) && gun.ParentEntity == local)
+                if (TryComp<FSMediGunComponent>(source, out var gun) && gun.Medic == local)
                     return patient;
             }
         }

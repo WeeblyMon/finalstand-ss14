@@ -20,17 +20,6 @@
   reaction: FSEtchant
 
 - type: fsFieldKit
-  id: FSFieldKitCoagulantMist
-  name: fs-field-kit-coagulant
-  purpose: fs-field-kit-coagulant-purpose
-  delivery: fs-field-kit-delivery-either
-  priority: 3
-  research: true
-  carried:
-  - FSBiomass
-  reaction: FSCoagulantMist
-
-- type: fsFieldKit
   id: FSFieldKitSolvent
   name: fs-field-kit-solvent
   purpose: fs-field-kit-solvent-purpose
@@ -59,3 +48,4 @@
   carried:
   - FSBiomass
   reaction: FSCorrosive
+

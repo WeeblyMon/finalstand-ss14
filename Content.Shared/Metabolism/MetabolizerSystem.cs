@@ -1,14 +1,11 @@
-using Content.Shared._FinalStand.Medical;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Body.Events;
 using Content.Shared.Body;
-using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
-using Content.Shared._Shitmed.EntityConditions;
 using Content.Shared.EntityConditions;
 using Content.Shared.EntityConditions.Conditions;
 using Content.Shared.EntityConditions.Conditions.Body;
@@ -19,7 +16,6 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Random.Helpers;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
 namespace Content.Shared.Metabolism;
@@ -27,32 +23,34 @@ namespace Content.Shared.Metabolism;
 /// <inheritdoc/>
 public sealed partial class MetabolizerSystem : EntitySystem
 {
-    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private BodySystem _body = default!;
     [Dependency] private IGameTiming _gameTiming = default!;
-    [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private MobStateSystem _mobStateSystem = default!;
     [Dependency] private SharedEntityConditionsSystem _entityConditions = default!;
     [Dependency] private SharedEntityEffectsSystem _entityEffects = default!;
     [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
 
-    [Dependency] private SharedBodyAppearanceSystem _body = default!;
     [Dependency] private EntityQuery<OrganComponent> _organQuery = default!;
     [Dependency] private EntityQuery<SolutionManagerComponent> _solutionQuery = default!;
 
-    public override void Initialize()
-    {
-        base.Initialize();
 
-        SubscribeLocalEvent<MetabolizerComponent, MapInitEvent>(OnMapInit);
-        SubscribeLocalEvent<MetabolizerComponent, BodyRelayedEvent<ApplyMetabolicMultiplierEvent>>(OnApplyMetabolicMultiplier);
+    [SubscribeLocalEvent]
+    private void OnAddMetabolismInit(Entity<AddMetabolismComponent> ent, ref MapInitEvent args)
+    {
+        if (ent.Comp.AddedMetabolizer == null)
+            return;
+
+        AddMetabolizerToBody(ent, ent.Comp.AddedMetabolizer.Value);
     }
 
+    [SubscribeLocalEvent]
     private void OnMapInit(Entity<MetabolizerComponent> ent, ref MapInitEvent args)
     {
         ent.Comp.NextUpdate = _gameTiming.CurTime + ent.Comp.AdjustedUpdateInterval;
         Dirty(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnApplyMetabolicMultiplier(Entity<MetabolizerComponent> ent, ref BodyRelayedEvent<ApplyMetabolicMultiplierEvent> args)
     {
         ent.Comp.UpdateIntervalMultiplier = args.Args.Multiplier;
@@ -158,7 +156,7 @@ public sealed partial class MetabolizerSystem : EntitySystem
         int reagents = 0;
         foreach (var (reagent, quantity) in list)
         {
-            if (!_prototypeManager.TryIndex<ReagentPrototype>(reagent.Prototype, out var proto))
+            if (!ProtoMan.TryIndex<ReagentPrototype>(reagent.Prototype, out var proto))
                 continue;
 
             // Skip blood reagents
@@ -213,7 +211,7 @@ public sealed partial class MetabolizerSystem : EntitySystem
                     continue;
 
                 // See if conditions apply
-                if (effect.Conditions != null && !CanMetabolizeEffect(actualEntity, ent, solutionEntity.Value, effect.Conditions, quantity))
+                if (effect.Conditions != null && !CanMetabolizeEffect(actualEntity, ent, solutionEntity.Value, effect.Conditions))
                     continue;
 
                 ApplyEffect(effect);
@@ -282,7 +280,7 @@ public sealed partial class MetabolizerSystem : EntitySystem
     /// <param name="solution">The solution we are metabolizing from</param>
     /// <param name="conditions">The conditions that need to be met to metabolize</param>
     /// <returns>True if we can metabolize! False if we cannot!</returns>
-    public bool CanMetabolizeEffect(EntityUid body, EntityUid organ, Entity<SolutionComponent> solution, EntityCondition[] conditions, FixedPoint2 currentQuantity = default)
+    public bool CanMetabolizeEffect(EntityUid body, EntityUid organ, Entity<SolutionComponent> solution, EntityCondition[] conditions)
     {
         foreach (var condition in conditions)
         {
@@ -298,24 +296,6 @@ public sealed partial class MetabolizerSystem : EntitySystem
                     if (_entityConditions.TryCondition(solution, condition))
                         continue;
                     break;
-                // Goob: checks the quantity of the currently-metabolizing reagent (not a named reagent).
-                case ReagentThreshold threshold:
-                {
-                    var qty = currentQuantity.Float();
-                    var passes = qty >= threshold.Min && qty <= threshold.Max;
-                    if (threshold.Inverted ? !passes : passes)
-                        continue;
-                    break;
-                }
-                // Goob: same semantics as ReagentThreshold but used for unique-stack checks.
-                case UniqueBloodstreamChemThreshold ubct:
-                {
-                    var qty = currentQuantity.Float();
-                    var passes = qty >= ubct.Min && qty <= ubct.Max;
-                    if (ubct.Inverted ? !passes : passes)
-                        continue;
-                    break;
-                }
                 default:
                     if (_entityConditions.TryCondition(body, condition))
                         continue;
@@ -331,26 +311,32 @@ public sealed partial class MetabolizerSystem : EntitySystem
     /// <summary>
     /// Adds a metabolizer type to all organs with <see cref="MetabolizerComponent"/> owned by an entity.
     /// </summary>
+    /// <param name="entity">The entity whose organs to affect.</param>
+    /// <param name="metabolizer">The metabolizer type to add to the organs.</param>
     public void AddMetabolizerToBody(EntityUid entity, ProtoId<MetabolizerTypePrototype> metabolizer)
     {
-        if (!_lookup.TryGetBodyOrgans<MetabolizerComponent>(entity, out var organs))
-            return;
+        var organs = _body.EnumerateOrgans<MetabolizerComponent>(entity);
 
         foreach (var organ in organs)
         {
-            TryAddMetabolizerType((organ.Owner, organ.Comp), metabolizer);
+            TryAddMetabolizerType((organ.Owner, organ.Comp2), metabolizer);
         }
     }
 
     /// <summary>
-    /// Tries to add a new metabolizer type to an entity with <see cref="MetabolizerComponent"/>.
+    /// Tries to add a new metabolizer type to an entity with <see cref="MetabolizerComponent"/>
     /// </summary>
+    /// <param name="ent">The metabolizer to add to.</param>
+    /// <param name="metabolizer">The prototype to add.</param>
+    /// <returns>True if the type was added, otherwise False.</returns>
     public bool TryAddMetabolizerType(Entity<MetabolizerComponent?> ent, ProtoId<MetabolizerTypePrototype> metabolizer)
     {
         if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
-        ent.Comp.MetabolizerTypes ??= new HashSet<ProtoId<MetabolizerTypePrototype>>();
+        // If there is no metabolizer types, we still want to add one.
+        if (ent.Comp.MetabolizerTypes == null)
+            ent.Comp.MetabolizerTypes = new HashSet<ProtoId<MetabolizerTypePrototype>>();
 
         return ent.Comp.MetabolizerTypes.Add(metabolizer);
     }

@@ -16,25 +16,26 @@ namespace Content.Server._FinalStand.Mobs;
 
 public sealed partial class FSRevenantSystem
 {
-    private void ApplyAbilityDamage(EntityUid uid, FSRevenantComponent comp, EntityUid target, float amount)
+    public float DealSlash(EntityUid target, float amount, float bypass, EntityUid origin)
     {
-        var scaled = amount * GetDamageScale(uid);
-        var pierced = scaled * Math.Clamp(comp.ResistanceBypass, 0f, 1f);
-        var resisted = scaled - pierced;
+        var pierced = amount * Math.Clamp(bypass, 0f, 1f);
+        return Slash(target, amount - pierced, false, origin) + Slash(target, pierced, true, origin);
+    }
 
-        if (resisted > 0f)
-        {
-            var dmg = new DamageSpecifier();
-            dmg.DamageDict["Slash"] = FixedPoint2.New(resisted);
-            _damageable.TryChangeDamage(target, dmg, ignoreResistances: false, origin: uid);
-        }
+    private float Slash(EntityUid target, float amount, bool ignoreResistances, EntityUid origin)
+    {
+        if (amount <= 0f)
+            return 0f;
 
-        if (pierced > 0f)
-        {
-            var dmg = new DamageSpecifier();
-            dmg.DamageDict["Slash"] = FixedPoint2.New(pierced);
-            _damageable.TryChangeDamage(target, dmg, ignoreResistances: true, origin: uid);
-        }
+        var dmg = new DamageSpecifier();
+        dmg.DamageDict["Slash"] = FixedPoint2.New(amount);
+        _damageable.TryChangeDamage(target, dmg, out var landed, ignoreResistances: ignoreResistances, origin: origin);
+        return landed.GetTotal().Float();
+    }
+
+    private float ApplyAbilityDamage(EntityUid uid, FSRevenantComponent comp, EntityUid target, float amount)
+    {
+        return DealSlash(target, amount * GetDamageScale(uid), comp.ResistanceBypass, uid);
     }
 
     private float GetDamageScale(EntityUid uid)
@@ -202,7 +203,8 @@ public sealed partial class FSRevenantSystem
 
     private void DoVerticalSlice(EntityUid uid, FSRevenantComponent comp, EntityUid target, MapCoordinates targetPos)
     {
-        ApplyAbilityDamage(uid, comp, target, comp.SliceDamage);
+        var dealt = ApplyAbilityDamage(uid, comp, target, comp.SliceDamage);
+        _ailments.InflictHit(target, comp.SliceInjury, dealt, uid);
 
         _effects.SpawnAttached(FSRevenantEffect.SliceVertical, target);
         _effects.SpawnAttached(FSRevenantEffect.Hit, target, delay: comp.SliceHitDelay);
@@ -230,7 +232,8 @@ public sealed partial class FSRevenantSystem
                 && Vector2.Dot(Vector2.Normalize(toTarget), facing) < cosHalfArc)
                 continue;
 
-            ApplyAbilityDamage(uid, comp, targetUid, comp.SliceDamage);
+            var dealt = ApplyAbilityDamage(uid, comp, targetUid, comp.SliceDamage);
+            _ailments.InflictHit(targetUid, comp.SliceInjury, dealt, uid);
             _effects.SpawnAttached(FSRevenantEffect.Hit, targetUid, delay: comp.SliceHitDelay);
         }
 
@@ -305,7 +308,8 @@ public sealed partial class FSRevenantSystem
             return;
         }
 
-        ApplyAbilityDamage(uid, comp, victim, comp.GrabDamage);
+        var dealt = ApplyAbilityDamage(uid, comp, victim, comp.GrabDamage);
+        _ailments.InflictHit(victim, comp.GrabInjury, dealt, uid);
 
         comp.BindAccum = comp.BindCooldown;
     }

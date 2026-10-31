@@ -2,21 +2,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.DisplacementMap;
 using Content.Shared.Inventory.Events;
-using Content.Shared.Random;
 using Content.Shared.Storage;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Inventory;
 
 public partial class InventorySystem : EntitySystem
 {
-    [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private IViewVariablesManager _vvm = default!;
-    [Dependency] private RandomHelperSystem _randomHelper = default!;
-    [Dependency] private IGameTiming _gameTiming = default!;
 
     private void InitializeSlots()
     {
@@ -27,36 +22,6 @@ public partial class InventorySystem : EntitySystem
             .AddHandler(HandleViewVariablesSlots, ListViewVariablesSlots);
 
         SubscribeLocalEvent<InventoryComponent, AfterAutoHandleStateEvent>(AfterAutoState);
-    }
-
-    /// <summary>
-    ///     Shitmed Change: Drops the item in the specified inventory slot to the ground.
-    /// </summary>
-    public void DropSlotContents(EntityUid uid, string slotName, InventoryComponent? inventory = null)
-    {
-        if (!Resolve(uid, ref inventory))
-            return;
-
-        foreach (var slot in inventory.Slots)
-        {
-            if (slot.Name != slotName)
-                continue;
-
-            if (!TryGetSlotContainer(uid, slotName, out var container, out _, inventory))
-                break;
-
-            if (container.ContainedEntity is { } entityUid
-                && TryComp(entityUid, out TransformComponent? transform)
-                && _gameTiming.IsFirstTimePredicted)
-            {
-                _transform.AttachToGridOrMap(entityUid, transform);
-                _randomHelper.RandomOffset(entityUid, 0.5f);
-            }
-
-            break;
-        }
-
-        Dirty(uid, inventory);
     }
 
     private void ShutdownSlots()
@@ -120,7 +85,7 @@ public partial class InventorySystem : EntitySystem
 
     protected virtual void UpdateInventoryTemplate(Entity<InventoryComponent> ent)
     {
-        if (!_prototypeManager.Resolve(ent.Comp.TemplateId, out var invTemplate))
+        if (!ProtoMan.Resolve(ent.Comp.TemplateId, out var invTemplate))
             return;
 
         // Remove any containers that aren't in the new template.

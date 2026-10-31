@@ -1,15 +1,16 @@
 using Content.Shared._FinalStand.FriendlyFire;
-using Content.Shared._Shitmed.Medical.Surgery.Tools;
 using Content.Shared.Botany.Items.Components;
 using Content.Shared.Burial.Components;
 using Content.Shared.Explosion.Components;
 using Content.Shared.GameTicking;
 using Content.Shared.Item;
 using Content.Shared.Projectiles;
+using Content.Shared.Tag;
 using Content.Shared.Tools.Components;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Containers;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Cleanup;
@@ -18,6 +19,9 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
 {
     [Dependency] private SharedContainerSystem _containers = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private TagSystem _tags = default!;
+
+    private static readonly ProtoId<TagPrototype> MedicalToolTag = "FSMedicalTool";
 
     private const double LifetimeSeconds = 5 * 60;
     private const float ScanInterval = 30f;
@@ -68,7 +72,7 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
         {
             if (melee.Damage.GetTotal() > 0
                 && !HasComp<ToolComponent>(uid)
-                && !HasComp<SurgeryToolComponent>(uid)
+                && !_tags.HasTag(uid, MedicalToolTag)
                 && !HasComp<ShovelComponent>(uid)
                 && !HasComp<BotanyHoeComponent>(uid))
                 Check(uid, now, toDelete);

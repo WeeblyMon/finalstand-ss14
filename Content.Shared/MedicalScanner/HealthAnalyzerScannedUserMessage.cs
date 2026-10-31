@@ -1,3 +1,4 @@
+using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.MedicalScanner;
@@ -28,6 +29,7 @@ public struct HealthAnalyzerUiState
     public bool? ScanMode;
     public bool? Bleeding;
     public bool? Unrevivable;
+    public List<HealthAnalyzerReagent>? Reagents;
 
     public HealthAnalyzerUiState() {}
 
@@ -41,3 +43,6 @@ public struct HealthAnalyzerUiState
         Unrevivable = unrevivable;
     }
 }
+
+[Serializable, NetSerializable]
+public readonly record struct HealthAnalyzerReagent(string Reagent, FixedPoint2 Quantity, bool Safe);

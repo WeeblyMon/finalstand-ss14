@@ -1,3 +1,5 @@
+using Content.Shared._FinalStand.Ailments;
+
 namespace Content.Shared._FinalStand.MedicalOps;
 
 [RegisterComponent]
@@ -17,4 +19,7 @@ public sealed partial class FSMedicalPatientComponent : Component
 
     [ViewVariables]
     public TimeSpan PendingSaveAt;
+
+    [ViewVariables]
+    public HashSet<FSAilmentSlot> EnemyCaused = new();
 }

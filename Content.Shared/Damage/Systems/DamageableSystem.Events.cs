@@ -218,12 +218,7 @@ public sealed partial class DamageableSystem
         if (!_damageableQuery.TryGetComponent(ent, out var damageable))
             return;
 
-        // FINALSTAND: carry WoundSeverityMultipliers into the delta - without this the wound
-        // system's per-source severity knob is unreachable, since it only ever sees this delta.
-        var damageDone = new DamageSpecifier
-        {
-            WoundSeverityMultipliers = args.Damage.WoundSeverityMultipliers,
-        };
+        var damageDone = new DamageSpecifier();
 
         damageDone.DamageDict.EnsureCapacity(args.Damage.DamageDict.Count);
 
@@ -331,34 +326,19 @@ public sealed class DamageChangedEvent : EntityEventArgs
     /// </summary>
     public readonly EntityUid? Origin;
 
-    /// <summary>
-    ///     Damage before clamp of excessive heal and damage cap was applied.
-    /// </summary>
-    public readonly DamageSpecifier? UncappedDamage;
-
-    /// <summary>
-    ///     Whether or not the damage change should be blocked due to traumas or wounds.
-    /// </summary>
-    public readonly bool IgnoreBlockers;
-
     public DamageChangedEvent(
         DamageableComponent damageable,
         DamageSpecifier? damageDelta,
         bool interruptsDoAfters,
-        EntityUid? origin,
-        bool ignoreBlockers = false,
-        DamageSpecifier? uncapped = null
+        EntityUid? origin
     )
     {
         Damageable = damageable;
         DamageDelta = damageDelta;
         Origin = origin;
-        IgnoreBlockers = ignoreBlockers;
 
         if (DamageDelta is null)
             return;
-
-        UncappedDamage = uncapped ?? damageDelta;
 
         foreach (var damageChange in DamageDelta.DamageDict.Values)
         {

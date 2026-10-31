@@ -7,6 +7,12 @@ public sealed partial class CCVars
     public static readonly CVarDef<bool> FSAutoStart =
         CVarDef.Create("fs.autostart", true, CVar.SERVERONLY);
 
+    public static readonly CVarDef<bool> FSBodySizeModifiesHitbox =
+        CVarDef.Create("heightadjust.modifies_hitbox", true, CVar.SERVERONLY);
+
+    public static readonly CVarDef<bool> FSBodySizeModifiesZoom =
+        CVarDef.Create("heightadjust.modifies_zoom", false, CVar.SERVERONLY);
+
     // RCD picker layout: the Build Ring (radial) by default, or the Build Belt hotbar.
     public static readonly CVarDef<bool> FSRcdBeltLayout =
         CVarDef.Create("fs.rcd_belt_layout", false, CVar.CLIENTONLY | CVar.ARCHIVE);
