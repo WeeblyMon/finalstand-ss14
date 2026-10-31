@@ -39,7 +39,7 @@ public sealed partial class FSRecoveryZoneSystem : EntitySystem
                 continue;
 
             _nearby.Clear();
-            _lookup.GetEntitiesInRange(xform.Coordinates, zone.Radius, _nearby);
+            _lookup.GetEntitiesInRange(xform.Coordinates.Offset(zone.Offset), zone.Radius, _nearby);
             foreach (var patient in _nearby)
             {
                 _inZone.TryAdd(patient, (uid, zone));

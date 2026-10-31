@@ -24,7 +24,7 @@
   parent: BaseStructure
   id: FSFieldHospitalDeployed
   name: field hospital
-  description: A pitched medical tent. Stay within two metres of it and your injuries mend while you rest.
+  description: A pitched medical tent. Stand inside its green ring and your injuries mend while you rest.
   categories: [ HideSpawnMenu ]
   components:
   - type: GuideHelp
@@ -66,6 +66,8 @@
     noRot: true
   - type: Anchorable
   - type: FSRecoveryZone
+    radius: 2.5
+    offset: 0, 0.5
   - type: FSFieldHospital
   - type: FSArmingDelay
     delay: 6

@@ -1,6 +1,8 @@
 // World-space flair that is also information: build holograms filling in, the planted Broadsword's frontal barrier,
 // the emplacement's cover zone, a faint line from each sentry to what it's shooting at, and a mech's low-power blink.
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
+using Content.Shared._FinalStand.Ailments;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.Mech;
@@ -37,6 +39,7 @@ public sealed partial class FSFlairOverlay : Overlay
     private const float ShieldCloseTime = 0.25f;
     private const double ShieldSweepTime = 2.4;
     private const float CoverRange = 8f;
+    private const float RecoveryRange = 8f;
 
     private SharedTransformSystem? _xform;
     private SpriteSystem? _sprite;
@@ -66,6 +69,7 @@ public sealed partial class FSFlairOverlay : Overlay
         DrawHolograms(handle, args, now);
         DrawShields(handle, args, pulse);
         DrawCover(handle, args);
+        DrawRecoveryZones(handle, args);
         DrawSentryLines(handle, args);
         DrawLowPower(handle, args, now);
     }
@@ -220,6 +224,30 @@ public sealed partial class FSFlairOverlay : Overlay
         public float Open;
         public float Hull;
         public double FlashAt = double.MinValue;
+    }
+
+    private void DrawRecoveryZones(DrawingHandleWorld handle, in OverlayDrawArgs args)
+    {
+        if (_player.LocalEntity is not { } local)
+            return;
+
+        var me = _xform!.GetMapCoordinates(local);
+        var query = _entMan.EntityQueryEnumerator<FSRecoveryZoneComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var zone, out var xform))
+        {
+            if (xform.MapID != args.MapId || xform.MapID != me.MapId)
+                continue;
+
+            var grid = xform.GridUid is { } gridUid ? _xform.GetWorldRotation(gridUid) : Angle.Zero;
+            var center = _xform.GetWorldPosition(xform) + grid.RotateVec(zone.Offset);
+            var distance = (center - me.Position).Length();
+            if (distance > zone.Radius + RecoveryRange)
+                continue;
+
+            var alpha = distance <= zone.Radius ? 0.55f : 0.45f * (1f - (distance - zone.Radius) / RecoveryRange) + 0.1f;
+            handle.DrawCircle(center, zone.Radius, FSPalette.Ok.WithAlpha(alpha * 0.18f));
+            handle.DrawCircle(center, zone.Radius, FSPalette.Ok.WithAlpha(alpha), false);
+        }
     }
 
     private void DrawCover(DrawingHandleWorld handle, in OverlayDrawArgs args)
