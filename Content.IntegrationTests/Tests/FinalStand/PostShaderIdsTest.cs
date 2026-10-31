@@ -19,7 +19,8 @@ public sealed class PostShaderIdsTest : GameTest
 {
     public override PoolSettings PoolSettings => new() { Connected = true };
 
-    private static readonly ProtoId<ShaderPrototype> SelectionOutline = "SelectionOutline";
+    // Not a static field: the YAML linter checks static ids on the server as well, which has no shaders.
+    private readonly ProtoId<ShaderPrototype> _selectionOutline = "SelectionOutline";
 
     [Test]
     public async Task GlowLeavesTheHoverOutline()
@@ -37,7 +38,7 @@ public sealed class PostShaderIdsTest : GameTest
         await client.WaitPost(() =>
         {
             var sprites = client.System<SpriteSystem>();
-            var outline = client.ResolveDependency<IPrototypeManager>().Index(SelectionOutline).InstanceUnique();
+            var outline = client.ResolveDependency<IPrototypeManager>().Index(_selectionOutline).InstanceUnique();
             var sprite = client.EntMan.GetComponent<SpriteComponent>(Pair.ToClientUid(mob));
             sprites.SetPostShader(sprite, new SpriteComponent.PostShaderArgs(ContentPostShaderIds.InteractionOutline, outline)
             {
